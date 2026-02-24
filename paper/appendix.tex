@@ -66,9 +66,21 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 \section{Robustness checks}
 % ══════════════════════════════════════════════════════════════════════════════
 
-Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles. The main finding --- no significant additional decline in high-exposure postings after ChatGPT --- is robust across all specifications.
+Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel; (vii)~using language-modelling task exposure from DAIOE. The main finding --- no significant additional decline in high-exposure postings after ChatGPT --- is robust across all specifications.
 
 \input{../tables/robustness_results.tex}
+
+
+\subsection{Event study}
+
+Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The absence of systematic pre-trends supports the parallel trends assumption. The coefficients show no divergence at the ChatGPT launch date beyond what is attributable to the Riksbanken hiking cycle.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA3_event_study.png}
+\caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the Riksbanken first rate hike (April 2022) and ChatGPT launch (December 2022).}
+\label{fig:eventstudy}
+\end{figure}
 
 
 % ══════════════════════════════════════════════════════════════════════════════

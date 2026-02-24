@@ -3,14 +3,16 @@
 07_robustness.py — Robustness checks for online appendix.
 
 Alternative specifications:
-  1. Alternative AI measure: DAIOE all-apps (pctl_rank_allapps) instead of genAI
-  2. Alternative base period: Jan 2020 instead of Feb 2020
-  3. Vacancy-weighted results (sum of vacancies instead of ad count)
-  4. Seasonal adjustment (12-month rolling average)
-  5. Tercile classification instead of quartiles
-  6. Exclude pandemic months (drop Jan–Jun 2020)
+  R1. Alternative AI measure: DAIOE all-apps (pctl_rank_allapps) instead of genAI
+  R2. Vacancy-weighted results (sum of vacancies instead of ad count)
+  R3. Exclude pandemic months (drop Jan–Jun 2020)
+  R4. Tercile classification instead of quartiles
+  R5. Exclude IT/tech occupations (SSYK 25xx) — cf. Brynjolfsson et al. (2025)
+  R6. Balanced panel (only occupations observed every month)
+  R7. Language-modelling exposure (DAIOE task-level measure)
+  R8. Event study — monthly DiD coefficients (figure, not table row)
 
-All results saved to tables/ for inclusion in the appendix.
+All results saved to tables/ and figures/ for inclusion in the appendix.
 """
 
 import sys
@@ -26,6 +28,7 @@ from config import (
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 set_rcparams()
 
@@ -174,6 +177,210 @@ def robustness_terciles(merged):
     return run_panel_regression(panel, high_var="high_tercile")
 
 
+# ── Robustness 5: Exclude IT/tech occupations (SSYK 25xx) ────────────────────
+
+def robustness_excl_tech(merged):
+    """
+    Drop all SSYK 25xx (IT specialist) occupations, then re-estimate.
+
+    Brynjolfsson et al. exclude tech occupations (SOC 15-1) to show results
+    aren't driven by the tech-specific downturn. Our equivalent: SSYK 25xx,
+    which are all in Q4 with genAI pctl_rank > 80.
+    """
+    print("  R5: Exclude IT/tech occupations (SSYK 25xx)...")
+
+    df = merged.copy()
+    # SSYK 25xx = IT specialists (2511–2519)
+    df = df[~df["ssyk4"].astype(str).str.startswith("25")].copy()
+    print(f"    After dropping IT: {df['ssyk4'].nunique()} occupations remain")
+
+    panel = prepare_panel_generic(df)
+    return run_panel_regression(panel, high_var="high_exposure")
+
+
+# ── Robustness 6: Balanced panel ─────────────────────────────────────────────
+
+def robustness_balanced_panel(merged):
+    """
+    Restrict to occupations observed in EVERY month of the core sample.
+
+    Tests whether entry/exit of rare occupations drives the results.
+    Brynjolfsson et al. run an unbalanced panel check; we do the converse
+    by enforcing strict balance.
+
+    We first trim the data to the core sample period (2020-01 to 2025-12)
+    to exclude sparse edge months and erroneous future dates.
+    """
+    print("  R6: Balanced panel...")
+
+    df = merged.copy()
+    # Restrict to core sample period (avoid sparse edge months)
+    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= "2025-12")].copy()
+    n_months = df["year_month"].nunique()
+    occ_counts = df.groupby("ssyk4")["year_month"].nunique()
+    balanced_occs = occ_counts[occ_counts == n_months].index
+    df = df[df["ssyk4"].isin(balanced_occs)].copy()
+    print(f"    Core period: {n_months} months (2020-01 to 2025-12)")
+    print(f"    Balanced occupations: {len(balanced_occs)} of {merged['ssyk4'].nunique()}")
+
+    panel = prepare_panel_generic(df)
+    return run_panel_regression(panel, high_var="high_exposure")
+
+
+# ── Robustness 7: Language-modelling exposure ────────────────────────────────
+
+def robustness_language_modelling(merged, daioe_raw):
+    """
+    Use DAIOE language-modelling task exposure (pctl_rank_lngmod) instead
+    of the composite genAI measure.
+
+    This isolates the LLM-specific channel — the most directly relevant
+    AI capability for ChatGPT-era displacement.
+    """
+    print("  R7: Language-modelling exposure...")
+
+    daioe_ref = daioe_raw[daioe_raw["year"] == DAIOE_REF_YEAR].copy()
+    daioe_ref["ssyk4"] = daioe_ref["ssyk2012_4"].str[:4].str.strip()
+    daioe_ref = daioe_ref[["ssyk4", "pctl_rank_lngmod"]].dropna().drop_duplicates("ssyk4")
+
+    q75 = daioe_ref["pctl_rank_lngmod"].quantile(0.75)
+    daioe_ref["high_lngmod"] = (daioe_ref["pctl_rank_lngmod"] > q75).astype(int)
+
+    postings = pd.read_csv(PROCESSED / "postings_ssyk4_monthly.csv")
+    postings["ssyk4"] = postings["ssyk4"].astype(str).str.zfill(4)
+    daioe_ref["ssyk4"] = daioe_ref["ssyk4"].astype(str).str.zfill(4)
+    m = postings.merge(daioe_ref, on="ssyk4", how="inner")
+
+    panel = prepare_panel_generic(m)
+    return run_panel_regression(panel, high_var="high_lngmod")
+
+
+# ── Robustness 8: Event study (dynamic DiD) ──────────────────────────────────
+
+def robustness_event_study(merged):
+    """
+    Estimate monthly DiD coefficients relative to base month (Feb 2020).
+
+    This is the standard event-study design: interact HighExposure with
+    month dummies (omitting one base period). Plots the coefficients to
+    visually assess pre-trends and treatment timing.
+
+    Key for referees: shows whether high- and low-exposure occupations
+    were trending similarly before April 2022 (Riksbanken) and Dec 2022
+    (ChatGPT), and whether any divergence aligns with those dates.
+    """
+    print("  R8: Event study (dynamic DiD)...")
+
+    df = merged.copy()
+    # Restrict to core sample period (avoid erroneous dates like 2099-01)
+    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= "2025-12")].copy()
+    df["date"] = pd.to_datetime(df["year_month"] + "-01")
+    df = df[df["n_ads"] > 0].copy()
+    df["ln_ads"] = np.log(df["n_ads"])
+
+    # Create month dummies interacted with high_exposure
+    # Omit base month (2020-02) as reference period
+    base_month = "2020-02"
+    months = sorted(df["year_month"].unique())
+    months_excl_base = [m for m in months if m != base_month]
+
+    # Build interaction terms: D_t × HighExp for each month t ≠ base
+    for m in months_excl_base:
+        col = f"m_{m}_x_high"
+        df[col] = ((df["year_month"] == m) & (df["high_exposure"] == 1)).astype(int)
+
+    interaction_cols = [f"m_{m}_x_high" for m in months_excl_base]
+
+    try:
+        from linearmodels.panel import PanelOLS
+
+        panel = df.copy()
+        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
+        panel = panel.set_index(["ssyk4", "date"])
+
+        mod = PanelOLS(
+            dependent=panel["ln_ads"],
+            exog=panel[interaction_cols],
+            entity_effects=True,
+            time_effects=True,
+        )
+        res = mod.fit(cov_type="clustered", cluster_entity=True)
+
+        coefs = res.params[interaction_cols]
+        ses = res.std_errors[interaction_cols]
+
+    except ImportError:
+        import statsmodels.api as sm
+
+        occ_dummies = pd.get_dummies(df["ssyk4"], prefix="occ", drop_first=True)
+        time_dummies = pd.get_dummies(df["year_month"], prefix="t", drop_first=True)
+        X = pd.concat([df[interaction_cols], occ_dummies, time_dummies], axis=1)
+        X = sm.add_constant(X).astype(float)
+
+        mod = sm.OLS(df["ln_ads"].values, X)
+        res = mod.fit(cov_type="cluster", cov_kwds={"groups": df["ssyk4"].values})
+
+        coefs = res.params[interaction_cols]
+        ses = res.bse[interaction_cols]
+
+    # Build results DataFrame for plotting
+    event_df = pd.DataFrame({
+        "year_month": months_excl_base,
+        "coef": [coefs[f"m_{m}_x_high"] for m in months_excl_base],
+        "se": [ses[f"m_{m}_x_high"] for m in months_excl_base],
+    })
+    event_df["date"] = pd.to_datetime(event_df["year_month"] + "-01")
+    event_df = event_df.sort_values("date")
+    event_df["ci_lo"] = event_df["coef"] - 1.96 * event_df["se"]
+    event_df["ci_hi"] = event_df["coef"] + 1.96 * event_df["se"]
+
+    # Add the base month as zero
+    base_row = pd.DataFrame({
+        "year_month": [base_month],
+        "coef": [0.0], "se": [0.0],
+        "date": [pd.Timestamp(base_month + "-01")],
+        "ci_lo": [0.0], "ci_hi": [0.0],
+    })
+    event_df = pd.concat([event_df, base_row]).sort_values("date").reset_index(drop=True)
+
+    # Save coefficients
+    event_df.to_csv(TABDIR / "event_study_coefficients.csv", index=False)
+
+    # ── Plot ──
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    ax.fill_between(event_df["date"], event_df["ci_lo"], event_df["ci_hi"],
+                    alpha=0.2, color=DARK_BLUE)
+    ax.plot(event_df["date"], event_df["coef"], color=DARK_BLUE, linewidth=1.5,
+            marker="o", markersize=3)
+    ax.axhline(0, color=GRAY, linewidth=0.8, linestyle="--")
+
+    # Event markers
+    rb_date = pd.Timestamp(RIKSBANKEN_HIKE)
+    gpt_date = pd.Timestamp(CHATGPT_LAUNCH)
+    ax.axvline(rb_date, color=ORANGE, linewidth=1.2, linestyle="--", alpha=0.8)
+    ax.axvline(gpt_date, color=TEAL, linewidth=1.2, linestyle="--", alpha=0.8)
+
+    # Labels above the event lines
+    ymax = event_df["ci_hi"].max()
+    ax.text(rb_date, ymax * 1.05, "Riksbanken\nhike", ha="center", fontsize=9,
+            color=ORANGE, fontweight="bold")
+    ax.text(gpt_date, ymax * 1.05, "ChatGPT\nlaunch", ha="center", fontsize=9,
+            color=TEAL, fontweight="bold")
+
+    ax.set_xlabel("")
+    ax.set_ylabel("Coefficient (relative to Feb 2020)")
+    ax.set_title("Event study: High vs low genAI exposure (monthly DiD coefficients)")
+
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "figA3_event_study.png")
+    plt.close(fig)
+    print(f"    Saved → figA3_event_study.png")
+    print(f"    Saved → event_study_coefficients.csv")
+
+    return event_df
+
+
 # ── Collect all results ──────────────────────────────────────────────────────
 
 def main():
@@ -210,6 +417,27 @@ def main():
         results["Terciles"] = robustness_terciles(merged)
     except Exception as e:
         print(f"    FAILED: {e}")
+
+    try:
+        results["Excl. IT/tech"] = robustness_excl_tech(merged)
+    except Exception as e:
+        print(f"    FAILED: {e}")
+
+    try:
+        results["Balanced panel"] = robustness_balanced_panel(merged)
+    except Exception as e:
+        print(f"    FAILED: {e}")
+
+    try:
+        results["Language model"] = robustness_language_modelling(merged, daioe_raw)
+    except Exception as e:
+        print(f"    FAILED: {e}")
+
+    # Event study (separate output — figure, not table row)
+    try:
+        robustness_event_study(merged)
+    except Exception as e:
+        print(f"    Event study FAILED: {e}")
 
     # Format results table
     print("\n" + "=" * 70)

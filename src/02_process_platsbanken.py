@@ -80,6 +80,14 @@ def extract_ad_fields(ad: dict) -> dict | None:
     if len(ym) != 7 or ym[4] != "-":
         return None
 
+    # Reject clearly erroneous dates (some JobStream ads have future dates)
+    try:
+        year_int = int(ym[:4])
+    except ValueError:
+        return None
+    if year_int < 2006 or year_int > 2026:
+        return None
+
     # Number of vacancies (default to 1 if missing)
     n_vac = ad.get("number_of_vacancies")
     if n_vac is None or n_vac < 1:
