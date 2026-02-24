@@ -1,6 +1,6 @@
 # Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden
 
-Replication package for Lodefalk, Engberg, and Löthman (2026), "Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden," *Economics Letters*.
+Replication package for Lodefalk, Engberg, Koch, and Löthman (2026), "Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden," *Economics Letters*.
 
 ## Overview
 
@@ -81,7 +81,7 @@ Code: MIT License. Data: see individual source licences (all open).
 ```bibtex
 @article{lodefalk2026twoeconomies,
   title={Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden},
-  author={Lodefalk, Magnus and Engberg, Erik and L{\"o}thman, Oskar},
+  author={Lodefalk, Magnus and Engberg, Erik and Koch, Michael and L{\"o}thman, Lydia},
   journal={Economics Letters},
   year={2026}
 }
