@@ -89,6 +89,7 @@ def fig_scary_chart():
 
     Left axis: OMXS30 index (Feb 2020 = 100)
     Right axis: 4 lines for posting index by genAI exposure quartile
+               (3-month MA for readability, raw as faint background)
 
     This is the paper's key visual — it shows that the posting decline is
     broad-based across exposure groups, suggesting monetary policy rather
@@ -100,6 +101,11 @@ def fig_scary_chart():
     omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
     quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
     quartile["date"] = pd.to_datetime(quartile["date"])
+
+    # ── Fix 1: Trim to Jan 2020 onward ──
+    cutoff = pd.Timestamp("2020-01-01")
+    omxs = omxs[omxs.index >= cutoff]
+    quartile = quartile[quartile["date"] >= cutoff]
 
     fig, ax1 = plt.subplots(figsize=(10, 5.5))
 
@@ -118,30 +124,58 @@ def fig_scary_chart():
     # Quartile posting lines on right axis
     ax2 = ax1.twinx()
 
+    # ── Fix 2: Plot raw lines faintly, then 3-month MA prominently ──
     for q_name, color in Q_COLORS.items():
-        qdf = quartile[quartile["exposure_quartile"] == q_name]
-        linewidth = 2.0 if "Q4" in q_name or "Q1" in q_name else 1.2
+        qdf = quartile[quartile["exposure_quartile"] == q_name].sort_values("date").copy()
+        linewidth = 2.0 if "Q4" in q_name or "Q1" in q_name else 1.4
         linestyle = "-" if "Q4" in q_name or "Q1" in q_name else "--"
+
+        # Raw line (faint)
         ax2.plot(
             qdf["date"], qdf["ads_idx"],
+            color=color, linewidth=0.6, linestyle=linestyle, alpha=0.25,
+        )
+        # 3-month rolling average (prominent)
+        qdf["ads_ma3"] = qdf["ads_idx"].rolling(3, center=True, min_periods=1).mean()
+        ax2.plot(
+            qdf["date"], qdf["ads_ma3"],
             color=color, linewidth=linewidth, linestyle=linestyle,
             label=q_name, alpha=0.9,
         )
 
     ax2.set_ylabel(
-        "Job postings (index, Feb 2020 = 100)",
+        "Job postings (index, Feb 2020 = 100, 3-mo MA)",
         color=DARK_TEXT, fontsize=12,
     )
 
-    # Event markers
-    y_min = min(quartile["ads_idx"].min(), 40)
-    y_max = max(omxs["omxs30_idx"].max(), quartile["ads_idx"].max()) * 1.05
-    add_event_annotations(ax1, (y_min, y_max))
-
-    # Shaded Riksbanken tightening cycle
+    # ── Fix 3: Shaded tightening cycle with text label ──
     ax1.axvspan(
         pd.Timestamp("2022-04-01"), pd.Timestamp("2023-09-01"),
         alpha=0.06, color=TEAL, zorder=0,
+    )
+    # Text label inside the shaded band
+    ax1.text(
+        pd.Timestamp("2022-10-15"), ax1.get_ylim()[1] * 0.05,
+        "Riksbanken\ntightening cycle",
+        fontsize=8, color=TEAL, ha="center", va="bottom",
+        fontstyle="italic", alpha=0.8,
+    )
+
+    # Event markers with annotations
+    rb = pd.Timestamp(RIKSBANKEN_HIKE)
+    gpt = pd.Timestamp(CHATGPT_LAUNCH)
+    ax1.axvline(rb, color=TEAL, linestyle="--", linewidth=1, alpha=0.7)
+    ax1.axvline(gpt, color=GRAY, linestyle=":", linewidth=1, alpha=0.6)
+
+    # Place event labels in the upper part of the chart, offset to avoid overlap
+    y_top = ax1.get_ylim()[1]
+    ax1.annotate(
+        "Riksbanken\nhike", xy=(rb, y_top * 0.93),
+        fontsize=8.5, color=TEAL, fontweight="bold", ha="right",
+    )
+    ax1.annotate(
+        "ChatGPT\nlaunch", xy=(gpt, y_top * 0.83),
+        fontsize=8.5, color=GRAY, fontweight="bold", ha="left",
     )
 
     # Combined legend
@@ -191,6 +225,9 @@ def fig_exposure_gap():
 
     quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
     quartile["date"] = pd.to_datetime(quartile["date"])
+
+    # Trim to Jan 2020 onward
+    quartile = quartile[quartile["date"] >= pd.Timestamp("2020-01-01")]
 
     # Compute Q4 - Q1 gap
     q4 = quartile[quartile["exposure_quartile"] == "Q4 (highest)"].set_index("date")
@@ -272,6 +309,11 @@ def fig_sweden_vs_us():
     postings["date"] = pd.to_datetime(postings["date"])
     postings = postings.set_index("date")
 
+    # Trim to Jan 2020 onward
+    cutoff = pd.Timestamp("2020-01-01")
+    omxs = omxs[omxs.index >= cutoff]
+    postings = postings[postings.index >= cutoff]
+
     # US data
     try:
         sp500_raw = pd.read_csv(RAW / "sp500_daily.csv", index_col=0, parse_dates=True)
@@ -300,10 +342,17 @@ def fig_sweden_vs_us():
     ax_us.set_ylabel("S&P 500 (index)", color=DARK_BLUE)
     ax_us_r.set_ylabel("Indeed postings (index)", color=ORANGE)
 
-    # Sweden panel
+    # Sweden panel — smooth postings with 3-month MA for comparability with US
     ax_se.plot(omxs.index, omxs["omxs30_idx"], color=DARK_BLUE, linewidth=2, label="OMXS30")
     ax_se_r = ax_se.twinx()
-    ax_se_r.plot(postings.index, postings["ads_idx"], color=ORANGE, linewidth=2, label="Platsbanken")
+    postings_sorted = postings.sort_index()
+    # Raw as faint background
+    ax_se_r.plot(postings_sorted.index, postings_sorted["ads_idx"],
+                 color=ORANGE, linewidth=0.6, alpha=0.25)
+    # 3-month MA prominent
+    postings_sorted["ads_ma3"] = postings_sorted["ads_idx"].rolling(3, center=True, min_periods=1).mean()
+    ax_se_r.plot(postings_sorted.index, postings_sorted["ads_ma3"],
+                 color=ORANGE, linewidth=2, label="Platsbanken (3-mo MA)")
     ax_se.set_title("Sweden", fontsize=13, fontweight="bold")
     ax_se.set_ylabel("OMXS30 (index)", color=DARK_BLUE)
     ax_se_r.set_ylabel("Platsbanken postings (index)", color=ORANGE)
@@ -335,11 +384,17 @@ def fig_quartile_panels():
     quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
     quartile["date"] = pd.to_datetime(quartile["date"])
 
+    # Trim to Jan 2020 onward
+    quartile = quartile[quartile["date"] >= pd.Timestamp("2020-01-01")]
+
     fig, axes = plt.subplots(2, 2, figsize=(12, 8), sharex=True, sharey=True)
 
     for ax, (q_name, color) in zip(axes.flat, Q_COLORS.items()):
-        qdf = quartile[quartile["exposure_quartile"] == q_name]
-        ax.plot(qdf["date"], qdf["ads_idx"], color=color, linewidth=2)
+        qdf = quartile[quartile["exposure_quartile"] == q_name].sort_values("date").copy()
+        # Raw as faint, 3-month MA prominent
+        ax.plot(qdf["date"], qdf["ads_idx"], color=color, linewidth=0.7, alpha=0.3)
+        qdf["ads_ma3"] = qdf["ads_idx"].rolling(3, center=True, min_periods=1).mean()
+        ax.plot(qdf["date"], qdf["ads_ma3"], color=color, linewidth=2)
         ax.axhline(100, color=GRAY, linewidth=0.5, alpha=0.3)
         ax.set_title(q_name, fontsize=12, fontweight="bold")
         ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE), color=TEAL, linestyle="--", linewidth=1, alpha=0.5)

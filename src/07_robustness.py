@@ -358,15 +358,24 @@ def robustness_event_study(merged):
     # Event markers
     rb_date = pd.Timestamp(RIKSBANKEN_HIKE)
     gpt_date = pd.Timestamp(CHATGPT_LAUNCH)
-    ax.axvline(rb_date, color=ORANGE, linewidth=1.2, linestyle="--", alpha=0.8)
-    ax.axvline(gpt_date, color=TEAL, linewidth=1.2, linestyle="--", alpha=0.8)
+    ax.axvline(rb_date, color=ORANGE, linewidth=1.5, linestyle="--", alpha=0.9)
+    ax.axvline(gpt_date, color=TEAL, linewidth=1.5, linestyle="--", alpha=0.9)
 
-    # Labels above the event lines
-    ymax = event_df["ci_hi"].max()
-    ax.text(rb_date, ymax * 1.05, "Riksbanken\nhike", ha="center", fontsize=9,
-            color=ORANGE, fontweight="bold")
-    ax.text(gpt_date, ymax * 1.05, "ChatGPT\nlaunch", ha="center", fontsize=9,
-            color=TEAL, fontweight="bold")
+    # ── Fix 4: Place labels inside plot area, below top, clearly legible ──
+    ymin, ymax = ax.get_ylim()
+    label_y = ymax - (ymax - ymin) * 0.08  # 8% below top
+    ax.annotate(
+        "Riksbanken hike\n(Apr 2022)",
+        xy=(rb_date, label_y), fontsize=9,
+        color=ORANGE, fontweight="bold", ha="right",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=ORANGE, alpha=0.85),
+    )
+    ax.annotate(
+        "ChatGPT launch\n(Nov 2022)",
+        xy=(gpt_date, label_y), fontsize=9,
+        color=TEAL, fontweight="bold", ha="left",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=TEAL, alpha=0.85),
+    )
 
     ax.set_xlabel("")
     ax.set_ylabel("Coefficient (relative to Feb 2020)")
