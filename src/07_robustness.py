@@ -323,6 +323,42 @@ def robustness_event_study(merged):
         coefs = res.params[interaction_cols]
         ses = res.bse[interaction_cols]
 
+    # ── Formal pre-trends test (joint Wald test) ──────────────────────────
+    # H₀: all pre-Riksbank interaction coefficients are jointly zero
+    # This tests the parallel trends assumption formally (requested by R2).
+    pre_months = [m for m in months_excl_base if m < "2022-04"]
+    pre_cols_test = [f"m_{m}_x_high" for m in pre_months]
+    n_pre = len(pre_cols_test)
+    pretrend_result = {}
+
+    try:
+        from scipy import stats as scipy_stats
+
+        pre_beta = np.array([coefs[c] for c in pre_cols_test])
+        # Covariance matrix for pre-period coefficients (uses clustered SEs)
+        pre_vcov = res.cov.loc[pre_cols_test, pre_cols_test].values
+        # Wald statistic: β' V⁻¹ β ~ χ²(q)
+        W = float(pre_beta @ np.linalg.inv(pre_vcov) @ pre_beta)
+        F_stat = W / n_pre
+        p_wald = 1 - scipy_stats.chi2.cdf(W, n_pre)
+
+        print(f"    Pre-trends Wald test: χ²({n_pre}) = {W:.2f}, p = {p_wald:.4f}")
+        print(f"    (F-stat = {F_stat:.3f})")
+
+        pretrend_result = {
+            "n_pre_periods": n_pre,
+            "wald_stat": round(W, 3),
+            "f_stat": round(F_stat, 3),
+            "p_value": round(p_wald, 4),
+            "reject_at_05": p_wald < 0.05,
+        }
+        pd.DataFrame([pretrend_result]).to_csv(
+            TABDIR / "pretrend_test.csv", index=False
+        )
+        print(f"    Saved → pretrend_test.csv")
+    except Exception as e:
+        print(f"    Pre-trends test failed: {e}")
+
     # Build results DataFrame for plotting
     event_df = pd.DataFrame({
         "year_month": months_excl_base,

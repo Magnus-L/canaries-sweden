@@ -300,14 +300,17 @@ def format_regression_table(results: dict) -> str:
         r"Month FE & Yes & Yes & Yes \\",
     ])
 
-    # Add N and R² if available
+    # Observations (same for all specs since panel is identical)
+    n_obs = "—"
     for spec_key in ["spec1", "spec2", "spec3"]:
         res = results.get(spec_key)
         if res is not None:
             n_obs = res.nobs
+            # Print within-R² for reference (near-zero expected with FE)
+            r2w = getattr(res, "rsquared_within", getattr(res, "rsquared", None))
+            if r2w is not None:
+                print(f"    {spec_key} within-R² = {r2w:.4f}")
             break
-    else:
-        n_obs = "—"
 
     lines.extend([
         f"Observations & \\multicolumn{{3}}{{c}}{{{n_obs:,}}} \\\\",
