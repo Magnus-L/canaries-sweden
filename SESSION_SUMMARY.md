@@ -85,8 +85,8 @@ SCB employment triple-diff (canaries): +0.038 (insignificant).
 ## What remains before submission
 
 1. **Authors review the paper** — Magnus, Erik, Michael, Lydia read and approve
-2. **Send MONA package to Erik** — for AGI register canaries analysis
-3. **Incorporate MONA results** — update appendix when results come back
+2. **MONA package sent to Lydia** — she will run AGI register canaries analysis when time permits
+3. **Incorporate MONA results** — update appendix when results come back from Lydia
 4. **GitHub repository** — create public repo, replace "[GitHub repository URL]" placeholder in main.tex
 5. **Cover letter** — write for Economics Letters submission
 6. **Submit via Elsevier Editorial Manager**

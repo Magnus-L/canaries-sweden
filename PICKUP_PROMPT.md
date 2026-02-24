@@ -20,14 +20,9 @@ What I need to do next: [describe task here]
 
 ## Task-specific prompts
 
-### Send MONA package to Erik
+### Incorporate MONA results (from Lydia)
 ```
-The mona_package/ folder is ready for Erik Engberg to run the AGI canaries analysis in MONA. Help me draft a brief email (in Swedish) explaining what's in the package and what he needs to do. Two options: (A) import .py file directly, or (B) import only the CSV and write the code following MONA_INSTRUCTIONS.md. The key output we need: coefficient on post_young_high (triple-diff) + the figure figA8_mona_canaries.png.
-```
-
-### Incorporate MONA results
-```
-Erik sent back MONA results: mona_canaries_regression.csv and figA8_mona_canaries.png. Please update appendix.tex section A5 with the AGI-based results (replacing or supplementing the SCB annual results), copy the figure to figures/, and recompile both PDFs.
+Lydia sent back MONA results: mona_canaries_regression.csv and figA8_mona_canaries.png. Please update appendix.tex section A5 with the AGI-based results (replacing or supplementing the SCB annual results), copy the figure to figures/, and recompile both PDFs.
 ```
 
 ### Create GitHub repo + cover letter
