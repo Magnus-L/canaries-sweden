@@ -1,0 +1,2 @@
+n_pre_periods,wald_stat,p_value,reject_at_05,frequency
+8,52.769,0.0,True,quarterly
