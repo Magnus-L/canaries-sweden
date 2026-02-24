@@ -426,6 +426,156 @@ def robustness_event_study(merged):
     return event_df
 
 
+# ── Robustness 9: Quarterly event study ──────────────────────────────────────
+
+def robustness_quarterly_event_study(merged):
+    """
+    Quarterly-aggregated event study to reduce monthly noise in pre-trends test.
+
+    Economic rationale: AI adoption and monetary policy transmission operate at
+    quarterly (or slower) frequency. Monthly noise from seasonal hiring patterns
+    inflates the Wald statistic with 26 pre-period monthly interactions.
+    Aggregating to quarters reduces this to ~9 pre-period coefficients,
+    giving a cleaner test (Bertrand, Duflo & Mullainathan 2004; Rak 2025).
+    """
+    print("  R9: Quarterly event study...")
+
+    df = merged.copy()
+    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= "2025-12")].copy()
+    df["date"] = pd.to_datetime(df["year_month"] + "-01")
+    df["quarter"] = df["date"].dt.to_period("Q").astype(str)
+
+    # Aggregate to occupation × quarter
+    quarterly = (
+        df.groupby(["ssyk4", "quarter", "high_exposure"])
+        .agg(n_ads=("n_ads", "sum"))
+        .reset_index()
+    )
+    quarterly = quarterly[quarterly["n_ads"] > 0].copy()
+    quarterly["ln_ads"] = np.log(quarterly["n_ads"])
+
+    # Create date for panel index (first day of quarter)
+    quarterly["date"] = pd.PeriodIndex(quarterly["quarter"], freq="Q").to_timestamp()
+
+    # Base quarter: 2020Q1 (first full quarter)
+    base_quarter = "2020Q1"
+    quarters = sorted(quarterly["quarter"].unique())
+    quarters_excl_base = [q for q in quarters if q != base_quarter]
+
+    # Build interaction terms
+    for q in quarters_excl_base:
+        col = f"q_{q}_x_high"
+        quarterly[col] = (
+            (quarterly["quarter"] == q) & (quarterly["high_exposure"] == 1)
+        ).astype(int)
+
+    interaction_cols = [f"q_{q}_x_high" for q in quarters_excl_base]
+
+    try:
+        from linearmodels.panel import PanelOLS
+
+        panel = quarterly.copy().set_index(["ssyk4", "date"])
+
+        mod = PanelOLS(
+            dependent=panel["ln_ads"],
+            exog=panel[interaction_cols],
+            entity_effects=True,
+            time_effects=True,
+        )
+        res = mod.fit(cov_type="clustered", cluster_entity=True)
+
+        coefs = res.params[interaction_cols]
+        ses = res.std_errors[interaction_cols]
+
+        # ── Formal pre-trends test (quarterly) ──
+        # Pre-Riksbank quarters: before 2022Q2 (April 2022 is in Q2)
+        pre_quarters = [q for q in quarters_excl_base if q < "2022Q2"]
+        pre_cols = [f"q_{q}_x_high" for q in pre_quarters]
+        n_pre_q = len(pre_cols)
+
+        try:
+            from scipy import stats as scipy_stats
+
+            pre_beta = np.array([coefs[c] for c in pre_cols])
+            pre_vcov = res.cov.loc[pre_cols, pre_cols].values
+            W = float(pre_beta @ np.linalg.inv(pre_vcov) @ pre_beta)
+            p_wald = 1 - scipy_stats.chi2.cdf(W, n_pre_q)
+
+            print(f"    Quarterly pre-trends Wald test: χ²({n_pre_q}) = {W:.2f}, "
+                  f"p = {p_wald:.4f}")
+
+            pd.DataFrame([{
+                "n_pre_periods": n_pre_q,
+                "wald_stat": round(W, 3),
+                "p_value": round(p_wald, 4),
+                "reject_at_05": p_wald < 0.05,
+                "frequency": "quarterly",
+            }]).to_csv(TABDIR / "pretrend_test_quarterly.csv", index=False)
+            print(f"    Saved → pretrend_test_quarterly.csv")
+        except Exception as e:
+            print(f"    Quarterly pre-trends test failed: {e}")
+
+    except ImportError:
+        print("    linearmodels not available — skipping quarterly event study")
+        return None
+
+    # Build results for plotting
+    event_df = pd.DataFrame({
+        "quarter": quarters_excl_base,
+        "coef": [coefs[f"q_{q}_x_high"] for q in quarters_excl_base],
+        "se": [ses[f"q_{q}_x_high"] for q in quarters_excl_base],
+    })
+    event_df["date"] = pd.PeriodIndex(event_df["quarter"], freq="Q").to_timestamp()
+    event_df = event_df.sort_values("date")
+    event_df["ci_lo"] = event_df["coef"] - 1.96 * event_df["se"]
+    event_df["ci_hi"] = event_df["coef"] + 1.96 * event_df["se"]
+
+    # Add base quarter as zero
+    base_row = pd.DataFrame({
+        "quarter": [base_quarter], "coef": [0.0], "se": [0.0],
+        "date": [pd.Timestamp("2020-01-01")],
+        "ci_lo": [0.0], "ci_hi": [0.0],
+    })
+    event_df = pd.concat([event_df, base_row]).sort_values("date").reset_index(drop=True)
+    event_df.to_csv(TABDIR / "event_study_quarterly.csv", index=False)
+
+    # ── Plot ──
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    ax.fill_between(event_df["date"], event_df["ci_lo"], event_df["ci_hi"],
+                    alpha=0.2, color=DARK_BLUE)
+    ax.plot(event_df["date"], event_df["coef"], color=DARK_BLUE, linewidth=2,
+            marker="o", markersize=5)
+    ax.axhline(0, color=GRAY, linewidth=0.8, linestyle="--")
+
+    rb_date = pd.Timestamp(RIKSBANKEN_HIKE)
+    gpt_date = pd.Timestamp(CHATGPT_LAUNCH)
+    ax.axvline(rb_date, color=ORANGE, linewidth=1.5, linestyle="--", alpha=0.9)
+    ax.axvline(gpt_date, color=TEAL, linewidth=1.5, linestyle="--", alpha=0.9)
+
+    ymin, ymax = ax.get_ylim()
+    label_y = ymax - (ymax - ymin) * 0.08
+    ax.annotate("Riksbanken hike\n(Apr 2022)",
+                xy=(rb_date, label_y), fontsize=9,
+                color=ORANGE, fontweight="bold", ha="right",
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=ORANGE, alpha=0.85))
+    ax.annotate("ChatGPT launch\n(Nov 2022)",
+                xy=(gpt_date, label_y), fontsize=9,
+                color=TEAL, fontweight="bold", ha="left",
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=TEAL, alpha=0.85))
+
+    ax.set_xlabel("")
+    ax.set_ylabel("Coefficient (relative to 2020 Q1)")
+    ax.set_title("Quarterly event study: High vs low genAI exposure")
+
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "figA5_event_study_quarterly.png")
+    plt.close(fig)
+    print(f"    Saved → figA5_event_study_quarterly.png")
+
+    return event_df
+
+
 # ── Collect all results ──────────────────────────────────────────────────────
 
 def main():
@@ -478,11 +628,16 @@ def main():
     except Exception as e:
         print(f"    FAILED: {e}")
 
-    # Event study (separate output — figure, not table row)
+    # Event studies (separate outputs — figures, not table rows)
     try:
         robustness_event_study(merged)
     except Exception as e:
-        print(f"    Event study FAILED: {e}")
+        print(f"    Monthly event study FAILED: {e}")
+
+    try:
+        robustness_quarterly_event_study(merged)
+    except Exception as e:
+        print(f"    Quarterly event study FAILED: {e}")
 
     # Format results table
     print("\n" + "=" * 70)

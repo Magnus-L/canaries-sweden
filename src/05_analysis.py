@@ -66,6 +66,10 @@ def prepare_panel(merged: pd.DataFrame) -> pd.DataFrame:
     df["time_idx"] = (df["date"] - df["date"].min()).dt.days / 30.0
     df["time_x_high"] = df["time_idx"] * df["high_exposure"]
 
+    # SSYK 1-digit group for conditional parallel trends (Spec 4)
+    df["ssyk1"] = df["ssyk4"].astype(str).str[0]
+    df["group_time"] = df["ssyk1"] + "_" + df["year_month"]
+
     print(f"  Panel: {len(df):,} observations")
     print(f"  Occupations: {df['ssyk4'].nunique()}")
     print(f"  Months: {df['year_month'].nunique()}")
@@ -145,6 +149,30 @@ def run_did_regressions(df: pd.DataFrame) -> dict:
               f"(SE = {res3.std_errors['post_rb_x_high']:.4f})")
         print(f"      β₂ (PostGPT × High) = {res3.params['post_gpt_x_high']:.4f} "
               f"(SE = {res3.std_errors['post_gpt_x_high']:.4f})")
+
+        # Specification 4: Conditional parallel trends
+        # Replace common month FE with SSYK 1-digit group × month FE.
+        # This compares high vs. low AI-exposed occupations WITHIN the
+        # same broad occupation group, absorbing group-specific macro
+        # sensitivity (e.g., white-collar vs. blue-collar cycle exposure).
+        print("  (4) + SSYK 1-digit × month FE...")
+        group_time_df = pd.DataFrame(
+            {"group_time": panel["group_time"]},
+            index=panel.index,
+        )
+        mod4 = PanelOLS(
+            dependent=panel["ln_ads"],
+            exog=panel[["post_rb_x_high", "post_gpt_x_high"]],
+            entity_effects=True,
+            time_effects=False,
+            other_effects=group_time_df,
+        )
+        res4 = mod4.fit(cov_type="clustered", cluster_entity=True)
+        results["spec4"] = res4
+        print(f"      β₁ (PostRB × High) = {res4.params['post_rb_x_high']:.4f} "
+              f"(SE = {res4.std_errors['post_rb_x_high']:.4f})")
+        print(f"      β₂ (PostGPT × High) = {res4.params['post_gpt_x_high']:.4f} "
+              f"(SE = {res4.std_errors['post_gpt_x_high']:.4f})")
 
     except ImportError:
         print("  linearmodels not available — using statsmodels with dummies")
@@ -233,14 +261,18 @@ def compute_summary_statistics(merged: pd.DataFrame, daioe: pd.DataFrame) -> pd.
     return summary
 
 
-def format_regression_table(results: dict) -> str:
+def format_regression_table(results: dict, panel_df=None) -> str:
     """
     Format DiD results as a LaTeX table for the paper.
 
-    Three columns: (1) monetary policy only, (2) + ChatGPT, (3) + trends.
-    Reports coefficients, clustered SEs in parentheses, significance stars.
+    Four columns: (1) monetary policy only, (2) + ChatGPT, (3) + trends,
+    (4) conditional parallel trends (SSYK 1-digit × month FE).
+    Reports coefficients, clustered SEs, dep. var. mean, N clusters.
     """
     print("\nFormatting regression table...")
+
+    spec_keys = ["spec1", "spec2", "spec3", "spec4"]
+    n_specs = len(spec_keys)
 
     def stars(pval):
         if pval < 0.01:
@@ -256,24 +288,24 @@ def format_regression_table(results: dict) -> str:
         r"\centering",
         r"\caption{Difference-in-differences: postings by genAI exposure}",
         r"\label{tab:did}",
-        r"\begin{tabular}{lccc}",
+        r"\begin{tabular}{lcccc}",
         r"\hline\hline",
-        r" & (1) & (2) & (3) \\",
-        r" & Monetary & + ChatGPT & + Trends \\",
+        r" & (1) & (2) & (3) & (4) \\",
+        r" & Monetary & + ChatGPT & + Trends & Group$\times$Time \\",
         r"\hline",
     ]
 
     vars_to_report = [
-        ("post_rb_x_high", r"Post-Riksbank $\times$ High exposure"),
-        ("post_gpt_x_high", r"Post-ChatGPT $\times$ High exposure"),
-        ("time_x_high", r"Time trend $\times$ High exposure"),
+        ("post_rb_x_high", r"Post-Riksbank $\times$ High"),
+        ("post_gpt_x_high", r"Post-ChatGPT $\times$ High"),
+        ("time_x_high", r"Time trend $\times$ High"),
     ]
 
     for var, label in vars_to_report:
         row_coef = f"{label}"
         row_se = ""
 
-        for spec_key in ["spec1", "spec2", "spec3"]:
+        for spec_key in spec_keys:
             res = results.get(spec_key)
             if res is None:
                 row_coef += " & "
@@ -284,8 +316,8 @@ def format_regression_table(results: dict) -> str:
                 coef = res.params[var]
                 se = res.std_errors[var]
                 pv = res.pvalues[var]
-                row_coef += f" & {coef:.4f}{stars(pv)}"
-                row_se += f" & ({se:.4f})"
+                row_coef += f" & {coef:.3f}{stars(pv)}"
+                row_se += f" & ({se:.3f})"
             else:
                 row_coef += " & "
                 row_se += " & "
@@ -293,32 +325,41 @@ def format_regression_table(results: dict) -> str:
         lines.append(row_coef + r" \\")
         lines.append(row_se + r" \\")
 
-    # Footer
+    # Footer — FE structure
     lines.extend([
         r"\hline",
-        r"Occupation FE & Yes & Yes & Yes \\",
-        r"Month FE & Yes & Yes & Yes \\",
+        r"Occupation FE & Yes & Yes & Yes & Yes \\",
+        r"Month FE & Yes & Yes & Yes & \\",
+        r"Occ.\ group $\times$ month FE & & & & Yes \\",
     ])
 
-    # Observations (same for all specs since panel is identical)
+    # N, N clusters, dep. var. mean
     n_obs = "—"
-    for spec_key in ["spec1", "spec2", "spec3"]:
+    n_clusters = "—"
+    for spec_key in spec_keys:
         res = results.get(spec_key)
         if res is not None:
             n_obs = res.nobs
-            # Print within-R² for reference (near-zero expected with FE)
-            r2w = getattr(res, "rsquared_within", getattr(res, "rsquared", None))
-            if r2w is not None:
-                print(f"    {spec_key} within-R² = {r2w:.4f}")
+            n_clusters = int(getattr(res.entity_info, "total", 0))
+            if n_clusters == 0:
+                n_clusters = "—"
             break
 
+    # Dependent variable mean (informative for interpreting magnitudes)
+    dep_mean = "—"
+    if panel_df is not None:
+        dep_mean = f"{panel_df['ln_ads'].mean():.2f}"
+
     lines.extend([
-        f"Observations & \\multicolumn{{3}}{{c}}{{{n_obs:,}}} \\\\",
+        f"Dep.\\ var.\\ mean & \\multicolumn{{{n_specs}}}{{c}}{{{dep_mean}}} \\\\",
+        f"Occupations & \\multicolumn{{{n_specs}}}{{c}}{{{n_clusters}}} \\\\",
+        f"Observations & \\multicolumn{{{n_specs}}}{{c}}{{{n_obs:,}}} \\\\",
         r"\hline\hline",
-        r"\multicolumn{4}{p{0.9\textwidth}}{\footnotesize \textit{Notes:} "
+        rf"\multicolumn{{{n_specs + 1}}}{{p{{0.95\textwidth}}}}{{\footnotesize \textit{{Notes:}} "
         r"Dependent variable: $\ln(\text{postings}_{it})$. "
-        r"High exposure = top quartile of DAIOE genAI percentile ranking. "
-        r"Post-Riksbank = April 2022 onward. Post-ChatGPT = December 2022 onward. "
+        r"High = top quartile of DAIOE genAI percentile ranking. "
+        r"Post-Riksbank $=$ April 2022 onward. Post-ChatGPT $=$ December 2022 onward. "
+        r"Column (4) replaces common month FE with SSYK 1-digit occupation group $\times$ month FE. "
         r"Standard errors clustered at occupation level in parentheses. "
         r"$^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.} \\",
         r"\end{tabular}",
@@ -359,7 +400,7 @@ def main():
 
     # Format table
     if results:
-        format_regression_table(results)
+        format_regression_table(results, panel_df=panel)
 
     # Save key results as CSV for easy inspection
     if "spec2" in results:

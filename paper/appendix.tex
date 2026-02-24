@@ -73,13 +73,25 @@ Table~\ref{tab:robustness} reports results from alternative specifications: (i)~
 
 \subsection{Event study}
 
-Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). This reflects substantial month-to-month volatility in the differential rather than trending divergence; the pre-period coefficients are centred on zero but individually noisy. The post-ChatGPT coefficients show no additional structural break beyond the Riksbanken hiking cycle.
+Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). Aggregating to quarterly frequency (Figure~\ref{fig:eventstudy_q}) reduces the number of pre-period coefficients to 9 but the test still rejects ($\chi^2_{8} = 52.8$, $p < 0.01$), indicating genuine differential macro sensitivity across AI exposure groups rather than monthly noise. This motivates specification (4) in the main table, which conditions on occupation group~$\times$~month fixed effects. The post-ChatGPT coefficients show no additional structural break beyond the Riksbanken hiking cycle in either specification.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA3_event_study.png}
 \caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the Riksbanken first rate hike (April 2022) and ChatGPT launch (December 2022).}
 \label{fig:eventstudy}
+\end{figure}
+
+
+\subsection{Quarterly event study}
+
+Figure~\ref{fig:eventstudy_q} aggregates the monthly event study to quarterly frequency, reducing noise but preserving the key patterns.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA5_event_study_quarterly.png}
+\caption{Quarterly event study: DiD coefficients for high vs low genAI exposure occupations (reference: 2020~Q1). Shaded area shows 95\% confidence interval. Aggregating to quarters reduces monthly noise but pre-period differentials remain jointly significant ($\chi^2_{8} = 52.8$, $p < 0.01$), reflecting differential macro sensitivity.}
+\label{fig:eventstudy_q}
 \end{figure}
 
 
