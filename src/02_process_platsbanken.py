@@ -44,9 +44,23 @@ def extract_ad_fields(ad: dict) -> dict | None:
     Returns None if the ad lacks a valid SSYK code (our primary key for
     matching with DAIOE exposure data).
     """
-    # Extract SSYK 4-digit code from occupation_group
-    occ_group = ad.get("occupation_group", {}) or {}
-    ssyk_code = occ_group.get("legacy_ams_taxonomy_id")
+    # Extract SSYK 4-digit code from occupation_group.
+    # Raw format: occupation_group is a dict with legacy_ams_taxonomy_id.
+    # Enriched format: occupation_group is a list of dicts.
+    occ_group = ad.get("occupation_group")
+    if not occ_group:
+        return None
+
+    if isinstance(occ_group, list):
+        # Enriched format — take the first entry
+        if len(occ_group) == 0:
+            return None
+        ssyk_code = occ_group[0].get("legacy_ams_taxonomy_id")
+    elif isinstance(occ_group, dict):
+        # Raw format — direct access
+        ssyk_code = occ_group.get("legacy_ams_taxonomy_id")
+    else:
+        return None
 
     if not ssyk_code:
         return None
@@ -92,13 +106,19 @@ def process_year(year: int, seen_ids: set) -> list[dict]:
     Returns a list of extracted ad records. Updates seen_ids in place
     for deduplication across years.
 
+    Looks for files in priority order:
+      1. {year}.jsonl.zip          (full raw data)
+      2. {year}_sample.jsonl.zip   (1% enriched sample, for testing)
+
     Why line-by-line: The 2022 file decompresses to several GB. Parsing
     one line at a time keeps memory usage constant regardless of file size.
     """
+    # Try full file first, then sample
     zip_path = RAW / f"{year}.jsonl.zip"
-
     if not zip_path.exists():
-        print(f"  WARNING: {zip_path.name} not found — skipping year {year}")
+        zip_path = RAW / f"{year}_sample.jsonl.zip"
+    if not zip_path.exists():
+        print(f"  WARNING: No data file found for {year} — skipping")
         return []
 
     records = []

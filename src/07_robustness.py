@@ -63,7 +63,9 @@ def run_panel_regression(df, high_var="high_exposure"):
     try:
         from linearmodels.panel import PanelOLS
 
-        panel = df.set_index(["ssyk4", "year_month"])
+        df = df.copy()
+        df["date"] = pd.to_datetime(df["year_month"] + "-01")
+        panel = df.set_index(["ssyk4", "date"])
         mod = PanelOLS(
             dependent=panel["ln_ads"],
             exog=panel[["post_rb_x_high", "post_gpt_x_high"]],

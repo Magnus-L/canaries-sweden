@@ -66,6 +66,11 @@ def main():
         help="Skip the data download step (use existing files)",
     )
     parser.add_argument(
+        "--sample",
+        action="store_true",
+        help="Use 1%% sample data for pipeline testing (~100x smaller)",
+    )
+    parser.add_argument(
         "--from-step",
         type=int,
         default=1,
@@ -73,10 +78,18 @@ def main():
     )
     args = parser.parse_args()
 
+    # Pass --sample to step 1 via sys.argv manipulation
+    if args.sample:
+        sys.argv = [sys.argv[0], "--sample"]
+    else:
+        sys.argv = [sys.argv[0]]
+
+    mode = "SAMPLE (1%)" if args.sample else "FULL"
     print("=" * 70)
     print("  REPLICATION PIPELINE")
     print("  'Two Economies? Stock Markets, Job Postings,")
     print("   and AI Exposure in Sweden'")
+    print(f"  Mode: {mode}")
     print("=" * 70)
     print(f"  Start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Starting from step: {args.from_step}")

@@ -55,9 +55,16 @@ def platsbanken_metadata_url(year: int) -> str:
     return f"{PLATSBANKEN_BASE}/berikade/metadata/{year}_beta1_metadata_jsonl.zip"
 
 # 1% sample (for rapid prototyping)
+# Standard pattern: {year}_beta1_1_percent_jsonl.zip for 2016–2024
+# 2025 uses a quarterly partial: 2025_Q3_1_percent_jsonl.zip
+SAMPLE_URL_OVERRIDES = {
+    2025: "2025_Q3_1_percent_jsonl.zip",
+}
+
 def platsbanken_sample_url(year: int) -> str:
     """URL for 1% sample JSONL zip (for testing pipeline before full download)."""
-    return f"{PLATSBANKEN_BASE}/berikade/exempel/{year}_beta1_1_percent_jsonl.zip"
+    filename = SAMPLE_URL_OVERRIDES.get(year, f"{year}_beta1_1_percent_jsonl.zip")
+    return f"{PLATSBANKEN_BASE}/berikade/exempel/{filename}"
 
 # JobStream API (real-time, no auth required)
 JOBSTREAM_BASE = "https://jobstream.api.jobtechdev.se"

@@ -6,6 +6,10 @@ Downloads JSONL zip files from data.jobtechdev.se for 2020–2025.
 Uses streaming downloads with progress tracking to handle large files
 (individual files range 527 MB to 1.34 GB compressed).
 
+Modes:
+  --sample   Download 1% enriched sample files (~8–15 MB each) for testing
+  (default)  Download full raw JSONL files (~500 MB–1.3 GB each)
+
 Also fetches the most recent ads via the JobStream API to supplement
 the historical bulk download with the latest data.
 
@@ -14,12 +18,16 @@ URL: https://data.jobtechdev.se/annonser/historiska/index.html
 """
 
 import sys
+import argparse
 from pathlib import Path
 
 # Allow imports from src/
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import RAW, PLATSBANKEN_YEARS, platsbanken_url, JOBSTREAM_BASE
+from config import (
+    RAW, PLATSBANKEN_YEARS, platsbanken_url,
+    platsbanken_sample_url, JOBSTREAM_BASE,
+)
 
 import requests
 from tqdm import tqdm
@@ -58,25 +66,34 @@ def download_file(url: str, dest: Path, chunk_size: int = 8192) -> Path:
     return dest
 
 
-def download_historical(years: list[int] = None) -> list[Path]:
+def download_historical(years: list[int] = None, sample: bool = False) -> list[Path]:
     """
     Download historical Platsbanken JSONL zip files for specified years.
 
-    Each year's file contains all job ads published that year, one JSON
-    object per line. These are the raw (non-enriched) files, which have
-    a consistent schema across all years.
+    If sample=True, downloads the 1% enriched sample files instead (~100x smaller).
+    These are pseudo-random samples that preserve all fields — ideal for
+    testing the pipeline before committing to the full 5.4 GB download.
     """
     if years is None:
         years = PLATSBANKEN_YEARS
 
-    print(f"Downloading Platsbanken historical data for {years[0]}–{years[-1]}...")
+    mode = "1% SAMPLE" if sample else "FULL"
+    print(f"Downloading Platsbanken {mode} data for {years[0]}–{years[-1]}...")
     downloaded = []
 
     for year in years:
-        url = platsbanken_url(year)
-        dest = RAW / f"{year}.jsonl.zip"
-        download_file(url, dest)
-        downloaded.append(dest)
+        if sample:
+            url = platsbanken_sample_url(year)
+            dest = RAW / f"{year}_sample.jsonl.zip"
+        else:
+            url = platsbanken_url(year)
+            dest = RAW / f"{year}.jsonl.zip"
+
+        try:
+            download_file(url, dest)
+            downloaded.append(dest)
+        except requests.HTTPError as e:
+            print(f"  WARNING: {year} download failed ({e}) — trying next year")
 
     return downloaded
 
@@ -125,28 +142,43 @@ def main():
     """
     Download all Platsbanken data needed for the analysis.
 
-    Step 1: Historical JSONL files (2020–2025), ~5.4 GB total compressed.
-    Step 2: JobStream snapshot for the very latest ads.
+    --sample mode: 1% files (~70 MB total) for pipeline testing.
+    Full mode: raw JSONL files (~5.4 GB total) for production.
     """
+    parser = argparse.ArgumentParser(description="Download Platsbanken data")
+    parser.add_argument(
+        "--sample", action="store_true",
+        help="Download 1%% sample files instead of full data (~100x smaller)",
+    )
+    parser.add_argument(
+        "--no-jobstream", action="store_true",
+        help="Skip the JobStream snapshot download",
+    )
+    args = parser.parse_args()
+
     print("=" * 70)
-    print("STEP 1: Download Platsbanken historical data")
+    mode = "1% SAMPLE (pipeline testing)" if args.sample else "FULL"
+    print(f"STEP 1: Download Platsbanken data [{mode}]")
     print("=" * 70)
 
-    files = download_historical()
+    files = download_historical(sample=args.sample)
     print(f"\nDownloaded {len(files)} files.")
 
     total_mb = sum(f.stat().st_size for f in files if f.exists()) / 1e6
     print(f"Total size: {total_mb:.0f} MB")
 
-    print("\n" + "=" * 70)
-    print("STEP 2: Fetch JobStream snapshot (current live ads)")
-    print("=" * 70)
+    if not args.no_jobstream and not args.sample:
+        print("\n" + "=" * 70)
+        print("STEP 2: Fetch JobStream snapshot (current live ads)")
+        print("=" * 70)
 
-    try:
-        fetch_jobstream_snapshot()
-    except Exception as e:
-        print(f"  WARNING: JobStream fetch failed: {e}")
-        print("  (This is optional — historical data is sufficient for the paper)")
+        try:
+            fetch_jobstream_snapshot()
+        except Exception as e:
+            print(f"  WARNING: JobStream fetch failed: {e}")
+            print("  (This is optional — historical data is sufficient for the paper)")
+    elif args.sample:
+        print("\n  Skipping JobStream snapshot in sample mode.")
 
     print("\nDone. Run 02_process_platsbanken.py next.")
 

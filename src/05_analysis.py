@@ -98,8 +98,10 @@ def run_did_regressions(df: pd.DataFrame) -> dict:
     try:
         from linearmodels.panel import PanelOLS
 
-        # Set up multi-index for panel
-        panel = df.set_index(["ssyk4", "year_month"])
+        # Set up multi-index for panel — linearmodels needs date-like time index
+        panel = df.copy()
+        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
+        panel = panel.set_index(["ssyk4", "date"])
 
         # Specification 1: Monetary policy only
         print("  (1) Monetary policy interaction only...")
