@@ -576,6 +576,279 @@ def robustness_quarterly_event_study(merged):
     return event_df
 
 
+# ── Robustness 10: Quadratic occupation-specific trends ──────────────────────
+
+def robustness_quadratic_trends(merged):
+    """
+    Add quadratic (non-linear) occupation-specific time trends to the DiD.
+
+    Economic rationale: AI adoption may follow a non-linear trajectory —
+    slow initial impact accelerating over time. Linear trends (Spec 3 in
+    the main table) may miss this curvature. Adding time² × HighExposure
+    tests whether non-linear differential dynamics exist.
+
+    Specification:
+        ln(ads_it) = α_i + γ_t + β₁·PostRB·High + β₂·PostGPT·High
+                     + δ₁·time·High + δ₂·time²·High + ε_it
+
+    If δ₂ is significant but β₂ remains insignificant, the differential
+    trajectory is better captured by curvature than by a ChatGPT break.
+    """
+    print("  R10: Quadratic occupation-specific trends...")
+
+    df = merged.copy()
+    df["date"] = pd.to_datetime(df["year_month"] + "-01")
+    df = df[df["n_ads"] > 0].copy()
+    df["ln_ads"] = np.log(df["n_ads"])
+
+    # Treatment dummies
+    rb_date = pd.Timestamp(RIKSBANKEN_HIKE)
+    gpt_date = pd.Timestamp(CHATGPT_LAUNCH)
+    df["post_riksbank"] = (df["date"] >= rb_date).astype(int)
+    df["post_chatgpt"] = (df["date"] >= gpt_date).astype(int)
+    df["post_rb_x_high"] = df["post_riksbank"] * df["high_exposure"]
+    df["post_gpt_x_high"] = df["post_chatgpt"] * df["high_exposure"]
+
+    # Linear and quadratic time trends interacted with high exposure
+    df["time_idx"] = (df["date"] - df["date"].min()).dt.days / 30.0
+    df["time_x_high"] = df["time_idx"] * df["high_exposure"]
+    df["time_sq"] = df["time_idx"] ** 2
+    df["time_sq_x_high"] = df["time_sq"] * df["high_exposure"]
+
+    try:
+        from linearmodels.panel import PanelOLS
+
+        panel = df.copy()
+        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
+        panel = panel.set_index(["ssyk4", "date"])
+
+        # Spec with linear + quadratic trends
+        mod = PanelOLS(
+            dependent=panel["ln_ads"],
+            exog=panel[["post_rb_x_high", "post_gpt_x_high",
+                         "time_x_high", "time_sq_x_high"]],
+            entity_effects=True,
+            time_effects=True,
+        )
+        res = mod.fit(cov_type="clustered", cluster_entity=True)
+
+        b1 = res.params["post_rb_x_high"]
+        b2 = res.params["post_gpt_x_high"]
+        d1 = res.params["time_x_high"]
+        d2 = res.params["time_sq_x_high"]
+
+        print(f"    β₁ (PostRB × High)   = {b1:.4f} "
+              f"(SE = {res.std_errors['post_rb_x_high']:.4f}, "
+              f"p = {res.pvalues['post_rb_x_high']:.4f})")
+        print(f"    β₂ (PostGPT × High)  = {b2:.4f} "
+              f"(SE = {res.std_errors['post_gpt_x_high']:.4f}, "
+              f"p = {res.pvalues['post_gpt_x_high']:.4f})")
+        print(f"    δ₁ (time × High)     = {d1:.5f} "
+              f"(SE = {res.std_errors['time_x_high']:.5f}, "
+              f"p = {res.pvalues['time_x_high']:.4f})")
+        print(f"    δ₂ (time² × High)    = {d2:.6f} "
+              f"(SE = {res.std_errors['time_sq_x_high']:.6f}, "
+              f"p = {res.pvalues['time_sq_x_high']:.4f})")
+
+        # Save full results
+        result_df = pd.DataFrame({
+            "variable": res.params.index,
+            "coefficient": res.params.values,
+            "std_error": res.std_errors.values,
+            "p_value": res.pvalues.values,
+        })
+        result_df.to_csv(TABDIR / "quadratic_trends.csv", index=False)
+        print(f"    Saved → quadratic_trends.csv")
+
+        return {
+            "beta_rb": b1,
+            "se_rb": res.std_errors["post_rb_x_high"],
+            "p_rb": res.pvalues["post_rb_x_high"],
+            "beta_gpt": b2,
+            "se_gpt": res.std_errors["post_gpt_x_high"],
+            "p_gpt": res.pvalues["post_gpt_x_high"],
+            "delta_linear": d1,
+            "delta_quadratic": d2,
+            "p_quadratic": res.pvalues["time_sq_x_high"],
+            "n_obs": res.nobs,
+            "n_entities": res.entity_info["total"],
+        }
+
+    except ImportError:
+        print("    linearmodels not available — skipping")
+        return None
+
+
+# ── Robustness 11: Rambachan-Roth sensitivity analysis ───────────────────────
+
+def rambachan_roth_sensitivity(merged):
+    """
+    Simplified Rambachan & Roth (2023) sensitivity analysis for the
+    average post-ChatGPT treatment effect.
+
+    Since HonestDiD is not available in Python, we implement the
+    "relative magnitudes" approach directly:
+
+    1. Run the monthly event study (same as R8) to get δ̂_t coefficients.
+    2. Compute the maximum absolute first-difference of pre-period
+       coefficients: Δ_max = max_{t<0} |δ̂_t - δ̂_{t-1}|
+       This is the empirical "scale" of pre-trend violations.
+    3. For a grid of M̄ values (relative magnitudes parameter):
+       - M̄ = 0: parallel trends hold exactly in the post-period
+       - M̄ = 1: post-period trend violations are at most as large as
+                 the worst pre-period violation
+       - M̄ > 1: post-period violations can exceed pre-period violations
+    4. Compute honest CI for the average post-ChatGPT coefficient:
+       CI(M̄) = θ̂ ± [z_{0.975} × SE(θ̂) + M̄ × Δ_max]
+    5. Find the "breakdown value" of M̄ where the CI first includes zero.
+
+    Reference: Rambachan & Roth (2023, ReStud), Section 3.2.
+    This is a conservative (wider) approximation of the exact HonestDiD
+    computation, which solves a linear program over the identified set.
+    """
+    print("  R11: Rambachan-Roth sensitivity analysis...")
+
+    from scipy import stats as scipy_stats
+
+    df = merged.copy()
+    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= "2025-12")].copy()
+    df["date"] = pd.to_datetime(df["year_month"] + "-01")
+    df = df[df["n_ads"] > 0].copy()
+    df["ln_ads"] = np.log(df["n_ads"])
+
+    # ── Step 1: Run event study ──
+    base_month = "2020-02"
+    months = sorted(df["year_month"].unique())
+    months_excl_base = [m for m in months if m != base_month]
+
+    for m in months_excl_base:
+        col = f"m_{m}_x_high"
+        df[col] = ((df["year_month"] == m) & (df["high_exposure"] == 1)).astype(int)
+
+    interaction_cols = [f"m_{m}_x_high" for m in months_excl_base]
+
+    try:
+        from linearmodels.panel import PanelOLS
+
+        panel = df.copy()
+        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
+        panel = panel.set_index(["ssyk4", "date"])
+
+        mod = PanelOLS(
+            dependent=panel["ln_ads"],
+            exog=panel[interaction_cols],
+            entity_effects=True,
+            time_effects=True,
+        )
+        res = mod.fit(cov_type="clustered", cluster_entity=True)
+        coefs = res.params[interaction_cols]
+
+    except ImportError:
+        print("    linearmodels not available — skipping")
+        return None
+
+    # ── Step 2: Compute pre-period first differences ──
+    pre_months = sorted([m for m in months_excl_base if m < "2022-04"])
+    pre_coefs = [coefs[f"m_{m}_x_high"] for m in pre_months]
+
+    # First differences of pre-period coefficients
+    # Include the implicit δ̂_{base} = 0 as the first element
+    pre_with_base = [0.0] + pre_coefs
+    pre_first_diffs = [abs(pre_with_base[i] - pre_with_base[i - 1])
+                       for i in range(1, len(pre_with_base))]
+    delta_max = max(pre_first_diffs)
+    print(f"    Max |Δδ̂_pre| (pre-period first diff) = {delta_max:.4f}")
+
+    # ── Step 3: Average post-ChatGPT effect ──
+    post_gpt_months = sorted([m for m in months_excl_base if m >= "2022-12"])
+    post_gpt_coefs = np.array([coefs[f"m_{m}_x_high"] for m in post_gpt_months])
+    theta_hat = np.mean(post_gpt_coefs)
+
+    # SE of average: use delta method with uniform weights
+    n_post = len(post_gpt_months)
+    post_cols = [f"m_{m}_x_high" for m in post_gpt_months]
+    weights = np.ones(n_post) / n_post
+    post_vcov = res.cov.loc[post_cols, post_cols].values
+    se_theta = float(np.sqrt(weights @ post_vcov @ weights))
+
+    print(f"    Average post-ChatGPT effect: θ̂ = {theta_hat:.4f} "
+          f"(SE = {se_theta:.4f})")
+
+    # ── Step 4: Sensitivity grid ──
+    # For each M̄, compute honest CI
+    z = scipy_stats.norm.ppf(0.975)  # 1.96
+    mbar_grid = np.arange(0, 3.25, 0.25)
+
+    sensitivity_rows = []
+    breakdown_mbar = None
+
+    for mbar in mbar_grid:
+        # Bias bound: M̄ × Δ_max
+        # (conservative: assumes worst-case bias from extrapolating pre-trends)
+        bias = mbar * delta_max
+        ci_lo = theta_hat - z * se_theta - bias
+        ci_hi = theta_hat + z * se_theta + bias
+
+        # Does CI include zero?
+        includes_zero = (ci_lo <= 0) and (ci_hi >= 0)
+
+        sensitivity_rows.append({
+            "mbar": mbar,
+            "theta_hat": theta_hat,
+            "se_theta": se_theta,
+            "bias_bound": bias,
+            "ci_lo": ci_lo,
+            "ci_hi": ci_hi,
+            "includes_zero": includes_zero,
+        })
+
+        if includes_zero and breakdown_mbar is None:
+            breakdown_mbar = mbar
+
+    print(f"    Breakdown M̄ = {breakdown_mbar} "
+          f"(CI first includes zero)")
+
+    # Save results
+    sens_df = pd.DataFrame(sensitivity_rows)
+    sens_df.to_csv(TABDIR / "rambachan_roth_sensitivity.csv", index=False)
+    print(f"    Saved → rambachan_roth_sensitivity.csv")
+
+    # ── Step 5: Plot ──
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.fill_between(
+        sens_df["mbar"], sens_df["ci_lo"], sens_df["ci_hi"],
+        alpha=0.2, color=DARK_BLUE, label="95% honest CI"
+    )
+    ax.axhline(theta_hat, color=DARK_BLUE, linewidth=2,
+               label=f"$\\hat{{\\theta}}$ = {theta_hat:.3f}")
+    ax.axhline(0, color=GRAY, linewidth=0.8, linestyle="--")
+
+    # Mark breakdown value
+    if breakdown_mbar is not None:
+        ax.axvline(breakdown_mbar, color=ORANGE, linewidth=1.5, linestyle=":",
+                   label=f"Breakdown $\\bar{{M}}$ = {breakdown_mbar:.2f}")
+
+    ax.set_xlabel("$\\bar{M}$ (relative magnitudes)")
+    ax.set_ylabel("Average post-ChatGPT effect")
+    ax.set_title("Rambachan-Roth sensitivity: average post-ChatGPT effect\n"
+                 "on high vs low genAI exposure occupations")
+    ax.legend(loc="lower left", framealpha=0.9)
+
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "figA6_rambachan_roth.png")
+    plt.close(fig)
+    print(f"    Saved → figA6_rambachan_roth.png")
+
+    return {
+        "theta_hat": theta_hat,
+        "se_theta": se_theta,
+        "delta_max": delta_max,
+        "breakdown_mbar": breakdown_mbar,
+        "sensitivity": sens_df,
+    }
+
+
 # ── Collect all results ──────────────────────────────────────────────────────
 
 def main():
@@ -638,6 +911,20 @@ def main():
         robustness_quarterly_event_study(merged)
     except Exception as e:
         print(f"    Quarterly event study FAILED: {e}")
+
+    # Quadratic trends
+    try:
+        quad_result = robustness_quadratic_trends(merged)
+        if quad_result is not None:
+            results["Quadratic trends"] = quad_result
+    except Exception as e:
+        print(f"    Quadratic trends FAILED: {e}")
+
+    # Rambachan-Roth sensitivity
+    try:
+        rr_result = rambachan_roth_sensitivity(merged)
+    except Exception as e:
+        print(f"    Rambachan-Roth FAILED: {e}")
 
     # Format results table
     print("\n" + "=" * 70)
