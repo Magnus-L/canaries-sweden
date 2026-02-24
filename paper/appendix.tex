@@ -66,7 +66,7 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 \section{Robustness checks}
 % ══════════════════════════════════════════════════════════════════════════════
 
-Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE. The ChatGPT coefficient $\hat\beta_2$ is insignificant in five of seven specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in all specifications.
+Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE; (viii)~adding quadratic occupation-specific time trends. The ChatGPT coefficient $\hat\beta_2$ is insignificant in six of eight specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in seven of eight specifications.
 
 \input{../tables/robustness_results.tex}
 
@@ -104,6 +104,41 @@ Figure~\ref{fig:omxspi} replicates the ``scary chart'' using the OMXSPI (OMX Sto
 \includegraphics[width=\textwidth]{figA4_omxspi_comparison.png}
 \caption{Stock market vs job postings using OMXS30 (left) and OMXSPI All-Share (right). Both panels show the same divergence pattern, confirming it is not driven by the composition of the OMXS30.}
 \label{fig:omxspi}
+\end{figure}
+
+
+\subsection{Quadratic occupation-specific trends}
+
+Adding quadratic time trends interacted with the high-exposure indicator tests whether non-linear differential dynamics --- such as accelerating AI adoption over time --- drive the results beyond what linear trends capture. The quadratic term is insignificant ($\hat\delta_2 = -0.00002$, $p = 0.56$), indicating that the linear trend specification (column~3 in the main table) is sufficient. The ChatGPT coefficient remains insignificant ($\hat\beta_2 = 0.019$, $p = 0.63$).
+
+
+\subsection{Sensitivity to violations of parallel trends}
+
+Figure~\ref{fig:rr} reports a sensitivity analysis following the relative magnitudes framework of \citet{rambachan2023more}. The average post-ChatGPT event-study coefficient for high-exposure occupations is $\hat\theta = -0.169$ (SE = 0.059), significantly negative under exact parallel trends ($\bar{M} = 0$). However, the ``breakdown value'' is $\bar{M} = 0.25$: if post-period violations of parallel trends are as little as 25\% of the maximum pre-period violation, the honest confidence interval includes zero. This confirms that while there is suggestive evidence of a negative AI effect on postings, the finding is fragile --- consistent with the imprecision documented in the main regression table.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA6_rambachan_roth.png}
+\caption{Rambachan-Roth sensitivity analysis for the average post-ChatGPT effect on high vs low genAI exposure occupations. The solid line shows the point estimate ($\hat\theta = -0.169$); the shaded area shows the 95\% honest confidence interval as a function of $\bar{M}$ (the maximum ratio of post- to pre-period trend violations). The dotted line marks the breakdown value $\bar{M} = 0.25$.}
+\label{fig:rr}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Employment by age group and AI exposure}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\citet{brynjolfsson2025canaries} find that young US workers in AI-exposed occupations experienced disproportionate employment declines --- ``canaries in the coal mine.'' Our posting-based analysis cannot test this age-specific hypothesis. As a supplementary check, we use publicly available register data from SCB (Yrkesregistret, table YREG54BAS) providing annual employment counts by SSYK~4-digit occupation and age group for 2020--2024.
+
+Figure~\ref{fig:canaries_emp} shows employment indexed to 2020, for four groups defined by age (16--24 vs 25+) and AI exposure (top quartile vs rest). All groups recover strongly from the 2020 pandemic trough, with youth employment growing fastest. There is no visible divergence between young workers in high- vs low-AI-exposure occupations after ChatGPT. A triple-difference regression (occupation-age entity and year fixed effects, clustered at entity level) yields an insignificant interaction: $\hat\beta_{\text{Post} \times \text{Young} \times \text{High}} = 0.038$ ($p > 0.10$), providing no evidence of a canaries effect.
+
+Three caveats apply: (i)~SCB changed the underlying register from RAMS to BAS from reference year 2022, introducing a methodological break at our treatment timing; (ii)~the 2020 pandemic trough as base year inflates all growth rates; (iii)~with only five annual observations, statistical power is limited. Monthly employer declaration (AGI) data, available in Sweden's secure research environment (MONA), would permit a more granular test of this hypothesis.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA7_canaries_employment.png}
+\caption{Employment by age group and AI exposure, Sweden 2020--2024 (2020 = 100). Data: SCB Yrkesregistret (YREG54BAS). Young = 16--24 years; High AI = top quartile of DAIOE genAI exposure. The dotted line marks ChatGPT launch (November 2022). Note: methodological break (RAMS to BAS) at 2022.}
+\label{fig:canaries_emp}
 \end{figure}
 
 
