@@ -1,0 +1,12 @@
+,value
+N occupations,369.0
+N months,77.0
+N occupation-months,26672.0
+Total ads,4462590.0
+Total vacancies,8390286.0
+Mean ads per cell,167.3136622675465
+Median ads per cell,43.0
+SD ads per cell,438.2977103554539
+Mean genAI exposure (pctl),49.999999987092195
+SD genAI exposure,28.90164240415086
+Q4 cutoff (pctl),74.939999

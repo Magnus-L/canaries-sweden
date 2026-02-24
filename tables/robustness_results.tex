@@ -1,0 +1,30 @@
+\begin{table}[htbp]
+\centering
+\caption{Robustness checks}
+\label{tab:robustness}
+\begin{tabular}{lcccc}
+\hline\hline
+Specification & $\hat\beta_1$ (Riksbank) & $\hat\beta_2$ (ChatGPT) & $N$ & Occ. \\
+\hline
+Baseline (genAI Q4) & -0.1271*** & -0.0615 & 26,672 & 369 \\
+ & (0.0388) & (0.0380) & & \\
+All-apps measure & -0.0921** & -0.0911** & 26,672 & 369 \\
+ & (0.0386) & (0.0385) & & \\
+Vacancy-weighted & -0.1038** & -0.0612 & 26,672 & 369 \\
+ & (0.0443) & (0.0437) & & \\
+Excl. pandemic & -0.1159*** & -0.0617 & 24,479 & 369 \\
+ & (0.0356) & (0.0380) & & \\
+Terciles & -0.0936*** & -0.0808** & 26,672 & 369 \\
+ & (0.0360) & (0.0362) & & \\
+Excl. IT/tech & -0.1291*** & -0.0662* & 26,148 & 362 \\
+ & (0.0406) & (0.0400) & & \\
+Balanced panel & -0.1130*** & -0.0325 & 22,176 & 308 \\
+ & (0.0377) & (0.0345) & & \\
+Language model & -0.1154*** & -0.0564 & 26,672 & 369 \\
+ & (0.0386) & (0.0387) & & \\
+Quadratic trends & -0.0884*** & 0.0193 & 26,672 & 369 \\
+ & (0.0323) & (0.0402) & & \\
+\hline\hline
+\multicolumn{5}{p{0.95\textwidth}}{\footnotesize \textit{Notes:} All specifications include occupation and month fixed effects. Standard errors (in parentheses) clustered at occupation level. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.} \\
+\end{tabular}
+\end{table}

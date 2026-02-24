@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\caption{Difference-in-differences: postings by genAI exposure}
+\label{tab:did}
+\begin{tabular}{lcccc}
+\hline\hline
+ & (1) & (2) & (3) & (4) \\
+ & Monetary & + ChatGPT & + Trends & Group$\times$Time \\
+\hline
+Post-Riksbank $\times$ High & -0.178*** & -0.127*** & -0.068 & -0.039 \\
+ & (0.041) & (0.039) & (0.050) & (0.049) \\
+Post-ChatGPT $\times$ High &  & -0.062 & 0.018 & -0.032 \\
+ &  & (0.038) & (0.040) & (0.048) \\
+Time trend $\times$ High &  &  & -0.003** &  \\
+ &  &  & (0.001) &  \\
+\hline
+Occupation FE & Yes & Yes & Yes & Yes \\
+Month FE & Yes & Yes & Yes & \\
+Occ.\ group $\times$ month FE & & & & Yes \\
+Dep.\ var.\ mean & \multicolumn{4}{c}{3.77} \\
+Occupations & \multicolumn{4}{c}{369} \\
+Observations & \multicolumn{4}{c}{26,672} \\
+\hline\hline
+\multicolumn{5}{p{0.95\textwidth}}{\footnotesize \textit{Notes:} Dependent variable: $\ln(\text{postings}_{it})$. High = top quartile of DAIOE genAI percentile ranking. Post-Riksbank $=$ April 2022 onward. Post-ChatGPT $=$ December 2022 onward. Column (4) replaces common month FE with SSYK 1-digit occupation group $\times$ month FE. Standard errors clustered at occupation level in parentheses. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.} \\
+\end{tabular}
+\end{table}
