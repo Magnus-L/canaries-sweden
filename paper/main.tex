@@ -36,7 +36,7 @@
 
 \begin{abstract}
 % TARGET: 95 words (max 100)
-A ``scary chart'' shows US stock prices rising while job postings fall --- a pattern attributed to AI displacement. We test this using 4.6 million Swedish job ads (2020--2025) from Platsbanken matched to validated AI exposure measures. A difference-in-differences design exploits the Riksbanken rate hike (April 2022) preceding ChatGPT (November 2022) by seven months. Postings declined broadly across all AI exposure quartiles beginning with monetary tightening, with no additional differential decline after ChatGPT. The Swedish posting gap reflects monetary policy, not AI displacement. All data and code are publicly available.
+A ``scary chart'' shows US stock prices rising while job postings fall --- a pattern attributed to AI displacement. We test this using 4.6 million Swedish job ads (2020--2026) from Platsbanken matched to a generative AI exposure index. A difference-in-differences design exploits the Riksbanken rate hike (April 2022) preceding ChatGPT (November 2022) by seven months. Postings declined broadly across all AI exposure quartiles beginning with monetary tightening, with no significant additional decline after ChatGPT in the baseline specification. The posting gap primarily reflects macroeconomic tightening. All data and code are publicly available.
 \end{abstract}
 
 \begin{keyword}
@@ -54,9 +54,9 @@ A widely circulated chart shows US stock prices rising roughly 70\% since 2020 w
 
 Two studies have tested this outside the US. \citet{kauhanen2025canaries} found no employment decline among young Finnish workers in high-AI-exposure occupations using population register data; instead, wages rose more in these occupations. \citet{kauhanen2025youth} extended the analysis and confirmed no youth labour market effects in Finland through 2024.
 
-We make three contributions. First, we study \emph{job postings} rather than employment. This matters because the ``scary chart'' itself is about postings, and postings are a leading indicator of labour demand that responds faster than employment to shocks. Nobody has decomposed the posting decline by AI exposure. Second, we use individual-level microdata from Platsbanken, the Swedish Public Employment Service's job bank, comprising over 4.6 million ads (2020--2025) matched to the DAIOE generative AI exposure index at the SSYK 4-digit occupation level \citep{lodefalk2024daioe}. Third, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If monetary policy is the primary driver, the decline should begin with the rate hike.
+We make three contributions. First, we study \emph{job postings} rather than employment. This matters because the ``scary chart'' itself is about postings, and postings are a leading indicator of labour demand that responds faster than employment to shocks. Nobody has decomposed the posting decline by AI exposure. Second, we use individual-level microdata from Platsbanken, the Swedish Public Employment Service's job bank, comprising over 4.6 million ads (2020--2026) matched to the DAIOE generative AI exposure index at the SSYK 4-digit occupation level \citep{lodefalk2024daioe}. Third, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. The rate hike coincided with Russia's invasion of Ukraine and the ensuing European energy crisis, creating a constellation of macroeconomic headwinds distinct from AI. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If macroeconomic tightening is the primary driver, the decline should begin with the rate hike.
 
-Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no additional differential decline in high-exposure occupations after ChatGPT. The Swedish ``scary chart'' reflects monetary tightening, not AI displacement.
+Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no statistically significant additional decline in high-exposure occupations after ChatGPT in the baseline specification, though some alternative exposure measures yield suggestive effects.
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -66,7 +66,7 @@ Our difference-in-differences estimates show that postings declined broadly acro
 
 \subsection{Platsbanken microdata}
 
-We use the full population of job advertisements published on Platsbanken from January 2020 through February 2026, downloaded as historical JSONL files from JobTech Development.\footnote{Available at \url{https://data.jobtechdev.se/annonser/historiska/}. CC0 licence.} Each ad contains a publication date, SSYK 2012 four-digit occupation code, number of vacancies, municipality, and employer. After removing ads without valid SSYK codes and deduplicating on ad identifier, we retain 4.6 million ads across 400 occupations, which we aggregate to occupation $\times$ year-month cells (26,672 observations).
+We use the full population of job advertisements published on Platsbanken from January 2020 through February 2026, downloaded as historical JSONL files from JobTech Development.\footnote{Available at \url{https://data.jobtechdev.se/annonser/historiska/}. CC0 licence.} Each ad contains a publication date, SSYK 2012 four-digit occupation code, number of vacancies, municipality, and employer. After removing ads without valid SSYK codes and deduplicating on ad identifier, we retain 4.6 million ads across 400 occupations, which we aggregate to occupation $\times$ year-month cells (26,672 observations). Not all Swedish vacancies appear on Platsbanken; white-collar professional roles are increasingly posted on LinkedIn and other platforms, which may attenuate measurable effects in highly AI-exposed occupations.
 
 \subsection{AI exposure}
 
@@ -116,11 +116,11 @@ Figure~\ref{fig:gap} plots the Q4 minus Q1 posting gap over time. The gap fluctu
 
 \subsection{Regression results}
 
-Table~\ref{tab:did} reports the DiD estimates. In specification (1), the Riksbanken interaction alone is strongly significant ($\hat\beta_1 = -0.178$, $p < 0.01$), indicating that high-exposure occupations experienced a differential posting decline after the rate hike. In specification (2), adding the ChatGPT interaction yields $\hat\beta_2 = -0.062$ ($p = 0.11$) --- negative but statistically insignificant --- while the monetary policy interaction remains significant ($\hat\beta_1 = -0.127$, $p < 0.01$). Specification (3) adds occupation-specific time trends; the ChatGPT coefficient becomes essentially zero ($\hat\beta_2 = 0.018$).
+Table~\ref{tab:did} reports the DiD estimates. In specification (1), the Riksbanken interaction alone is strongly significant ($\hat\beta_1 = -0.178$, $p < 0.01$), indicating that high-exposure occupations experienced a differential posting decline after the rate hike. In specification (2), adding the ChatGPT interaction yields $\hat\beta_2 = -0.062$ ($p = 0.11$) --- negative but statistically insignificant --- while the monetary policy interaction remains significant ($\hat\beta_1 = -0.127$, $p < 0.01$). Specification (3) adds occupation-specific time trends; both interactions lose significance ($\hat\beta_1 = -0.068$, $\hat\beta_2 = 0.018$), suggesting limited power to separate closely spaced shocks once flexible trends are allowed.
 
 \input{../tables/did_regression.tex}
 
-The estimates are robust to seven alternative specifications: DAIOE all-apps exposure measure, vacancy-weighted outcomes, exclusion of pandemic months, tercile classification, exclusion of IT/tech occupations (SSYK 25xx), a balanced panel of 308 occupations observed in every month, and language-modelling task exposure. An event study with monthly DiD coefficients confirms parallel pre-trends and no structural break at the ChatGPT launch (see Online Appendix).
+Five of seven alternative specifications confirm the insignificance of $\hat\beta_2$. However, the all-apps AI exposure measure and tercile classification yield significant ChatGPT coefficients ($p = 0.018$ and $p = 0.026$ respectively), and $\hat\beta_2$ is negative in all specifications. An event study shows no systematic pre-trend, though a joint Wald test rejects the null of zero pre-period differentials ($\chi^2_{26} = 107.1$, $p < 0.01$), reflecting monthly volatility rather than trending divergence (see Online Appendix).
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -128,11 +128,11 @@ The estimates are robust to seven alternative specifications: DAIOE all-apps exp
 % TARGET: ~200 words
 % ══════════════════════════════════════════════════════════════════════════════
 
-Our findings complement \citet{kauhanen2025canaries} and \citet{kauhanen2025youth}, who found no AI-driven employment effects in Finland. We show that the same null result holds for the leading indicator --- job postings --- using Swedish microdata. Together, these Nordic studies suggest that the US ``canaries'' finding may reflect country-specific labour market institutions rather than a universal AI displacement pattern.
+Our findings complement \citet{kauhanen2025canaries} and \citet{kauhanen2025youth}, who found no AI-driven employment effects in Finland. The dominant driver of the Swedish posting decline is macroeconomic tightening --- the Riksbanken hiking cycle and the broader deterioration following Russia's invasion of Ukraine --- rather than generative AI. However, our results do not support a clean null: $\hat\beta_2$ is negative in seven of eight specifications and statistically significant in two, suggesting possible modest AI effects that our design lacks power to detect precisely. Together, these Nordic studies indicate that the US ``canaries'' finding may partly reflect country-specific labour market institutions.
 
-The timing identification is informative: the posting decline begins with monetary tightening, seven months before ChatGPT. This does not imply that AI will never affect job postings, but it demonstrates that the current divergence in Sweden is better explained by conventional macroeconomic factors. It also suggests that a sizable part of the US ``scary chart'' may similarly reflect monetary policy.
+Two caveats merit emphasis. First, adding occupation-specific trends renders both the monetary policy and ChatGPT interactions insignificant, indicating limited power to distinguish two closely spaced shocks. Second, the $\text{Post-RB}$ dummy captures not only the rate hike but also the energy crisis and other macroeconomic headwinds of early 2022; our design identifies ``macroeconomic tightening versus AI,'' not ``monetary policy versus AI'' narrowly.
 
-A limitation is that our sample ends in early 2026. As AI adoption accelerates, future postings data may reveal effects not yet visible. Our publicly available pipeline enables ongoing monitoring.
+Our sample ends in early 2026. As AI adoption accelerates, future data may reveal displacement effects not yet detectable. Our publicly available pipeline enables ongoing monitoring.
 
 % ══════════════════════════════════════════════════════════════════════════════
 % AI disclosure (required by Economics Letters / Elsevier)

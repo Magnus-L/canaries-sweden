@@ -66,14 +66,14 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 \section{Robustness checks}
 % ══════════════════════════════════════════════════════════════════════════════
 
-Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel; (vii)~using language-modelling task exposure from DAIOE. The main finding --- no significant additional decline in high-exposure postings after ChatGPT --- is robust across all specifications.
+Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE. The ChatGPT coefficient $\hat\beta_2$ is insignificant in five of seven specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in all specifications.
 
 \input{../tables/robustness_results.tex}
 
 
 \subsection{Event study}
 
-Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The absence of systematic pre-trends supports the parallel trends assumption. The coefficients show no divergence at the ChatGPT launch date beyond what is attributable to the Riksbanken hiking cycle.
+Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). This reflects substantial month-to-month volatility in the differential rather than trending divergence; the pre-period coefficients are centred on zero but individually noisy. The post-ChatGPT coefficients show no additional structural break beyond the Riksbanken hiking cycle.
 
 \begin{figure}[htbp]
 \centering
