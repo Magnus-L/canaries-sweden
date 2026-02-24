@@ -1,0 +1,98 @@
+% Online Appendix for "Two Economies?"
+% This supplementary material does not count toward the 2,000-word limit.
+
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\graphicspath{{../figures/}}
+
+\begin{document}
+
+\begin{frontmatter}
+\title{Online Appendix: Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden}
+\author{Lodefalk, Engberg, and L\"othman}
+\end{frontmatter}
+
+\setcounter{section}{0}
+\renewcommand{\thesection}{A\arabic{section}}
+\renewcommand{\thetable}{A\arabic{table}}
+\renewcommand{\thefigure}{A\arabic{figure}}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Sweden vs United States comparison}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Figure~\ref{fig:svdus} shows side-by-side comparisons of the stock market versus job postings divergence in the United States and Sweden. The US panel uses the S\&P~500 and Indeed Hiring Lab aggregate job postings index; the Swedish panel uses OMXS30 and Platsbanken microdata. Both countries exhibit a similar qualitative pattern of rising stock markets and falling postings since mid-2022.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA1_sweden_vs_us.png}
+\caption{Stock markets vs job postings: United States (left) and Sweden (right), both indexed to 100 at February 2020.}
+\label{fig:svdus}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Individual quartile trends}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Figure~\ref{fig:quartiles} shows each AI exposure quartile's posting trajectory individually. All four quartiles exhibit similar cyclical patterns, peaking in mid-2022 and declining through 2023--2024. The parallelism of these trends is consistent with a common macroeconomic driver rather than AI-specific displacement.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA2_quartile_panels.png}
+\caption{Job posting index by genAI exposure quartile (Feb 2020 = 100), individual panels.}
+\label{fig:quartiles}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Top and bottom occupations}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupations according to the DAIOE index.
+
+\input{../tables/top_bottom_occupations.tex}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Robustness checks}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles. The main finding --- no significant additional decline in high-exposure postings after ChatGPT --- is robust across all specifications.
+
+\input{../tables/robustness_results.tex}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{DAIOE exposure distribution}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The DAIOE genAI percentile ranking provides a continuous measure of occupational exposure to generative AI capabilities. The distribution across Swedish SSYK~4-digit occupations is approximately uniform by construction (it is a percentile ranking), with quartile boundaries at approximately the 25th, 50th, and 75th percentiles of the occupation distribution.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Data documentation}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Platsbanken}
+Historical job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. Available at \url{https://data.jobtechdev.se/annonser/historiska/}.
+
+\subsection{DAIOE}
+The Dynamic AI Occupational Exposure index maps AI benchmark performance to occupational task content. The genAI variant focuses on capabilities relevant to large language models and image generation. Publicly available; see \citet{lodefalk2024daioe}.
+
+\subsection{OMXS30}
+Stockholm OMX~30 daily closing prices from Yahoo Finance (ticker: \texttt{\^{}OMX}).
+
+\subsection{Riksbanken policy rate}
+Manually compiled from Riksbanken press releases. Key dates verified against \url{https://riksbank.se}.
+
+
+\end{document}

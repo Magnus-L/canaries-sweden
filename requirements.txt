@@ -1,0 +1,9 @@
+pandas>=2.0
+matplotlib>=3.7
+seaborn>=0.12
+yfinance>=0.2.30
+requests>=2.28
+openpyxl>=3.1
+statsmodels>=0.14
+linearmodels>=5.0
+tqdm>=4.65

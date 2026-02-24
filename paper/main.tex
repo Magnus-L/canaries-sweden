@@ -1,0 +1,152 @@
+% Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden
+% Economics Letters — max 2,000 words (incl. tables, figures, references)
+% LaTeX template: elsarticle (Elsevier)
+
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{setspace}
+
+% Path to figures
+\graphicspath{{../figures/}}
+
+\journal{Economics Letters}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden}
+
+\author[oru]{Magnus Lodefalk\corref{cor}}
+\ead{magnus.lodefalk@oru.se}
+\author[oru]{Erik Engberg}
+\author[oru]{Oskar L\"othman}
+
+\cortext[cor]{Corresponding author}
+\address[oru]{\"Orebro University School of Business, SE-701 82 \"Orebro, Sweden}
+
+\begin{abstract}
+% TARGET: 95 words (max 100)
+A ``scary chart'' shows US stock prices rising while job postings fall --- a pattern attributed to AI displacement. We test this using 7 million Swedish job ads (2020--2025) from Platsbanken matched to validated AI exposure measures. A difference-in-differences design exploits the Riksbanken rate hike (April 2022) preceding ChatGPT (November 2022) by seven months. Postings declined broadly across all AI exposure quartiles beginning with monetary tightening, with no additional differential decline after ChatGPT. The Swedish posting gap reflects monetary policy, not AI displacement. All data and code are publicly available.
+\end{abstract}
+
+\begin{keyword}
+Job postings \sep Artificial intelligence \sep Monetary policy \sep Labour demand \sep Sweden
+\end{keyword}
+
+\end{frontmatter}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+% TARGET: ~400 words
+% ══════════════════════════════════════════════════════════════════════════════
+
+A widely circulated chart shows US stock prices rising roughly 70\% since 2020 while job postings on Indeed fell approximately 30\% --- prompting concern that AI is hollowing out labour demand even as it boosts corporate valuations \citep{thompson2025scary}. \citet{brynjolfsson2025canaries} provided the first systematic evidence, finding that US entry-level workers in AI-automatable occupations experienced employment declines since late 2022 --- ``canaries in the coal mine'' signalling broader displacement.
+
+Two studies have tested this outside the US. \citet{kauhanen2025canaries} found no employment decline among young Finnish workers in high-AI-exposure occupations using population register data; instead, wages rose more in these occupations. \citet{kauhanen2025youth} extended the analysis and confirmed no youth labour market effects in Finland through 2024.
+
+We make three contributions. First, we study \emph{job postings} rather than employment. This matters because the ``scary chart'' itself is about postings, and postings are a leading indicator of labour demand that responds faster than employment to shocks. Nobody has decomposed the posting decline by AI exposure. Second, we use individual-level microdata from Platsbanken, the Swedish Public Employment Service's job bank, comprising over 7 million ads (2020--2025) matched to the DAIOE generative AI exposure index at the SSYK 4-digit occupation level \citep{lodefalk2024daioe}. Third, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If monetary policy is the primary driver, the decline should begin with the rate hike.
+
+Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no additional differential decline in high-exposure occupations after ChatGPT. The Swedish ``scary chart'' reflects monetary tightening, not AI displacement.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Data and method}
+% TARGET: ~450 words
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Platsbanken microdata}
+
+We use the full population of job advertisements published on Platsbanken from January 2020 through December 2025, downloaded as historical JSONL files from JobTech Development.\footnote{Available at \url{https://data.jobtechdev.se/annonser/historiska/}. CC0 licence.} Each ad contains a publication date, SSYK 2012 four-digit occupation code, number of vacancies, municipality, and employer. After removing ads without valid SSYK codes and deduplicating on ad identifier, we aggregate to occupation $\times$ year-month cells.
+
+\subsection{AI exposure}
+
+We measure generative AI exposure using the DAIOE index \citep{lodefalk2024daioe}, which maps AI benchmark capabilities to Swedish occupations at the SSYK 4-digit level. We use the 2023 cross-section of the percentile ranking for generative AI (\texttt{pctl\_rank\_genai}) and classify occupations into quartiles, where Q4 is the most exposed. The match rate between Platsbanken SSYK codes and DAIOE exceeds 95\%.
+
+\subsection{Identification strategy}
+
+We estimate:
+\begin{equation}\label{eq:did}
+\ln(\text{postings}_{it}) = \alpha_i + \gamma_t + \beta_1 \cdot \text{PostRB}_t \cdot \text{High}_i + \beta_2 \cdot \text{PostGPT}_t \cdot \text{High}_i + \varepsilon_{it}
+\end{equation}
+where $i$ indexes SSYK4 occupations and $t$ indexes year-months; $\alpha_i$ and $\gamma_t$ are occupation and time fixed effects; $\text{PostRB}_t = 1$ if $t \geq$ April 2022 (Riksbanken's first rate hike); $\text{PostGPT}_t = 1$ if $t \geq$ December 2022; $\text{High}_i = 1$ if occupation $i$ is in the top quartile of genAI exposure. Standard errors are clustered at the occupation level.
+
+The key test: if AI drives the differential decline, $\hat\beta_2$ should be significantly negative. If monetary policy drives it, $\hat\beta_1$ should be significant with $\hat\beta_2 \approx 0$. We also estimate specifications with occupation-specific time trends.
+
+\subsection{Auxiliary data}
+
+OMXS30 daily prices from Yahoo Finance, resampled to monthly averages and indexed to 100 at February 2020.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Results}
+% TARGET: ~550 words
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{The Swedish scary chart}
+
+Figure~\ref{fig:scary} shows the Swedish version of the ``scary chart.'' OMXS30 rose substantially above its February 2020 level, while job postings across all AI exposure quartiles declined following the Riksbanken rate hike in April 2022. The decline is remarkably uniform across quartiles: Q4 (highest genAI exposure) and Q1 (lowest) follow nearly identical trajectories. The divergence between stock prices and postings opens seven months before ChatGPT, coinciding precisely with the start of monetary tightening.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig1_scary_chart.png}
+\caption{Stock market vs job postings by AI exposure quartile, Sweden 2020--2025. OMXS30 index (left axis) and Platsbanken posting index by genAI exposure quartile (right axis), both indexed to 100 at February 2020. Vertical lines mark Riksbanken's first rate hike (April 2022) and ChatGPT launch (November 2022).}
+\label{fig:scary}
+\end{figure}
+
+\subsection{Exposure gap}
+
+Figure~\ref{fig:gap} plots the Q4 minus Q1 posting gap over time. The gap fluctuates around zero throughout the sample period, including after the ChatGPT launch. There is no visible widening of the gap following November 2022, as would be expected if AI were differentially reducing postings in exposed occupations.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig2_exposure_gap.png}
+\caption{Posting index gap between Q4 (highest genAI exposure) and Q1 (lowest), with 3-month moving average and 95\% confidence band. No systematic widening after ChatGPT.}
+\label{fig:gap}
+\end{figure}
+
+\subsection{Regression results}
+
+Table~\ref{tab:did} reports the DiD estimates. In specification (1), the Riksbanken interaction alone captures a broad posting decline. In specification (2), adding the ChatGPT interaction yields a coefficient that is small and statistically insignificant, while the monetary policy interaction retains its magnitude. Specification (3) adds occupation-specific time trends with similar results.
+
+\input{../tables/did_regression.tex}
+
+The estimates are robust to alternative AI exposure measures (DAIOE all-apps), vacancy-weighted outcomes, exclusion of pandemic months, and tercile classification (see Online Appendix).
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Discussion}
+% TARGET: ~200 words
+% ══════════════════════════════════════════════════════════════════════════════
+
+Our findings complement \citet{kauhanen2025canaries} and \citet{kauhanen2025youth}, who found no AI-driven employment effects in Finland. We show that the same null result holds for the leading indicator --- job postings --- using Swedish microdata. Together, these Nordic studies suggest that the US ``canaries'' finding may reflect country-specific labour market dynamics rather than a universal AI displacement pattern.
+
+The timing identification is particularly informative: the posting decline begins cleanly with monetary tightening, not with AI diffusion. This does not imply that AI will never affect job postings, but it demonstrates that the current ``scary chart'' pattern in Sweden is better explained by conventional macroeconomic factors.
+
+A limitation is that our sample ends in 2025. As AI adoption accelerates, future postings data may reveal effects not yet visible. Our publicly available pipeline enables ongoing monitoring.
+
+% ══════════════════════════════════════════════════════════════════════════════
+% AI disclosure (required by Economics Letters / Elsevier)
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section*{AI disclosure}
+During the preparation of this work, the authors used Claude (Anthropic) for code development, data processing, and editorial suggestions. The authors reviewed and edited all content and take full responsibility for the publication.
+
+\section*{Data availability}
+All data and replication code are available at [GitHub repository URL].
+
+\section*{Acknowledgements}
+Financial support from the Marianne and Marcus Wallenberg Foundation (WASP-HS, project AISCAF) is gratefully acknowledged.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\bibliographystyle{elsarticle-harv}
+\bibliography{references}
+
+\end{document}
