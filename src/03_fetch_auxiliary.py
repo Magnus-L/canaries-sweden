@@ -72,6 +72,51 @@ def process_omxs30() -> pd.DataFrame:
     return monthly
 
 
+# ── OMXSPI (All-Share) ────────────────────────────────────────────────────────
+
+def fetch_omxspi() -> pd.DataFrame:
+    """
+    Download OMXSPI (OMX Stockholm All-Share Price Index) from Yahoo Finance.
+
+    Covers all companies listed on Nasdaq Stockholm, not just the 30 largest.
+    Used as a robustness check on the scary chart — ensures the divergence
+    isn't driven by the composition of the OMXS30 (heavy in banks/industrials).
+    """
+    print("Fetching OMXSPI (All-Share)...")
+
+    import yfinance as yf
+
+    ticker = yf.Ticker("^OMXSPI")
+    df = ticker.history(start="2020-01-01", end="2026-03-01")
+    if df.empty:
+        raise ValueError("yfinance returned no data for ^OMXSPI")
+
+    df.index = df.index.tz_localize(None)
+    df = df[["Close"]].rename(columns={"Close": "omxspi_close"})
+
+    out = RAW / "omxspi_daily.csv"
+    df.to_csv(out)
+    print(f"  Saved {len(df)} daily prices → {out.name}")
+    return df
+
+
+def process_omxspi() -> pd.DataFrame:
+    """Resample OMXSPI to monthly averages, index to 100 at base month."""
+    print("Processing OMXSPI to monthly index...")
+
+    df = pd.read_csv(RAW / "omxspi_daily.csv", index_col=0, parse_dates=True)
+    monthly = df.resample("MS").mean()
+    monthly.columns = ["omxspi"]
+
+    base = monthly.loc[BASE_MONTH, "omxspi"]
+    monthly["omxspi_idx"] = (monthly["omxspi"] / base) * 100
+
+    out = PROCESSED / "omxspi_monthly.csv"
+    monthly.to_csv(out)
+    print(f"  {len(monthly)} months, base (Feb 2020) = {base:.1f}")
+    return monthly
+
+
 # ── Riksbanken policy rate ────────────────────────────────────────────────────
 
 def create_riksbank_rate() -> pd.DataFrame:
@@ -252,6 +297,13 @@ def main():
     # OMXS30
     fetch_omxs30()
     process_omxs30()
+
+    # OMXSPI (All-Share, for robustness)
+    try:
+        fetch_omxspi()
+        process_omxspi()
+    except Exception as e:
+        print(f"  WARNING: OMXSPI fetch failed: {e}")
 
     # Riksbanken
     create_riksbank_rate()

@@ -414,6 +414,77 @@ def fig_quartile_panels():
     print(f"  Saved → {out.name}")
 
 
+# ── Appendix Figure A4: OMXSPI (All-Share) scary chart ───────────────────────
+
+def fig_omxspi_scary_chart():
+    """
+    Robustness on the scary chart: OMXSPI (All-Share) instead of OMXS30.
+
+    The OMXS30 is heavily weighted toward banks and industrials.
+    The OMXSPI covers all ~350 listed companies on Nasdaq Stockholm,
+    giving a broader picture. If the divergence looks the same, the
+    scary chart pattern isn't an artefact of OMXS30 composition.
+    """
+    print("Generating Figure A4: OMXSPI scary chart...")
+
+    omxspi_path = PROCESSED / "omxspi_monthly.csv"
+    if not omxspi_path.exists():
+        print("  OMXSPI data not available — skipping")
+        return
+
+    omxspi = pd.read_csv(omxspi_path, index_col=0, parse_dates=True)
+    omxs30 = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
+    postings = pd.read_csv(PROCESSED / "postings_total_indexed.csv")
+    postings["date"] = pd.to_datetime(postings["date"])
+    postings = postings.set_index("date")
+
+    # Trim to Jan 2020+
+    cutoff = pd.Timestamp("2020-01-01")
+    omxspi = omxspi[omxspi.index >= cutoff]
+    omxs30 = omxs30[omxs30.index >= cutoff]
+    postings = postings[postings.index >= cutoff].sort_index()
+
+    # Smooth postings
+    postings["ads_ma3"] = postings["ads_idx"].rolling(3, center=True, min_periods=1).mean()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5), sharey=False)
+
+    # Left panel: OMXS30 (baseline)
+    ax1.plot(omxs30.index, omxs30["omxs30_idx"], color=DARK_BLUE, linewidth=2, label="OMXS30")
+    ax1r = ax1.twinx()
+    ax1r.plot(postings.index, postings["ads_idx"], color=ORANGE, linewidth=0.6, alpha=0.25)
+    ax1r.plot(postings.index, postings["ads_ma3"], color=ORANGE, linewidth=2, label="Postings (3-mo MA)")
+    ax1.set_title("OMXS30 (30 largest)", fontsize=13, fontweight="bold")
+    ax1.set_ylabel("Index (Feb 2020 = 100)", color=DARK_BLUE)
+    ax1r.set_ylabel("Postings index", color=ORANGE)
+
+    # Right panel: OMXSPI (all-share)
+    ax2.plot(omxspi.index, omxspi["omxspi_idx"], color=DARK_BLUE, linewidth=2, label="OMXSPI")
+    ax2r = ax2.twinx()
+    ax2r.plot(postings.index, postings["ads_idx"], color=ORANGE, linewidth=0.6, alpha=0.25)
+    ax2r.plot(postings.index, postings["ads_ma3"], color=ORANGE, linewidth=2, label="Postings (3-mo MA)")
+    ax2.set_title("OMXSPI (all listed companies)", fontsize=13, fontweight="bold")
+    ax2.set_ylabel("Index (Feb 2020 = 100)", color=DARK_BLUE)
+    ax2r.set_ylabel("Postings index", color=ORANGE)
+
+    for ax in [ax1, ax2]:
+        format_date_axis(ax)
+        ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE), color=TEAL, linestyle="--", linewidth=1, alpha=0.6)
+        ax.axvline(pd.Timestamp(CHATGPT_LAUNCH), color=GRAY, linestyle=":", linewidth=1, alpha=0.5)
+
+    fig.suptitle(
+        "Stock market vs job postings: OMXS30 vs OMXSPI (Feb 2020 = 100)",
+        fontsize=14, fontweight="bold", y=1.02,
+    )
+    fig.tight_layout()
+    add_source_note(fig, "Source: Yahoo Finance (^OMX, ^OMXSPI), Platsbanken microdata.")
+
+    out = FIGDIR / "figA4_omxspi_comparison.png"
+    fig.savefig(out)
+    plt.close()
+    print(f"  Saved → {out.name}")
+
+
 # ── Appendix Table A2: Top/bottom occupations ────────────────────────────────
 
 def table_top_bottom_occupations():
@@ -489,6 +560,7 @@ def main():
     # Appendix figures
     fig_sweden_vs_us()
     fig_quartile_panels()
+    fig_omxspi_scary_chart()
 
     # Appendix tables
     table_top_bottom_occupations()
