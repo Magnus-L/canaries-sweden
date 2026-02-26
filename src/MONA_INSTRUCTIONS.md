@@ -122,7 +122,22 @@ Save a CSV with one row per coefficient:
 
 Filename: `mona_canaries_regression.csv`
 
-### Step 5: Figure (optional but strongly preferred)
+### Step 5: Spotlight figures (software developers, customer service)
+
+For selected "spotlight" occupations, plot employment by fine age band
+(22-25, 26-30, 31-34, 35-40, 41-49, 50+), indexed to October 2022 = 100.
+This mirrors Brynjolfsson et al.'s approach.
+
+Spotlight occupations (SSYK 2012):
+- Software developers: 2512
+- Customer service: 4221, 4222, 5230
+
+For each: one line per age band, vertical markers at rate hike and ChatGPT.
+Save as:
+- `figA8a_mona_canaries_softwaredevelopers.png` (300 dpi)
+- `figA8b_mona_canaries_customerservice.png` (300 dpi)
+
+### Step 6: Broad canaries figure
 
 Plot employment indexed to the earliest month (= 100), four lines:
 - Young (16-24), High AI exposure (orange, solid, thick)
@@ -134,13 +149,15 @@ Add vertical dotted lines at:
 - April 2022 (Riksbanken first rate hike)
 - December 2022 (ChatGPT launch)
 
-Save as: `figA8_mona_canaries.png` (300 dpi)
+Save as: `figA8c_mona_canaries_economy.png` (300 dpi)
 
 ## What to Export from MONA
 
-1. `mona_canaries_regression.csv` — the regression table
-2. `figA8_mona_canaries.png` — the trajectory figure
-3. Optionally: a text file with N observations, N entities, N months,
+1. `figA8a_mona_canaries_softwaredevelopers.png` — spotlight: software devs
+2. `figA8b_mona_canaries_customerservice.png` — spotlight: customer service
+3. `figA8c_mona_canaries_economy.png` — broad trajectory figure
+4. `mona_canaries_regression.csv` — the regression table
+5. Optionally: a text file with N observations, N entities, N months,
    match rate with DAIOE, and the beta3 coefficient + p-value
 
 ## Expected Runtime

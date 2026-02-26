@@ -7,7 +7,7 @@ Copy-paste this when resuming work on the "Two Economies?" paper.
 ## Quick resume
 
 ```
-I'm resuming work on the Economics Letters paper "Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden" in ~/Documents/Research/papers/2026/canaries-sweden/.
+I'm resuming work on the Economics Letters paper "Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden" in ~/Documents/Workspace/papers/canaries-sweden/.
 
 Read SESSION_SUMMARY.md for full context. The paper is complete at 1,995/2,000 words, both PDFs compiled, 12 commits on main.
 
@@ -22,7 +22,7 @@ What I need to do next: [describe task here]
 
 ### Incorporate MONA results (from Lydia)
 ```
-Lydia sent back MONA results: mona_canaries_regression.csv and figA8_mona_canaries.png. Please update appendix.tex section A5 with the AGI-based results (replacing or supplementing the SCB annual results), copy the figure to figures/, and recompile both PDFs.
+Lydia sent back MONA results: figA8a/b/c + mona_canaries_regression.csv. Please uncomment the spotlight figures in appendix.tex section A6, copy the figures to figures/, add text describing the results, and recompile both PDFs.
 ```
 
 ### Create GitHub repo + cover letter

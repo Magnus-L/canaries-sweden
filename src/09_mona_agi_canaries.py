@@ -32,7 +32,9 @@ Analysis:
   5. Produce one figure + one table for the appendix
 
 Output:
-  - figA8_mona_canaries.png (event study or trajectory plot)
+  - figA8a_mona_canaries_softwaredevelopers.png (spotlight: software devs by age)
+  - figA8b_mona_canaries_customerservice.png (spotlight: customer service by age)
+  - figA8c_mona_canaries_economy.png (broad canaries: young×high vs others)
   - mona_canaries_regression.csv (regression coefficients)
 
 Runtime: should complete in <5 minutes on MONA hardware.
@@ -42,7 +44,7 @@ INSTRUCTIONS FOR CO-AUTHOR:
   2. Adjust INPUT_PATH below to point to your AGI extract
   3. Adjust AGI_COLUMNS if the column names differ in your extract
   4. Run: python 09_mona_agi_canaries.py
-  5. Copy the two output files back for inclusion in the paper
+  5. Copy the four output files back for inclusion in the paper
 """
 
 import pandas as pd
@@ -89,6 +91,36 @@ ORANGE = "#E8873A"
 TEAL = "#2E7D6F"
 GRAY = "#8C8C8C"
 
+# Spotlight occupations (SSYK 2012, 4-digit)
+SSYK_SOFTWARE = ["2512"]  # Programmerare och webbutvecklare
+SSYK_CUSTOMER = ["4221",  # Kundtjänstpersonal (call centre)
+                 "4222",  # Helpdesk- och support-personal
+                 "5230"]  # Kassörer m.fl.
+
+# Fine age bands matching Brynjolfsson et al.
+# NOTE: ages 16-21 are excluded from spotlight (included in broad canaries).
+AGE_BANDS = [
+    (22, 25, "22–25"),
+    (26, 30, "26–30"),
+    (31, 34, "31–34"),
+    (35, 40, "35–40"),
+    (41, 49, "41–49"),
+    (50, 69, "50+"),
+]
+
+# Six colours for age-band trajectories
+AGE_BAND_COLORS = [
+    "#E8873A",
+    "#F0A86B",
+    "#A8C5BC",
+    "#5FA898",
+    "#2E7D6F",
+    "#1B3A5C",
+]
+
+# Normalisation base month for spotlight figures (just before ChatGPT)
+BASE_MONTH = "2022-10"
+
 
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║  STEP 1: LOAD AND PREPARE AGI DATA                                 ║
@@ -96,13 +128,14 @@ GRAY = "#8C8C8C"
 
 def load_agi():
     """
-    Load AGI data and aggregate to occupation × age_group × month cells.
+    Load AGI data and aggregate to two panels:
+      1. agg_fine:  ssyk4 × year_month × age_band  (for spotlight figures)
+      2. agg_broad: ssyk4 × year_month × young      (for canaries regression)
 
-    We classify workers into age groups:
+    Age groups for broad panel:
       - Young: 16-24 (entry-level, the "canaries" in Brynjolfsson)
       - Older: 25+ (everyone else)
-
-    Each cell contains the count of employed persons.
+    Fine age bands (22-25, 26-30, ..., 50+) match Brynjolfsson et al.
     """
     print("Loading AGI data...")
 
@@ -160,21 +193,38 @@ def load_agi():
     # Filter to working-age population
     df = df[(df["age"] >= 16) & (df["age"] <= 69)].copy()
 
-    # Aggregate to occupation × age_group × month
-    # Count distinct persons per cell (deduplicated)
-    agg = (
+    # --- Fine age bands (for spotlight figures) ---
+    def assign_band(age):
+        for lo, hi, label in AGE_BANDS:
+            if lo <= age <= hi:
+                return label
+        return None
+
+    df["age_band"] = df["age"].apply(assign_band)
+
+    agg_fine = (
+        df[df["age_band"].notna()]
+        .groupby(["ssyk4", "year_month", "age_band"])["person_id"]
+        .nunique()
+        .reset_index()
+        .rename(columns={"person_id": "n_employed"})
+    )
+
+    # --- Broad age groups (for canaries regression) ---
+    agg_broad = (
         df.groupby(["ssyk4", "year_month", "young"])["person_id"]
         .nunique()
         .reset_index()
         .rename(columns={"person_id": "n_employed"})
     )
 
-    print(f"  Aggregated: {len(agg):,} cells")
-    print(f"  Occupations: {agg['ssyk4'].nunique()}")
-    print(f"  Months: {agg['year_month'].nunique()}")
-    print(f"  Period: {agg['year_month'].min()} to {agg['year_month'].max()}")
+    print(f"  Aggregated (broad): {len(agg_broad):,} cells")
+    print(f"  Aggregated (fine):  {len(agg_fine):,} cells")
+    print(f"  Occupations: {agg_broad['ssyk4'].nunique()}")
+    print(f"  Months: {agg_broad['year_month'].nunique()}")
+    print(f"  Period: {agg_broad['year_month'].min()} to {agg_broad['year_month'].max()}")
 
-    return agg
+    return agg_fine, agg_broad
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
@@ -347,7 +397,82 @@ def run_canaries_regression(merged):
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 4: FIGURE — EMPLOYMENT TRAJECTORIES                          ║
+# ║  STEP 4a: SPOTLIGHT FIGURES — SPECIFIC OCCUPATIONS BY AGE BAND      ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+def plot_spotlight(agg_fine, ssyk_codes, occupation_label, out_filename):
+    """
+    Plot employment by fine age band for selected "spotlight" occupations,
+    indexed to BASE_MONTH = 100. Mirrors Brynjolfsson et al. approach.
+    """
+    print(f"\nPlotting spotlight: {occupation_label} ...")
+
+    sub = agg_fine[agg_fine["ssyk4"].isin(ssyk_codes)].copy()
+    if sub.empty:
+        print(f"  WARNING: no data for SSYK codes {ssyk_codes} — skipping.")
+        return
+
+    sub = (
+        sub.groupby(["year_month", "age_band"])["n_employed"]
+        .sum().reset_index()
+    )
+    sub["date"] = pd.to_datetime(sub["year_month"] + "-01")
+
+    avail_base = BASE_MONTH if BASE_MONTH in sub["year_month"].values \
+        else sub["year_month"].min()
+
+    base_vals = (
+        sub[sub["year_month"] == avail_base]
+        .set_index("age_band")["n_employed"]
+    )
+    valid_bands = [b for _, _, b in AGE_BANDS
+                   if b in base_vals.index and base_vals[b] > 0]
+    if not valid_bands:
+        print("  WARNING: no valid age bands after base-month filter.")
+        return
+
+    sub = sub[sub["age_band"].isin(valid_bands)].copy()
+    sub["index"] = sub.apply(
+        lambda r: 100 * r["n_employed"] / base_vals[r["age_band"]]
+        if r["age_band"] in base_vals else np.nan, axis=1,
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    band_order = [b for _, _, b in AGE_BANDS if b in valid_bands]
+    colour_map = dict(zip([b for _, _, b in AGE_BANDS], AGE_BAND_COLORS))
+
+    for band in band_order:
+        s = sub[sub["age_band"] == band].sort_values("date")
+        lw = 2.8 if band == band_order[0] else 1.5
+        ax.plot(s["date"], s["index"],
+                color=colour_map.get(band, GRAY), linewidth=lw, label=band)
+
+    ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE + "-01"),
+               color=ORANGE, linewidth=1, linestyle=":", alpha=0.7,
+               label="Riksbank first hike (Apr 2022)")
+    ax.axvline(pd.Timestamp(CHATGPT_LAUNCH + "-01"),
+               color=TEAL, linewidth=1.5, linestyle=":", alpha=0.9,
+               label="ChatGPT launch (Dec 2022)")
+    ax.axhline(100, color=GRAY, linewidth=0.5, linestyle="--", alpha=0.5)
+
+    ax.set_xlabel("")
+    ax.set_ylabel(f"Employment index ({avail_base} = 100)")
+    ax.set_title(
+        f"Employment by age group — {occupation_label}\n"
+        f"(AGI register data, SSYK {', '.join(ssyk_codes)})"
+    )
+    ax.legend(loc="lower left", fontsize=8, ncol=2,
+              title="Age group", title_fontsize=8)
+    ax.tick_params(axis="x", rotation=30)
+
+    fig.tight_layout()
+    fig.savefig(OUTPUT_DIR / out_filename, dpi=300)
+    plt.close(fig)
+    print(f"  Saved → {out_filename}")
+
+
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║  STEP 4b: FIGURE — BROAD EMPLOYMENT TRAJECTORIES                   ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 def plot_canaries(merged):
@@ -415,9 +540,9 @@ def plot_canaries(merged):
     ax.legend(loc="best", fontsize=9)
 
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "figA8_mona_canaries.png", dpi=300)
+    fig.savefig(OUTPUT_DIR / "figA8c_mona_canaries_economy.png", dpi=300)
     plt.close(fig)
-    print(f"  Saved → figA8_mona_canaries.png")
+    print(f"  Saved → figA8c_mona_canaries_economy.png")
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
@@ -429,25 +554,41 @@ def main():
     print("MONA: Canaries test using AGI monthly register data")
     print("=" * 70)
 
-    # Load and aggregate AGI data
-    agg = load_agi()
+    # Load and aggregate AGI data (two panels: fine age bands + broad)
+    agg_fine, agg_broad = load_agi()
 
-    # Merge with DAIOE
-    merged = merge_daioe(agg)
+    # Merge broad panel with DAIOE
+    merged_broad = merge_daioe(agg_broad)
 
     # Save processed data (for inspection)
-    merged.to_csv(OUTPUT_DIR / "mona_employment_age_ai.csv", index=False)
+    merged_broad.to_csv(OUTPUT_DIR / "mona_employment_age_ai.csv", index=False)
 
     # Triple-diff regression
-    res, panel = run_canaries_regression(merged)
+    res, panel = run_canaries_regression(merged_broad)
 
-    # Plot trajectories
-    plot_canaries(merged)
+    # Spotlight figures: specific occupations by fine age band
+    plot_spotlight(
+        agg_fine,
+        ssyk_codes=SSYK_SOFTWARE,
+        occupation_label="Software Developers",
+        out_filename="figA8a_mona_canaries_softwaredevelopers.png",
+    )
+    plot_spotlight(
+        agg_fine,
+        ssyk_codes=SSYK_CUSTOMER,
+        occupation_label="Customer Service Agents",
+        out_filename="figA8b_mona_canaries_customerservice.png",
+    )
+
+    # Broad trajectories
+    plot_canaries(merged_broad)
 
     print("\n" + "=" * 70)
     print("DONE. Copy the following files from output/ to your project:")
-    print("  1. mona_canaries_regression.csv  → tables/")
-    print("  2. figA8_mona_canaries.png       → figures/")
+    print("  1. figA8a_mona_canaries_softwaredevelopers.png → figures/")
+    print("  2. figA8b_mona_canaries_customerservice.png    → figures/")
+    print("  3. figA8c_mona_canaries_economy.png            → figures/")
+    print("  4. mona_canaries_regression.csv                → tables/")
     print("=" * 70)
 
 

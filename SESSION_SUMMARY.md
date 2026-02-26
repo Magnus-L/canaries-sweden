@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-02-24
 **Project:** Economics Letters submission
-**Repo:** ~/Documents/Research/papers/2026/canaries-sweden/
+**Repo:** ~/Documents/Workspace/papers/canaries-sweden/
 
 ---
 
@@ -27,7 +27,7 @@ The paper is complete and compiled. Everything below is done:
 - `06_figures_tables.py` — all publication figures and tables
 - `07_robustness.py` — 8 alternative specs, event studies, R-R sensitivity, quadratic trends
 - `08_employment_age.py` — SCB YREG54BAS canaries test (public data)
-- `09_mona_agi_canaries.py` — self-contained MONA script for AGI register data
+- `09_mona_agi_canaries.py` — self-contained MONA script for AGI register data (incl. spotlight occupations)
 - `run_all.py` — master script
 
 ### Paper (paper/)
@@ -57,8 +57,15 @@ The paper is complete and compiled. Everything below is done:
 Self-contained folder for co-author to run AGI register analysis in MONA:
 - `README.txt` — explains two options (import .py vs CSV-only)
 - `daioe_quartiles.csv` — AI exposure data (369 occupations)
-- `09_mona_agi_canaries.py` — full Python script
+- `09_mona_agi_canaries.py` — full Python script (incl. spotlight occupations by age band)
 - `MONA_INSTRUCTIONS.md` — step-by-step spec if only CSV import allowed
+
+### DST package (dst_package/)
+Self-contained folder for Koch to run Danish register canaries analysis:
+- `README.txt` — setup and run instructions
+- `daioe_quartiles.csv` — AI exposure data
+- `09_dst_canaries.R` — R script (incl. spotlight occupations by age band)
+- `test/` — Python test harness with synthetic data
 
 ### Simulated peer review (completed, not saved to files)
 - Round 1: Two reviewers + co-editor → led to event study, R-R, spec (4)
@@ -87,9 +94,10 @@ SCB employment triple-diff (canaries): +0.038 (insignificant).
 1. **Authors review the paper** — Magnus, Erik, Michael, Lydia read and approve
 2. **MONA package sent to Lydia** — she will run AGI register canaries analysis when time permits
 3. **Incorporate MONA results** — update appendix when results come back from Lydia
-4. **GitHub repository** — create public repo, replace "[GitHub repository URL]" placeholder in main.tex
-5. **Cover letter** — write for Economics Letters submission
-6. **Submit via Elsevier Editorial Manager**
+4. **Michael Koch: Danish canaries test** — AWAITING HIS RESPONSE (email sent 2026-02-25). R script updated with spotlight occupations (software devs, customer service by age band). DST package ready to send. Would produce figA8a-c (spotlight + broad canaries) + regression tables for appendix, plus one sentence in main text Discussion. Together with Finland (Kauhanen 2025) = three Nordic countries.
+5. **GitHub repository** — create public repo, replace "[GitHub repository URL]" placeholder in main.tex
+6. **Cover letter** — write for Economics Letters submission
+7. **Submit via Elsevier Editorial Manager**
 
 ### Optional improvements (not blocking)
 - Benchmark DAIOE against Felten/Eloundou measures (Cullen suggestion)
