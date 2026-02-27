@@ -24,14 +24,15 @@
 
 \title{Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden}
 
-\author[oru]{Magnus Lodefalk\corref{cor}}
+\author[oru,ratio]{Magnus Lodefalk\corref{cor}}
 \ead{magnus.lodefalk@oru.se}
-\author[oru]{Erik Engberg}
+\author[oru,ratio]{Erik Engberg}
 \author[au]{Michael Koch}
 \author[oru]{Lydia L\"othman}
 
 \cortext[cor]{Corresponding author}
 \address[oru]{\"Orebro University School of Business, SE-701 82 \"Orebro, Sweden}
+\address[ratio]{RATIO Institute, Stockholm, Sweden}
 \address[au]{Department of Economics and Business Economics, Aarhus University, Denmark}
 
 \begin{abstract}
@@ -54,7 +55,7 @@ A widely circulated chart shows US stock prices rising roughly 70\% since 2020 w
 
 Two studies have tested this outside the US. \citet{kauhanen2025canaries} found no employment decline among young Finnish workers in high-AI-exposure occupations using population register data; instead, wages rose more in these occupations. \citet{kauhanen2025youth} extended the analysis and confirmed no youth labour market effects in Finland through 2024.
 
-We make three contributions. First, we test \emph{both} the posting margin and the employment margin. Using 4.6 million job ads from Platsbanken (2020--2026) matched to the DAIOE generative AI exposure index \citep{lodefalk2024daioe}, we decompose the aggregate posting decline by AI exposure. We complement this with monthly population-register employment data (AGI) by age group. This dual-margin approach reveals that the same economy can show no AI effect on posting volumes while exhibiting sharp AI-driven compositional shifts in employment. Second, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. The rate hike coincided with Russia's invasion of Ukraine and the ensuing European energy crisis, creating a constellation of macroeconomic headwinds distinct from AI. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If macroeconomic tightening is the primary driver, the decline should begin with the rate hike. Third, we provide the first non-US evidence of a canaries effect in employment, contrasting with the Finnish null \citep{kauhanen2025canaries,kauhanen2025youth}.
+We make three contributions. First, we test \emph{both} the posting margin and the employment margin. Using 4.6 million job ads from Platsbanken (2020--2026) matched to the DAIOE generative AI exposure index \citep{engberg2024daioe}, we decompose the aggregate posting decline by AI exposure. We complement this with monthly population-register employment data (AGI) by age group. This dual-margin approach reveals that the same economy can show no AI effect on posting volumes while exhibiting sharp AI-driven compositional shifts in employment. Second, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. The rate hike coincided with Russia's invasion of Ukraine and the ensuing European energy crisis, creating a constellation of macroeconomic headwinds distinct from AI. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If macroeconomic tightening is the primary driver, the decline should begin with the rate hike. Third, we provide the first non-US evidence of a canaries effect in employment, contrasting with the Finnish null \citep{kauhanen2025canaries,kauhanen2025youth}.
 
 Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no significant additional decline in high-exposure occupations after ChatGPT. However, supplementary analysis of monthly population-register employment data reveals that young workers in AI-exposed occupations experienced disproportionate declines --- a ``canaries'' effect consistent with \citet{brynjolfsson2025canaries}. The aggregate posting gap reflects macroeconomic tightening; AI reshapes the composition of hiring within occupations.
 
@@ -70,7 +71,7 @@ We use the full population of job advertisements published on Platsbanken from J
 
 \subsection{AI exposure}
 
-We measure generative AI exposure using the DAIOE index \citep{lodefalk2024daioe}, which maps AI benchmark capabilities to Swedish occupations at the SSYK 4-digit level. We use the 2023 cross-section of the percentile ranking for generative AI (\texttt{pctl\_rank\_genai}) and classify occupations into quartiles, where Q4 is the most exposed. The match rate between Platsbanken SSYK codes and DAIOE is 92\% at the occupation level (369 of 400 codes), covering 96\% of all ads.
+We measure generative AI exposure using the DAIOE index \citep{engberg2024daioe}, which maps AI benchmark capabilities to Swedish occupations at the SSYK 4-digit level. We use the 2023 cross-section of the percentile ranking for generative AI (\texttt{pctl\_rank\_genai}) and classify occupations into quartiles, where Q4 is the most exposed. The match rate between Platsbanken SSYK codes and DAIOE is 92\% at the occupation level (369 of 400 codes), covering 96\% of all ads.
 
 \subsection{Identification strategy}
 
