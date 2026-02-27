@@ -25,6 +25,26 @@ venv/
 .vscode/
 .idea/
 
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.pdf
+
+# Session files (local working notes)
+SESSION_PICKUP.md
+SESSION_SUMMARY.md
+
+# Data packages (shared separately)
+mona_package.zip
+dst_package.zip
+dst_package/
+
 # Sensitive
 .env
 *.env
