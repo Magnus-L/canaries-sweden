@@ -195,7 +195,7 @@ We therefore turn to monthly employer declaration (AGI) register data from SCB's
 \section{Spotlight occupations: monthly employment by age (MONA)}
 % ══════════════════════════════════════════════════════════════════════════════
 
-\citet{brynjolfsson2025canaries} highlight specific ``spotlight'' occupations (software developers and customer service agents) where AI adoption is particularly visible. Using monthly AGI (employer declaration) register data from SCB's secure environment (MONA), we plot employment trajectories by fine age band (22--25, 26--30, 31--34, 35--40, 41--49, 50+) for these occupations, indexed to October 2022 (just before ChatGPT).
+\citet{brynjolfsson2025canaries} highlight specific ``spotlight'' occupations (software developers and customer service agents) where AI adoption is particularly visible. A Unionen forecast report independently documents declining employment in administration and customer service in Sweden, noting that ``unemployment among white-collar workers has risen faster than among blue-collar workers'' \citep{unionen2025konjunktur}. Using monthly AGI (employer declaration) register data from SCB's secure environment (MONA), we plot employment trajectories by fine age band (22--25, 26--30, 31--34, 35--40, 41--49, 50+) for these occupations, indexed to October 2022 (just before ChatGPT).
 
 The economy-wide employment figure by age group and AI exposure appears as Figure~2 in the main paper. Below we show the occupation-specific spotlight analyses.
 
@@ -211,6 +211,34 @@ The economy-wide employment figure by age group and AI exposure appears as Figur
 \includegraphics[width=\textwidth]{figA8b_mona_canaries_customerservice.png}
 \caption{Monthly employment by age group: Customer Service Agents (SSYK~4221, 4222, 5230). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). The pattern is noisier than for software developers, potentially reflecting smaller cell sizes and more heterogeneous task content.}
 \label{fig:spotlight_customer}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Riksbank policy rate timeline}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 through early 2026. The tightening cycle ran from April 2022 (first hike, 0\% to 0.25\%) through September 2023 (peak at 4.00\%), followed by gradual easing beginning in May 2024. The 7-month gap between the first hike and ChatGPT's launch (November 2022) is the identification window that separates monetary tightening from AI exposure in our design.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA10_riksbank_rate.png}
+\caption{Riksbank policy rate, 2020--2026. The tightening cycle ran from April 2022 to September 2023 (0\% to 4.00\%), with easing from May 2024. The 7-month gap between the first hike and ChatGPT's launch is marked.}
+\label{fig:riksbank_rate}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Half-year posting event study}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Figure~\ref{fig:halfyear_es} aggregates the event study to half-year periods, with 2022H1 (pre-Riksbank hike) as the reference. Pre-period coefficients are positive and significant, indicating that high-AI-exposure occupations had relatively more postings before the treatment period. After the reference period, coefficients drift negative: the 2023H1 coefficient is marginally significant ($-0.066$, $p = 0.08$), while 2025H1 and 2025H2 reach marginal significance ($-0.094$ and $-0.099$, both $p < 0.10$). The 2026H1 estimate ($-0.412$, $p < 0.01$) is based on only two months and should be interpreted cautiously. The gradual negative drift, rather than a sharp break at the ChatGPT launch (2022H2), is consistent with the main finding that the posting decline is driven by macroeconomic factors with at most a small additional AI component.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA11_halfyear_event_study.png}
+\caption{Half-year event study: coefficients on High $\times$ half-year period interactions (reference: 2022H1). Occupation and month fixed effects; standard errors clustered by occupation. Shaded area: 95\% confidence interval. The gradual negative drift after 2022 is consistent with broad-based macro effects rather than a discrete AI shock.}
+\label{fig:halfyear_es}
 \end{figure}
 
 
@@ -235,7 +263,7 @@ The Dynamic AI Occupational Exposure index maps AI benchmark performance to occu
 Stockholm OMX~30 daily closing prices from Yahoo Finance (ticker: \texttt{\^{}OMX}).
 
 \subsection{Riksbank policy rate}
-Manually compiled from Riksbank press releases. Key dates verified against \url{https://riksbank.se}.
+Manually compiled from Riksbank press releases. Key dates verified against \url{https://riksbank.se}. Figure~\ref{fig:riksbank_rate} plots the full tightening cycle.
 
 \subsection{Administrative employment data (SCB/MONA)}
 
