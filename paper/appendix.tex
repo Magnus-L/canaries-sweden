@@ -97,7 +97,7 @@ Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study s
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA3_event_study.png}
-\caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022).}
+\caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022).}
 \label{fig:eventstudy}
 \end{figure}
 
@@ -254,7 +254,7 @@ The DAIOE genAI percentile ranking provides a continuous measure of occupational
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{Platsbanken}
-Historical job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. Available at \url{https://data.jobtechdev.se/annonser/historiska/}.
+Job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. For 2020--2025 we use the historical bulk archive (\url{https://data.jobtechdev.se/annonser/historiska/}); for January--February 2026 we supplement with the real-time JobStream API (\url{https://jobstream.api.jobtechdev.se}), which provides the same fields for currently published ads. The two sources are deduplicated on ad identifier before aggregation.
 
 \subsection{DAIOE}
 The Dynamic AI Occupational Exposure index maps AI benchmark performance to occupational task content. The genAI variant focuses on capabilities relevant to large language models and image generation. Publicly available; see \citet{engberg2024daioe}.
