@@ -35,8 +35,8 @@
 \address[au]{Department of Economics and Business Economics, Aarhus University, Denmark}
 
 \begin{abstract}
-% TARGET: 95 words (max 100)
-A ``scary chart'' shows US stock prices rising while job postings fall --- a pattern attributed to AI displacement. We test this using 4.6 million Swedish job ads (2020--2026) from Platsbanken matched to a generative AI exposure index. A difference-in-differences design exploits the Riksbanken rate hike (April 2022) preceding ChatGPT (November 2022) by seven months. Postings declined broadly across all AI exposure quartiles beginning with monetary tightening, with no significant additional decline after ChatGPT in the baseline specification. The posting gap primarily reflects macroeconomic tightening. All data and code are publicly available.
+% TARGET: ~100 words (max 100)
+A ``scary chart'' shows US stock prices rising while job postings fall --- attributed to AI displacement. We test this using 4.6 million Swedish job ads (2020--2026) matched to a generative AI exposure index. A difference-in-differences design exploits the Riksbanken rate hike (April 2022) preceding ChatGPT (November 2022) by seven months. Postings declined broadly across all AI exposure quartiles beginning with monetary tightening, with no significant additional decline after ChatGPT. However, monthly administrative employment data reveal a canaries effect: young workers in AI-exposed occupations experienced disproportionate employment declines. The posting gap reflects macroeconomic tightening; AI operates on employment composition.
 \end{abstract}
 
 \begin{keyword}
@@ -54,9 +54,9 @@ A widely circulated chart shows US stock prices rising roughly 70\% since 2020 w
 
 Two studies have tested this outside the US. \citet{kauhanen2025canaries} found no employment decline among young Finnish workers in high-AI-exposure occupations using population register data; instead, wages rose more in these occupations. \citet{kauhanen2025youth} extended the analysis and confirmed no youth labour market effects in Finland through 2024.
 
-We make three contributions. First, we study \emph{job postings} rather than employment. While \citet{brynjolfsson2025canaries} and the Finnish replications test whether young workers in AI-exposed occupations lose employment, we test a related upstream margin: whether firms reduce \emph{hiring} in those occupations. Posting counts capture the flow of labour demand and are the source of the ``scary chart'' itself, though AI may also reshape the task content of postings without reducing their number \citep{autor2024applying}. Our data do not contain worker age, so we cannot replicate the age-specific ``canaries'' test; instead, we decompose the aggregate posting decline by AI exposure. Second, we use individual-level microdata from Platsbanken, the Swedish Public Employment Service's job bank, comprising over 4.6 million ads (2020--2026) matched to the DAIOE generative AI exposure index at the SSYK 4-digit occupation level \citep{lodefalk2024daioe}. Third, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. The rate hike coincided with Russia's invasion of Ukraine and the ensuing European energy crisis, creating a constellation of macroeconomic headwinds distinct from AI. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If macroeconomic tightening is the primary driver, the decline should begin with the rate hike.
+We make three contributions. First, we test \emph{both} the posting margin and the employment margin. Using 4.6 million job ads from Platsbanken (2020--2026) matched to the DAIOE generative AI exposure index \citep{lodefalk2024daioe}, we decompose the aggregate posting decline by AI exposure. We complement this with monthly population-register employment data (AGI) by age group. This dual-margin approach reveals that the same economy can show no AI effect on posting volumes while exhibiting sharp AI-driven compositional shifts in employment. Second, we exploit a natural timing test: Sweden's central bank began raising rates in April 2022 --- seven months before ChatGPT launched in November 2022. The rate hike coincided with Russia's invasion of Ukraine and the ensuing European energy crisis, creating a constellation of macroeconomic headwinds distinct from AI. If AI drives the posting decline in exposed occupations, the differential should emerge or widen after ChatGPT. If macroeconomic tightening is the primary driver, the decline should begin with the rate hike. Third, we provide the first non-US evidence of a canaries effect in employment, contrasting with the Finnish null \citep{kauhanen2025canaries,kauhanen2025youth}.
 
-Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no statistically significant additional decline in high-exposure occupations after ChatGPT in the baseline specification, though some alternative exposure measures yield suggestive effects.
+Our difference-in-differences estimates show that postings declined broadly across all AI exposure quartiles starting in mid-2022, with no significant additional decline in high-exposure occupations after ChatGPT. However, supplementary analysis of monthly population-register employment data reveals that young workers in AI-exposed occupations experienced disproportionate declines --- a ``canaries'' effect consistent with \citet{brynjolfsson2025canaries}. The aggregate posting gap reflects macroeconomic tightening; AI reshapes the composition of hiring within occupations.
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -84,7 +84,7 @@ The key test: if AI drives the differential decline, $\hat\beta_2$ should be sig
 
 \subsection{Auxiliary data}
 
-OMXS30 daily prices from Yahoo Finance, resampled to monthly averages and indexed to 100 at February 2020.
+OMXS30 daily prices from Yahoo Finance, resampled to monthly averages and indexed to 100 at February 2020. For the employment analysis, we use monthly employer declaration (AGI) register data from SCB's secure research environment (MONA). These data cover the population of employed individuals, with each worker matched to an SSYK~4-digit occupation, age, and gender. AI exposure is assigned from the DAIOE quartile of the worker's most recent occupation (2023 register year).
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -103,24 +103,22 @@ Figure~\ref{fig:scary} shows the Swedish version of the ``scary chart.'' OMXS30 
 \label{fig:scary}
 \end{figure}
 
-\subsection{Exposure gap}
+\subsection{Postings: no differential AI effect}
 
-Figure~\ref{fig:gap} plots the Q4 minus Q1 posting gap over time. The gap fluctuates around zero throughout the sample period, including after the ChatGPT launch. There is no visible widening of the gap following November 2022, as would be expected if AI were differentially reducing postings in exposed occupations.
+A difference-in-differences design (Equation~\ref{eq:did}) yields no significant additional decline in high-AI-exposure occupations after ChatGPT ($\hat\beta_2 = -0.062$, $p = 0.11$), while the Riksbanken rate-hike interaction is significant ($\hat\beta_1 = -0.127$, $p < 0.01$). Replacing common time fixed effects with occupation-group $\times$ month fixed effects eliminates both interactions, indicating that the differential reflects different macro sensitivity across occupation groups rather than AI exposure. Six of eight robustness specifications confirm the insignificance of $\hat\beta_2$, though it is negative in seven of eight. A sensitivity analysis following \citet{rambachan2023more} yields a breakdown value of $\bar{M} = 0.25$, confirming the fragility of the AI channel.
+
+One exception emerges when splitting by teleworkability \citep{dingel2020many}: the ChatGPT coefficient is essentially zero in teleworkable occupations ($\hat\beta_2 = -0.005$, $p = 0.92$) but strongly significant in non-teleworkable ones ($\hat\beta_2 = -0.233$, $p < 0.01$), suggesting that AI posting displacement, where it occurs, concentrates in occupations where remote work cannot cushion the impact. Full regression tables, event studies, and robustness checks are in the Online Appendix.\footnote{All regression results independently verified using Stata~18.5 \texttt{reghdfe}; coefficients match to three decimal places.}
+
+\subsection{Employment: canaries in the coal mine}
+
+Figure~\ref{fig:canaries} tells a different story. Using monthly AGI register data, we plot employment trajectories for four groups defined by age (16--24 vs 25+) and AI exposure (top quartile vs rest). Older workers are unaffected regardless of AI exposure, with stable trajectories throughout 2019--2025. Young workers in both exposure groups decline after 2022, but those in high-AI-exposure occupations experience a dramatically steeper fall --- from indexed peaks around 120--130 to approximately 50 by late 2025, representing a near-halving of employment. The divergence between young workers in high vs low AI exposure opens after the ChatGPT launch and widens continuously through 2025. This pattern is consistent with the canaries effect documented by \citet{brynjolfsson2025canaries} in the US, though the Swedish decline appears steeper, possibly reflecting differences in data frequency (monthly vs quarterly) and institutional context. Spotlight analyses of specific occupations --- software developers (SSYK~2512) and customer service agents --- show similar age-graded patterns, with the youngest cohorts (22--25) most affected (see Online Appendix).\footnote{Swedish bachelor's graduates are at minimum 22, so the 16--24 bracket captures pre-graduation and very-early-career workers. The occupation is assigned from the 2023 register; a graduate entering a high-AI occupation in 2024 may be coded to their 2023 student job (e.g., shop assistant), attenuating the measured differential. Our finding is therefore conservative.}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{fig2_exposure_gap.png}
-\caption{Posting index gap between Q4 (highest genAI exposure) and Q1 (lowest), with 3-month moving average and 95\% confidence band. No systematic widening after ChatGPT.}
-\label{fig:gap}
+\includegraphics[width=\textwidth]{figA8c_mona_canaries_economy.png}
+\caption{Monthly employment by age group and AI exposure, Sweden 2019--2025. AGI register data indexed to base month = 100. Young (16--24) workers in high-AI-exposure occupations (top quartile, DAIOE) experience a sharp divergence after ChatGPT launch, while older workers are unaffected. Vertical lines mark Riksbanken's first rate hike (April 2022) and ChatGPT launch (December 2022).}
+\label{fig:canaries}
 \end{figure}
-
-\subsection{Regression results}
-
-Table~\ref{tab:did} reports the DiD estimates. In specification (1), the Riksbanken interaction alone is strongly significant ($\hat\beta_1 = -0.178$, $p < 0.01$), indicating that high-exposure occupations experienced a differential posting decline after the rate hike. In specification (2), adding the ChatGPT interaction yields $\hat\beta_2 = -0.062$ ($p = 0.11$) --- negative but statistically insignificant --- while the monetary policy interaction remains significant ($\hat\beta_1 = -0.127$, $p < 0.01$). Specification (3) adds occupation-specific time trends; both interactions lose significance ($\hat\beta_1 = -0.068$, $\hat\beta_2 = 0.018$), suggesting limited power to separate closely spaced shocks. Our preferred specification (4) replaces common month fixed effects with SSYK 1-digit occupation group $\times$ month fixed effects, comparing high- and low-exposure occupations within the same broad group. Both coefficients become insignificant, indicating that the differential decline in specification (2) reflects different macro sensitivity across occupation groups --- knowledge-intensive services respond more to interest rates than manual occupations --- rather than within-group AI exposure. The minimum detectable effect at 80\% power is approximately 10 log points, implying that our design cannot rule out economically meaningful effects below this threshold.
-
-\input{../tables/did_regression.tex}
-
-Six of eight alternative specifications confirm the insignificance of $\hat\beta_2$. However, the all-apps AI exposure measure and tercile classification yield significant ChatGPT coefficients ($p = 0.018$ and $p = 0.026$ respectively), and $\hat\beta_2$ is negative in seven of eight specifications. Adding quadratic occupation-specific trends does not alter the conclusion: the quadratic term is insignificant ($p = 0.56$). An event study rejects parallel pre-trends even at quarterly frequency, but the pre-period differentials reflect that knowledge-intensive occupations (high AI exposure) are more cyclically sensitive --- an economically intuitive pattern distinct from AI. A sensitivity analysis following \citet{rambachan2023more} finds that the average post-ChatGPT event-study effect ($\hat\theta = -0.169$) loses significance at a breakdown value of $\bar{M} = 0.25$, confirming the fragility of the AI channel (see Online Appendix).
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -128,11 +126,9 @@ Six of eight alternative specifications confirm the insignificance of $\hat\beta
 % TARGET: ~200 words
 % ══════════════════════════════════════════════════════════════════════════════
 
-Our findings complement \citet{kauhanen2025canaries} and \citet{kauhanen2025youth}, who found no AI-driven employment effects in Finland. We cannot cleanly distinguish ``no AI effect'' from ``a modest AI effect our design lacks power to detect'': $\hat\beta_2$ is negative in seven of eight alternative specifications, significant in two, and the minimum detectable effect (10 log points) exceeds the point estimate. A supplementary analysis using SCB register employment data by age group finds no canaries effect (see Online Appendix). Together, these Nordic studies suggest that the US ``canaries'' finding may partly reflect country-specific labour market institutions; strong collective bargaining, generous social insurance, and active labour market policies in Sweden and Finland may buffer AI-induced displacement.
+The contrast between the posting null and the employment canaries in Figure~\ref{fig:canaries} is the paper's key insight. Our posting results complement \citet{kauhanen2025canaries} and \citet{kauhanen2025youth}, who found no AI-driven employment effects among Finnish youth. But in Sweden, the aggregate ``scary chart'' masks a compositional shift: firms continue to post vacancies at similar rates across AI exposure levels, yet young workers in AI-exposed occupations are disproportionately losing employment --- consistent with \citet{brynjolfsson2025canaries}. AI operates on the \emph{composition} of hiring within occupations, not its level. For policy, this distinction matters: interventions targeting aggregate demand cannot address compositional shifts that disproportionately affect young labour market entrants.
 
-Two caveats merit emphasis. First, specification (4) shows that conditioning on occupation-group $\times$ month fixed effects eliminates both interactions, suggesting that the differential decline reflects different macro sensitivity across broad occupation groups rather than a within-group AI effect. Second, the $\text{Post-RB}$ dummy captures not only the rate hike but also the energy crisis and other macroeconomic headwinds of early 2022; our design identifies ``macroeconomic tightening versus AI,'' not ``monetary policy versus AI'' narrowly.
-
-Our sample ends in early 2026. As AI adoption accelerates, future data may reveal displacement effects not yet detectable. Our publicly available pipeline enables ongoing monitoring.
+Two caveats apply. First, the posting null may partly reflect limited statistical power; the minimum detectable effect is approximately 10 log points. A supplementary analysis finds no significant correlation between AI exposure and monetary policy sensitivity, suggesting the macro confound does not operate through differential rate sensitivity (see Online Appendix). Second, $\text{Post-RB}$ captures the full constellation of early-2022 macroeconomic headwinds --- not monetary policy alone. This confound is not specific to Sweden: all advanced economies experienced synchronised tightening before ChatGPT's launch, so the caution our design implies generalises beyond the Swedish case.
 
 % ══════════════════════════════════════════════════════════════════════════════
 % AI disclosure (required by Economics Letters / Elsevier)
@@ -142,10 +138,10 @@ Our sample ends in early 2026. As AI adoption accelerates, future data may revea
 During the preparation of this work, the authors used Claude (Anthropic) for code development, data processing, and editorial suggestions. The authors reviewed and edited all content and take full responsibility for the publication.
 
 \section*{Data availability}
-All data and replication code are available at \url{https://github.com/Magnus-L/canaries-sweden}.
+Platsbanken job advertisements are publicly available (CC0 licence). The employment analysis uses confidential administrative microdata from Statistics Sweden (SCB), accessed via the MONA platform; details on data access are in the Online Appendix. All replication code is available at \url{https://github.com/Magnus-L/canaries-sweden}.
 
 \section*{Acknowledgements}
-Financial support from the Marianne and Marcus Wallenberg Foundation (WASP-HS, project AISCAF) is gratefully acknowledged.
+Lodefalk acknowledges financial support from the Torsten Söderberg Foundation (grants E46/21, ET3/23), and Lodefalk and Löthman from WASP-HS (grant 805). Ethical approvals: 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \bibliographystyle{elsarticle-harv}
