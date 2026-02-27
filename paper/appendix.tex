@@ -92,12 +92,12 @@ Table~\ref{tab:robustness} reports results from alternative specifications: (i)~
 
 \subsection{Event study}
 
-Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). Aggregating to quarterly frequency (Figure~\ref{fig:eventstudy_q}) reduces the number of pre-period coefficients to 9 but the test still rejects ($\chi^2_{8} = 52.8$, $p < 0.01$), indicating genuine differential macro sensitivity across AI exposure groups rather than monthly noise. This motivates specification (4) in the main table, which conditions on occupation group~$\times$~month fixed effects. The post-ChatGPT coefficients show no additional structural break beyond the Riksbanken hiking cycle in either specification.
+Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). Aggregating to quarterly frequency (Figure~\ref{fig:eventstudy_q}) reduces the number of pre-period coefficients to 9 but the test still rejects ($\chi^2_{8} = 52.8$, $p < 0.01$), indicating genuine differential macro sensitivity across AI exposure groups rather than monthly noise. This motivates specification (4) in the main table, which conditions on occupation group~$\times$~month fixed effects. The post-ChatGPT coefficients show no additional structural break beyond the Riksbank hiking cycle in either specification.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA3_event_study.png}
-\caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the Riksbanken first rate hike (April 2022) and ChatGPT launch (December 2022).}
+\caption{Event study: monthly DiD coefficients for high vs low genAI exposure occupations (reference: February 2020). Shaded area shows 95\% confidence interval. Dashed lines mark the the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022).}
 \label{fig:eventstudy}
 \end{figure}
 
@@ -128,12 +128,12 @@ Figure~\ref{fig:omxspi} replicates the ``scary chart'' using the OMXSPI (OMX Sto
 
 \subsection{Quadratic occupation-specific trends}
 
-Adding quadratic time trends interacted with the high-exposure indicator tests whether non-linear differential dynamics --- such as accelerating AI adoption over time --- drive the results beyond what linear trends capture. The quadratic term is insignificant ($\hat\delta_2 = -0.00002$, $p = 0.56$), indicating that the linear trend specification (column~3 in the main table) is sufficient. The ChatGPT coefficient remains insignificant ($\hat\beta_2 = 0.019$, $p = 0.63$).
+Adding quadratic time trends interacted with the high-exposure indicator tests whether non-linear differential dynamics (such as accelerating AI adoption over time) drive the results beyond what linear trends capture. The quadratic term is insignificant ($\hat\delta_2 = -0.00002$, $p = 0.56$), indicating that the linear trend specification (column~3 in the main table) is sufficient. The ChatGPT coefficient remains insignificant ($\hat\beta_2 = 0.019$, $p = 0.63$).
 
 
 \subsection{Sensitivity to violations of parallel trends}
 
-Figure~\ref{fig:rr} reports a sensitivity analysis following the relative magnitudes framework of \citet{rambachan2023more}. The average post-ChatGPT event-study coefficient for high-exposure occupations is $\hat\theta = -0.169$ (SE = 0.059), significantly negative under exact parallel trends ($\bar{M} = 0$). However, the ``breakdown value'' is $\bar{M} = 0.25$: if post-period violations of parallel trends are as little as 25\% of the maximum pre-period violation, the honest confidence interval includes zero. This confirms that while there is suggestive evidence of a negative AI effect on postings, the finding is fragile --- consistent with the imprecision documented in the main regression table.
+Figure~\ref{fig:rr} reports a sensitivity analysis following the relative magnitudes framework of \citet{rambachan2023more}. The average post-ChatGPT event-study coefficient for high-exposure occupations is $\hat\theta = -0.169$ (SE = 0.059), significantly negative under exact parallel trends ($\bar{M} = 0$). However, the ``breakdown value'' is $\bar{M} = 0.25$: if post-period violations of parallel trends are as little as 25\% of the maximum pre-period violation, the honest confidence interval includes zero. This confirms that while there is suggestive evidence of a negative AI effect on postings, the finding is fragile, consistent with the imprecision documented in the main regression table.
 
 \begin{figure}[htbp]
 \centering
@@ -165,7 +165,7 @@ Figure~\ref{fig:rate_scatter} plots this revealed rate sensitivity against DAIOE
 
 AI-exposed occupations overlap substantially with teleworkable occupations \citep{dingel2020many}. To test whether the posting null reflects teleworkability rather than AI, we crosswalk the \citet{dingel2020many} teleworkability classification from SOC~2010 to SSYK~2012 via ISCO-08 and re-run specification~(2) separately for teleworkable and non-teleworkable occupations (split at the median score).
 
-Figure~\ref{fig:telework} reveals heterogeneity. In teleworkable occupations (187~SSYK codes), $\hat\beta_2$ is essentially zero ($-0.005$, $p = 0.917$); the posting decline is entirely captured by the Riksbanken interaction ($\hat\beta_1 = -0.138$, $p < 0.01$). In non-teleworkable occupations (182~SSYK codes), $\hat\beta_2 = -0.233$ ($p < 0.01$), indicating a significant additional decline after ChatGPT in high-AI-exposure occupations that cannot adapt through remote work. This suggests that AI displacement of postings, where it occurs, concentrates in occupations where remote work arrangements cannot cushion the impact.
+Figure~\ref{fig:telework} reveals heterogeneity. In teleworkable occupations (187~SSYK codes), $\hat\beta_2$ is essentially zero ($-0.005$, $p = 0.917$); the posting decline is entirely captured by the Riksbank interaction ($\hat\beta_1 = -0.138$, $p < 0.01$). In non-teleworkable occupations (182~SSYK codes), $\hat\beta_2 = -0.233$ ($p < 0.01$), indicating a significant additional decline after ChatGPT in high-AI-exposure occupations that cannot adapt through remote work. This suggests that AI displacement of postings, where it occurs, concentrates in occupations where remote work arrangements cannot cushion the impact.
 
 \begin{figure}[htbp]
 \centering
@@ -179,7 +179,7 @@ Figure~\ref{fig:telework} reveals heterogeneity. In teleworkable occupations (18
 \section{Employment by age group and AI exposure}
 % ══════════════════════════════════════════════════════════════════════════════
 
-\citet{brynjolfsson2025canaries} find that young US workers in AI-exposed occupations experienced disproportionate employment declines --- ``canaries in the coal mine.'' Our posting-based analysis cannot test this age-specific hypothesis directly. As a first check, we use publicly available register data from SCB (Yrkesregistret, table YREG54BAS) providing annual employment counts by SSYK~4-digit occupation and age group for 2020--2024. These annual data show no visible divergence between young workers in high- vs low-AI-exposure occupations after ChatGPT, but three caveats limit their informativeness: (i)~SCB changed the underlying register from RAMS to BAS from reference year 2022, introducing a methodological break at our treatment timing; (ii)~the 2020 pandemic trough as base year inflates all growth rates; (iii)~with only five annual observations, statistical power is limited.
+\citet{brynjolfsson2025canaries} find that young US workers in AI-exposed occupations experienced disproportionate employment declines, ``canaries in the coal mine.'' Our posting-based analysis cannot test this age-specific hypothesis directly. As a first check, we use publicly available register data from SCB (Yrkesregistret, table YREG54BAS) providing annual employment counts by SSYK~4-digit occupation and age group for 2020--2024. These annual data show no visible divergence between young workers in high- vs low-AI-exposure occupations after ChatGPT, but three caveats limit their informativeness: (i)~SCB changed the underlying register from RAMS to BAS from reference year 2022, introducing a methodological break at our treatment timing; (ii)~the 2020 pandemic trough as base year inflates all growth rates; (iii)~with only five annual observations, statistical power is limited.
 
 We therefore turn to monthly employer declaration (AGI) register data from SCB's secure research environment (MONA), which provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. These data reveal a canaries effect: young workers (16--24) in the most AI-exposed occupations experienced steeper employment declines after late 2022, broadly consistent with \citet{brynjolfsson2025canaries}. Swedish college graduation age is high by international standards (median 27--28), so the 16--24 bracket captures pre-graduation and very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
 
@@ -195,21 +195,21 @@ We therefore turn to monthly employer declaration (AGI) register data from SCB's
 \section{Spotlight occupations: monthly employment by age (MONA)}
 % ══════════════════════════════════════════════════════════════════════════════
 
-\citet{brynjolfsson2025canaries} highlight specific ``spotlight'' occupations --- software developers and customer service agents --- where AI adoption is particularly visible. Using monthly AGI (employer declaration) register data from SCB's secure environment (MONA), we plot employment trajectories by fine age band (22--25, 26--30, 31--34, 35--40, 41--49, 50+) for these occupations, indexed to October 2022 (just before ChatGPT).
+\citet{brynjolfsson2025canaries} highlight specific ``spotlight'' occupations (software developers and customer service agents) where AI adoption is particularly visible. Using monthly AGI (employer declaration) register data from SCB's secure environment (MONA), we plot employment trajectories by fine age band (22--25, 26--30, 31--34, 35--40, 41--49, 50+) for these occupations, indexed to October 2022 (just before ChatGPT).
 
 The economy-wide employment figure by age group and AI exposure appears as Figure~2 in the main paper. Below we show the occupation-specific spotlight analyses.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA8a_mona_canaries_softwaredevelopers.png}
-\caption{Monthly employment by age group --- Software Developers (SSYK~2512). AGI register data, indexed to base month = 100. Vertical lines mark Riksbanken first rate hike (April 2022) and ChatGPT launch (December 2022). The youngest cohort (22--25) shows the steepest decline, consistent with the economy-wide canaries effect in Figure~2 of the main paper.}
+\caption{Monthly employment by age group: Software Developers (SSYK~2512). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). The youngest cohort (22--25) shows the steepest decline, consistent with the economy-wide canaries effect in Figure~2 of the main paper.}
 \label{fig:spotlight_software}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA8b_mona_canaries_customerservice.png}
-\caption{Monthly employment by age group --- Customer Service Agents (SSYK~4221, 4222, 5230). AGI register data, indexed to base month = 100. Vertical lines mark Riksbanken first rate hike (April 2022) and ChatGPT launch (December 2022). The pattern is noisier than for software developers, potentially reflecting smaller cell sizes and more heterogeneous task content.}
+\caption{Monthly employment by age group: Customer Service Agents (SSYK~4221, 4222, 5230). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). The pattern is noisier than for software developers, potentially reflecting smaller cell sizes and more heterogeneous task content.}
 \label{fig:spotlight_customer}
 \end{figure}
 
@@ -234,8 +234,8 @@ The Dynamic AI Occupational Exposure index maps AI benchmark performance to occu
 \subsection{OMXS30}
 Stockholm OMX~30 daily closing prices from Yahoo Finance (ticker: \texttt{\^{}OMX}).
 
-\subsection{Riksbanken policy rate}
-Manually compiled from Riksbanken press releases. Key dates verified against \url{https://riksbank.se}.
+\subsection{Riksbank policy rate}
+Manually compiled from Riksbank press releases. Key dates verified against \url{https://riksbank.se}.
 
 \subsection{Administrative employment data (SCB/MONA)}
 
