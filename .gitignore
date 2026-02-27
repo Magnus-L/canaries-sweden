@@ -36,14 +36,18 @@ venv/
 *.synctex.gz
 *.pdf
 
-# Session files (local working notes)
+# Internal working files (not for public repo)
 SESSION_PICKUP.md
 SESSION_SUMMARY.md
+PICKUP_PROMPT.md
+correspondence/
+replication_stata.log
 
-# Data packages (shared separately)
+# Data packages (shared separately with collaborators)
+mona_package/
 mona_package.zip
-dst_package.zip
 dst_package/
+dst_package.zip
 
 # Sensitive
 .env
