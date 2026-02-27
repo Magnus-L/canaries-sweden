@@ -1,175 +1,109 @@
-# MONA Analysis: Canaries Test Using AGI Data
+# MONA Analysis: Canaries Regression
 
 ## Purpose
 
-Test whether young workers (16-24) in high-AI-exposure occupations
-experienced disproportionate employment declines after ChatGPT
-(the "canaries in the coal mine" hypothesis from Brynjolfsson et al. 2025).
+Formally test whether young workers (16-24) in high-AI-exposure occupations
+experienced disproportionate employment declines after ChatGPT. This upgrades
+the current descriptive Figure 2 in the paper to a causally identified result.
 
-This analysis supplements the paper's main finding (job postings show
-no AI-driven differential decline) with register employment data.
+The design mirrors **Brynjolfsson, Chandar & Chen (2025), Eq. 4.1** —
+a Poisson event study with employer×quartile and employer×month fixed effects,
+run separately by age group. The employer×month FE absorb ALL firm-level
+macro shocks (interest rates, energy crisis, etc.), so identification comes
+from within-firm, within-month variation across AI exposure levels.
 
-## What You Need
+## Files
 
-1. **AGI data** — monthly employer declarations, individual level,
-   2019-01 to latest available (~2025-06).
-   Variables: person ID, year-month, SSYK 4-digit occupation code,
-   birth year (or age).
+- **Stata do-file**: `mona_canaries_regression.do` — the complete analysis
+- **DAIOE quartiles**: `daioe_quartiles.csv` — crosswalk from SSYK4 to exposure quartile
 
-2. **DAIOE quartiles** — the file `daioe_quartiles.csv` (import as CSV).
-   Columns: ssyk4, pctl_rank_genai, exposure_quartile, high_exposure.
-   `high_exposure = 1` means top quartile of genAI exposure.
+## What You Need to Do
 
-## Step-by-Step Analysis
+1. **Copy** `mona_canaries_regression.do` and `daioe_quartiles.csv` to MONA
+2. **Edit** the three `FILL_IN_PATH` globals at the top of the do-file to point to:
+   - Your AGI monthly data (individual-level)
+   - The DAIOE quartile file
+   - An output directory
+3. **Check** that your AGI data has these variables (rename if needed):
+   - `person_id` — encrypted individual identifier
+   - `employer_id` — encrypted employer identifier
+   - `ssyk4` — SSYK 2012 four-digit occupation code
+   - `age` — worker age (or `birth_year`, in which case uncomment the gen line)
+   - `ym` — Stata monthly date (e.g., from `mofd()`)
+4. **Run** the full do-file: `do mona_canaries_regression.do`
+5. **Export** all files from the output directory
 
-### Step 1: Prepare AGI data
+## What the Code Does
 
-```
-- Load individual-level AGI records
-- Compute age = year of record - birth year
-- Create binary: young = 1 if age 16-24, else 0
-- Filter to ages 16-69
-- Clean SSYK code to 4-digit string (zero-padded, e.g. "0110")
-- Aggregate to: ssyk4 x year_month x young
-  Count: n_employed = number of DISTINCT persons per cell
-- Result: a DataFrame with columns:
-  ssyk4, year_month (format "YYYY-MM"), young (0/1), n_employed
-```
+### Section 2: Main DiD (the key result)
 
-### Step 2: Merge with DAIOE
-
-```
-- Load daioe_quartiles.csv
-- Merge on ssyk4 (inner join)
-- Keep columns: ssyk4, year_month, young, n_employed,
-  pctl_rank_genai, high_exposure
-- Report: how many of N occupations matched (expect ~92-98%)
-```
-
-### Step 3: Triple-difference regression
-
-The specification:
+For each age group {16-24, 25-30, 31-40, 41-49, 50+}, estimates:
 
 ```
-ln(n_employed_it) = alpha_i + gamma_t
-    + beta1 * PostChatGPT_t * High_i
-    + beta2 * PostChatGPT_t * Young_i
-    + beta3 * PostChatGPT_t * Young_i * High_i
-    + epsilon_it
+y_{f,q,t} = γ₁ × PostRB × HighQ4 + γ₂ × PostGPT × HighQ4 + α_{f,q} + β_{f,t}
 ```
 
-Where:
-- i = entity = ssyk4 + "_" + str(young)  (occupation x age group)
-- t = year-month
-- alpha_i = entity fixed effects
-- gamma_t = year-month fixed effects
-- PostChatGPT_t = 1 if year_month >= "2022-12"
-- High_i = 1 if top quartile genAI exposure (from DAIOE)
-- Young_i = 1 if age group 16-24
+where f = employer, q = DAIOE quartile, t = month.
 
-THE KEY COEFFICIENT: beta3 (PostChatGPT x Young x High)
-- If negative and significant: evidence of "canaries" — young workers
-  in AI-exposed occupations declining disproportionately
-- If zero/insignificant: no canaries effect
+- Uses `ppmlhdfe` (Poisson) if available, `reghdfe` (OLS on ln) as fallback
+- **Employer×quartile FE** absorb baseline differences within firms
+- **Employer×month FE** absorb all firm-level time shocks (monetary policy, etc.)
+- SEs clustered by employer
 
-Cluster standard errors at the entity level (occupation x age group).
+**The canaries finding**: γ₂ (PostGPT × High) should be negative and significant
+for ages 16-24, but not for older groups.
 
-Using linearmodels (if available in MONA):
-```python
-from linearmodels.panel import PanelOLS
-import pandas as pd, numpy as np
+### Section 3: Half-year event study
 
-df["entity"] = df["ssyk4"] + "_" + df["young"].astype(str)
-df["date"] = pd.to_datetime(df["year_month"] + "-01")
-df["ln_emp"] = np.log(df["n_employed"])
-df["post_gpt"] = (df["year_month"] >= "2022-12").astype(int)
-df["post_high"] = df["post_gpt"] * df["high_exposure"]
-df["post_young"] = df["post_gpt"] * df["young"]
-df["post_young_high"] = df["post_gpt"] * df["young"] * df["high_exposure"]
+Traces the time path using half-year period dummies × High-AI interactions.
+Reference period: 2022H1 (pre-Riksbank hike). This shows whether divergence
+appears (a) pre-ChatGPT, (b) post-ChatGPT, or (c) was already present earlier.
 
-panel = df.set_index(["entity", "date"])
-exog = ["post_high", "post_young", "post_young_high"]
-mod = PanelOLS(panel["ln_emp"], panel[exog],
-               entity_effects=True, time_effects=True)
-res = mod.fit(cov_type="clustered", cluster_entity=True)
-print(res.summary)
+### Section 5: Backup triple-diff
+
+If employer×month FE is computationally infeasible (too many FE groups on MONA),
+Section 5 runs a simpler occupation-level triple-diff:
+
+```
+ln(emp) = ... + β × PostGPT × Young × HighAI + ... + entity FE + month FE
 ```
 
-Using statsmodels (fallback):
-```python
-import statsmodels.api as sm
+This is weaker identification but feasible with any dataset size.
 
-entity_dum = pd.get_dummies(df["entity"], prefix="e", drop_first=True)
-time_dum = pd.get_dummies(df["year_month"], prefix="t", drop_first=True)
-exog = ["post_high", "post_young", "post_young_high"]
-X = pd.concat([df[exog], entity_dum, time_dum], axis=1).astype(float)
-X = sm.add_constant(X)
-mod = sm.OLS(df["ln_emp"].values, X)
-res = mod.fit(cov_type="cluster", cov_kwds={"groups": df["entity"].values})
-print(res.params[exog])
-print(res.pvalues[exog])
-```
+## Expected Output
 
-### Step 4: Save results
+| File | Description |
+|------|-------------|
+| `canaries_did_results.csv` | DiD coefficients by age group (main table) |
+| `canaries_es_all.csv` | Event study coefficients for all age groups |
+| `canaries_es_young.png` | Event study figure for ages 16-24 |
+| `canaries_es_25to30.png` | Event study figure for ages 25-30 |
+| `canaries_es_41to49.png` | Event study figure for ages 41-49 |
+| `canaries_summary.txt` | Sample sizes and diagnostics |
+| `canaries_regression.log` | Full Stata log |
 
-Save a CSV with one row per coefficient:
+## Computational Notes
 
-| variable | coefficient | std_error | p_value |
-|----------|------------|-----------|---------|
-| post_high | ... | ... | ... |
-| post_young | ... | ... | ... |
-| post_young_high | ... | ... | ... |
+- The employer×month FE can be very large (potentially millions of groups).
+  If Stata runs out of memory, try:
+  1. Increase memory: `set maxvar 32767` and `set matsize 11000`
+  2. Restrict to employers with ≥10 workers (add: `bysort employer_id: egen emp_size = count(person_id)` then `keep if emp_size >= 10`)
+  3. Use the Section 5 backup (occupation-level) instead
+- `ppmlhdfe` handles zero cells properly. If not installed on MONA, the
+  `reghdfe` fallback drops zero-employment cells (logged DV). This is acceptable
+  for an Economics Letters paper but note it in the output.
+- If `ppmlhdfe` is available but slow, try: `ppmlhdfe ..., tolerance(1e-6)`
 
-Filename: `mona_canaries_regression.csv`
+## For Koch (Danish Analysis)
 
-### Step 5: Spotlight figures (software developers, customer service)
-
-For selected "spotlight" occupations, plot employment by fine age band
-(22-25, 26-30, 31-34, 35-40, 41-49, 50+), indexed to October 2022 = 100.
-This mirrors Brynjolfsson et al.'s approach.
-
-Spotlight occupations (SSYK 2012):
-- Software developers: 2512
-- Customer service: 4221, 4222, 5230
-
-For each: one line per age band, vertical markers at rate hike and ChatGPT.
-Save as:
-- `figA8a_mona_canaries_softwaredevelopers.png` (300 dpi)
-- `figA8b_mona_canaries_customerservice.png` (300 dpi)
-
-### Step 6: Broad canaries figure
-
-Plot employment indexed to the earliest month (= 100), four lines:
-- Young (16-24), High AI exposure (orange, solid, thick)
-- Young (16-24), Low AI exposure (orange, dashed, thin)
-- Older (25+), High AI exposure (dark blue, solid, thick)
-- Older (25+), Low AI exposure (dark blue, dashed, thin)
-
-Add vertical dotted lines at:
-- April 2022 (Riksbanken first rate hike)
-- December 2022 (ChatGPT launch)
-
-Save as: `figA8c_mona_canaries_economy.png` (300 dpi)
-
-## What to Export from MONA
-
-1. `figA8a_mona_canaries_softwaredevelopers.png` — spotlight: software devs
-2. `figA8b_mona_canaries_customerservice.png` — spotlight: customer service
-3. `figA8c_mona_canaries_economy.png` — broad trajectory figure
-4. `mona_canaries_regression.csv` — the regression table
-5. Optionally: a text file with N observations, N entities, N months,
-   match rate with DAIOE, and the beta3 coefficient + p-value
-
-## Expected Runtime
-
-< 5 minutes on MONA hardware for typical AGI extract sizes.
+The same do-file can be adapted for DST data by:
+1. Replacing SSYK4 with DISCO 4-digit codes
+2. Crosswalking DAIOE to DISCO via ISCO-08
+3. Adjusting age group definitions if needed
+4. Adjusting the employer identifier variable name
 
 ## Reference
 
-This analysis replicates the age-specific test in:
-- Brynjolfsson, E., Chandar, B., & Chen, J. (2025). "Generative AI
-  at Work: Canaries in the Coal Mine." Working paper.
-
-And parallels the Finnish employment analysis in:
-- Kauhanen, A. & Rouvinen, P. (2025). "Canaries in the Finnish Coal
-  Mine?" Applied Economics Letters.
+Brynjolfsson, E., Chandar, B., & Chen, R. (2025). "Canaries in the Coal
+Mine? Six Facts about the Recent Employment Effects of Artificial Intelligence."
+Stanford Digital Economy Lab Working Paper, November 2025.
