@@ -491,10 +491,37 @@ def table_top_bottom_occupations():
     """List the 10 most and 10 least genAI-exposed occupations."""
     print("Generating Table A2: Top/bottom occupations...")
 
+    # DAIOE source file has Swedish names; map to English via ISCO-08 for publication
+    SSYK_ENGLISH = {
+        "2641": "Authors and related writers",
+        "2122": "Statisticians",
+        "2121": "Mathematicians and actuaries",
+        "2415": "Economists",
+        "2512": "Software and systems developers",
+        "2145": "Chemical engineers",
+        "2111": "Physicists and astronomers",
+        "2414": "Securities traders and fund managers",
+        "2513": "Game and digital media developers",
+        "2112": "Meteorologists",
+        "9120": "Vehicle, window and related cleaners",
+        "2653": "Dancers and choreographers",
+        "8350": "Ships' deck crew and related workers",
+        "7113": "Concrete workers",
+        "8341": "Agricultural and forestry machinery operators",
+        "9310": "Construction labourers",
+        "8342": "Earth-moving machinery operators",
+        "8111": "Miners and quarry workers",
+        "7121": "Roofers",
+        "3421": "Professional athletes",
+    }
+
     daioe_raw = pd.read_csv(RAW / "daioe_ssyk2012.csv", sep="\t")
     daioe_ref = daioe_raw[daioe_raw["year"] == DAIOE_REF_YEAR].copy()
     daioe_ref["ssyk4"] = daioe_ref["ssyk2012_4"].str[:4]
-    daioe_ref["occupation_name"] = daioe_ref["ssyk2012_4"].str[5:]
+    # Use English name if available, fall back to Swedish from source
+    daioe_ref["occupation_name"] = daioe_ref["ssyk4"].map(SSYK_ENGLISH).fillna(
+        daioe_ref["ssyk2012_4"].str[5:]
+    )
 
     daioe_ref = daioe_ref.dropna(subset=["pctl_rank_genai"])
     daioe_ref = daioe_ref.sort_values("pctl_rank_genai", ascending=False)
