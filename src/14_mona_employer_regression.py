@@ -63,22 +63,24 @@ warnings.filterwarnings("ignore")
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 # Path to your AGI extract (parquet, CSV, or SAS)
-INPUT_PATH = Path("FILL_IN_PATH/agi_monthly_extract.parquet")
+# >>> USE THE SAME PATH AS IN 09_mona_agi_canaries.py <<<
+INPUT_PATH = Path("agi_monthly_extract.parquet")
 
 # Column names in the AGI extract — adjust if yours differ
+# >>> MUST MATCH 09_mona_agi_canaries.py, plus employer_id <<<
 AGI_COLUMNS = {
-    "person_id": "LopNr",          # Encrypted person ID
-    "employer_id": "ArbstId",      # Encrypted employer/workplace ID
-    "year_month": "Period",         # Year-month as YYYY-MM or similar
-    "ssyk4": "SSYK4",              # 4-digit SSYK 2012 code
-    "birth_year": "FodelseAr",     # Birth year (to compute age)
+    "person_id": "LopNr",          # Encrypted person ID (same as script 09)
+    "employer_id": "ArbstId",      # Encrypted employer/workplace ID (NEW)
+    "year_month": "Period",         # Year-month (same as script 09)
+    "ssyk4": "SSYK4",              # 4-digit SSYK 2012 (same as script 09)
+    "birth_year": "FodelseAr",     # Birth year (same as script 09)
 }
 
-# Path to DAIOE quartiles (copy from the project's src/ directory)
-DAIOE_PATH = Path("FILL_IN_PATH/daioe_quartiles.csv")
+# Path to DAIOE quartiles (same file as script 09 uses)
+DAIOE_PATH = Path("daioe_quartiles.csv")
 
-# Output paths
-OUTPUT_DIR = Path("FILL_IN_PATH/output")
+# Output paths (saves alongside script 09 output)
+OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # Treatment dates

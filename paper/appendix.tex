@@ -215,6 +215,42 @@ The economy-wide employment figure by age group and AI exposure appears as Figur
 
 
 % ══════════════════════════════════════════════════════════════════════════════
+\section{Employer-level difference-in-differences}
+\label{sec:employer_did}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The descriptive evidence in Figure~2 of the main paper and the triple-difference regression in the preceding sections establish that young workers in high-AI-exposure occupations experienced disproportionate employment declines. However, this occupation-level analysis cannot rule out that unobserved employer-level shocks --- for instance, differential retrenchment by large employers concentrated in AI-exposed occupations --- drive the pattern. To tighten identification, we estimate an employer-level difference-in-differences design closely following \citet{brynjolfsson2025canaries}.
+
+\paragraph{Estimating equation.}
+For each age group $a \in \{16\text{--}24,\; 25\text{--}30,\; 31\text{--}40,\; 41\text{--}49,\; 50+\}$, we estimate:
+\begin{equation}\label{eq:employer_did}
+\ln(\text{emp}^{a}_{fqt}) \;=\; \alpha_{fq} \;+\; \beta_{ft} \;+\; \gamma_1 \cdot \text{PostRB}_t \cdot \text{HighQ4}_q \;+\; \gamma_2 \cdot \text{PostGPT}_t \cdot \text{HighQ4}_q \;+\; \varepsilon_{fqt}
+\end{equation}
+where $f$ indexes employers, $q \in \{1,2,3,4\}$ indexes DAIOE genAI exposure quartiles, and $t$ indexes year-months. $\alpha_{fq}$ are employer $\times$ quartile fixed effects and $\beta_{ft}$ are employer $\times$ month fixed effects. The dependent variable is the log count of workers of age group $a$ employed by firm $f$ in occupations belonging to quartile $q$ at time $t$. $\text{PostRB}_t = 1$ if $t \geq$ April 2022; $\text{PostGPT}_t = 1$ if $t \geq$ December 2022; $\text{HighQ4}_q = 1$ if the occupation belongs to the top quartile of genAI exposure. Standard errors are clustered at the employer $\times$ quartile level.
+
+\paragraph{Identification.}
+The employer $\times$ month fixed effects $\beta_{ft}$ are the key identification device. They absorb \emph{all} time-varying employer-level shocks --- including firm-specific responses to monetary tightening, demand shocks, management changes, or strategic decisions --- leaving only \emph{within-firm, within-month} variation across AI exposure quartiles. The identifying assumption is that, absent AI, employers would have adjusted employment in high- and low-exposure occupations proportionally. This is substantially weaker than the parallel trends assumption required by the occupation-level analysis, which requires that aggregate shocks affect all occupations equally.
+
+\paragraph{Canaries test.}
+The coefficient $\hat\gamma_2$ in Equation~\eqref{eq:employer_did} measures the differential employment change in high-AI-exposure occupations (relative to lower quartiles, within the same employer, in the same month) after ChatGPT. By estimating the equation separately for each age group, we test whether this within-employer recomposition is age-graded. If $\hat\gamma_2$ is significantly negative for the youngest workers (16--24) but not for older groups, this constitutes evidence of a canaries effect: employers differentially reduce young hires in AI-exposed roles after the advent of generative AI.
+
+\paragraph{Event study.}
+To validate the parallel trends assumption and trace the dynamics of any effect, we also estimate an event-study specification:
+\begin{equation}\label{eq:employer_es}
+\ln(\text{emp}^{a}_{fqt}) \;=\; \alpha_{fq} \;+\; \beta_{ft} \;+\; \sum_{s \neq s_0} \delta_s \cdot \mathbf{1}[t \in s] \cdot \text{HighQ4}_q \;+\; \varepsilon_{fqt}
+\end{equation}
+where $s$ indexes half-year periods and $s_0 = $ 2022H1 is the reference period (the last half-year before the Riksbank hike). Pre-treatment coefficients $\hat\delta_s$ for $s < s_0$ should be statistically indistinguishable from zero if the parallel trends assumption holds within employers.
+
+\paragraph{Sample construction.}
+We use the same monthly AGI register data as the descriptive analysis, retaining employers with at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group, and cells with zero employment are included to capture extensive-margin adjustment.
+
+\paragraph{Estimation.}
+The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible.
+
+[Results to be added upon completion of the MONA analysis.]
+
+
+% ══════════════════════════════════════════════════════════════════════════════
 \section{Riksbank policy rate timeline}
 % ══════════════════════════════════════════════════════════════════════════════
 
