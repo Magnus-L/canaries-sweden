@@ -295,7 +295,20 @@ The DAIOE genAI percentile ranking provides a continuous measure of occupational
 % ══════════════════════════════════════════════════════════════════════════════
 
 \subsection{Platsbanken}
-Job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. For 2020--2025 we use the historical bulk archive (\url{https://data.jobtechdev.se/annonser/historiska/}); for January--February 2026 we supplement with the real-time JobStream API (\url{https://jobstream.api.jobtechdev.se}), which provides the same fields for currently published ads. The two sources are deduplicated on ad identifier before aggregation.
+Job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen, AF), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. For 2020--2025 we use the historical bulk archive (\url{https://data.jobtechdev.se/annonser/historiska/}); for January--February 2026 we supplement with the real-time JobStream API (\url{https://jobstream.api.jobtechdev.se}), which provides the same fields for currently published ads. The two sources are deduplicated on ad identifier before aggregation. In recent years, approximately 700,000 ads have been published annually on Platsbanken.
+
+\paragraph{Coverage and representativeness.}
+Job postings data are increasingly used in labour market research \citep[e.g.][]{engberg2024daioe}. Platsbanken is the largest recruitment site in Sweden, covering the near-universe of advertised job vacancies. Several considerations bear on the representativeness of these data.
+
+First, most vacancies in Sweden are filled through channels other than formal advertising, such as personal contacts and direct approaches. However, the share of vacancies filled via AF has been stable or slightly increasing over time: in 2006, 9\% of already-employed job changers and 13\% of unemployed individuals who found work did so via AF; by 2023 these shares had risen by 1 and 2 percentage points, respectively.
+
+Second, all Swedish employers were previously required by law (SFS~1976:157) to post their vacancies at AF, but since 2007 this obligation applies only to central government (SFS~1984:819, SFS~2007:396). \citet{cronert2019regulatory} finds that the regulatory change reduced posting propensity by approximately 8\% in the private sector and 15\% in non-state public sector---relatively modest effects, likely because the earlier mandate was in practice not enforced.
+
+Third, recruitment advertising has shifted toward digital platforms. Besides Platsbanken, vacancies are posted on LinkedIn, Monster, and various sector-specific sites. That Platsbanken retains its position likely reflects established practice and the fact that posting is free; AF has also facilitated re-distribution of postings to other platforms. Nevertheless, for certain industries and occupations, Platsbanken may undercount the number of vacancies.
+
+Fourth, existing employees may be redeployed internally to AI-related tasks. Since AI competence is sought-after, organisations may rely relatively more on internal rather than external recruitment, meaning that job postings potentially understate AI adoption.
+
+For our analysis, the key question is whether any measurement gap varies systematically with AI exposure. To the extent that high-AI-exposure occupations (e.g., white-collar professional roles) are more likely to also be advertised on competing platforms, our analysis would undercount postings in Q4 relative to Q1, biasing us \emph{toward} finding a negative AI effect. The null result for $\hat\beta_2$ in the main paper is therefore conservative with respect to platform migration.
 
 \subsection{DAIOE}
 The Dynamic AI Occupational Exposure index maps AI benchmark performance to occupational task content. The genAI variant focuses on capabilities relevant to large language models and image generation. Publicly available; see \citet{engberg2024daioe}.
