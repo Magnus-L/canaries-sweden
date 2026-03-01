@@ -97,6 +97,17 @@ SSYK_CUSTOMER = ["4221",  # Kundtjänstpersonal (call centre)
                  "4222",  # Helpdesk- och support-personal
                  "5230"]  # Kassörer m.fl.
 
+# GenAI capability milestones (for timeline annotation on figures)
+# Each tuple: (year, month, label)
+GENAI_MILESTONES = [
+    (2023, 3, "GPT-4"),
+    (2023, 11, "Enterprise tools"),
+    (2024, 5, "GPT-4o"),
+    (2024, 9, "o1"),
+    (2025, 1, "DeepSeek R1"),
+]
+MILESTONE_COLOR = "#7B2D8E"  # purple, distinct from existing orange/teal
+
 # Fine age bands matching Brynjolfsson et al.
 # NOTE: ages 16-21 are excluded from spotlight (included in broad canaries).
 AGE_BANDS = [
@@ -397,6 +408,45 @@ def run_canaries_regression(merged):
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
+# ║  SHARED: EVENT AND MILESTONE ANNOTATION LINES                       ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+
+def add_event_lines(ax):
+    """
+    Draw vertical annotation lines for macro events and GenAI milestones.
+    Used by both spotlight and canaries figures for visual consistency.
+
+    Draws three types of lines:
+      1. Riksbank rate hike (orange dotted) — macro tightening
+      2. ChatGPT launch (teal dotted) — GenAI emergence
+      3. GenAI capability milestones (purple dashed) — successive waves
+
+    All lines use '_nolegend_' to avoid polluting the data legend.
+    """
+    # Macro / ChatGPT event markers (existing style)
+    ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE + "-01"),
+               color=ORANGE, linewidth=1, linestyle=":", alpha=0.7,
+               label="_nolegend_")
+    ax.axvline(pd.Timestamp(CHATGPT_LAUNCH + "-01"),
+               color=TEAL, linewidth=1.5, linestyle=":", alpha=0.9,
+               label="_nolegend_")
+
+    # GenAI capability milestones
+    for year, month, label in GENAI_MILESTONES:
+        date = pd.Timestamp(f"{year}-{month:02d}-01")
+        ax.axvline(date, color=MILESTONE_COLOR, linewidth=0.9,
+                   linestyle="--", alpha=0.6, label="_nolegend_")
+        # Label at top of plot area
+        ax.text(date, ax.get_ylim()[1], label,
+                ha="center", va="bottom", fontsize=6,
+                color=MILESTONE_COLOR, fontweight="bold", alpha=0.8,
+                rotation=45)
+
+    # Horizontal reference at 100
+    ax.axhline(100, color=GRAY, linewidth=0.5, linestyle="--", alpha=0.5)
+
+
+# ╔══════════════════════════════════════════════════════════════════════╗
 # ║  STEP 4a: SPOTLIGHT FIGURES — SPECIFIC OCCUPATIONS BY AGE BAND      ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
@@ -447,13 +497,8 @@ def plot_spotlight(agg_fine, ssyk_codes, occupation_label, out_filename):
         ax.plot(s["date"], s["index"],
                 color=colour_map.get(band, GRAY), linewidth=lw, label=band)
 
-    ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE + "-01"),
-               color=ORANGE, linewidth=1, linestyle=":", alpha=0.7,
-               label="Riksbank first hike (Apr 2022)")
-    ax.axvline(pd.Timestamp(CHATGPT_LAUNCH + "-01"),
-               color=TEAL, linewidth=1.5, linestyle=":", alpha=0.9,
-               label="ChatGPT launch (Dec 2022)")
-    ax.axhline(100, color=GRAY, linewidth=0.5, linestyle="--", alpha=0.5)
+    # Event markers + GenAI milestones (shared helper, no legend pollution)
+    add_event_lines(ax)
 
     ax.set_xlabel("")
     ax.set_ylabel(f"Employment index ({avail_base} = 100)")
@@ -461,7 +506,7 @@ def plot_spotlight(agg_fine, ssyk_codes, occupation_label, out_filename):
         f"Employment by age group — {occupation_label}\n"
         f"(AGI register data, SSYK {', '.join(ssyk_codes)})"
     )
-    ax.legend(loc="lower left", fontsize=8, ncol=2,
+    ax.legend(loc="upper left", fontsize=8, ncol=2,
               title="Age group", title_fontsize=8)
     ax.tick_params(axis="x", rotation=30)
 
@@ -527,17 +572,13 @@ def plot_canaries(merged):
                 color=style["color"], linewidth=style["lw"],
                 linestyle=style["ls"], label=style["label"])
 
-    # Event markers
-    ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE + "-01"), color=ORANGE,
-               linewidth=1, linestyle=":", alpha=0.7)
-    ax.axvline(pd.Timestamp(CHATGPT_LAUNCH + "-01"), color=TEAL,
-               linewidth=1.5, linestyle=":", alpha=0.8)
+    # Event markers + GenAI milestones (shared helper)
+    add_event_lines(ax)
 
-    ax.axhline(100, color=GRAY, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_xlabel("")
     ax.set_ylabel("Employment index (base month = 100)")
     ax.set_title("Monthly employment by age and AI exposure (AGI register data)")
-    ax.legend(loc="best", fontsize=9)
+    ax.legend(loc="upper left", fontsize=9)
 
     fig.tight_layout()
     fig.savefig(OUTPUT_DIR / "figA8c_mona_canaries_economy.png", dpi=300)
