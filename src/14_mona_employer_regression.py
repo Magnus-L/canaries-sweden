@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-14_mona_employer_regression.py — Brynjolfsson-style employer-level DiD.
+14_mona_employer_regression.py -- Brynjolfsson-style employer-level DiD.
 
-╔══════════════════════════════════════════════════════════════════════╗
-║  THIS SCRIPT IS DESIGNED TO RUN IN SCB's MONA SECURE ENVIRONMENT   ║
-║  It uses monthly AGI (employer declaration) register data.          ║
-║  Do NOT run outside MONA — the data is not available externally.    ║
-╚══════════════════════════════════════════════════════════════════════╝
+======================================================================
+  THIS SCRIPT IS DESIGNED TO RUN IN SCB's MONA SECURE ENVIRONMENT
+  It uses monthly AGI (employer declaration) register data.
+  Do NOT run outside MONA -- the data is not available externally.
+======================================================================
 
 Purpose:
   Formally test whether young workers (16-24) in high-AI-exposure occupations
@@ -16,17 +16,17 @@ Purpose:
 Design:
   Mirrors Brynjolfsson, Chandar & Chen (2025), Eq. 4.1:
 
-    ln(E[y_{f,q,t}]) = α_{f,q} + β_{f,t} + γ₁·PostRB_t·HighQ4_q
-                        + γ₂·PostGPT_t·HighQ4_q + ε_{f,q,t}
+    ln(E[y_{f,q,t}]) = a_{f,q} + b_{f,t} + g1*PostRB_t*HighQ4_q
+                        + g2*PostGPT_t*HighQ4_q + e_{f,q,t}
 
   where f = employer, q = DAIOE quartile, t = month.
 
-  Employer×quartile FE absorb baseline differences within firms.
-  Employer×month FE absorb ALL firm-level macro shocks (interest rates,
+  Employer x quartile FE absorb baseline differences within firms.
+  Employer x month FE absorb ALL firm-level macro shocks (interest rates,
   energy crisis, seasonal hiring, etc.).
 
   Run SEPARATELY for each age group. The "canaries" finding is that
-  γ₂ is negative and significant for ages 16-24, but not for older groups.
+  g2 is negative and significant for ages 16-24, but not for older groups.
 
 Estimator:
   - Primary: OLS on ln(count+1) with high-dimensional FE via linearmodels
@@ -40,11 +40,11 @@ Input files (on MONA):
   2. daioe_quartiles.csv (ssyk4, exposure_quartile)
 
 Output files (export from MONA):
-  1. canaries_did_results.csv       — DiD coefficient table by age group
-  2. canaries_eventstudy_*.csv      — half-year event study coefficients
-  3. canaries_es_young.png          — event study figure for 16-24
-  4. canaries_es_older.png          — event study figure for 25-30, 41-49
-  5. canaries_summary.txt           — sample sizes and diagnostics
+  1. canaries_did_results.csv       -- DiD coefficient table by age group
+  2. canaries_eventstudy_*.csv      -- half-year event study coefficients
+  3. canaries_es_young.png          -- event study figure for 16-24
+  4. canaries_es_older.png          -- event study figure for 25-30, 41-49
+  5. canaries_summary.txt           -- sample sizes and diagnostics
 """
 
 import pandas as pd
@@ -58,15 +58,15 @@ import time
 warnings.filterwarnings("ignore")
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  CONFIGURATION — ADJUST THESE FOR YOUR MONA ENVIRONMENT            ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   CONFIGURATION -- ADJUST THESE FOR YOUR MONA ENVIRONMENT
+# ======================================================================
 
 # Path to your AGI extract (parquet, CSV, or SAS)
 # >>> USE THE SAME PATH AS IN 09_mona_agi_canaries.py <<<
 INPUT_PATH = Path("agi_monthly_extract.parquet")
 
-# Column names in the AGI extract — adjust if yours differ
+# Column names in the AGI extract -- adjust if yours differ
 # >>> MUST MATCH 09_mona_agi_canaries.py, plus employer_id <<<
 AGI_COLUMNS = {
     "person_id": "LopNr",          # Encrypted person ID (same as script 09)
@@ -99,7 +99,7 @@ AGE_GROUPS = {
     "50+":   (50, 69),
 }
 
-# Minimum employer size (helps with computation — drop tiny employers)
+# Minimum employer size (helps with computation -- drop tiny employers)
 MIN_EMPLOYER_SIZE = 5
 
 # Colours
@@ -110,14 +110,14 @@ DARK_BLUE = "#1B3A5C"
 DARK_TEXT = "#2C2C2C"
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 1: LOAD AND PREPARE DATA                                     ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   STEP 1: LOAD AND PREPARE DATA
+# ======================================================================
 
 def load_and_prepare():
     """
     Load AGI individual data, merge DAIOE quartiles, assign age groups,
-    and aggregate to employer × quartile × age_group × month cells.
+    and aggregate to employer x quartile x age_group x month cells.
 
     This is the unit of analysis in Brynjolfsson et al. (2025).
     """
@@ -196,11 +196,11 @@ def load_and_prepare():
     large_emp = emp_size[emp_size >= MIN_EMPLOYER_SIZE].index
     n_before = df["employer_id"].nunique()
     df = df[df["employer_id"].isin(large_emp)].copy()
-    print(f"  Employers: {n_before:,} total → {df['employer_id'].nunique():,} "
-          f"(≥{MIN_EMPLOYER_SIZE} workers)")
+    print(f"  Employers: {n_before:,} total -> {df['employer_id'].nunique():,} "
+          f"(>={MIN_EMPLOYER_SIZE} workers)")
 
-    # --- Aggregate to employer × quartile × age_group × month ---
-    print("\n  Aggregating to employer × quartile × age_group × month...")
+    # --- Aggregate to employer x quartile x age_group x month ---
+    print("\n  Aggregating to employer x quartile x age_group x month...")
     agg = (
         df.groupby(["employer_id", "exposure_quartile", "age_group", "year_month"])
         ["person_id"]
@@ -221,22 +221,22 @@ def load_and_prepare():
     return agg
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 2: MAIN DiD BY AGE GROUP                                     ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   STEP 2: MAIN DiD BY AGE GROUP
+# ======================================================================
 
 def run_did_by_age(agg):
     """
     For each age group, estimate:
 
-      ln(n_emp_{f,q,t} + 1) = α_{f,q} + β_{f,t}
-                               + γ₁·PostRB_t·High_q
-                               + γ₂·PostGPT_t·High_q + ε
+      ln(n_emp_{f,q,t} + 1) = a_{f,q} + b_{f,t}
+                               + g1*PostRB_t*High_q
+                               + g2*PostGPT_t*High_q + e
 
     where High = (quartile == 4).
 
-    Employer×quartile FE (α_{f,q}) absorb time-invariant differences.
-    Employer×month FE (β_{f,t}) absorb ALL firm-level shocks.
+    Employer x quartile FE (a_{f,q}) absorb time-invariant differences.
+    Employer x month FE (b_{f,t}) absorb ALL firm-level shocks.
 
     Identification: within-firm, within-month variation across quartiles.
 
@@ -291,7 +291,7 @@ def run_did_by_age(agg):
         results_df = pd.DataFrame(all_results)
         out = OUTPUT_DIR / "canaries_did_results.csv"
         results_df.to_csv(out, index=False)
-        print(f"\n  Saved DiD results → {out.name}")
+        print(f"\n  Saved DiD results -> {out.name}")
         print("\n  === SUMMARY ===")
         print(results_df.to_string(index=False))
         return results_df
@@ -303,10 +303,10 @@ def _estimate_did(sub, age_label):
     """
     Estimate the DiD for one age group. Tries three approaches:
 
-    A. linearmodels PanelOLS with employer×quartile entity FE +
-       employer×month as absorbed other_effects
-    B. Manual within-transformation (demean by employer×quartile,
-       then include employer×month dummies via absorption)
+    A. linearmodels PanelOLS with employer x quartile entity FE +
+       employer x month as absorbed other_effects
+    B. Manual within-transformation (demean by employer x quartile,
+       then include employer x month dummies via absorption)
     C. Simple OLS with occupation + month FE (backup, weaker identification)
     """
     t0 = time.time()
@@ -319,7 +319,7 @@ def _estimate_did(sub, age_label):
         panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
 
         # PanelOLS can absorb entity effects + one set of other_effects.
-        # Entity = employer×quartile, Other = employer×month
+        # Entity = employer x quartile, Other = employer x month
         panel = panel.set_index(["fe_emp_q", "date"])
 
         other_fe = pd.DataFrame(
@@ -345,8 +345,8 @@ def _estimate_did(sub, age_label):
 
         elapsed = time.time() - t0
         print(f"  [linearmodels, {elapsed:.0f}s]")
-        print(f"  γ₁ (PostRB × High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
-        print(f"  γ₂ (PostGPT × High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
 
         return {
             "age_group": age_label,
@@ -361,23 +361,23 @@ def _estimate_did(sub, age_label):
         }
 
     except ImportError:
-        print("  linearmodels not available — trying manual within-transformation")
+        print("  linearmodels not available -- trying manual within-transformation")
     except Exception as e:
         print(f"  linearmodels failed: {e}")
         print("  Trying manual within-transformation...")
 
     # --- Approach B: Manual within-transformation ---
-    # Demean by employer×quartile (entity FE) and employer×month (time FE)
+    # Demean by employer x quartile (entity FE) and employer x month (time FE)
     try:
         panel = sub.copy()
 
-        # Demean outcome and regressors by employer×quartile
+        # Demean outcome and regressors by employer x quartile
         for col in ["ln_emp", "post_rb_x_high", "post_gpt_x_high"]:
             panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
                 lambda x: x - x.mean()
             )
 
-        # Then demean by employer×month
+        # Then demean by employer x month
         for col in ["ln_emp", "post_rb_x_high", "post_gpt_x_high"]:
             panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
                 lambda x: x - x.mean()
@@ -405,8 +405,8 @@ def _estimate_did(sub, age_label):
 
         elapsed = time.time() - t0
         print(f"  [within-transformation, {elapsed:.0f}s]")
-        print(f"  γ₁ (PostRB × High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
-        print(f"  γ₂ (PostGPT × High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
 
         return {
             "age_group": age_label,
@@ -423,14 +423,14 @@ def _estimate_did(sub, age_label):
     except Exception as e:
         print(f"  Within-transformation failed: {e}")
 
-    # --- Approach C: Backup — occupation-level (weaker identification) ---
+    # --- Approach C: Backup -- occupation-level (weaker identification) ---
     print("  Falling back to occupation-level regression (Section 5 backup)")
     return _estimate_did_occupation_level(sub, age_label)
 
 
 def _estimate_did_occupation_level(sub, age_label):
     """
-    Backup: occupation × month panel with occupation + month FE.
+    Backup: occupation x month panel with occupation + month FE.
     Weaker identification (no employer-level controls) but always feasible.
     """
     import statsmodels.api as sm
@@ -464,8 +464,8 @@ def _estimate_did_occupation_level(sub, age_label):
     gamma2 = res.params["post_gpt_x_high"]
 
     print(f"  [occupation-level backup]")
-    print(f"  γ₁ (PostRB × High)  = {gamma1:+.4f} (SE={res.bse['post_rb_x_high']:.4f})")
-    print(f"  γ₂ (PostGPT × High) = {gamma2:+.4f} (SE={res.bse['post_gpt_x_high']:.4f})")
+    print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={res.bse['post_rb_x_high']:.4f})")
+    print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={res.bse['post_gpt_x_high']:.4f})")
 
     return {
         "age_group": age_label,
@@ -480,9 +480,9 @@ def _estimate_did_occupation_level(sub, age_label):
     }
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 3: HALF-YEAR EVENT STUDY                                     ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   STEP 3: HALF-YEAR EVENT STUDY
+# ======================================================================
 
 def assign_halfyear(ym_series):
     """Map 'YYYY-MM' strings to 'YYYYHn' labels."""
@@ -598,15 +598,15 @@ def run_halfyear_event_study(agg):
         es_df = pd.DataFrame(all_es_results)
         out = OUTPUT_DIR / "canaries_es_all.csv"
         es_df.to_csv(out, index=False)
-        print(f"\n  Saved event study → {out.name}")
+        print(f"\n  Saved event study -> {out.name}")
         return es_df
 
     return pd.DataFrame()
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 4: EVENT STUDY FIGURES                                        ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   STEP 4: EVENT STUDY FIGURES
+# ======================================================================
 
 def plot_event_studies(es_df):
     """Create event study coefficient plots for key age groups."""
@@ -650,25 +650,25 @@ def plot_event_studies(es_df):
 
         ax.set_xticks(sub["x"])
         ax.set_xticklabels(sub["period"], rotation=45, ha="right", fontsize=9)
-        ax.set_ylabel("Coefficient (High × period)")
+        ax.set_ylabel("Coefficient (High x period)")
         ax.set_title(f"Employment event study: ages {age_label}")
 
         fig.tight_layout()
         out = OUTPUT_DIR / filename
         fig.savefig(out, dpi=300)
         plt.close()
-        print(f"  Saved → {filename}")
+        print(f"  Saved -> {filename}")
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 5: DIAGNOSTICS AND SUMMARY                                   ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   STEP 5: DIAGNOSTICS AND SUMMARY
+# ======================================================================
 
 def write_summary(agg, did_results, es_df):
     """Write diagnostic summary to text file."""
     out = OUTPUT_DIR / "canaries_summary.txt"
     with open(out, "w") as f:
-        f.write("CANARIES REGRESSION — SUMMARY\n")
+        f.write("CANARIES REGRESSION -- SUMMARY\n")
         f.write("=" * 50 + "\n\n")
 
         f.write(f"Total panel cells: {len(agg):,}\n")
@@ -692,20 +692,20 @@ def write_summary(agg, did_results, es_df):
             f.write(did_results.to_string(index=False))
             f.write("\n")
 
-        f.write("\nFE structure: employer×quartile + employer×month\n")
+        f.write("\nFE structure: employer x quartile + employer x month\n")
         f.write("SEs clustered by employer\n")
         f.write("Estimator: OLS on ln(count+1)\n")
 
-    print(f"\n  Saved summary → {out.name}")
+    print(f"\n  Saved summary -> {out.name}")
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  MAIN                                                               ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# ======================================================================
+#   MAIN
+# ======================================================================
 
 def main():
     print("=" * 70)
-    print("CANARIES REGRESSION — Brynjolfsson-style employer-level DiD")
+    print("CANARIES REGRESSION -- Brynjolfsson-style employer-level DiD")
     print("Python version for MONA")
     print("=" * 70)
 
@@ -728,12 +728,12 @@ def main():
     print("\n" + "=" * 70)
     print("DONE. Export these files from MONA:")
     print(f"  Output directory: {OUTPUT_DIR}")
-    print("  1. canaries_did_results.csv    — DiD coefficients by age group")
-    print("  2. canaries_es_all.csv         — event study coefficients")
-    print("  3. canaries_es_young.png       — event study figure (16-24)")
-    print("  4. canaries_es_25to30.png      — event study figure (25-30)")
-    print("  5. canaries_es_41to49.png      — event study figure (41-49)")
-    print("  6. canaries_summary.txt        — sample sizes and diagnostics")
+    print("  1. canaries_did_results.csv    -- DiD coefficients by age group")
+    print("  2. canaries_es_all.csv         -- event study coefficients")
+    print("  3. canaries_es_young.png       -- event study figure (16-24)")
+    print("  4. canaries_es_25to30.png      -- event study figure (25-30)")
+    print("  5. canaries_es_41to49.png      -- event study figure (41-49)")
+    print("  6. canaries_summary.txt        -- sample sizes and diagnostics")
     print("=" * 70)
 
 
