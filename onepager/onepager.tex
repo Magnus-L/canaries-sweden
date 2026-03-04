@@ -1,0 +1,175 @@
+% One-pager: Same Storm, Different Boats
+% Policy-oriented summary — AI-Econ Lab
+% Compile with: tectonic onepager.tex
+
+\documentclass[10pt,a4paper]{article}
+
+% --- Packages ---
+\usepackage[top=1.4cm, bottom=1.2cm, left=1.8cm, right=1.8cm]{geometry}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{paracol}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% --- Colours ---
+\definecolor{darkblue}{HTML}{1B3A5C}
+\definecolor{orange}{HTML}{E8873A}
+\definecolor{teal}{HTML}{2E7D6F}
+\definecolor{lightgray}{HTML}{F0F0F0}
+\definecolor{medgray}{HTML}{888888}
+
+% --- Section formatting ---
+\titleformat{\section}{\small\bfseries\color{darkblue}}{}{0pt}{}
+\titlespacing{\section}{0pt}{6pt}{2pt}
+
+% --- No page numbers ---
+\pagestyle{empty}
+
+% --- Hyperlinks ---
+\hypersetup{colorlinks=true, urlcolor=darkblue}
+
+\begin{document}
+
+% === LOGO BAR ===
+\noindent
+\begin{minipage}[c]{0.16\textwidth}
+  \includegraphics[height=0.95cm]{../assets/logos/orebro_logo.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.13\textwidth}
+  \includegraphics[height=0.7cm]{../assets/logos/ratio_logo.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.09\textwidth}
+  \includegraphics[height=0.7cm]{../assets/logos/ai_econ_lab_logo.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.16\textwidth}
+  \includegraphics[height=0.45cm]{../assets/logos/wasphs_logo.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.16\textwidth}
+  \includegraphics[height=0.7cm]{../assets/logos/aiscaf_logo.png}
+\end{minipage}
+
+\vspace{0.15cm}
+\noindent\textcolor{darkblue}{\rule{\textwidth}{1.5pt}}
+
+% === TITLE ===
+\vspace{0.15cm}
+\begin{center}
+  {\large\bfseries\color{darkblue} Same Storm, Different Boats:\\[1pt]
+  Generative AI and the Age Gradient in Hiring}
+\end{center}
+
+\vspace{0.02cm}
+\begin{center}
+  {\footnotesize Magnus Lodefalk\textsuperscript{a,b} \;\textbullet\;
+  Lydia L\"othman\textsuperscript{a} \;\textbullet\;
+  Michael Koch\textsuperscript{c} \;\textbullet\;
+  Erik Engberg\textsuperscript{a,b}}\\[1pt]
+  {\scriptsize\color{medgray}
+  \textsuperscript{a}\"Orebro University \quad
+  \textsuperscript{b}RATIO Institute \quad
+  \textsuperscript{c}Aarhus University / Kiel Institut}
+\end{center}
+
+\vspace{0.08cm}
+\noindent\textcolor{darkblue}{\rule{\textwidth}{0.4pt}}
+
+% === KEY FINDING BOX ===
+\vspace{0.12cm}
+\noindent
+\colorbox{lightgray}{%
+  \parbox{\dimexpr\textwidth-2\fboxsep}{%
+    \vspace{3pt}
+    \centering\small
+    {\bfseries\color{darkblue} Key finding:}
+    In the two years after ChatGPT's launch, employment of \textbf{\textcolor{orange}{22--25 year olds}}
+    in AI-exposed occupations fell by \textbf{\textcolor{orange}{6.5\%}} relative to less exposed
+    occupations, while employment of \textbf{\textcolor{teal}{workers over~50}} \textbf{\textcolor{teal}{rose by~1.5\%}}.
+    \vspace{3pt}
+  }%
+}
+
+% === FIGURE ===
+\vspace{0.12cm}
+\begin{center}
+  \includegraphics[width=0.78\textwidth]{../figures/onepager_age_gradient.pdf}
+\end{center}
+
+% === TWO COLUMNS: FINDINGS + POLICY ===
+\vspace{-0.3cm}
+\begin{multicols}{2}
+
+\section{What we found}
+\begin{itemize}[leftmargin=*, itemsep=1pt, parsep=0pt, topsep=0pt]
+  \item The widely noted decline in job postings is more consistent with
+        \textbf{monetary tightening} (the 2023 Riksbank rate hike) than
+        with AI-driven demand suppression.
+  \item Beneath this aggregate trend, AI is reshaping
+        \textbf{who gets hired}. Within the same firms, young workers
+        in AI-exposed occupations are disproportionately losing
+        employment, a shift invisible in aggregate statistics.
+  \item The age gradient is \textbf{monotonic}: the younger the worker,
+        the larger the negative effect. An event study with flat pre-trends
+        shows the gap \textbf{widening through mid-2025}, though hiring has
+        not yet been distinguished from separations. Using Swedish
+        \textbf{full-population} register data, the result mirrors US
+        findings (Brynjolfsson et al., 2025), complements a Danish
+        intensive-margin null (Humlum \& Vestergaard, 2024), and
+        contrasts with a Finnish null (Kauhanen, 2025).
+\end{itemize}
+
+\section{Policy implications}
+\begin{itemize}[leftmargin=*, itemsep=1pt, parsep=0pt, topsep=0pt]
+  \item \textbf{AI operates on employment composition}, not only aggregate
+        demand. Targeted interventions are needed alongside broader
+        economic policy.
+  \item Candidate responses include \textbf{entry-level transition
+        pathways}: vocational education (YH) and apprenticeships
+        integrating AI tools, though their effectiveness for this
+        specific challenge remains to be tested.
+  \item \textbf{The silver lining}: evidence shows young workers recover
+        faster from displacement than older workers (Athey et al., 2024),
+        making early intervention particularly promising.
+  \item Monitoring the \textbf{composition} of employment, not just
+        the volume, is essential for timely policy response.
+\end{itemize}
+
+\end{multicols}
+
+% === FOOTER ===
+\vspace{-0.05cm}
+\noindent\textcolor{darkblue}{\rule{\textwidth}{0.4pt}}
+\vspace{0.08cm}
+
+\noindent
+{\scriptsize\color{medgray}
+\textbf{Data \& method:} Swedish administrative register data (AGI) covering the full
+working-age population, monthly, 2019--June 2025. Outcome: employment positions
+(employer--employee matches) by age group and occupation.
+AI exposure measured using the DAIOE index
+(Engberg et al., 2024). Difference-in-differences with employer$\times$quartile
+and employer$\times$month fixed effects, following Brynjolfsson et al.\ (2025).
+SEs clustered by employer.
+DAIOE is constructed from pre-2022 task content, fixed across the sample period.
+No correlation between occupational interest-rate sensitivity and AI exposure (r~$\approx$~0).
+\hfill \textbf{March 2026}}
+
+\vspace{0.08cm}
+\noindent
+{\scriptsize\color{medgray}
+\textit{Preliminary results. Working paper forthcoming.
+Part of AISCAF (WASP-HS) and the AI-Econ Lab at \"Orebro University.}}
+
+\noindent
+{\scriptsize\color{medgray}
+\textbf{Contact:}
+Lydia L\"othman, \href{mailto:lydia.lothman@oru.se}{lydia.lothman@oru.se}, 070-9584726
+\;\textbullet\;
+Magnus Lodefalk, \href{mailto:magnus.lodefalk@oru.se}{magnus.lodefalk@oru.se}, 0722-217340}
+
+\end{document}
