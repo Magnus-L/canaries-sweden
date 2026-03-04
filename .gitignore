@@ -35,6 +35,8 @@ venv/
 *.fdb_latexmk
 *.synctex.gz
 *.pdf
+!figures/*.pdf
+!onepager/*.pdf
 
 # Internal working files (not for public repo)
 SESSION_PICKUP.md
