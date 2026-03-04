@@ -85,6 +85,16 @@ Table~\ref{tab:did} reports the main difference-in-differences estimates discuss
 
 \input{../tables/did_regression.tex}
 
+\subsection{Alternative AI exposure measure: Eloundou et al.\ (2024)}
+
+To test sensitivity to the choice of AI exposure measure, we re-estimate specifications~(2)--(4) using the GPT exposure score ($\beta$-measure) from \citet{eloundou2024gpts} instead of DAIOE. The $\beta$-measure combines human expert and GPT-4 ratings of task-level exposure to large language models ($E_1 + 0.5 \times E_2$, where $E_1$ is direct exposure and $E_2$ is exposure via complementary tools). We crosswalk from O*NET-SOC to SSYK~2012 via ISCO-08 using the BLS and SCB classification bridges, averaging scores across many-to-many links. The crosswalk matches 341 of 369 occupations in our panel (92\%).
+
+Table~\ref{tab:eloundou_robust} reports the results. The two measures agree on the direction: both yield negative Post-ChatGPT coefficients in the baseline specification. However, the timing attribution differs. DAIOE loads the effect onto the Riksbank period ($\hat\beta_1 = -0.127$, $p < 0.01$), while the Eloundou measure loads it onto the ChatGPT period ($\hat\beta_2 = -0.096$, $p = 0.025$). This likely reflects what each measure captures: DAIOE covers a broader range of AI capabilities including pre-GPT applications, while the Eloundou $\beta$-measure is calibrated specifically to GPT-style generative AI. Both coefficients attenuate toward zero with occupation-specific trends or group~$\times$~month fixed effects, consistent with the fragility documented in the main analysis. Quartile assignments agree for 85\% of occupations.
+
+\input{../tables/eloundou_robustness.tex}
+
+\subsection{Alternative specifications}
+
 Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE; (viii)~adding quadratic occupation-specific time trends. The ChatGPT coefficient $\hat\beta_2$ is insignificant in six of eight specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in seven of eight specifications.
 
 \input{../tables/robustness_results.tex}
@@ -183,6 +193,10 @@ Figure~\ref{fig:telework} reveals heterogeneity. In teleworkable occupations (18
 
 We therefore turn to monthly employer declaration (AGI) register data from SCB's secure research environment (MONA), which provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. These data reveal a canaries effect: young workers (16--24) in the most AI-exposed occupations experienced steeper employment declines after late 2022, broadly consistent with \citet{brynjolfsson2025canaries}. Swedish college graduation age is high by international standards (median 27--28), so the 16--24 bracket captures pre-graduation and very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
 
+\paragraph{Military conscription.} Sweden reactivated military conscription (\emph{värnplikt}) in 2017, with annual intake expanding from approximately 5,000 in 2019 to 7,000 in 2024 and a target of 8,000 by 2025 \citep[see][]{pliktverket2025}. Roughly three-quarters of conscripts are male, and service lasts approximately 11~months at ages 18--19. Since military occupations carry no DAIOE score, expanding conscription mechanically reduces the civilian labour force participation of young men in our data, potentially confounding the canaries effect. Two observations mitigate this concern. First, the conscription expansion is gradual and affects both high- and low-AI-exposure occupations equally, since conscripts are drawn from across the occupational distribution. Second, our preferred specification following \citet{brynjolfsson2025canaries} restricts the young-worker sample to ages 22--25, above the conscription age, effectively eliminating this channel.
+
+\paragraph{Occupation match rates.} Matching individuals to SSYK~4-digit occupations in the AGI register yields non-match rates of 11~per cent for ages 22--25 and 7~per cent for ages 26 and above. The higher non-match rate among younger workers likely reflects short-term contracts and recent hires for which employer declarations have not yet been updated with occupation codes. Unmatched individuals are excluded from the analysis. This attrition is unlikely to bias results provided the non-match rate does not change differentially across high- and low-AI-exposure occupations after the treatment date; we find no evidence of such differential attrition in the data.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA7_canaries_employment.png}
@@ -280,6 +294,22 @@ Figure~\ref{fig:halfyear_es} aggregates the event study to half-year periods, wi
 \includegraphics[width=\textwidth]{figA11_halfyear_event_study.png}
 \caption{Half-year event study: coefficients on High $\times$ half-year period interactions (reference: 2022H1). Occupation and month fixed effects; standard errors clustered by occupation. Shaded area: 95\% confidence interval. The gradual negative drift after 2022 is consistent with broad-based macro effects rather than a discrete AI shock.}
 \label{fig:halfyear_es}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Stock market composition: Sweden vs the US}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The ``scary chart'' narrative implicitly assumes that stock market gains reflect AI-driven revaluation. This is plausible for the US, where AI-adjacent firms (the ``Magnificent~7'': Alphabet, Amazon, Apple, Meta, Microsoft, Nvidia, Tesla) accounted for the majority of S\&P~500 gains in 2023--2025. The Swedish OMXS30, however, is dominated by industrials (Atlas~Copco, Volvo, Sandvik), banks (SEB, Handelsbanken, Swedbank), and telecommunications (Ericsson), with limited direct AI exposure.
+
+Figure~\ref{fig:stock_comparison} indexes the OMXS30, S\&P~500, and Nasdaq Composite to February 2020~=~100. By early 2026, the Nasdaq---the most AI-weighted major index---reached approximately 243, the S\&P~500 approximately 210, and the OMXS30 approximately 171. The 72-point gap between Nasdaq and OMXS30 opened primarily after the ChatGPT launch, consistent with the Nasdaq reflecting AI expectations while the OMXS30 reflects export earnings (amplified by a weak krona) and banking margins. The Swedish stock-posting divergence is therefore better characterised as a coincidence of distinct macroeconomic forces---monetary tightening depressing postings, global equity sentiment and krona weakness lifting share prices---rather than AI simultaneously boosting equity values and destroying jobs.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA12_stock_market_comparison.png}
+\caption{Stock market indices, 2020--2026: OMXS30 (Sweden), S\&P~500 (US, broad), and Nasdaq Composite (US, tech-heavy). Monthly averages, indexed to February 2020 = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). The gap between Nasdaq and OMXS30 widens after ChatGPT, consistent with US AI-driven equity revaluation absent in the Swedish index.}
+\label{fig:stock_comparison}
 \end{figure}
 
 
