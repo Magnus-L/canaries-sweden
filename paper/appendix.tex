@@ -17,7 +17,7 @@
 
 \begin{frontmatter}
 \title{Online Appendix: Same Storm, Different Boats: AI, Macroeconomic Tightening, and Hiring Composition}
-\author{Lodefalk, Engberg, Koch, and L\"{o}thman}
+\author{Lodefalk, L\"{o}thman, Koch, and Engberg}
 \end{frontmatter}
 
 \setcounter{section}{0}
@@ -194,7 +194,7 @@ Figure~\ref{fig:telework} reveals heterogeneity. In teleworkable occupations (18
 We therefore turn to monthly employer declaration (AGI) register data from SCB's secure research environment (MONA), which provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. These data reveal a canaries effect: young workers (16--24) in the most AI-exposed occupations experienced steeper employment declines after late 2022, broadly consistent with \citet{brynjolfsson2025canaries}. Swedish college graduation age is high by international standards (median 27--28), so the 16--24 bracket captures pre-graduation and very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
 
 \paragraph{Reconciliation with the Finnish null.}
-\citet{kauhanen2025canaries} use comparable population-level register data from Finland (the Incomes Register) and find no statistically significant effect of generative AI on employment or wages. Their synthetic difference-in-differences design compares the most exposed occupations (top~10\% on the C-AIOE index of Pizzinelli et al.~2023) to the least exposed (bottom~10\%) at the occupation level. This aggregation averages over all employers within each occupation, and may therefore not capture within-employer composition shifts of the kind our employer-level specification (Section~\ref{sec:employer_did}) is designed to identify. Our employer~$\times$~quartile and employer~$\times$~month fixed effects absorb all time-varying employer-level shocks, isolating within-firm recomposition across AI exposure quartiles. The two designs are complementary: the Finnish occupation-level null and our employer-level age gradient are not necessarily inconsistent, since aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland exhibits similar within-employer patterns remains an open empirical question.
+\citet{kauhanen2025canaries} use comparable population-level register data from Finland (the Incomes Register) and find no statistically significant effect of generative AI on employment or wages. Their synthetic difference-in-differences design compares the most exposed occupations (top~10\% on the C-AIOE index of Pizzinelli et al.~2023) to the least exposed (bottom~10\%) at the occupation level. This aggregation averages over all employers within each occupation, and may therefore not capture within-employer composition shifts of the kind our employer-level specification identifies. Our employer~$\times$~quartile and employer~$\times$~month fixed effects absorb all time-varying employer-level shocks, isolating within-firm recomposition across AI exposure quartiles. Similarly, \citet{humlum2025llm} find precise null effects on earnings and hours in Denmark using worker- and workplace-level data---an intensive-margin result that is not inconsistent with our extensive-margin finding on the composition of who gets hired. The two designs are complementary: aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland and Denmark exhibit similar within-employer age gradients remains an open empirical question.
 
 \paragraph{Military conscription.} Sweden reactivated military conscription (\emph{värnplikt}) in 2017, with annual intake expanding from approximately 5,000 in 2019 to 7,000 in 2024 and a target of 8,000 by 2025 \citep[see][]{pliktverket2025}. Roughly three-quarters of conscripts are male, and service lasts approximately 11~months at ages 18--19. Since military occupations carry no DAIOE score, expanding conscription mechanically reduces the civilian labour force participation of young men in our data, potentially confounding the canaries effect. Two observations mitigate this concern. First, the conscription expansion is gradual and affects both high- and low-AI-exposure occupations equally, since conscripts are drawn from across the occupational distribution. Second, our preferred specification following \citet{brynjolfsson2025canaries} restricts the young-worker sample to ages 22--25, above the conscription age, effectively eliminating this channel.
 
@@ -269,7 +269,54 @@ We use the same monthly AGI register data as the descriptive analysis, retaining
 \paragraph{Estimation.}
 The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible.
 
-[Results to be added upon completion of the MONA analysis.]
+\paragraph{Results.}
+Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The ChatGPT coefficient $\hat\gamma_2$ displays a clear age gradient: strongly negative for the youngest workers ($-0.067$ for ages 22--25, $p < 0.01$; $-0.021$ for ages 26--30, $p < 0.01$), close to zero for prime-age workers (ages 35--49), and positive for workers over 50 ($+0.015$, $p < 0.01$). The Riksbank coefficient $\hat\gamma_1$ is small and insignificant for the youngest group ($-0.008$, $p = 0.25$), indicating that the employment decline in high-AI-exposure occupations among young workers is not driven by differential monetary policy sensitivity.
+
+\begin{table}[htbp]
+\centering
+\caption{Employer-level difference-in-differences: employment effect of AI exposure by age group. Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors clustered by employer$\times$quartile.}
+\label{tab:employer_did}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
+\midrule
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.008$ & $0.006$ & $0.013$*** & $0.006$ & $0.008$*** & $0.008$*** \\
+ & $(0.007)$ & $(0.004)$ & $(0.004)$ & $(0.004)$ & $(0.002)$ & $(0.002)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.067$*** & $-0.021$*** & $0.011$** & $0.004$ & $0.005$ & $0.015$*** \\
+ & $(0.007)$ & $(0.005)$ & $(0.005)$ & $(0.004)$ & $(0.003)$ & $(0.002)$ \\[4pt]
+$N$ & 4,139,954 & 6,126,659 & 5,891,506 & 7,130,307 & 9,003,022 & 11,761,811 \\
+\midrule
+Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
+Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
+\bottomrule
+\multicolumn{7}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. Standard errors in parentheses.}
+\end{tabular}
+\end{table}
+
+\paragraph{Event study.}
+Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for selected age groups, with 2022H1 as the reference period. For ages 22--25 (Figure~\ref{fig:es_young}), the pre-treatment coefficients are statistically indistinguishable from zero from 2019H1 through 2021H2, supporting the parallel trends assumption. The post-treatment path shows a notable pattern: coefficients remain near zero through 2023H2 before dropping sharply to $-0.066$ in 2024H1 and accelerating to $-0.132$ in 2025H1. The approximately 14-month delay between the ChatGPT launch (November 2022) and the onset of the employment divergence (early 2024) is consistent with the diffusion timeline of enterprise AI tools: GPT-4 launched in March 2023, ChatGPT Enterprise in August 2023, and Microsoft~365 Copilot became generally available in November 2023. For ages 26--30, a similar but attenuated pattern emerges, with significant declines appearing from 2024H1. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_young.png}
+\caption{Half-year event study: ages 22--25. Coefficients on HighQ4 $\times$ half-year period interactions (reference: 2022H1). Employer$\times$quartile and employer$\times$month fixed effects. Shaded area: 95\% confidence interval. Pre-trends are flat; the divergence begins in 2024H1, approximately 14 months after ChatGPT.}
+\label{fig:es_young}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_26to30.png}
+\caption{Half-year event study: ages 26--30. Same specification as Figure~\ref{fig:es_young}. A similar but attenuated post-treatment decline emerges from 2024H1.}
+\label{fig:es_26to30}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_41to49.png}
+\caption{Half-year event study: ages 41--49. Same specification as Figure~\ref{fig:es_young}. Coefficients are close to zero throughout, confirming no AI-related employment effect for this age group.}
+\label{fig:es_41to49}
+\end{figure}
 
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -357,10 +404,6 @@ Manually compiled from Riksbank press releases. Key dates verified against \url{
 The employment analysis uses monthly employer declaration (AGI, \emph{arbetsgivardeklaration}) register data from Statistics Sweden (SCB). These data are drawn from the ORU-MICRO-AI employer--employee database of \"Orebro University, which links several administrative registers. The variables used in this paper are: encrypted person identifier, SSYK~2012 four-digit occupation code (from the 2023 register year), age, gender, employer identifier, and monthly employment status. The data cover the population of employed individuals in Sweden, with monthly frequency from 2019 onward.
 
 The administrative micro-level data are from several registers of Statistics Sweden and are contained in the ORU-MICRO-AI database, obtained after approval from the Swedish Ethical Review Authority (approvals 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02). Researchers and their assistants may access these and similar Swedish micro-level data, subject to approval by SCB. Access is provided through the secure internet-based Micro-data Online Access (MONA) system; microdata never leave SCB's servers. Foreign-based researchers may visit a Swedish institution with access or cooperate with researchers in Sweden. Information on the application process is available at \url{https://www.scb.se/en/services/ordering-data-and-statistics/ordering-microdata/} or by contacting SCB at \texttt{mona@scb.se}. Researchers wishing to access our specific data for replication purposes should contact the corresponding author for guidance regarding project approval from the Swedish Ethical Review Authority and SCB.
-
-\subsection{Danish administrative employment data (DST)}
-
-The supplementary Danish analysis uses monthly employment register data from Statistics Denmark (Danmarks Statistik, DST). Variables used are: encrypted person identifier, DISCO~4-digit occupation code (the Danish adaptation of ISCO-08, closely aligned with SSYK~2012 at the 4-digit level), birth year, and monthly employment status. Researchers may apply for access to Danish register data by submitting a research proposal to Statistics Denmark. The application must include a detailed project description and documentation of institutional affiliation. Access is subject to Danish data protection regulations, including the EU General Data Protection Regulation (GDPR). Information on the application process is available at \url{https://www.dst.dk/en/TilSalg/Forskningsservice}. Researchers wishing to access the specific data used for replication purposes should contact the corresponding author.
 
 All replication code for both public and restricted data is available at \url{https://github.com/Magnus-L/canaries-sweden}. The authors commit to preserving data access and providing reasonable assistance to replication requests for at least five years following publication.
 
