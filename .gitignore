@@ -43,6 +43,8 @@ SESSION_PICKUP.md
 SESSION_SUMMARY.md
 PICKUP_PROMPT.md
 correspondence/
+notes/
+input/
 replication_stata.log
 
 # Data packages (shared separately with collaborators)
@@ -50,6 +52,12 @@ mona_package/
 mona_package.zip
 dst_package/
 dst_package.zip
+
+# MONA output (aggregated results from restricted register data)
+data/mona/
+
+# Old script archives
+src/Arkiv.zip
 
 # Sensitive
 .env
