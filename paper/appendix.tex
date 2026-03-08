@@ -8,7 +8,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{hyperref}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{natbib}
 
 \graphicspath{{../figures/}}
@@ -26,56 +26,7 @@
 \renewcommand{\thefigure}{A\arabic{figure}}
 
 
-% ══════════════════════════════════════════════════════════════════════════════
-% TABLE OF CONTENTS
-% ══════════════════════════════════════════════════════════════════════════════
-
-\noindent\textbf{\large Contents}
-\medskip
-
-\noindent\textit{Part~I: Data and measurement}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item[A1.] DAIOE exposure distribution
-  \item[A2.] Top and bottom occupations
-\end{itemize}
-
-\noindent\textit{Part~II: The ``scary chart'' in context}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item[A3.] Sweden vs United States comparison
-  \item[A4.] Stock market composition: Sweden vs the US
-  \item[A5.] Alternative stock market index (OMXSPI)
-\end{itemize}
-
-\noindent\textit{Part~III: Posting analysis}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item[A6.] Individual quartile trends
-  \item[A7.] Posting gap: top vs bottom quartile
-  \item[A8.] Posting DiD and alternative specifications
-  \item[A9.] Alternative AI exposure measure (Eloundou et al.)
-  \item[A10.] Event study (monthly)
-  \item[A11.] Event study (quarterly)
-  \item[A12.] Half-year posting event study
-  \item[A13.] Interest rate sensitivity and AI exposure
-  \item[A14.] Teleworkability robustness (Dingel-Neiman)
-  \item[A15.] Sensitivity to violations of parallel trends
-  \item[A16.] Quadratic occupation-specific trends
-  \item[A17.] Riksbank policy rate timeline
-\end{itemize}
-
-\noindent\textit{Part~IV: Employment analysis}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item[A18.] Employment by age group and AI exposure
-  \item[A19.] Employer-level difference-in-differences
-  \item[A20.] Spotlight occupations: monthly employment by age (MONA)
-\end{itemize}
-
-\noindent\textit{Part~V: Data documentation}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item[A21.] Data sources and access
-\end{itemize}
-
-\bigskip
-\hrule
+\tableofcontents
 \bigskip
 
 
@@ -83,6 +34,7 @@
 %   PART I: DATA AND MEASUREMENT
 % ══════════════════════════════════════════════════════════════════════════════
 
+\addcontentsline{toc}{part}{I\quad Data and measurement}
 \noindent\textbf{\large Part~I: Data and measurement}
 \medskip
 
@@ -107,6 +59,7 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\addcontentsline{toc}{part}{II\quad The ``scary chart'' in context}
 \noindent\textbf{\large Part~II: The ``scary chart'' in context}
 \medskip
 
@@ -159,6 +112,7 @@ Figure~\ref{fig:omxspi} replicates the ``scary chart'' using the OMXSPI (OMX Sto
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\addcontentsline{toc}{part}{III\quad Posting analysis}
 \noindent\textbf{\large Part~III: Posting analysis}
 \medskip
 
@@ -328,6 +282,7 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\addcontentsline{toc}{part}{IV\quad Employment analysis}
 \noindent\textbf{\large Part~IV: Employment analysis}
 \medskip
 
@@ -488,6 +443,7 @@ Two acceleration points in the young-high-AI trajectory roughly coincide with th
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\addcontentsline{toc}{part}{V\quad Data documentation}
 \noindent\textbf{\large Part~V: Data documentation}
 \medskip
 
