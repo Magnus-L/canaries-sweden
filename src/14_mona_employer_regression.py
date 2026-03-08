@@ -481,6 +481,27 @@ def _estimate_did_occupation_level(sub, age_label):
 
 
 # ======================================================================
+#   PRE-TREND JOINT TEST (used by Step 3)
+# ======================================================================
+
+def pretrend_joint_test(res, event_periods, ref_period):
+    """Joint chi2 test: H0: all pre-treatment ES coefficients = 0."""
+    from scipy import stats as sp_stats
+    pre_cols = [f"hy_{p}" for p in event_periods if p < ref_period]
+    if not pre_cols:
+        return None
+    beta = res.params[pre_cols].values
+    try:
+        V = res.cov.loc[pre_cols, pre_cols].values        # linearmodels
+    except AttributeError:
+        V = res.cov_params().loc[pre_cols, pre_cols].values  # statsmodels
+    k = len(pre_cols)
+    wald = float(beta @ np.linalg.solve(V, beta))
+    p_val = 1 - sp_stats.chi2.cdf(wald, k)
+    return {"chi2": round(wald, 3), "df": k, "p": round(p_val, 4)}
+
+
+# ======================================================================
 #   STEP 3: HALF-YEAR EVENT STUDY
 # ======================================================================
 
@@ -514,6 +535,7 @@ def run_halfyear_event_study(agg):
     event_periods = [p for p in all_periods if p != REF_HALFYEAR]
 
     all_es_results = []
+    pretrend_tests = []
 
     for age_label in AGE_GROUPS:
         print(f"\n--- Event study: {age_label} ---")
@@ -562,6 +584,12 @@ def run_halfyear_event_study(agg):
                     "pval": res.pvalues[col],
                 })
 
+            # Pre-trend joint test
+            pt = pretrend_joint_test(res, event_periods, REF_HALFYEAR)
+            if pt:
+                print(f"  Pre-trend test: chi2({pt['df']}) = {pt['chi2']:.2f}, p = {pt['p']:.4f}")
+                pretrend_tests.append({"age_group": age_label, **pt})
+
         except (ImportError, Exception) as e:
             print(f"  linearmodels failed ({e}), using statsmodels")
             import statsmodels.api as sm
@@ -585,6 +613,12 @@ def run_halfyear_event_study(agg):
                     "pval": res.pvalues[col],
                 })
 
+            # Pre-trend joint test (statsmodels fallback)
+            pt = pretrend_joint_test(res, event_periods, REF_HALFYEAR)
+            if pt:
+                print(f"  Pre-trend test: chi2({pt['df']}) = {pt['chi2']:.2f}, p = {pt['p']:.4f}")
+                pretrend_tests.append({"age_group": age_label, **pt})
+
         # Add reference period
         all_es_results.append({
             "age_group": age_label,
@@ -593,6 +627,13 @@ def run_halfyear_event_study(agg):
             "se": 0.0,
             "pval": 1.0,
         })
+
+    if pretrend_tests:
+        pt_df = pd.DataFrame(pretrend_tests)
+        pt_out = OUTPUT_DIR / "pretrend_ftest.csv"
+        pt_df.to_csv(pt_out, index=False)
+        print(f"\n  Pre-trend F-tests -> {pt_out.name}")
+        print(pt_df.to_string(index=False))
 
     if all_es_results:
         es_df = pd.DataFrame(all_es_results)
@@ -734,6 +775,7 @@ def main():
     print("  4. canaries_es_25to30.png      -- event study figure (25-30)")
     print("  5. canaries_es_41to49.png      -- event study figure (41-49)")
     print("  6. canaries_summary.txt        -- sample sizes and diagnostics")
+    print("  7. pretrend_ftest.csv          -- joint pre-trend tests by age group")
     print("=" * 70)
 
 
