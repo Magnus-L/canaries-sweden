@@ -30,6 +30,7 @@
 \tableofcontents
 \bigskip
 
+\noindent This appendix provides supplementary analysis for the main paper. Part~I documents the AI exposure measure and its occupational distribution. Part~II presents robustness checks for the posting analysis, including macro contextualisation of the ``scary chart.'' Part~III reports the employer-level employment analysis. Part~IV documents data sources, coverage, and access procedures.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %   PART I: DATA AND MEASUREMENT
@@ -59,13 +60,13 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 
 
 % ══════════════════════════════════════════════════════════════════════════════
-%   PART II: THE "SCARY CHART" IN CONTEXT
+%   PART II: POSTING AND MACRO ANALYSIS
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
 \phantomsection
-\addcontentsline{toc}{part}{II\quad The ``scary chart'' in context}
-\noindent\textbf{\large Part~II: The ``scary chart'' in context}
+\addcontentsline{toc}{part}{II\quad Posting and macro analysis}
+\noindent\textbf{\large Part~II: Posting and macro analysis}
 \medskip
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -111,16 +112,6 @@ Figure~\ref{fig:omxspi} replicates the ``scary chart'' using the OMXSPI (OMX Sto
 \label{fig:omxspi}
 \end{figure}
 
-
-% ══════════════════════════════════════════════════════════════════════════════
-%   PART III: POSTING ANALYSIS
-% ══════════════════════════════════════════════════════════════════════════════
-
-\bigskip
-\phantomsection
-\addcontentsline{toc}{part}{III\quad Posting analysis}
-\noindent\textbf{\large Part~III: Posting analysis}
-\medskip
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Individual quartile trends}
@@ -286,13 +277,13 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 
 
 % ══════════════════════════════════════════════════════════════════════════════
-%   PART IV: EMPLOYMENT ANALYSIS
+%   PART III: EMPLOYMENT ANALYSIS
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
 \phantomsection
-\addcontentsline{toc}{part}{IV\quad Employment analysis}
-\noindent\textbf{\large Part~IV: Employment analysis}
+\addcontentsline{toc}{part}{III\quad Employment analysis}
+\noindent\textbf{\large Part~III: Employment analysis}
 \medskip
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -471,18 +462,38 @@ Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds 
 
 
 % ══════════════════════════════════════════════════════════════════════════════
-%   PART V: DATA DOCUMENTATION
+%   PART IV: DATA DOCUMENTATION
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
 \phantomsection
-\addcontentsline{toc}{part}{V\quad Data documentation}
-\noindent\textbf{\large Part~V: Data documentation}
+\addcontentsline{toc}{part}{IV\quad Data documentation}
+\noindent\textbf{\large Part~IV: Data documentation}
 \medskip
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Data sources and access}
 % ──────────────────────────────────────────────────────────────────────────────
+
+Table~\ref{tab:datasources} summarises the data sources used in this paper. Detailed documentation for each source follows.
+
+\begin{table}[htbp]
+\centering
+\caption{Data sources.}
+\label{tab:datasources}
+\footnotesize
+\begin{tabular}{@{}llllp{4.5cm}@{}}
+\toprule
+Source & Period & Frequency & Unit & Key variables \\
+\midrule
+Platsbanken (AF) & 2020--2026 & Monthly & Job ad & SSYK 4-digit, vacancies, municipality, employer \\
+AGI register (SCB/MONA) & 2019--2025 & Monthly & Worker--employer & Employment, SSYK 4-digit, age, gender, employer ID \\
+DAIOE & 2023 & Cross-section & SSYK 4-digit & GenAI exposure percentile rank \\
+OMXS30 & 2020--2026 & Daily $\to$ monthly & Index & Closing price \\
+Riksbank policy rate & 2020--2026 & Event dates & --- & Policy rate level \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Platsbanken}
 Job advertisement data from the Swedish Public Employment Service (Arbetsf\"ormedlingen, AF), published under CC0 licence. Each record contains: ad identifier, publication date, SSYK~2012 four-digit occupation code, number of vacancies, municipality code, employer name, and source type. For 2020--2025 we use the historical bulk archive (\url{https://data.jobtechdev.se/annonser/historiska/}); for January--February 2026 we supplement with the real-time JobStream API (\url{https://jobstream.api.jobtechdev.se}), which provides the same fields for currently published ads. The two sources are deduplicated on ad identifier before aggregation. In recent years, approximately 700,000 ads have been published annually on Platsbanken.
