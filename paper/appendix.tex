@@ -319,7 +319,7 @@ We therefore turn to monthly employer declarations (AGI) to the Swedish tax auth
 The descriptive evidence in Figure~2 of the main paper and the analysis in the preceding section establish that young workers in high-AI-exposure occupations experienced disproportionate employment declines. However, this occupation-level analysis cannot rule out that unobserved employer-level shocks -- for instance, differential retrenchment by large employers concentrated in AI-exposed occupations -- drive the pattern. To tighten identification, we estimate an employer-level difference-in-differences design closely following \citet{brynjolfsson2025canaries}.
 
 \paragraph{Estimating equation.}
-For each age group $a \in \{16\text{--}24,\; 25\text{--}30,\; 31\text{--}40,\; 41\text{--}49,\; 50+\}$, we estimate:
+For each age group $a \in \{22\text{--}25,\; 26\text{--}30,\; 31\text{--}34,\; 35\text{--}40,\; 41\text{--}49,\; 50+\}$, we estimate:
 \begin{equation}\label{eq:employer_did}
 \ln(\text{emp}^{a}_{fqt}) \;=\; \alpha_{fq} \;+\; \beta_{ft} \;+\; \gamma_1 \cdot \text{PostRB}_t \cdot \text{HighQ4}_q \;+\; \gamma_2 \cdot \text{PostGPT}_t \cdot \text{HighQ4}_q \;+\; \varepsilon_{fqt}
 \end{equation}
@@ -329,7 +329,7 @@ where $f$ indexes employers, $q \in \{1,2,3,4\}$ indexes DAIOE genAI exposure qu
 The employer $\times$ month fixed effects $\beta_{ft}$ are the key identification device. They absorb \emph{all} time-varying employer-level shocks -- including firm-specific responses to monetary tightening, demand shocks, management changes, or strategic decisions -- leaving only \emph{within-firm, within-month} variation across AI exposure quartiles. The identifying assumption is that, absent AI, employers would have adjusted employment in high- and low-exposure occupations proportionally. This is substantially weaker than the parallel trends assumption required by the occupation-level analysis, which requires that aggregate shocks affect all occupations equally. Our quartile discretisation converts the continuous DAIOE measure into a binary treatment (Q4 vs Q1--Q3), avoiding the negative-weighting problems that \citet{callaway2024continuous} identify for continuous-dose TWFE designs; for a recent survey, see \citet{roth2023trending}.
 
 \paragraph{Canaries test.}
-The coefficient $\hat\gamma_2$ in Equation~\eqref{eq:employer_did} measures the differential employment change in high-AI-exposure occupations (relative to lower quartiles, within the same employer, in the same month) after ChatGPT. By estimating the equation separately for each age group, we test whether this within-employer recomposition is age-graded. If $\hat\gamma_2$ is significantly negative for the youngest workers (16--24) but not for older groups, this constitutes evidence of a canaries effect: employers differentially reduce young hires in AI-exposed roles after the advent of generative AI.
+The coefficient $\hat\gamma_2$ in Equation~\eqref{eq:employer_did} measures the differential employment change in high-AI-exposure occupations (relative to lower quartiles, within the same employer, in the same month) after ChatGPT. By estimating the equation separately for each age group, we test whether this within-employer recomposition is age-graded. If $\hat\gamma_2$ is significantly negative for the youngest workers (22--25) but not for older groups, this constitutes evidence of a canaries effect: employers differentially reduce young hires in AI-exposed roles after the advent of generative AI.
 
 \paragraph{Event study.}
 To validate the parallel trends assumption and trace the dynamics of any effect, we also estimate an event-study specification:
@@ -394,21 +394,21 @@ Age group & $\chi^2$ & d.f.\ & $p$-value \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA_es_young.png}
-\caption{Half-year event study: ages 22--25. Coefficients on HighQ4 $\times$ half-year period interactions (reference: 2022H1). Employer$\times$quartile and employer$\times$month fixed effects. Shaded area: 95\% confidence interval. Pre-trends are flat; the divergence begins in 2024H1, approximately 14 months after ChatGPT.}
+\caption{Half-year event study: ages 22--25. Coefficients on HighQ4 $\times$ half-year period interactions (reference: 2022H1). Employer$\times$quartile and calendar-month fixed effects. Shaded area: 95\% confidence interval. Pre-trends are flat; the divergence begins in 2024H1, approximately 14 months after ChatGPT.}
 \label{fig:es_young}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA_es_26to30.png}
-\caption{Half-year event study: ages 26--30. Same specification as Figure~\ref{fig:es_young}. A similar but attenuated post-treatment decline emerges from 2024H1.}
+\caption{Half-year event study: ages 26--30. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and calendar-month FE). A similar but attenuated post-treatment decline emerges from 2024H1.}
 \label{fig:es_26to30}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figA_es_41to49.png}
-\caption{Half-year event study: ages 41--49. Same specification as Figure~\ref{fig:es_young}. Coefficients are close to zero throughout, confirming no AI-related employment effect for this age group.}
+\caption{Half-year event study: ages 41--49. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and calendar-month FE). Coefficients are close to zero throughout, confirming no AI-related employment effect for this age group.}
 \label{fig:es_41to49}
 \end{figure}
 
