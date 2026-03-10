@@ -9,7 +9,7 @@
 ======================================================================
 
 Purpose:
-  Formally test whether young workers (16-24) in high-AI-exposure occupations
+  Formally test whether young workers (22-25) in high-AI-exposure occupations
   experienced disproportionate employment declines after ChatGPT. This upgrades
   the descriptive Figure 2 in the paper to a causally identified result.
 
@@ -26,7 +26,7 @@ Design:
   energy crisis, seasonal hiring, etc.).
 
   Run SEPARATELY for each age group. The "canaries" finding is that
-  g2 is negative and significant for ages 16-24, but not for older groups.
+  g2 is negative and significant for ages 22-25, but not for older groups.
 
 Estimator:
   - Primary: OLS on ln(count+1) with high-dimensional FE via linearmodels
@@ -42,8 +42,8 @@ Input files (on MONA):
 Output files (export from MONA):
   1. canaries_did_results.csv       -- DiD coefficient table by age group
   2. canaries_eventstudy_*.csv      -- half-year event study coefficients
-  3. canaries_es_young.png          -- event study figure for 16-24
-  4. canaries_es_older.png          -- event study figure for 25-30, 41-49
+  3. canaries_es_young.png          -- event study figure for 22-25
+  4. canaries_es_older.png          -- event study figure for 26-30, 41-49
   5. canaries_summary.txt           -- sample sizes and diagnostics
 """
 
@@ -91,10 +91,12 @@ CHATGPT_YM = "2022-12"
 REF_HALFYEAR = "2022H1"
 
 # Age group definitions (run regressions separately for each)
+# Updated to match the 6-group definition used in the paper (Table A3)
 AGE_GROUPS = {
-    "16-24": (16, 24),
-    "25-30": (25, 30),
-    "31-40": (31, 40),
+    "22-25": (22, 25),
+    "26-30": (26, 30),
+    "31-34": (31, 34),
+    "35-40": (35, 40),
     "41-49": (41, 49),
     "50+":   (50, 69),
 }
@@ -656,8 +658,8 @@ def plot_event_studies(es_df):
     print("=" * 70)
 
     for age_label, color, filename in [
-        ("16-24", ORANGE, "canaries_es_young.png"),
-        ("25-30", TEAL, "canaries_es_25to30.png"),
+        ("22-25", ORANGE, "canaries_es_young.png"),
+        ("26-30", TEAL, "canaries_es_25to30.png"),
         ("41-49", DARK_BLUE, "canaries_es_41to49.png"),
     ]:
         sub = es_df[es_df["age_group"] == age_label].sort_values("period")
@@ -771,7 +773,7 @@ def main():
     print(f"  Output directory: {OUTPUT_DIR}")
     print("  1. canaries_did_results.csv    -- DiD coefficients by age group")
     print("  2. canaries_es_all.csv         -- event study coefficients")
-    print("  3. canaries_es_young.png       -- event study figure (16-24)")
+    print("  3. canaries_es_young.png       -- event study figure (22-25)")
     print("  4. canaries_es_25to30.png      -- event study figure (25-30)")
     print("  5. canaries_es_41to49.png      -- event study figure (41-49)")
     print("  6. canaries_summary.txt        -- sample sizes and diagnostics")
