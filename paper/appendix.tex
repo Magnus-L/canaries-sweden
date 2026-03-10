@@ -10,6 +10,8 @@
 \usepackage{booktabs}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{natbib}
+\usepackage{pdflscape}
+\usepackage{longtable}
 
 \graphicspath{{../figures/}}
 
@@ -30,7 +32,7 @@
 \tableofcontents
 \bigskip
 
-\noindent This appendix provides supplementary analysis for the main paper. Part~I documents the AI exposure measure and its occupational distribution. Part~II presents robustness checks for the posting analysis, including macro contextualisation of the ``scary chart.'' Part~III reports the employer-level employment analysis. Part~IV documents data sources, coverage, and access procedures.
+\noindent This appendix provides supplementary analysis for the main paper. Part~I documents the AI exposure measure and its occupational distribution. Part~II presents robustness checks for the posting analysis, including macro contextualisation of the ``scary chart.'' Part~III reports the employer-level employment analysis and compares our approach with the emerging literature. Part~IV documents data sources, coverage, and access procedures.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %   PART I: DATA AND MEASUREMENT
@@ -340,7 +342,7 @@ where $s$ indexes half-year periods and $s_0 = $ 2022H1 is the reference period 
 We use the same monthly AGI register data as the descriptive analysis, retaining employers with at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group, and cells with zero employment are included to capture extensive-margin adjustment.
 
 \paragraph{Estimation.}
-The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible.
+The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; our OLS specification on $\ln(\text{employment} + 1)$ yields similar estimates when cell counts are large, as in our data. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains approximately 3.5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
 
 \paragraph{Results.}
 Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The ChatGPT coefficient $\hat\gamma_2$ displays a clear age gradient: strongly negative for the youngest workers ($-0.067$ for ages 22--25, $p < 0.01$; $-0.021$ for ages 26--30, $p < 0.01$), close to zero for prime-age workers (ages 35--49), and positive for workers over 50 ($+0.015$, $p < 0.01$). The Riksbank coefficient $\hat\gamma_1$ is small and insignificant for the youngest group ($-0.008$, $p = 0.25$), indicating that the employment decline in high-AI-exposure occupations among young workers is not driven by differential monetary policy sensitivity.
@@ -368,7 +370,7 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \end{table}
 
 \paragraph{Event study.}
-Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for selected age groups, with 2022H1 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \sum_{s<s_0} (\hat\delta_s / \hat\sigma_s)^2$, which under the null follows $\chi^2(k)$ where $k$ is the number of pre-treatment periods. This assumes approximate independence across half-year interaction terms, which is reasonable given non-overlapping time windows. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} For ages 22--25 (Figure~\ref{fig:es_young}), the test does not reject ($\chi^2_{\text{XX}} = \text{XX.X}$, $p = \text{X.XX}$), supporting the parallel trends assumption. The post-treatment path shows coefficients near zero through 2023H2 before dropping to $-0.066$ in 2024H1 and accelerating to $-0.132$ in 2025H1 -- consistent with the diffusion timeline of enterprise AI tools. For ages 26--30, the pre-treatment coefficients exhibit an upward trend and the joint test rejects ($\chi^2_{\text{XX}} = \text{XX.X}$, $p = \text{X.XX}$); however, the post-treatment decline to $-0.07$ exceeds a linear extrapolation of the pre-trend. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers.
+Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for selected age groups, with 2022H1 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \sum_{s<s_0} (\hat\delta_s / \hat\sigma_s)^2$, which under the null follows $\chi^2(k)$ where $k$ is the number of pre-treatment periods. This assumes approximate independence across half-year interaction terms, which is reasonable given non-overlapping time windows. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} For ages 22--25 (Figure~\ref{fig:es_young}), the test does not reject ($\chi^2(6) = 6.93$, $p = 0.328$), supporting the parallel trends assumption. The post-treatment path shows coefficients near zero through 2023H2 before dropping to $-0.066$ in 2024H1 and accelerating to $-0.132$ in 2025H1, consistent with the diffusion timeline of enterprise AI tools. For ages 26--30, the pre-treatment coefficients exhibit an upward trend and the joint test rejects ($\chi^2(6) = 161.4$, $p < 0.001$); however, the post-treatment decline to $-0.07$ exceeds a linear extrapolation of the pre-trend. Note that the event study uses a simplified fixed-effects structure (entity and calendar-month effects) rather than the employer$\times$month effects of the main specification; a corrected event study with the full fixed-effects structure is forthcoming. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers.
 
 \begin{table}[htbp]
 \centering
@@ -379,11 +381,12 @@ Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study c
 \toprule
 Age group & $\chi^2$ & d.f.\ & $p$-value \\
 \midrule
-22--25 & --- & --- & --- \\
-26--30 & --- & --- & --- \\
-31--40 & --- & --- & --- \\
-41--49 & --- & --- & --- \\
-50+    & --- & --- & --- \\
+22--25 & 6.93 & 6 & 0.328 \\
+26--30 & 161.38 & 6 & 0.000 \\
+31--34 & 254.25 & 6 & 0.000 \\
+35--40 & 37.70 & 6 & 0.000 \\
+41--49 & 117.64 & 6 & 0.000 \\
+50+    & 267.92 & 6 & 0.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -459,6 +462,44 @@ Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds 
 \caption{Employment change by age group and AI exposure. Percentage change from October 2022, 3-month centred moving average. AGI register data. Young = 22--25; Older = 26+. High AI = top quartile of DAIOE genAI exposure; Low AI = bottom three quartiles.}
 \label{fig:pctchange_comparison}
 \end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Comparison with related studies}
+\label{sec:literature_comparison}
+% ──────────────────────────────────────────────────────────────────────────────
+
+Table~\ref{tab:literature} compares our study with the emerging literature testing whether generative AI exposure affects employment or job postings differentially by worker age or seniority. Studies vary along several dimensions: data source (payroll, register, job postings), geographic coverage, AI exposure measure, identification strategy, and whether age or seniority heterogeneity is tested directly.
+
+Three patterns emerge. First, US studies using job posting or payroll data consistently find negative effects on entry-level or junior workers \citep{brynjolfsson2025canaries,hosseini2025seniority,liu2025labor,kleinteeselink2025}. Second, Nordic register-based studies show mixed results: our Swedish evidence finds a significant age gradient at the employer level, while the Finnish occupation-level analyses report null effects \citep{kauhanen2025canaries,kauhanen2025youth}, and the Danish intensive-margin analysis finds precise nulls on earnings and hours \citep{humlum2025llm}. Third, \citet{iscenko2026ladder} argue the US pattern reflects monetary policy rather than AI, a hypothesis our Riksbank timing test directly addresses: the posting decline aligns with the rate hike, but the within-employer age gradient in employment emerges only after ChatGPT.
+
+Our study is the first to combine both margins (postings and employment) with a natural timing test separating macroeconomic and AI channels, using population-register data with employer-level identification.
+
+\begin{landscape}
+\begin{table}[htbp]
+\centering
+\caption{Comparison of studies testing AI exposure effects on employment or job postings. FE = fixed effects; ES = event study; DiD = difference-in-differences; SDiD = synthetic DiD.}
+\label{tab:literature}
+\scriptsize
+\begin{tabular}{@{}p{3.0cm}lp{2.1cm}p{1.7cm}p{2.3cm}p{1.6cm}p{4.3cm}@{}}
+\toprule
+Study & Country & Data & Method & FE structure & Age tested? & Key result \\
+\midrule
+\citet{brynjolfsson2025canaries} & US & ADP payroll, $\sim$3.5M workers/month & Poisson ES & Firm$\times$quintile, firm$\times$month & Yes & $-$15 log pts, ages 22--25 \\[4pt]
+\citet{hosseini2025seniority} & US & Resumes + postings, 62M workers & Firm DiD & Firm FE & Yes & Junior decline, senior stable \\[4pt]
+\citet{kleinteeselink2025} & UK & Lightcast + LinkedIn & DiD & Firm/occupation & Yes & Junior roles $-$5.8\% \\[4pt]
+\citet{liu2025labor} & US & Lightcast, 285M postings & DiD + ES & Occupation + time & Yes & Entry-level postings $-$19\% by year 3 \\[4pt]
+\citet{storm2025ai} & Germany & IAB admin + vacancies & IV & Individual + occ$\times$year & Indirect (skill) & Experts gain, non-experts lose \\[4pt]
+\citet{iscenko2026ladder} & US & Lightcast + CPS & Descriptive & --- & Yes & Argues null; attributes pattern to monetary policy \\[4pt]
+\citet{massenkoff2026labor} & US & CPS + Claude usage & Descriptive & CPS controls & Suggestive & 22--25 less likely hired into Q4 \\[4pt]
+\citet{kauhanen2025canaries} & Finland & Income register, population & SDiD & Occupation-level & No & Null on employment and wages \\[4pt]
+\citet{kauhanen2025youth} & Finland & Income register, population & SDiD & Occupation-level & Yes & Null on youth employment \\[4pt]
+\citet{humlum2025llm} & Denmark & Admin register + survey & Pre/post & Occupation-level & No & Null on earnings and hours \\[4pt]
+\textbf{This paper} & \textbf{Sweden} & \textbf{AGI register + Platsbanken, population} & \textbf{DiD + ES} & \textbf{Emp$\times$quartile, emp$\times$month} & \textbf{Yes} & \textbf{$-$6.7 log pts, ages 22--25; postings null} \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{landscape}
 
 
 % ══════════════════════════════════════════════════════════════════════════════
