@@ -61,6 +61,58 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 \input{../tables/top_bottom_occupations.tex}
 
 
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Summary statistics}
+% ──────────────────────────────────────────────────────────────────────────────
+
+Table~\ref{tab:sumstats_postings} presents summary statistics for the posting sample by AI exposure quartile. Table~\ref{tab:sumstats_employment} presents corresponding statistics for the employer-level employment sample.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary statistics: posting sample (occupation$\times$month panel, 2019:10--2026:02).}
+\label{tab:sumstats_postings}
+\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & Q1 & Q2 & Q3 & Q4 & All \\
+\midrule
+Occupations (SSYK4) & 103 & 99 & 76 & 91 & 369 \\
+Occupation$\times$month obs & 7,239 & 7,234 & 5,524 & 6,675 & 26,672 \\[4pt]
+Ads per month (mean) & 99.5 & 197.6 & 199.7 & 181.3 & 167.3 \\
+Ads per month (SD) & 213.4 & 566.2 & 525.7 & 367.6 & 438.3 \\
+Ads per month (median) & 22 & 53 & 49 & 63 & 43 \\[4pt]
+Vacancies per month (mean) & 256.6 & 428.7 & 308.3 & 258.9 & 314.6 \\
+Vacancies per month (SD) & 687.3 & 1,230.2 & 812.8 & 714.9 & 899.2 \\[4pt]
+DAIOE genAI pctl (mean) & 12.4 & 37.4 & 61.9 & 88.2 & 48.4 \\
+\bottomrule
+\multicolumn{6}{l}{\scriptsize Q1 = lowest genAI exposure; Q4 = highest. Quartiles based on DAIOE percentile ranking.}
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Summary statistics: employer-level employment sample (employer$\times$quartile$\times$month panel).}
+\label{tab:sumstats_employment}
+\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & Q1 & Q2 & Q3 & Q4 & All \\
+\midrule
+Employers & \multicolumn{5}{c}{\emph{[To be completed from MONA]}} \\
+Emp$\times$quartile$\times$month obs & --- & --- & --- & --- & --- \\[4pt]
+Workers per cell, 22--25 (mean) & --- & --- & --- & --- & --- \\
+Workers per cell, 26--30 (mean) & --- & --- & --- & --- & --- \\
+Workers per cell, 31--34 (mean) & --- & --- & --- & --- & --- \\
+Workers per cell, 35--40 (mean) & --- & --- & --- & --- & --- \\
+Workers per cell, 41--49 (mean) & --- & --- & --- & --- & --- \\
+Workers per cell, 50+ (mean)    & --- & --- & --- & --- & --- \\[4pt]
+Share zero-employment cells (\%) & --- & --- & --- & --- & --- \\
+\bottomrule
+\multicolumn{6}{l}{\scriptsize Q1 = lowest genAI exposure; Q4 = highest. Employers with $\geq$5 workers.}
+\end{tabular}
+\end{table}
+
+
 % ══════════════════════════════════════════════════════════════════════════════
 %   PART II: POSTING AND MACRO ANALYSIS
 % ══════════════════════════════════════════════════════════════════════════════
@@ -155,7 +207,7 @@ Table~\ref{tab:robustness} reports results from alternative specifications: (i)~
 
 \input{../tables/robustness_results.tex}
 
-\paragraph{Software replication.} The posting DiD is estimated in Python (\texttt{statsmodels}) and independently replicated in Stata~18.5 using \texttt{reghdfe}, with coefficients matching to three decimal places across all specifications. Employer-level results are replicated via within-transformation (manual demeaning).
+\paragraph{Software replication.} The posting DiD is estimated in Python (\texttt{statsmodels}) and independently replicated in Stata~18.5 using \texttt{reghdfe}; point estimates match to three decimal places across all specifications. For the employer-level employment DiD, the primary \texttt{PanelOLS} estimates (Approach~A: absorbed fixed effects) are verified against a manual within-transformation (Approach~B: sequential demeaning by employer$\times$quartile and employer$\times$month), with point estimates matching. Standard errors differ slightly between approaches due to different clustering levels (employer$\times$quartile in Approach~A; employer in Approach~B).
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -342,7 +394,7 @@ where $s$ indexes half-year periods and $s_0 = $ 2022H1 is the reference period 
 We use the same monthly AGI register data as the descriptive analysis, retaining employers with at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group, and cells with zero employment are included to capture extensive-margin adjustment.
 
 \paragraph{Estimation.}
-The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; our OLS specification on $\ln(\text{employment} + 1)$ yields similar estimates when cell counts are large, as in our data. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains approximately 3.5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
+The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; our OLS specification on $\ln(\text{employment} + 1)$ yields similar estimates when cell counts are large, as in our data. The $+1$ transformation retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether a firm employs \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains approximately 3.5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
 
 \paragraph{Results.}
 Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The ChatGPT coefficient $\hat\gamma_2$ displays a clear age gradient: strongly negative for the youngest workers ($-0.067$ for ages 22--25, $p < 0.01$; $-0.021$ for ages 26--30, $p < 0.01$), close to zero for prime-age workers (ages 35--49), and positive for workers over 50 ($+0.015$, $p < 0.01$). The Riksbank coefficient $\hat\gamma_1$ is small and insignificant for the youngest group ($-0.008$, $p = 0.25$), indicating that the employment decline in high-AI-exposure occupations among young workers is not driven by differential monetary policy sensitivity.
