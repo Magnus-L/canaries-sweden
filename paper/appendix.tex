@@ -25,8 +25,8 @@
 \renewcommand{\thetable}{A\arabic{table}}
 \renewcommand{\thefigure}{A\arabic{figure}}
 
-% Show only Part headers in the TOC (not individual sections)
-\setcounter{tocdepth}{-1}
+% Show Part headers and sections in the TOC for full navigation
+\setcounter{tocdepth}{1}
 \tableofcontents
 \bigskip
 
@@ -35,10 +35,10 @@
 %   PART I: DATA AND MEASUREMENT
 % ══════════════════════════════════════════════════════════════════════════════
 
-\addcontentsline{toc}{part}{I\quad Data and measurement}
-
 \newpage
 
+\phantomsection
+\addcontentsline{toc}{part}{I\quad Data and measurement}
 \noindent\textbf{\large Part~I: Data and measurement}
 \medskip
 
@@ -63,6 +63,7 @@ Table~\ref{tab:topbottom} lists the ten most and ten least genAI-exposed occupat
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\phantomsection
 \addcontentsline{toc}{part}{II\quad The ``scary chart'' in context}
 \noindent\textbf{\large Part~II: The ``scary chart'' in context}
 \medskip
@@ -116,6 +117,7 @@ Figure~\ref{fig:omxspi} replicates the ``scary chart'' using the OMXSPI (OMX Sto
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\phantomsection
 \addcontentsline{toc}{part}{III\quad Posting analysis}
 \noindent\textbf{\large Part~III: Posting analysis}
 \medskip
@@ -159,6 +161,8 @@ Table~\ref{tab:did} reports the main difference-in-differences estimates discuss
 Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE; (viii)~adding quadratic occupation-specific time trends. The ChatGPT coefficient $\hat\beta_2$ is insignificant in six of eight specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in seven of eight specifications.
 
 \input{../tables/robustness_results.tex}
+
+\paragraph{Software replication.} The posting DiD is estimated in Python (\texttt{statsmodels}) and independently replicated in Stata~18.5 using \texttt{reghdfe}, with coefficients matching to three decimal places across all specifications. Employer-level results are replicated via within-transformation (manual demeaning).
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -286,6 +290,7 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\phantomsection
 \addcontentsline{toc}{part}{IV\quad Employment analysis}
 \noindent\textbf{\large Part~IV: Employment analysis}
 \medskip
@@ -470,6 +475,7 @@ Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds 
 % ══════════════════════════════════════════════════════════════════════════════
 
 \bigskip
+\phantomsection
 \addcontentsline{toc}{part}{V\quad Data documentation}
 \noindent\textbf{\large Part~V: Data documentation}
 \medskip
@@ -505,8 +511,21 @@ Manually compiled from Riksbank press releases. Key dates verified against \url{
 
 \subsection{Administrative employment data (SCB/MONA)}
 
-The employment analysis mainly uses monthly employer declaration (AGI, \emph{arbetsgivardeklaration}) register data from Statistics Sweden (SCB). These data are drawn from the ORU-MICRO-AI employer--employee database of \"Orebro University, which links several administrative registers. The variables from the database that are used in this paper are: encrypted person identifier, SSYK~2012 four-digit occupation code (from the 2023 register year), age, gender, employer identifier, and monthly employment status. The data cover the population of employed individuals in Sweden, with monthly frequency from 2019 onward.
+The employment analysis uses monthly employer declaration (AGI, \emph{arbetsgivardeklaration}) register data from Statistics Sweden (SCB). These data are drawn from the ORU-MICRO-AI employer--employee database of \"Orebro University, which links several administrative registers. The variables from the database that are used in this paper are: encrypted person identifier, SSYK~2012 four-digit occupation code (from the 2023 register year), age, gender, employer identifier, and monthly employment status.
 
+\paragraph{Source and coverage.}
+The AGI register originates from mandatory monthly employer declarations to the Swedish Tax Agency (\emph{Skatteverket}), introduced in January 2019. Every employer making PAYE (\emph{A-skatt}) salary payments must report each individual payment, making the AGI a population-level register of formal employment. Unlike survey-based sources, the AGI has no sampling error and covers the full universe of employer--employee matches, including part-time and temporary workers. Self-employed individuals operating under F-skatt (sole traders, platform workers) do not appear in the AGI; a shift toward such arrangements among young workers would reduce measured employment but would not differentially affect AI-exposed occupations.
+
+\paragraph{Occupation coding.}
+SSYK~2012 four-digit occupation codes are employer-reported and recorded in a separate annual occupation register (Yrkesregistret). We assign each worker the occupation observed in the 2023 register year. Since occupational transitions at the 4-digit level are slow (annual transition rates are approximately 5--8\% for most age groups), this single-year assignment introduces minimal measurement error. A graduate entering a high-AI occupation in 2024 may be coded to their 2023 student job, which would attenuate rather than inflate the measured age gradient.
+
+\paragraph{Stability and comparability.}
+The AGI data source has been stable since its introduction in January 2019, with no changes to the reporting requirements or the SSYK~2012 classification during the study period (2019--2025). This contrasts with the annual employment registers, where SCB replaced the RAMS methodology with BAS from reference year 2022, introducing a methodological break at our treatment timing. Our use of monthly AGI data avoids this break entirely.
+
+\paragraph{Non-match rates.}
+Matching individuals to SSYK~4-digit occupations yields non-match rates of 11~per cent for ages 22--25 and 7~per cent for ages 26 and above. The higher non-match rate among younger workers likely reflects short-term contracts and recent hires for which employer declarations have not yet been updated with occupation codes. Unmatched individuals are excluded from the analysis. We find no evidence that the non-match rate changes differentially across high- and low-AI-exposure occupations after the treatment date (see Section~\ref{sec:employer_did}).
+
+\paragraph{Access.}
 The administrative micro-level data in the ORU-MICRO-AI database are from several registers of Statistics Sweden, and were obtained after approval from the Swedish Ethical Review Authority (approvals 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02). Researchers and their assistants may access these and similar Swedish micro-level data, subject to approval by SCB. Access is provided through the secure internet-based Micro-data Online Access (MONA) system; microdata never leave SCB's servers. Foreign-based researchers may visit a Swedish institution with access or cooperate with researchers in Sweden. Information on the application process is available at \url{https://www.scb.se/en/services/ordering-data-and-statistics/ordering-microdata/} or by contacting SCB at \texttt{mona@scb.se}. Researchers wishing to access our specific data for replication purposes should contact the corresponding author for guidance regarding project approval from the Swedish Ethical Review Authority and SCB.
 
 All replication code for both public and restricted data is available at \url{https://github.com/Magnus-L/canaries-sweden}. The authors commit to preserving data access and providing reasonable assistance to replication requests for at least five years following publication.
