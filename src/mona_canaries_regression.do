@@ -1,7 +1,7 @@
 /*==============================================================================
   CANARIES REGRESSION — Brynjolfsson-style Employment DiD
 
-  Paper:  "Two Economies? Stock Markets, Job Postings, and AI Exposure"
+  Paper:  "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring"
   Author: Lydia Löthman (to run on MONA)
   Date:   February 2026
 
