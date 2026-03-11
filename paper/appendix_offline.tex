@@ -129,6 +129,36 @@ The divergence between young workers in high- and low-AI-exposure occupations vi
 Two acceleration points in the young-high-AI trajectory roughly coincide with these waves. The initial divergence from the young-low-AI group emerges in early-to-mid 2023, following GPT-4 and early enterprise experimentation. A steeper decline begins in late 2024, coinciding with the deployment of agentic and reasoning models that automate more complex task sequences. These timing correspondences are suggestive, not causal: adoption lags between model release and workplace impact are uncertain, and macroeconomic conditions also shifted in these periods. Nevertheless, the staged pattern is more consistent with cumulative technological displacement than with a single discrete shock.
 
 
+% ══════════════════════════════════════════════════════════════════════════════
+%   OA7: Additional corrected event study figures (ages 31-34, 35-40, 50+)
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Additional corrected event study figures}
+
+The Online Appendix presents corrected event studies (with employer$\times$quartile and employer$\times$month fixed effects) for the three most informative age groups: 22--25, 26--30, and 41--49. The remaining age groups are shown below for completeness. All three exhibit significant pre-trends, limiting their interpretability as standalone tests of parallel trends, but the post-treatment patterns are consistent with the main DiD estimates.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_31to34_corrected.png}
+\caption{Half-year event study: ages 31--34. Employer$\times$quartile and employer$\times$month fixed effects (reference: 2022H1). Significant pre-trends ($\chi^2(6) = 120.4$, $p < 0.001$). Post-treatment coefficients close to zero, consistent with the small DiD estimate for this age group.}
+\label{fig:es_31to34}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_35to40_corrected.png}
+\caption{Half-year event study: ages 35--40. Employer$\times$quartile and employer$\times$month fixed effects (reference: 2022H1). Significant pre-trends ($\chi^2(6) = 59.9$, $p < 0.001$). Post-treatment coefficients close to zero.}
+\label{fig:es_35to40}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_es_50plus_corrected.png}
+\caption{Half-year event study: ages 50+. Employer$\times$quartile and employer$\times$month fixed effects (reference: 2022H1). Significant pre-trends ($\chi^2(6) = 195.7$, $p < 0.001$) reflecting a convergence toward zero. Post-treatment coefficients are positive and rising, consistent with the positive DiD estimate ($+0.015$) for older workers.}
+\label{fig:es_50plus}
+\end{figure}
+
+
 \bibliographystyle{elsarticle-harv}
 \bibliography{references}
 
