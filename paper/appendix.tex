@@ -45,12 +45,7 @@
 \noindent\textbf{\large Part~I: Data and measurement}
 \medskip
 
-% ──────────────────────────────────────────────────────────────────────────────
-\section{DAIOE exposure distribution}
-% ──────────────────────────────────────────────────────────────────────────────
-
-The DAIOE genAI percentile ranking provides a continuous measure of occupational exposure to generative AI capabilities. The distribution across Swedish SSYK~4-digit occupations is approximately uniform by construction (it is a percentile ranking), with quartile boundaries at approximately the 25th, 50th, and 75th percentiles of the occupation distribution.
-
+% DELETED — DAIOE exposure distribution (tautological: percentile ranking is uniform by construction)
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Top and bottom occupations}
@@ -137,21 +132,8 @@ Figure~\ref{fig:svdus} shows side-by-side comparisons of the stock market versus
 \end{figure}
 
 
-% ──────────────────────────────────────────────────────────────────────────────
-\section{Stock market composition: Sweden vs the US}
-% ──────────────────────────────────────────────────────────────────────────────
-
-The ``scary chart'' narrative implicitly assumes that stock market gains reflect AI-driven revaluation. This is plausible for the US, where AI-adjacent firms (the ``Magnificent~7'': Alphabet, Amazon, Apple, Meta, Microsoft, Nvidia, Tesla) accounted for the majority of S\&P~500 gains in 2023--2025. The Swedish OMXS30, however, is dominated by industrials (Atlas~Copco, Volvo, Sandvik), banks (SEB, Handelsbanken, Swedbank), and telecommunications (Ericsson), with limited direct AI exposure.
-
-Figure~\ref{fig:stock_comparison} indexes the OMXS30, S\&P~500, and Nasdaq Composite to February 2020~=~100. By early 2026, the Nasdaq -- the most AI-weighted major index -- reached approximately 243, the S\&P~500 approximately 210, and the OMXS30 approximately 171. The 72-point gap between Nasdaq and OMXS30 opened primarily after the ChatGPT launch, consistent with the Nasdaq reflecting AI expectations while the OMXS30 reflects export earnings (amplified by a weak krona) and banking margins. The Swedish stock-posting divergence is therefore better characterised as a coincidence of distinct macroeconomic forces -- monetary tightening depressing postings, global equity sentiment and krona weakness lifting share prices -- rather than AI simultaneously boosting equity values and destroying jobs.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA12_stock_market_comparison.png}
-\caption{Stock market indices, 2020--2026: OMXS30 (Sweden), S\&P~500 (US, broad), and Nasdaq Composite (US, tech-heavy). Monthly averages, indexed to February 2020 = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). The gap between Nasdaq and OMXS30 widens after ChatGPT, consistent with US AI-driven equity revaluation absent in the Swedish index.}
-\label{fig:stock_comparison}
-\end{figure}
-
+% MOVED TO OFFLINE APPENDIX (OA1) — Stock market composition (Magnificent 7 narrative + Nasdaq comparison)
+% To restore, copy section from appendix_offline.tex OA1
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Alternative stock market index (OMXSPI)}
@@ -181,19 +163,8 @@ Figure~\ref{fig:quartiles} shows each AI exposure quartile's posting trajectory 
 \end{figure}
 
 
-% ──────────────────────────────────────────────────────────────────────────────
-\section{Posting gap: top vs bottom quartile}
-% ──────────────────────────────────────────────────────────────────────────────
-
-Figure~\ref{fig:exposure_gap} plots the difference in posting indices between Q4 (highest genAI exposure) and Q1 (lowest) over time. The gap fluctuates around zero throughout the sample period, including after the ChatGPT launch. There is no visible widening of the gap following November 2022, as would be expected if AI were differentially reducing postings in exposed occupations.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{fig2_exposure_gap.png}
-\caption{Posting index gap between Q4 (highest genAI exposure) and Q1 (lowest), with 3-month moving average and 95\% confidence band. No systematic widening after ChatGPT.}
-\label{fig:exposure_gap}
-\end{figure}
-
+% MOVED TO OFFLINE APPENDIX (OA2) — Posting gap Q4 vs Q1 (figure redundant with individual quartile trends)
+% To restore, copy section from appendix_offline.tex OA2
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Posting DiD and alternative specifications}
@@ -203,7 +174,7 @@ Table~\ref{tab:did} reports the main difference-in-differences estimates discuss
 
 \input{../tables/did_regression.tex}
 
-Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE; (viii)~adding quadratic occupation-specific time trends. The ChatGPT coefficient $\hat\beta_2$ is insignificant in six of eight specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in seven of eight specifications.
+Table~\ref{tab:robustness} reports results from alternative specifications: (i)~using the all-apps AI exposure measure instead of genAI; (ii)~using vacancy-weighted postings; (iii)~excluding pandemic months (January--June 2020); (iv)~using tercile classification instead of quartiles; (v)~excluding IT/tech occupations (SSYK~25xx), following \citet{brynjolfsson2025canaries}; (vi)~restricting to a balanced panel of 308 occupations observed in every month; (vii)~using language-modelling task exposure from DAIOE; (viii)~adding quadratic occupation-specific time trends. The ChatGPT coefficient $\hat\beta_2$ is insignificant in six of eight specifications but significant at the 5\% level in the all-apps measure ($\hat\beta_2 = -0.091$, $p = 0.018$) and tercile classification ($\hat\beta_2 = -0.081$, $p = 0.026$). The coefficient is negative in seven of eight specifications. The quadratic trend specification~(viii) confirms that non-linear differential dynamics do not drive the results: the quadratic term is insignificant ($\hat\delta_2 = -0.00002$, $p = 0.56$) and the ChatGPT coefficient remains insignificant ($\hat\beta_2 = 0.019$, $p = 0.63$).
 
 \input{../tables/robustness_results.tex}
 
@@ -225,7 +196,7 @@ Table~\ref{tab:eloundou_robust} reports the results. The two measures agree on t
 \section{Event study (monthly)}
 % ──────────────────────────────────────────────────────────────────────────────
 
-Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). Aggregating to quarterly frequency (Section~A11) reduces the number of pre-period coefficients to 9 but the test still rejects ($\chi^2_{8} = 52.8$, $p < 0.01$), indicating genuine differential macro sensitivity across AI exposure groups rather than monthly noise. As \citet{roth2022pretest} shows, a failing pre-test does not invalidate the design but does counsel caution; it motivates specification (4) in the main table, which conditions on occupation group~$\times$~month fixed effects, and the employer-level analysis, which provides a fundamentally stronger identification strategy. The post-ChatGPT coefficients show no additional structural break beyond the Riksbank hiking cycle in either specification.
+Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study specification, interacting month dummies with the high-exposure indicator (omitting February~2020 as the reference period). The pre-period coefficients fluctuate around zero with no systematic trend, though a joint Wald test rejects the null that all 26 pre-Riksbank coefficients are zero ($\chi^2_{26} = 107.1$, $p < 0.01$). Aggregating to quarterly frequency reduces the number of pre-period coefficients to 9 but the test still rejects ($\chi^2_{8} = 52.8$, $p < 0.01$), indicating genuine differential macro sensitivity across AI exposure groups rather than monthly noise. As \citet{roth2022pretest} shows, a failing pre-test does not invalidate the design but does counsel caution; it motivates specification (4) in the main table, which conditions on occupation group~$\times$~month fixed effects, and the employer-level analysis, which provides a fundamentally stronger identification strategy. The post-ChatGPT coefficients show no additional structural break beyond the Riksbank hiking cycle in either specification.
 
 \begin{figure}[htbp]
 \centering
@@ -235,33 +206,11 @@ Figure~\ref{fig:eventstudy} plots monthly DiD coefficients from an event-study s
 \end{figure}
 
 
-% ──────────────────────────────────────────────────────────────────────────────
-\section{Event study (quarterly)}
-% ──────────────────────────────────────────────────────────────────────────────
+% MOVED TO OFFLINE APPENDIX (OA3) — Quarterly posting event study (redundant with monthly event study)
+% To restore, copy section from appendix_offline.tex OA3
 
-Figure~\ref{fig:eventstudy_q} aggregates the monthly event study to quarterly frequency, reducing noise but preserving the key patterns.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA5_event_study_quarterly.png}
-\caption{Quarterly event study: DiD coefficients for high vs low genAI exposure occupations (reference: 2020~Q1). Shaded area shows 95\% confidence interval. Aggregating to quarters reduces monthly noise but pre-period differentials remain jointly significant ($\chi^2_{8} = 52.8$, $p < 0.01$), reflecting differential macro sensitivity.}
-\label{fig:eventstudy_q}
-\end{figure}
-
-
-% ──────────────────────────────────────────────────────────────────────────────
-\section{Half-year posting event study}
-% ──────────────────────────────────────────────────────────────────────────────
-
-Figure~\ref{fig:halfyear_es} aggregates the event study to half-year periods, with 2022H1 (pre-Riksbank hike) as the reference. Pre-period coefficients are positive and significant, indicating that high-AI-exposure occupations had relatively more postings before the treatment period. After the reference period, coefficients drift negative: the 2023H1 coefficient is marginally significant ($-0.066$, $p = 0.08$), while 2025H1 and 2025H2 reach marginal significance ($-0.094$ and $-0.099$, both $p < 0.10$). The 2026H1 estimate ($-0.412$, $p < 0.01$) is based on only two months and should be interpreted cautiously. The gradual negative drift, rather than a sharp break at the ChatGPT launch (2022H2), is consistent with the main finding that the posting decline is driven by macroeconomic factors with at most a small additional AI component.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA11_halfyear_event_study.png}
-\caption{Half-year event study: coefficients on High $\times$ half-year period interactions (reference: 2022H1). Occupation and month fixed effects; standard errors clustered by occupation. Shaded area: 95\% confidence interval. The gradual negative drift after 2022 is consistent with broad-based macro effects rather than a discrete AI shock.}
-\label{fig:halfyear_es}
-\end{figure}
-
+% MOVED TO OFFLINE APPENDIX (OA4) — Half-year posting event study (third frequency for secondary result)
+% To restore, copy section from appendix_offline.tex OA4
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Interest rate sensitivity and AI exposure}
@@ -309,12 +258,7 @@ Figure~\ref{fig:rr} reports a sensitivity analysis following the relative magnit
 \end{figure}
 
 
-% ──────────────────────────────────────────────────────────────────────────────
-\section{Quadratic occupation-specific trends}
-% ──────────────────────────────────────────────────────────────────────────────
-
-Adding quadratic time trends interacted with the high-exposure indicator tests whether non-linear differential dynamics (such as accelerating AI adoption over time) drive the results beyond what linear trends capture. The quadratic term is insignificant ($\hat\delta_2 = -0.00002$, $p = 0.56$), indicating that the linear trend specification (column~3 in the main table) is sufficient. The ChatGPT coefficient remains insignificant ($\hat\beta_2 = 0.019$, $p = 0.63$).
-
+% MERGED INTO POSTING DiD SECTION — Quadratic occupation-specific trends (now a paragraph within robustness)
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Riksbank policy rate timeline}
@@ -344,19 +288,13 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 \section{Employment by age group and AI exposure}
 % ──────────────────────────────────────────────────────────────────────────────
 
-\citet{brynjolfsson2025canaries} find that young US workers in AI-exposed occupations experienced disproportionate employment declines, ``canaries in the coal mine.'' Our posting-based analysis cannot test this age-specific hypothesis directly. As a first check, we use publicly available register data from SCB (Yrkesregistret, table YREG54BAS) providing annual employment counts by SSYK~4-digit occupation and age group for 2020--2024. These annual data show no visible divergence between young workers in high- vs low-AI-exposure occupations after ChatGPT, but three caveats limit their informativeness: (i)~SCB changed the underlying register from RAMS to BAS from reference year 2022, introducing a methodological break at our treatment timing; (ii)~the 2020 pandemic trough as base year inflates all growth rates; (iii)~with only five annual observations, statistical power is limited.
+% MOVED TO OFFLINE APPENDIX (OA5) — YREG annual employment data (superseded by MONA monthly data)
+% To restore, copy section from appendix_offline.tex OA5
 
-We therefore turn to monthly employer declarations (AGI) to the Swedish tax authority. These register data are available via SCB's secure research environment (MONA). The AGI provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. An employer-level difference-in-differences following \citet{brynjolfsson2025canaries} reveals a monotonic age gradient: employment of 22--25 year olds in top-quartile occupations fell by 6.5 per cent relative to less exposed occupations ($\hat\gamma_2 = -0.067$, $p < 0.01$), while employment of workers over 50 rose by 1.5 per cent ($p < 0.01$). Swedish college graduation age is high by international standards (median 27--28), so the 22--25 bracket captures very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA7_canaries_employment.png}
-\caption{Employment by age group and AI exposure, Sweden 2020--2024 (2020 = 100). Data: SCB Yrkesregistret (YREG54BAS). Young = 16--24 years; High AI = top quartile of DAIOE genAI exposure. The dotted line marks ChatGPT launch (November 2022). Note: methodological break (RAMS to BAS) at 2022.}
-\label{fig:canaries_emp}
-\end{figure}
+We use monthly employer declarations (AGI) to the Swedish tax authority. These register data are available via SCB's secure research environment (MONA). The AGI provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. An employer-level difference-in-differences following \citet{brynjolfsson2025canaries} reveals a monotonic age gradient: employment of 22--25 year olds in top-quartile occupations fell by 6.5 per cent relative to less exposed occupations ($\hat\gamma_2 = -0.067$, $p < 0.01$), while employment of workers over 50 rose by 1.5 per cent ($p < 0.01$). Swedish college graduation age is high by international standards (median 27--28), so the 22--25 bracket captures very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
 
 \paragraph{Reconciliation with the Finnish and Danish evidence.}
-\citet{kauhanen2025canaries} use comparable population-level register data from Finland (the Incomes Register) and find no statistically significant effect of generative AI on employment or wages. Their synthetic difference-in-differences design compares the most exposed occupations (top~10\% on the C-AIOE index of Pizzinelli et al.~2023) to the least exposed (bottom~10\%) at the occupation level. This aggregation averages over all employers within each occupation, and may therefore not capture within-employer composition shifts of the kind our employer-level specification identifies. Our employer~$\times$~quartile and employer~$\times$~month fixed effects absorb all time-varying employer-level shocks, isolating within-firm recomposition across AI exposure quartiles. Similarly, \citet{humlum2025llm} find precise null effects on earnings and hours in Denmark using worker- and workplace-level data -- an intensive-margin result that is not inconsistent with our extensive-margin finding on the composition of who gets hired. The two designs are complementary: aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland and Denmark exhibit similar within-employer age gradients remains an open empirical question.
+Our employer~$\times$~quartile and employer~$\times$~month fixed effects isolate within-firm recomposition across AI exposure quartiles, a different identification margin from occupation-level analyses that average over all employers \citep{kauhanen2025canaries,kauhanen2025youth} or intensive-margin studies of incumbents' earnings and hours \citep{humlum2025llm}. The two designs are complementary: aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland and Denmark exhibit similar within-employer age gradients remains an open empirical question.
 
 \paragraph{Military conscription.} Sweden reactivated military conscription (\emph{värnplikt}) in 2017, with annual intake expanding from approximately 5,000 in 2019 to 7,000 in 2024 and a target of 8,000 by 2025 \citep[see][]{pliktverket2025}. Roughly three-quarters of conscripts are male, and service lasts approximately 11~months at ages 18--19. Since military occupations carry no DAIOE score, expanding conscription mechanically reduces the civilian labour force participation of young men in our data, potentially confounding the canaries effect. Two observations mitigate this concern. First, the conscription expansion is gradual and affects both high- and low-AI-exposure occupations equally, since conscripts are drawn from across the occupational distribution. Second, our preferred specification following \citet{brynjolfsson2025canaries} restricts the young-worker sample to ages 22--25, above the conscription age, effectively eliminating this channel.
 
@@ -473,10 +411,8 @@ Age group & $\chi^2$ & d.f.\ & $p$-value \\
 
 The economy-wide employment figure by age group and AI exposure appears as Figure~2 in the main paper. Below we show the occupation-specific spotlight analyses.
 
-\paragraph{GenAI capability timeline.}
-The divergence between young workers in high- and low-AI-exposure occupations visible in Figure~2 of the main paper does not follow a single break but appears to deepen in stages. A factual timeline of major generative AI releases helps contextualise these patterns. ChatGPT launched on November~30, 2022; GPT-4 followed on March~14, 2023, marking the first model widely regarded as highly capable across professional tasks. Enterprise deployment accelerated in the second half of 2023: ChatGPT Enterprise launched in August~2023 and Microsoft~365 Copilot became generally available in November~2023. A second capability wave arrived in mid-2024 with GPT-4o (May~2024) and Claude~3.5 Sonnet (June~2024), both offering substantially improved coding and analytical capabilities at lower cost. Reasoning and agentic models emerged from September~2024 (OpenAI~o1, Claude computer use), followed by open-source reasoning models (DeepSeek~R1, January~2025).
-
-Two acceleration points in the young-high-AI trajectory roughly coincide with these waves. The initial divergence from the young-low-AI group emerges in early-to-mid 2023, following GPT-4 and early enterprise experimentation. A steeper decline begins in late 2024, coinciding with the deployment of agentic and reasoning models that automate more complex task sequences. The spotlight occupations (Figures~\ref{fig:spotlight_software}--\ref{fig:spotlight_customer}) display similar phasing, with the youngest cohorts (22--25) most affected. These timing correspondences are suggestive, not causal: adoption lags between model release and workplace impact are uncertain, and macroeconomic conditions also shifted in these periods. Nevertheless, the staged pattern is more consistent with cumulative technological displacement than with a single discrete shock.
+% MOVED TO OFFLINE APPENDIX (OA6) — GenAI capability timeline (speculative causal narrative, conflicts with measured tone)
+% To restore, copy section from appendix_offline.tex OA6
 
 \begin{figure}[htbp]
 \centering
@@ -523,9 +459,9 @@ Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds 
 
 Table~\ref{tab:literature} compares our study with the emerging literature testing whether generative AI exposure affects employment or job postings differentially by worker age or seniority. Studies vary along several dimensions: data source (payroll, register, job postings), geographic coverage, AI exposure measure, identification strategy, and whether age or seniority heterogeneity is tested directly.
 
-Three patterns emerge. First, US studies using job posting or payroll data consistently find negative effects on entry-level or junior workers \citep{brynjolfsson2025canaries,hosseini2025seniority,liu2025labor,kleinteeselink2025}. Second, Nordic register-based studies show mixed results: our Swedish evidence finds a significant age gradient at the employer level, while the Finnish occupation-level analyses report null effects \citep{kauhanen2025canaries,kauhanen2025youth}, and the Danish intensive-margin analysis finds precise nulls on earnings and hours \citep{humlum2025llm}. Third, \citet{iscenko2026ladder} argue the US pattern reflects monetary policy rather than AI, a hypothesis our Riksbank timing test directly addresses: the posting decline aligns with the rate hike, but the within-employer age gradient in employment emerges only after ChatGPT.
+Three patterns emerge. First, US studies using job posting or payroll data consistently find negative effects on entry-level or junior workers \citep{brynjolfsson2025canaries,hosseini2025seniority,liu2025labor,kleinteeselink2025}. Second, Nordic register-based studies show mixed results: our Swedish evidence finds a significant age gradient at the employer level, while the Finnish occupation-level analyses report null effects \citep{kauhanen2025canaries,kauhanen2025youth}, and the Danish intensive-margin analysis finds precise nulls on earnings and hours \citep{humlum2025llm}. Third, sceptical contributions challenge the emerging consensus: \citet{eckhardt2025aijobs} find that unemployment rose \emph{less} in AI-exposed occupations using CPS data, and \citet{iscenko2026ladder} argue the US pattern reflects monetary policy rather than AI. Our Riksbank timing test directly addresses the latter hypothesis: the posting decline aligns with the rate hike, but the within-employer age gradient in employment emerges only after ChatGPT.
 
-Our study is the first to combine both margins (postings and employment) with a natural timing test separating macroeconomic and AI channels, using population-register data with employer-level identification.
+Our study is the first to combine both margins (postings and employment) with a natural timing test separating macroeconomic and AI channels, using population-register data with employer-level identification. For broader surveys of this emerging literature, see \citet{chandar2025aiknow} and \citet{kolko2026firstinning}.
 
 \begin{landscape}
 \begin{table}[htbp]
@@ -542,6 +478,7 @@ Study & Country & Data & Method & FE structure & Age tested? & Key result \\
 \citet{kleinteeselink2025} & UK & Lightcast + LinkedIn & DiD & Firm/occupation & Yes & Junior roles $-$5.8\% \\[4pt]
 \citet{liu2025labor} & US & Lightcast, 285M postings & DiD + ES & Occupation + time & Yes & Entry-level postings $-$18\% by year 3 \\[4pt]
 \citet{storm2025ai} & Germany & IAB admin + vacancies & IV & Individual + occ$\times$year & Indirect (skill) & Experts gain, non-experts lose \\[4pt]
+\citet{eckhardt2025aijobs} & US & CPS & Descriptive & CPS controls & No & Unemployment rose \emph{less} in high-exposure occ. \\[4pt]
 \citet{iscenko2026ladder} & US & Lightcast + CPS & Descriptive & --- & Yes & Argues null; attributes pattern to monetary policy \\[4pt]
 \citet{massenkoff2026labor} & US & CPS + Claude usage & Descriptive & CPS controls & Suggestive & Job finding rate in exposed occ.\ $-$14\% \\[4pt]
 \citet{kauhanen2025canaries} & Finland & Income register, population & SDiD & Occupation-level & No & Null on employment and wages \\[4pt]
