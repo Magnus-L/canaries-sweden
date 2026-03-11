@@ -1,23 +1,35 @@
 #!/usr/bin/env python3
 """
-run_all.py — Master script: one command reproduces everything.
+run_all.py — Master script for the public-data pipeline.
 
 Usage:
     python src/run_all.py              # Full pipeline (requires data download)
     python src/run_all.py --skip-download  # Skip download, process existing data
     python src/run_all.py --from-step 4    # Start from step 4 (merge)
 
-Steps:
-    1. Download Platsbanken data (~5.4 GB)
-    2. Process JSONL → SSYK4 × month aggregates
-    3. Fetch auxiliary data (OMXS30, Riksbanken, DAIOE)
-    4. Merge postings with DAIOE, classify by exposure quartile
-    5. DiD regression analysis
-    6. Generate figures and tables
-    7. Robustness checks
+Pipeline structure:
+    Steps 01-13: Local pipeline (public data, run with this script)
+    Steps 14-19: MONA pipeline (restricted SCB data, run at SCB — see MONA_INSTRUCTIONS.md)
+    Steps 20-22: Offline appendix outputs (local, not in main submission)
+    Stata files:  replication_stata.do (posting DiD), mona_canaries_regression.do (MONA DiD)
 
-The full pipeline takes ~20–30 minutes on first run (dominated by download).
-Subsequent runs with --skip-download take ~5–10 minutes.
+Steps (local):
+     1. Download Platsbanken data (~5.4 GB)
+     2. Process JSONL → SSYK4 × month aggregates
+     3. Fetch auxiliary data (OMXS30, Riksbanken, DAIOE)
+     4. Merge postings with DAIOE, classify by exposure quartile
+     5. DiD regression analysis
+     6. Generate figures and tables
+     7. Robustness checks (8 specifications + event studies + Rambachan-Roth)
+     8. Interest rate sensitivity analysis
+     9. Teleworkability (Dingel-Neiman) robustness
+    10. Eloundou alternative AI exposure measure
+    11. Riksbank policy rate figure
+    12. Figure 2: age gradient bar chart (from MONA output)
+    13. One-pager figure
+
+The full pipeline takes ~20-30 minutes on first run (dominated by download).
+Subsequent runs with --skip-download take ~5-10 minutes.
 
 All intermediate outputs are saved to data/processed/ and can be inspected.
 """
@@ -58,7 +70,7 @@ def run_step(step_num: int, module_name: str, description: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Master replication script for 'Two Economies?' paper"
+        description="Master replication script for 'Same Storm, Different Boats'"
     )
     parser.add_argument(
         "--skip-download",
@@ -74,7 +86,7 @@ def main():
         "--from-step",
         type=int,
         default=1,
-        help="Start from this step number (1–7)",
+        help="Start from this step number (1-13)",
     )
     args = parser.parse_args()
 
@@ -87,8 +99,8 @@ def main():
     mode = "SAMPLE (1%)" if args.sample else "FULL"
     print("=" * 70)
     print("  REPLICATION PIPELINE")
-    print("  'Two Economies? Stock Markets, Job Postings,")
-    print("   and AI Exposure in Sweden'")
+    print("  'Same Storm, Different Boats: Generative AI")
+    print("   and the Age Gradient in Hiring'")
     print(f"  Mode: {mode}")
     print("=" * 70)
     print(f"  Start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -105,6 +117,12 @@ def main():
         (5, "05_analysis", "DiD regression analysis"),
         (6, "06_figures_tables", "Generate figures and tables"),
         (7, "07_robustness", "Robustness checks"),
+        (8, "08_interest_rate_exposure", "Interest rate sensitivity"),
+        (9, "09_remote_work_robustness", "Teleworkability robustness"),
+        (10, "10_eloundou_robustness", "Eloundou alternative measure"),
+        (11, "11_riksbank_rate_figure", "Riksbank rate figure"),
+        (12, "12_create_figure2_age_gradient", "Figure 2: age gradient"),
+        (13, "13_onepager_figure", "One-pager figure"),
     ]
 
     results = {}
@@ -122,7 +140,7 @@ def main():
     # Summary
     total = time.time() - t_start
     print(f"\n{'=' * 70}")
-    print(f"  PIPELINE COMPLETE")
+    print(f"  LOCAL PIPELINE COMPLETE")
     print(f"  Total time: {total/60:.1f} minutes")
     print(f"{'=' * 70}")
 
@@ -134,6 +152,8 @@ def main():
     print(f"    data/processed/  — intermediate CSV files")
     print(f"    figures/         — publication figures (300 dpi PNG)")
     print(f"    tables/          — regression tables (CSV + LaTeX)")
+    print(f"\n  MONA scripts (14-19) must be run separately at SCB.")
+    print(f"  See src/MONA_INSTRUCTIONS.md for details.")
 
 
 if __name__ == "__main__":

@@ -56,8 +56,12 @@ dst_package.zip
 # MONA output (aggregated results from restricted register data)
 data/mona/
 
-# Old script archives
+# Old script archives and MONA zip transfers
 src/Arkiv.zip
+src/*.py.zip
+
+# LaTeX TOC
+*.toc
 
 # Sensitive
 .env
