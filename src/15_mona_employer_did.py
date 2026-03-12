@@ -28,12 +28,18 @@ Design:
   Run SEPARATELY for each age group. The "canaries" finding is that
   g2 is negative and significant for ages 22-25, but not for older groups.
 
+Panel construction:
+  - Aggregate individual records to employer x quartile x age_group x month
+  - Build BALANCED panel: every (employer, quartile) ever observed × all months
+  - Zero-fill missing cells (n_emp = 0) -- captures extensive margin
+  - Restrict to employers with workers in both Q4 and Q1-Q3 (identification)
+
 Estimator:
   - Primary: OLS on ln(count+1) with high-dimensional FE via linearmodels
     (linearmodels.panel.PanelOLS or absorbed-FE approach)
+  - Robustness: Poisson PML via pyfixest (handles zeros naturally, consistent
+    under heteroskedasticity; Santos Silva & Tenreyro 2006, Chen & Roth 2024)
   - If linearmodels unavailable: manual within-transformation with pandas
-  - Poisson (ideal but computationally heavy): attempted if statsmodels GLM
-    converges within memory limits
 
 Input files (on MONA):
   1. AGI individual records (same extract as 09_mona_agi_canaries.py)
@@ -224,6 +230,66 @@ def load_and_prepare():
 
 
 # ======================================================================
+#   STEP 1b: BUILD BALANCED PANEL (ZERO-FILL)
+# ======================================================================
+
+def balance_panel_for_age(agg, age_label):
+    """
+    Build balanced panel for one age group: every (employer, quartile)
+    combination the employer is ever observed in × all months.
+    Missing cells filled with n_emp = 0.
+
+    Also applies identification restriction from the paper: keep only
+    employers observed in both Q4 and at least one of Q1-Q3. This
+    ensures that the employer×quartile FE actually absorbs within-
+    employer variation — single-quartile employers contribute nothing.
+
+    WHY THIS MATTERS: Without zero-filling, the groupby aggregation in
+    load_and_prepare() only creates cells where employment > 0. Firms
+    that shed ALL workers of an age group in a quartile-month simply
+    disappear from the data. This drops the strongest treatment cases
+    (extensive margin) and biases the DiD toward zero.
+    """
+    sub = agg[agg["age_group"] == age_label].copy()
+
+    # Unique employer-quartile pairs for this age group
+    emp_q = (
+        sub.groupby(["employer_id", "exposure_quartile"])
+        .size()
+        .reset_index()[["employer_id", "exposure_quartile"]]
+    )
+
+    # Identification restriction: employers spanning Q4 and Q1-Q3
+    q4_emps = set(emp_q.loc[emp_q["exposure_quartile"] == 4, "employer_id"])
+    low_emps = set(emp_q.loc[emp_q["exposure_quartile"] < 4, "employer_id"])
+    valid_emps = q4_emps & low_emps
+    emp_q = emp_q[emp_q["employer_id"].isin(valid_emps)]
+
+    # Cross join: employer-quartile pairs × all months
+    all_months = pd.DataFrame({"year_month": sorted(agg["year_month"].unique())})
+    emp_q["_k"] = 1
+    all_months["_k"] = 1
+    balanced = emp_q.merge(all_months, on="_k").drop(columns="_k")
+
+    # Left join actual employment counts
+    balanced = balanced.merge(
+        sub[["employer_id", "exposure_quartile", "year_month", "n_emp"]],
+        on=["employer_id", "exposure_quartile", "year_month"],
+        how="left",
+    )
+    balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
+    balanced["age_group"] = age_label
+
+    n_zeros = (balanced["n_emp"] == 0).sum()
+    pct_zero = 100 * n_zeros / len(balanced)
+    print(f"  Balanced panel ({age_label}): {len(balanced):,} cells "
+          f"({n_zeros:,} zeros = {pct_zero:.1f}%)")
+    print(f"  Employers with both Q4 and Q1-Q3: {len(valid_emps):,}")
+
+    return balanced
+
+
+# ======================================================================
 #   STEP 2: MAIN DiD BY AGE GROUP
 # ======================================================================
 
@@ -273,7 +339,9 @@ def run_did_by_age(agg):
 
     for age_label, (age_lo, age_hi) in AGE_GROUPS.items():
         print(f"\n--- Age group: {age_label} ---")
-        sub = agg[agg["age_group"] == age_label].copy()
+
+        # Build balanced panel with zero-filled cells
+        sub = balance_panel_for_age(agg, age_label)
 
         if len(sub) < 100:
             print(f"  Too few observations ({len(sub)}), skipping")
@@ -281,12 +349,18 @@ def run_did_by_age(agg):
 
         print(f"  Observations: {len(sub):,}")
         print(f"  Employers: {sub['employer_id'].nunique():,}")
-        print(f"  Mean employment: {sub['n_emp'].mean():.1f}")
+        print(f"  Mean employment: {sub['n_emp'].mean():.2f}")
+        print(f"  Zero cells: {(sub['n_emp'] == 0).sum():,}")
 
-        # --- Try linearmodels PanelOLS with absorbed FE ---
+        # --- Main: OLS on ln(count+1) ---
         result = _estimate_did(sub, age_label)
         if result is not None:
             all_results.append(result)
+
+        # --- Robustness: Poisson (pyfixest) ---
+        poisson_result = _estimate_poisson(sub, age_label)
+        if poisson_result is not None:
+            all_results.append(poisson_result)
 
     # Combine results
     if all_results:
@@ -483,6 +557,84 @@ def _estimate_did_occupation_level(sub, age_label):
 
 
 # ======================================================================
+#   ROBUSTNESS: POISSON (pyfixest)
+# ======================================================================
+
+def _estimate_poisson(sub, age_label):
+    """
+    Poisson pseudo-maximum likelihood with high-dimensional FE.
+    Uses pyfixest (Python equivalent of fixest/ppmlhdfe).
+
+    Preferred estimator per Santos Silva & Tenreyro (2006) and
+    Chen & Roth (2024, JPE Micro): handles zeros naturally, consistent
+    under heteroskedasticity, no ln(y+1) transformation needed.
+
+    Returns None if pyfixest is not available.
+    """
+    try:
+        import pyfixest as pf
+    except ImportError:
+        print(f"  [Poisson] pyfixest not installed -- skipping Poisson robustness")
+        print(f"  Install with: pip install pyfixest")
+        return None
+
+    t0 = time.time()
+    panel = sub.copy()
+
+    # Treatment variables (may already exist from OLS step, but safe to recreate)
+    panel["post_rb"] = (panel["year_month"] >= RIKSBANK_YM).astype(int)
+    panel["post_gpt"] = (panel["year_month"] >= CHATGPT_YM).astype(int)
+    panel["high"] = (panel["exposure_quartile"] == 4).astype(int)
+    panel["post_rb_x_high"] = panel["post_rb"] * panel["high"]
+    panel["post_gpt_x_high"] = panel["post_gpt"] * panel["high"]
+
+    # FE identifiers
+    panel["fe_emp_q"] = (
+        panel["employer_id"].astype(str) + "_" +
+        panel["exposure_quartile"].astype(str)
+    )
+    panel["fe_emp_t"] = (
+        panel["employer_id"].astype(str) + "_" +
+        panel["year_month"]
+    )
+
+    try:
+        fit = pf.fepois(
+            "n_emp ~ post_rb_x_high + post_gpt_x_high | fe_emp_q + fe_emp_t",
+            data=panel,
+            vcov={"CRV1": "employer_id"},
+        )
+
+        gamma1 = fit.coef()["post_rb_x_high"]
+        gamma2 = fit.coef()["post_gpt_x_high"]
+        se1 = fit.se()["post_rb_x_high"]
+        se2 = fit.se()["post_gpt_x_high"]
+        p1 = fit.pvalue()["post_rb_x_high"]
+        p2 = fit.pvalue()["post_gpt_x_high"]
+
+        elapsed = time.time() - t0
+        print(f"  [Poisson/pyfixest, {elapsed:.0f}s]")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+
+        return {
+            "age_group": age_label,
+            "method": "Poisson",
+            "n_obs": fit.nobs,
+            "gamma1_rb_high": gamma1,
+            "se1": se1,
+            "pval1": p1,
+            "gamma2_gpt_high": gamma2,
+            "se2": se2,
+            "pval2": p2,
+        }
+
+    except Exception as e:
+        print(f"  [Poisson] Failed: {e}")
+        return None
+
+
+# ======================================================================
 #   PRE-TREND JOINT TEST (used by Step 3)
 # ======================================================================
 
@@ -541,7 +693,9 @@ def run_halfyear_event_study(agg):
 
     for age_label in AGE_GROUPS:
         print(f"\n--- Event study: {age_label} ---")
-        sub = agg[agg["age_group"] == age_label].copy()
+
+        # Build balanced panel with zero-filled cells
+        sub = balance_panel_for_age(agg, age_label)
 
         if len(sub) < 100:
             print(f"  Too few observations, skipping")
@@ -708,19 +862,21 @@ def plot_event_studies(es_df):
 # ======================================================================
 
 def write_summary(agg, did_results, es_df):
-    """Write diagnostic summary to text file."""
+    """Write diagnostic summary and table-ready statistics."""
+
+    # --- Main summary file ---
     out = OUTPUT_DIR / "canaries_summary.txt"
     with open(out, "w") as f:
         f.write("CANARIES REGRESSION -- SUMMARY\n")
         f.write("=" * 50 + "\n\n")
 
-        f.write(f"Total panel cells: {len(agg):,}\n")
+        f.write(f"Total panel cells (non-zero): {len(agg):,}\n")
         f.write(f"Employers: {agg['employer_id'].nunique():,}\n")
         f.write(f"Months: {agg['year_month'].nunique()}\n")
         f.write(f"Period: {agg['year_month'].min()} to {agg['year_month'].max()}\n")
         f.write(f"Min employer size: {MIN_EMPLOYER_SIZE}\n\n")
 
-        f.write("--- Age group sizes ---\n")
+        f.write("--- Age group sizes (non-zero cells) ---\n")
         for ag in AGE_GROUPS:
             n = len(agg[agg["age_group"] == ag])
             f.write(f"  {ag}: {n:,} cells\n")
@@ -731,15 +887,95 @@ def write_summary(agg, did_results, es_df):
             f.write(f"  Q{q}: {n:,} person-months\n")
 
         if not did_results.empty:
-            f.write("\n--- DiD Results ---\n")
+            f.write("\n--- DiD Results (OLS + Poisson) ---\n")
             f.write(did_results.to_string(index=False))
             f.write("\n")
 
         f.write("\nFE structure: employer x quartile + employer x month\n")
         f.write("SEs clustered by employer\n")
-        f.write("Estimator: OLS on ln(count+1)\n")
+        f.write("Panel: balanced (zero-filled), restricted to employers with Q4 and Q1-Q3\n")
+        f.write("Main estimator: OLS on ln(count+1)\n")
+        f.write("Robustness: Poisson PML via pyfixest (if available)\n")
 
     print(f"\n  Saved summary -> {out.name}")
+
+    # --- Table-ready summary statistics (for appendix Table A2) ---
+    _write_table_sumstats(agg)
+
+
+def _write_table_sumstats(agg):
+    """
+    Produce summary statistics for the appendix employment table,
+    broken out by DAIOE quartile: employers, mean workers per cell,
+    and zero-cell shares. Uses balanced panels per age group.
+    """
+    out = OUTPUT_DIR / "sumstats_employment_table.txt"
+    quartiles = sorted(agg["exposure_quartile"].unique())
+    months = sorted(agg["year_month"].unique())
+    n_months = len(months)
+
+    lines = []
+    lines.append("EMPLOYMENT SUMMARY STATISTICS FOR APPENDIX TABLE")
+    lines.append("=" * 60)
+    lines.append(f"Months: {n_months}  ({months[0]} to {months[-1]})")
+
+    # Employers per quartile
+    lines.append("\n--- Employers per quartile ---")
+    for q in quartiles:
+        n = agg.loc[agg["exposure_quartile"] == q, "employer_id"].nunique()
+        lines.append(f"  Q{q}: {n:>10,}")
+    lines.append(f"  All: {agg['employer_id'].nunique():>10,}  "
+                 f"(employers can span multiple quartiles)")
+
+    # Mean workers per cell and zero shares, by quartile x age group
+    # Uses balanced panels (same as regression sample)
+    lines.append("\n--- Balanced panel statistics (employers with Q4 and Q1-Q3) ---")
+
+    header = f"  {'Age group':<12}" + "".join(f"{'Q'+str(q):>10}" for q in quartiles) + f"{'All':>10}"
+
+    lines.append("\n  Mean workers per cell:")
+    lines.append(header)
+    lines.append("  " + "-" * (12 + 10 * (len(quartiles) + 1)))
+    for age_label in AGE_GROUPS:
+        balanced = balance_panel_for_age(agg, age_label)
+        row = f"  {age_label:<12}"
+        for q in quartiles:
+            mean_val = balanced.loc[balanced["exposure_quartile"] == q, "n_emp"].mean()
+            row += f"{mean_val:>10.2f}"
+        row += f"{balanced['n_emp'].mean():>10.2f}"
+        lines.append(row)
+
+    lines.append("\n  Share zero-employment cells (%):")
+    lines.append(header)
+    lines.append("  " + "-" * (12 + 10 * (len(quartiles) + 1)))
+    for age_label in AGE_GROUPS:
+        balanced = balance_panel_for_age(agg, age_label)
+        row = f"  {age_label:<12}"
+        for q in quartiles:
+            bq = balanced[balanced["exposure_quartile"] == q]
+            pct = 100 * (bq["n_emp"] == 0).sum() / len(bq) if len(bq) > 0 else 0
+            row += f"{pct:>9.1f}%"
+        pct_all = 100 * (balanced["n_emp"] == 0).sum() / len(balanced)
+        row += f"{pct_all:>9.1f}%"
+        lines.append(row)
+
+    lines.append("\n  Balanced panel cells (total):")
+    lines.append(header)
+    lines.append("  " + "-" * (12 + 10 * (len(quartiles) + 1)))
+    for age_label in AGE_GROUPS:
+        balanced = balance_panel_for_age(agg, age_label)
+        row = f"  {age_label:<12}"
+        for q in quartiles:
+            n = len(balanced[balanced["exposure_quartile"] == q])
+            row += f"{n:>10,}"
+        row += f"{len(balanced):>10,}"
+        lines.append(row)
+
+    lines.append("")
+    text = "\n".join(lines)
+    out.write_text(text)
+    print(f"\n  Saved table statistics -> {out.name}")
+    print(text)
 
 
 # ======================================================================
@@ -771,13 +1007,17 @@ def main():
     print("\n" + "=" * 70)
     print("DONE. Export these files from MONA:")
     print(f"  Output directory: {OUTPUT_DIR}")
-    print("  1. canaries_did_results.csv    -- DiD coefficients by age group")
+    print("  1. canaries_did_results.csv    -- DiD coefficients (OLS + Poisson)")
     print("  2. canaries_es_all.csv         -- event study coefficients")
     print("  3. canaries_es_young.png       -- event study figure (22-25)")
     print("  4. canaries_es_25to30.png      -- event study figure (25-30)")
     print("  5. canaries_es_41to49.png      -- event study figure (41-49)")
     print("  6. canaries_summary.txt        -- sample sizes and diagnostics")
     print("  7. pretrend_ftest.csv          -- joint pre-trend tests by age group")
+    print("")
+    print("  NOTE: Panel is now balanced (zero-filled) and restricted to")
+    print("  employers with workers in both Q4 and Q1-Q3 occupations.")
+    print("  Results include both OLS on ln(count+1) and Poisson robustness.")
     print("=" * 70)
 
 

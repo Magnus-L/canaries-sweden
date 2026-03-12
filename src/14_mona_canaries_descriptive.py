@@ -291,8 +291,10 @@ def run_canaries_regression(merged):
 
     df = merged.copy()
     df["date"] = pd.to_datetime(df["year_month"] + "-01")
-    df = df[df["n_employed"] > 0].copy()
-    df["ln_emp"] = np.log(df["n_employed"])
+    # Include zeros: ln(n+1) handles zero-employment cells correctly.
+    # Previous version filtered df[df["n_employed"] > 0] and used ln(n),
+    # which dropped extensive-margin zeros and biased the DiD toward zero.
+    df["ln_emp"] = np.log(df["n_employed"] + 1)
 
     # Treatment dummies
     df["post_chatgpt"] = (df["year_month"] >= CHATGPT_LAUNCH).astype(int)

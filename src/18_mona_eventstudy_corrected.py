@@ -176,6 +176,62 @@ def load_and_prepare():
 
 
 # ======================================================================
+#   STEP 1b: BALANCED PANEL (ZERO-FILL)
+# ======================================================================
+
+def balance_panel_for_age(agg, age_label):
+    """
+    Build balanced panel for one age group: every (employer, quartile)
+    combination the employer is ever observed in × all months.
+    Missing cells filled with n_emp = 0.
+
+    Applies identification restriction: employers with both Q4 and Q1-Q3.
+
+    WHY: Without zero-filling, firms that shed ALL workers of an age group
+    in a quartile disappear from the data. This drops the strongest
+    treatment cases and biases the DiD toward zero.
+    """
+    sub = agg[agg["age_group"] == age_label].copy()
+    all_months = sorted(agg["year_month"].unique())
+
+    # Unique employer-quartile pairs for this age group
+    emp_q = (
+        sub.groupby(["employer_id", "exposure_quartile"])
+        .size()
+        .reset_index()[["employer_id", "exposure_quartile"]]
+    )
+
+    # Identification restriction: employers spanning Q4 and Q1-Q3
+    q4_emps = set(emp_q.loc[emp_q["exposure_quartile"] == 4, "employer_id"])
+    low_emps = set(emp_q.loc[emp_q["exposure_quartile"] < 4, "employer_id"])
+    valid_emps = q4_emps & low_emps
+    emp_q = emp_q[emp_q["employer_id"].isin(valid_emps)]
+
+    # Cross join: employer-quartile pairs × all months
+    months_df = pd.DataFrame({"year_month": all_months})
+    emp_q["_k"] = 1
+    months_df["_k"] = 1
+    balanced = emp_q.merge(months_df, on="_k").drop(columns="_k")
+
+    # Left join actual employment counts
+    balanced = balanced.merge(
+        sub[["employer_id", "exposure_quartile", "year_month", "n_emp"]],
+        on=["employer_id", "exposure_quartile", "year_month"],
+        how="left",
+    )
+    balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
+    balanced["age_group"] = age_label
+
+    n_zeros = (balanced["n_emp"] == 0).sum()
+    pct_zero = 100 * n_zeros / len(balanced) if len(balanced) > 0 else 0
+    print(f"  Balanced panel ({age_label}): {len(balanced):,} cells "
+          f"({n_zeros:,} zeros = {pct_zero:.1f}%)")
+    print(f"  Employers with both Q4 and Q1-Q3: {len(valid_emps):,}")
+
+    return balanced
+
+
+# ======================================================================
 #   STEP 2: CORRECTED EVENT STUDY
 # ======================================================================
 
@@ -223,26 +279,8 @@ def run_corrected_event_study(agg):
 
     agg = agg.copy()
 
-    # Log outcome
-    agg["ln_emp"] = np.log(agg["n_emp"] + 1)
-
-    # High exposure indicator (Q4 vs rest)
-    agg["high"] = (agg["exposure_quartile"] == 4).astype(int)
-
-    # Half-year assignment
+    # Compute half-year labels on raw agg (needed for event period list)
     agg["halfyear"] = agg["year_month"].apply(assign_halfyear)
-
-    # FE identifiers (same as main DiD)
-    agg["fe_emp_q"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["exposure_quartile"].astype(str)
-    )
-    agg["fe_emp_t"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["year_month"]
-    )
-
-    # Event periods (sorted, excluding reference)
     all_periods = sorted(agg["halfyear"].unique())
     event_periods = [p for p in all_periods if p != REF_HALFYEAR]
 
@@ -257,13 +295,28 @@ def run_corrected_event_study(agg):
         print(f"\n--- Event study: {age_label} ---")
         t0 = time.time()
 
-        sub = agg[agg["age_group"] == age_label].copy()
+        # Build balanced panel with zero-filled cells
+        sub = balance_panel_for_age(agg, age_label)
         if len(sub) < 100:
             print(f"  Too few observations, skipping")
             continue
 
         print(f"  Observations: {len(sub):,}")
         print(f"  Employers: {sub['employer_id'].nunique():,}")
+        print(f"  Zero cells: {(sub['n_emp'] == 0).sum():,}")
+
+        # Compute variables on the balanced panel
+        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+        sub["halfyear"] = sub["year_month"].apply(assign_halfyear)
+        sub["fe_emp_q"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["exposure_quartile"].astype(str)
+        )
+        sub["fe_emp_t"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["year_month"]
+        )
 
         # Create interaction dummies: halfyear × high
         for p in event_periods:
