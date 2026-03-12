@@ -291,6 +291,99 @@ def load_all_data():
 
 
 # ======================================================================
+#   BALANCED PANEL CONSTRUCTION (zero-fill)
+# ======================================================================
+
+def _balance_panel_for_age(agg, age_label, all_months):
+    """
+    Build balanced panel for one age group within a gender-filtered
+    aggregation: every (employer, quartile) ever observed × all months.
+    Missing cells filled with n_emp = 0.
+
+    Applies identification restriction: employers with both Q4 and Q1-Q3.
+
+    WHY: Without zero-filling, firms that shed ALL workers of an age group
+    in a quartile disappear from the data. This drops the strongest
+    treatment cases and biases the DiD toward zero.
+    """
+    sub = agg[agg["age_group"] == age_label].copy()
+
+    # Unique employer-quartile pairs for this age group
+    emp_q = (
+        sub.groupby(["employer_id", "exposure_quartile"])
+        .size()
+        .reset_index()[["employer_id", "exposure_quartile"]]
+    )
+
+    # Identification restriction: employers spanning Q4 and Q1-Q3
+    q4_emps = set(emp_q.loc[emp_q["exposure_quartile"] == 4, "employer_id"])
+    low_emps = set(emp_q.loc[emp_q["exposure_quartile"] < 4, "employer_id"])
+    valid_emps = q4_emps & low_emps
+    emp_q = emp_q[emp_q["employer_id"].isin(valid_emps)]
+
+    # Cross join: employer-quartile pairs × all months
+    months_df = pd.DataFrame({"year_month": all_months})
+    emp_q["_k"] = 1
+    months_df["_k"] = 1
+    balanced = emp_q.merge(months_df, on="_k").drop(columns="_k")
+
+    # Left join actual employment counts
+    balanced = balanced.merge(
+        sub[["employer_id", "exposure_quartile", "year_month", "n_emp"]],
+        on=["employer_id", "exposure_quartile", "year_month"],
+        how="left",
+    )
+    balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
+    balanced["age_group"] = age_label
+
+    n_zeros = (balanced["n_emp"] == 0).sum()
+    pct_zero = 100 * n_zeros / len(balanced) if len(balanced) > 0 else 0
+    print(f"      Balanced: {len(balanced):,} cells "
+          f"({n_zeros:,} zeros = {pct_zero:.1f}%), "
+          f"{len(valid_emps):,} employers")
+
+    return balanced
+
+
+def _balance_spotlight_panel(panel, all_months):
+    """
+    Build balanced panel for one occupation's spotlight regression:
+    every (employer, age_binary) ever observed × all months.
+    Missing cells filled with n_emp = 0.
+
+    The identification restriction (employers with both young and old)
+    is already applied before calling this function.
+    """
+    # Unique employer-age pairs
+    emp_age = (
+        panel.groupby(["employer_id", "age_binary"])
+        .size()
+        .reset_index()[["employer_id", "age_binary"]]
+    )
+
+    # Cross join × all months
+    months_df = pd.DataFrame({"year_month": all_months})
+    emp_age["_k"] = 1
+    months_df["_k"] = 1
+    balanced = emp_age.merge(months_df, on="_k").drop(columns="_k")
+
+    # Left join actual counts
+    balanced = balanced.merge(
+        panel[["employer_id", "age_binary", "year_month", "n_emp"]],
+        on=["employer_id", "age_binary", "year_month"],
+        how="left",
+    )
+    balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
+
+    n_zeros = (balanced["n_emp"] == 0).sum()
+    pct_zero = 100 * n_zeros / len(balanced) if len(balanced) > 0 else 0
+    print(f"    Balanced: {len(balanced):,} cells "
+          f"({n_zeros:,} zeros = {pct_zero:.1f}%)")
+
+    return balanced
+
+
+# ======================================================================
 #   PART A1: GENDER DESCRIPTIVE FIGURE
 # ======================================================================
 
@@ -419,24 +512,7 @@ def run_gender_did(raw):
         .reset_index()
     )
 
-    # Treatment variables
-    agg["post_rb"] = (agg["year_month"] >= RIKSBANK_YM).astype(int)
-    agg["post_gpt"] = (agg["year_month"] >= CHATGPT_YM).astype(int)
-    agg["high"] = (agg["exposure_quartile"] == 4).astype(int)
-    agg["post_rb_x_high"] = agg["post_rb"] * agg["high"]
-    agg["post_gpt_x_high"] = agg["post_gpt"] * agg["high"]
-    agg["ln_emp"] = np.log(agg["n_emp"] + 1)
-
-    # FE identifiers
-    agg["fe_emp_q"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["exposure_quartile"].astype(str)
-    )
-    agg["fe_emp_t"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["year_month"]
-    )
-
+    all_months = sorted(agg["year_month"].unique())
     all_results = []
 
     for gender in ["Men", "Women"]:
@@ -444,11 +520,30 @@ def run_gender_did(raw):
         print(f"\n  === {gender} ===")
 
         for age_label in AGE_GROUPS:
-            sub = agg_g[agg_g["age_group"] == age_label].copy()
+            # Build balanced panel with zero-filled cells
+            sub = _balance_panel_for_age(agg_g, age_label, all_months)
 
             if len(sub) < 100:
                 print(f"    {age_label}: too few obs ({len(sub)}), skipping")
                 continue
+
+            # Treatment variables
+            sub["post_rb"] = (sub["year_month"] >= RIKSBANK_YM).astype(int)
+            sub["post_gpt"] = (sub["year_month"] >= CHATGPT_YM).astype(int)
+            sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+            sub["post_rb_x_high"] = sub["post_rb"] * sub["high"]
+            sub["post_gpt_x_high"] = sub["post_gpt"] * sub["high"]
+            sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+
+            # FE identifiers
+            sub["fe_emp_q"] = (
+                sub["employer_id"].astype(str) + "_" +
+                sub["exposure_quartile"].astype(str)
+            )
+            sub["fe_emp_t"] = (
+                sub["employer_id"].astype(str) + "_" +
+                sub["year_month"]
+            )
 
             result = _run_panel_ols(sub, f"{gender}_{age_label}")
             if result is not None:
@@ -730,10 +825,14 @@ def run_spotlight_regressions(raw):
         both_ages = emp_age_coverage[emp_age_coverage == 2].index
         panel = panel[panel["employer_id"].isin(both_ages)].copy()
 
+        # Build balanced panel with zero-filled cells
+        all_months = sorted(raw["year_month"].unique())
+        panel = _balance_spotlight_panel(panel, all_months)
+
         n_cells = len(panel)
         n_employers = panel["employer_id"].nunique()
         print(f"    Panel: {n_cells:,} cells, {n_employers:,} employers "
-              f"(with both young and old)")
+              f"(with both young and old, balanced)")
 
         # Check minimum requirements
         if n_cells < 500 or n_employers < 50:
@@ -1030,9 +1129,11 @@ def write_summary(raw, gender_results, spotlight_results):
             f.write("\n")
 
         f.write("\n--- FE structure ---\n")
-        f.write("Gender DiD: employer x quartile + employer x month (same as script 14)\n")
+        f.write("Gender DiD: employer x quartile + employer x month (same as script 15)\n")
         f.write("Spotlights: employer x age_binary + employer x month\n")
         f.write("SEs clustered by employer (gender) / employer-age entity (spotlights)\n")
+        f.write("Panel: balanced (zero-filled), restricted to employers with Q4 and Q1-Q3\n")
+        f.write("Spotlight panel: balanced (zero-filled), restricted to employers with both ages\n")
 
     print(f"\n  Saved summary -> {out.name}")
 
