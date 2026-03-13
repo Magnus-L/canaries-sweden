@@ -108,11 +108,22 @@ The Python script can be adapted for DST data by:
 
 ## Outstanding MONA Tasks (pre-submission)
 
-1. **Employment summary statistics** for appendix Table A2: N employers, N employer×quartile cells, mean/median cell sizes, share of zero cells by age group.
+### Priority A — Must complete before submission
+
+1. **Employment summary statistics** for appendix Table A2: N employers, N employer×quartile cells, mean/median cell sizes, **share of zero-employment cells by age group × quartile × half-year period**. The zero-cell share is critical: referees will ask whether results are driven by small cells going to zero (idiosyncratic turnover) vs systematic intensive-margin declines.
 2. **Spotlight figures** for payroll administrators (SSYK 4112) and receptionists (SSYK 4225) — same format as software developers and customer service figures.
-3. **Rambachan-Roth sensitivity analysis** for the employment event study (at minimum ages 22-25). Use the `honestdid` R package or implement in Python following Rambachan & Roth (2023, RES). Report the breakdown value $\bar{M}$ and honest confidence intervals under relative magnitudes restrictions. This is needed to preempt the standard referee concern about failing pre-trend tests.
-4. **Alternative reference period (2021H2)**: Script 18 already computes this. Export the event study coefficients CSV and confirm results are qualitatively unchanged from the 2022H1 baseline. The appendix states this; we need the output to back it up.
-5. **Poisson QMLE robustness**: re-estimate the main DiD (Equation A1) using Poisson quasi-maximum likelihood instead of OLS on ln(count+1), following Chen & Roth (2024, QJE). Report alongside the main OLS results. Script 15 has a pyfixest Poisson fallback — adapt for the balanced panel.
+3. **Rambachan-Roth sensitivity analysis** for the employment event study (at minimum ages 22-25). Use the `honestdid` R package or implement in Python following Rambachan & Roth (2023, RES). Report the breakdown value $\bar{M}$ and honest confidence intervals under relative magnitudes restrictions. This is the single most important robustness check — three simulated referees all flagged this as the #1 concern.
+4. **Alternative reference period (2021H2)**: Script 18 already computes this. Export the event study coefficients CSV and **include the figure in the appendix** (not just state "qualitatively unchanged"). Referees will want to see it given the significant γ₁.
+5. **Poisson QMLE robustness**: re-estimate the main DiD (Equation A1) and event study using Poisson quasi-maximum likelihood instead of OLS on ln(count+1), following Chen & Roth (2024, QJE). Also report results **excluding zero-employment cells** to confirm the intensive margin alone shows the pattern. Script 15 has a pyfixest Poisson fallback — adapt for the balanced panel.
+
+### Priority B — Should complete (raised by 2+ simulated referees)
+
+6. **Teleworkability split for employment** (not just postings): crosswalk Dingel-Neiman teleworkability to SSYK and re-estimate the employer-level DiD + event study separately for teleworkable vs non-teleworkable occupations. If the employment age gradient also concentrates in non-teleworkable occupations, this strongly corroborates the main result.
+7. **Alternative SE clustering**: report SEs clustered at (a) the employer level and (b) the occupation level, in addition to the current employer×quartile clustering. Present as a robustness table.
+8. **SSYK attrition robustness**: re-estimate the employment DiD + event study restricting the sample to 2019-2023 only (where SSYK coverage is strongest, 90%+). The non-match rate rises to 20% in 2025, precisely when event study effects are largest. If results are qualitatively similar with the restricted sample, this is a strong defence.
+9. **Employment age gradient with Eloundou measure**: re-estimate the employer-level DiD using the Eloundou et al. (2024) GPT exposure score instead of DAIOE. A referee noted that the posting timing test is measure-dependent (DAIOE loads effect onto Riksbank period; Eloundou loads onto ChatGPT period). Showing the employment result holds across measures would address this.
+10. **Placebo treatment date test**: re-estimate the event study with a fake "PostGPT" cutoff at November 2021 (one year early). If no acceleration appears at the placebo date, this confirms the pattern is not a pre-existing trend. Simple and convincing.
+11. **Composition entrant share over time**: report the share of young entrants (first observed in AGI) entering Q4 occupations, by year (2019-2025). The current "13% in 2023" statistic does not rule out a composition channel — a referee needs to see whether this share changes differentially after ChatGPT.
 
 ## Reference
 
