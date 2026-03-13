@@ -437,7 +437,7 @@ For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path b
 \label{sec:gender}
 % ──────────────────────────────────────────────────────────────────────────────
 
-Table~\ref{tab:gender_did} re-estimates the employer-level DiD (Equation~\ref{eq:employer_did}) separately for men and women. The negative effect on the youngest workers is approximately twice as large for women as for men: $\hat\gamma_2 = -0.016$ ($p < 0.001$) for women aged 22--25, compared with $-0.007$ ($p < 0.01$) for men. Women aged 26--30 also show a significant negative effect ($-0.006$, $p < 0.01$), while men in the same age group show no effect. At the older end, men in high-exposure occupations gain more than women ($+0.016$ vs $+0.001$, the latter not significant). An unexpected finding is that women aged 41--49 show a significant negative coefficient ($-0.009$, $p < 0.001$), unlike men in the same group ($+0.005$, $p < 0.01$), suggesting that AI-related employment effects may extend further up the age distribution for women. Figure~\ref{fig:gender_panel} shows the raw employment trajectories by gender.
+Table~\ref{tab:gender_did} re-estimates the employer-level DiD (Equation~\ref{eq:employer_did}) separately for men and women. The negative effect on the youngest workers is approximately twice as large for women as for men: $\hat\gamma_2 = -0.016$ ($p < 0.001$) for women aged 22--25, compared with $-0.007$ ($p < 0.01$) for men. Women aged 26--30 also show a significant negative effect ($-0.006$, $p < 0.01$), while men in the same age group show no effect. At the older end, men in high-exposure occupations gain more than women ($+0.016$ vs $+0.001$, the latter not significant). Women aged 41--49 show a significant negative coefficient ($-0.009$, $p < 0.001$), unlike men in the same group ($+0.005$, $p < 0.01$). Figure~\ref{fig:gender_panel} shows the raw employment trajectories by gender.
 
 \begin{table}[htbp]
 \centering
@@ -474,6 +474,39 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \caption{Monthly employment by age group, AI exposure, and gender (3-month moving average). AGI register data indexed to October 2022 = 100. Young = 22--25; Older = 26+. Solid lines = high AI exposure (Q4); dashed = low (Q1--Q3). The decline among young women in high-exposure occupations is steeper than for young men.}
 \label{fig:gender_panel}
 \end{figure}
+
+\paragraph{Decomposing the gender gap: occupational composition vs within-occupation effects.}
+The gender differences in Table~\ref{tab:gender_did} could reflect either (i)~occupational composition -- men and women sort into different occupations within the top AI exposure quartile -- or (ii)~within-occupation differences in how AI exposure affects employment by gender. To separate these channels, we re-estimate the women's regressions using inverse probability weights (IPW) that reweight women's occupational distribution within Q4 to match men's. If the gender gap narrows after reweighting, occupational composition is a contributing factor; if it persists, the effect operates within occupations.
+
+Table~\ref{tab:gender_reweighted} reports the results. For ages 22--25, reweighting reduces the women's coefficient from $-0.016$ to $-0.013$ ($p < 0.001$), narrowing the gender gap from 0.009 to 0.006. Occupational composition accounts for approximately one-third of the gender gap; the remaining two-thirds reflects within-occupation differences, indicating that young women in the \emph{same} AI-exposed occupations as young men experience larger employment declines.
+
+The composition channel is more consequential at older ages. For women aged 41--49, the significant negative coefficient ($-0.009$, $p < 0.001$) disappears entirely after reweighting ($+0.002$, $p = 0.42$). The effect for middle-aged women is thus fully attributable to their concentration in specific Q4 occupations -- likely administrative and customer service roles -- that are disproportionately affected, not to differential treatment within occupations. Similarly, for women over 50, the insignificant unweighted coefficient ($+0.001$, $p = 0.52$) becomes a significant gain after reweighting ($+0.011$, $p < 0.001$), comparable in magnitude to men's gain ($+0.016$). Middle-aged and older women's occupational sorting into the hardest-hit Q4 occupations masks an underlying pattern that, conditional on occupation, resembles men's.
+
+\begin{table}[htbp]
+\centering
+\caption{Decomposing the gender gap: women's DiD coefficients, unweighted vs IPW-reweighted to men's occupational distribution within Q4. All specifications include employer$\times$quartile and employer$\times$month fixed effects.}
+\label{tab:gender_reweighted}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & Men (unweighted) & Women (unweighted) & Women (reweighted) \\
+\midrule
+22--25 & $-0.007$*** & $-0.016$*** & $-0.013$*** \\
+ & $(0.003)$ & $(0.002)$ & $(0.002)$ \\[4pt]
+26--30 & $-0.002$ & $-0.006$*** & $-0.005$** \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ \\[4pt]
+31--34 & $+0.007$*** & $+0.004$* & $+0.006$* \\
+ & $(0.002)$ & $(0.002)$ & $(0.003)$ \\[4pt]
+35--40 & $+0.003$ & $+0.002$ & $+0.001$ \\
+ & $(0.002)$ & $(0.002)$ & $(0.003)$ \\[4pt]
+41--49 & $+0.005$*** & $-0.009$*** & $+0.002$ \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ \\[4pt]
+50+ & $+0.016$*** & $+0.001$ & $+0.011$*** \\
+ & $(0.001)$ & $(0.002)$ & $(0.002)$ \\
+\bottomrule
+\multicolumn{4}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. $\hat\gamma_2$ (PostGPT $\times$ Q4) shown. Standard errors in parentheses.}
+\end{tabular}
+\end{table}
 
 
 % ──────────────────────────────────────────────────────────────────────────────
