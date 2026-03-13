@@ -11,13 +11,13 @@ We examine whether the widely discussed divergence between stock prices and job 
 | Dataset | Source | Access |
 |---------|--------|--------|
 | Platsbanken historical ads | [JobTech Development](https://data.jobtechdev.se/annonser/historiska/) | Open (CC0) |
-| DAIOE genAI exposure | [Engberg et al. (2024)](https://doi.org/XXX) | Open |
+| DAIOE genAI exposure | [Engberg et al. (2024), IZA DP 16717](https://docs.iza.org/dp16717.pdf) | Open |
 | OMXS30 / OMXSPI prices | Yahoo Finance (`^OMX`, `^OMXSPI`) | Open |
 | Riksbanken policy rate | [riksbank.se](https://riksbank.se) | Open |
 | Indeed US postings | [Indeed Hiring Lab](https://github.com/hiring-lab/job_postings_tracker) | Open |
 | S&P 500 / Nasdaq prices | Yahoo Finance (`^GSPC`, `^IXIC`) | Open |
 | Dingel-Neiman teleworkability | [Dingel & Neiman (2020)](https://github.com/jdingel/DingelNeiman-workathome) | Open |
-| Eloundou GPT exposure | [Eloundou et al. (2024)](https://doi.org/XXX) | Open |
+| Eloundou GPT exposure | [Eloundou et al. (2024)](https://doi.org/10.1126/science.adj0998) | Open |
 | AGI employer declarations (SCB) | Statistics Sweden, MONA | Restricted |
 
 The posting analysis (steps 1–13) uses only public data. The employment analysis (steps 14–19) uses restricted administrative microdata from Statistics Sweden, accessible via the MONA platform. See `src/MONA_INSTRUCTIONS.md` for access details.
