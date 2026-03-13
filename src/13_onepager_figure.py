@@ -1,112 +1,141 @@
 #!/usr/bin/env python3
 """
-15_onepager_figure.py — Age gradient figure for policy one-pager.
+13_onepager_figure.py — Event study figure for policy one-pager.
 
-Creates a clean dot-with-CI plot showing the ChatGPT employment effect (γ₂)
-by age group. The monotonic gradient from negative (young) to positive (old)
-is the key visual message.
+Shows the accelerating divergence between young (22-25) and older (50+)
+workers in AI-exposed occupations after ChatGPT's launch. This replaced
+the earlier static dot plot (which showed the old 6.5% level effect)
+with the corrected event study trajectory.
 
-Input: data/mona/canaries_did_results.csv
-Output: figures/onepager_age_gradient.pdf
+Input:  data/output/corrected_es_all_ref2022H1.csv
+Output: figures/onepager_age_gradient.pdf / .png
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from pathlib import Path
 
 # --- Paths ---
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data" / "mona" / "canaries_did_results.csv"
-OUT = ROOT / "figures" / "onepager_age_gradient.pdf"
-OUT.parent.mkdir(exist_ok=True)
+DATA = ROOT / "data" / "output" / "corrected_es_all_ref2022H1.csv"
+OUT_PDF = ROOT / "figures" / "onepager_age_gradient.pdf"
+OUT_PNG = ROOT / "figures" / "onepager_age_gradient.png"
+OUT_PDF.parent.mkdir(exist_ok=True)
 
-# --- Colours (from paper config) ---
+# --- Colours (matching one-pager LaTeX theme) ---
 ORANGE = "#E8873A"
 TEAL = "#2E7D6F"
 DARK_BLUE = "#1B3A5C"
 DARK_TEXT = "#2C2C2C"
 LIGHT_GRAY = "#F0F0F0"
 
-# --- Load data ---
+# --- Load corrected event study data ---
 df = pd.read_csv(DATA)
 
-# Sort by age group order
-age_order = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
-df["sort"] = df["age_group"].map({a: i for i, a in enumerate(age_order)})
-df = df.sort_values("sort")
-
-# Extract coefficients — convert to percentage for readability
-# exp(gamma) - 1 ≈ gamma for small values, but let's be precise
-df["pct"] = (np.exp(df["gamma2_gpt_high"]) - 1) * 100
-df["ci_lo"] = (np.exp(df["gamma2_gpt_high"] - 1.96 * df["se2"]) - 1) * 100
-df["ci_hi"] = (np.exp(df["gamma2_gpt_high"] + 1.96 * df["se2"]) - 1) * 100
-
-# --- Assign colours: negative = orange, positive = teal ---
-colours = [ORANGE if v < 0 else TEAL for v in df["pct"]]
+# Period ordering — 2022H1 is the reference period (coefficient = 0)
+period_order = [
+    "2019H1", "2019H2", "2020H1", "2020H2", "2021H1", "2021H2",
+    "2022H1", "2022H2", "2023H1", "2023H2", "2024H1", "2024H2", "2025H1"
+]
 
 # --- Figure ---
-fig, ax = plt.subplots(figsize=(7, 4))
+fig, ax = plt.subplots(figsize=(7.5, 4.2))
 
-x = np.arange(len(df))
+# Plot settings per age group
+# Orange for young (negative = concerning), teal for 50+ (positive = resilient)
+groups = {
+    "22-25": {"color": ORANGE, "label": "22–25 year olds"},
+    "50+":   {"color": TEAL,   "label": "50+ year olds"},
+}
 
-# CI whiskers
-for i, row in enumerate(df.itertuples()):
-    ax.plot([i, i], [row.ci_lo, row.ci_hi], color=colours[i],
-            linewidth=2.5, solid_capstyle="round", zorder=2)
+for age, cfg in groups.items():
+    sub = df[df["age_group"] == age].copy()
+    sub["period_idx"] = sub["period"].map({p: i for i, p in enumerate(period_order)})
+    sub = sub.dropna(subset=["period_idx"]).sort_values("period_idx")
 
-# Dots
-ax.scatter(x, df["pct"], color=colours, s=100, zorder=3, edgecolors="white",
-           linewidth=1.2)
+    # Convert log-point coefficients to percentage points for readability
+    coef_pct = sub["coef"] * 100
+    se_pct = sub["se"] * 100
 
-# Zero line
-ax.axhline(0, color=DARK_TEXT, linewidth=0.8, linestyle="-", alpha=0.4, zorder=1)
+    # Line with markers
+    ax.plot(sub["period_idx"], coef_pct, "o-",
+            color=cfg["color"], linewidth=2.2, markersize=5,
+            label=cfg["label"], zorder=3)
 
-# Labels on each dot
-for i, row in enumerate(df.itertuples()):
-    offset = -1.2 if row.pct < 0 else 0.8
-    weight = "bold" if row.pval2 < 0.01 else "normal"
-    ax.annotate(f"{row.pct:+.1f}%", (i, row.pct + offset),
-                ha="center", va="center", fontsize=9, fontweight=weight,
-                color=colours[i])
+    # 95% CI band
+    ax.fill_between(sub["period_idx"],
+                    coef_pct - 1.96 * se_pct,
+                    coef_pct + 1.96 * se_pct,
+                    color=cfg["color"], alpha=0.12)
 
-# Axes
-ax.set_xticks(x)
-ax.set_xticklabels(df["age_group"], fontsize=11)
-ax.set_xlabel("Age group", fontsize=11, color=DARK_TEXT)
-ax.set_ylabel("Employment change (%)", fontsize=11, color=DARK_TEXT)
+# --- Annotations: endpoint values for policy audience ---
+# 22-25 at 2025H1: -5.5%
+young_end = df[(df["age_group"] == "22-25") & (df["period"] == "2025H1")]
+if not young_end.empty:
+    val = young_end["coef"].iloc[0] * 100
+    x_pos = period_order.index("2025H1")
+    ax.annotate(f"{val:.1f} pp", (x_pos, val),
+                textcoords="offset points", xytext=(-38, -8),
+                fontsize=8.5, fontweight="bold", color=ORANGE)
 
-# y-axis as percentage
-ax.yaxis.set_major_formatter(mticker.FormatStrFormatter('%+.0f%%'))
+# 50+ at 2025H1: +1.3%
+old_end = df[(df["age_group"] == "50+") & (df["period"] == "2025H1")]
+if not old_end.empty:
+    val = old_end["coef"].iloc[0] * 100
+    x_pos = period_order.index("2025H1")
+    ax.annotate(f"+{val:.1f} pp", (x_pos, val),
+                textcoords="offset points", xytext=(-38, 8),
+                fontsize=8.5, fontweight="bold", color=TEAL)
 
-# Clean up
+# --- Zero line ---
+ax.axhline(0, color="black", linewidth=0.6, alpha=0.5)
+
+# --- ChatGPT launch marker (Nov 2022, between 2022H1 and 2022H2) ---
+chatgpt_x = period_order.index("2022H1") + 0.5
+ax.axvline(chatgpt_x, color="grey", linewidth=0.8, linestyle="--", alpha=0.5)
+ax.text(chatgpt_x + 0.15, ax.get_ylim()[0] * 0.15, "ChatGPT",
+        fontsize=8, color="grey", ha="left", va="bottom")
+
+# --- X-axis ---
+ax.set_xticks(range(len(period_order)))
+ax.set_xticklabels(period_order, rotation=45, ha="right", fontsize=8.5)
+
+# --- Y-axis: percentage points ---
+ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f pp"))
+ax.set_ylabel("Employment change (percentage points)", fontsize=10,
+              color=DARK_TEXT)
+
+# --- Clean spines ---
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 ax.spines["left"].set_color("#CCCCCC")
 ax.spines["bottom"].set_color("#CCCCCC")
-ax.tick_params(colors=DARK_TEXT, labelsize=10)
+ax.tick_params(colors=DARK_TEXT, labelsize=9)
 
-# Subtle grid
+# --- Subtle grid ---
 ax.yaxis.grid(True, alpha=0.2, linestyle="-")
 ax.set_axisbelow(True)
 
-# Title — descriptive for policy audience
+# --- Title ---
 ax.set_title(
-    "Relative employment change in AI-exposed occupations\nafter ChatGPT launch",
+    "Employment in AI-exposed occupations\nafter ChatGPT launch, by age group",
     fontsize=12, fontweight="bold", color=DARK_BLUE, pad=12
 )
 
-# Note
+# --- Legend ---
+ax.legend(fontsize=9.5, loc="lower left", frameon=False)
+
+# --- Note ---
 fig.text(0.98, -0.02,
-         "Note: Employer×quartile and employer×month fixed effects. "
-         "95% CI shown. Bold = p < 0.01.",
+         "Note: Employer\u00d7quartile and employer\u00d7month FE. "
+         "Ref. period: 2022H1. 95% CI shown.",
          ha="right", fontsize=7.5, color="#888888", style="italic")
 
 fig.tight_layout()
-fig.savefig(OUT, dpi=300, bbox_inches="tight")
-fig.savefig(OUT.with_suffix(".png"), dpi=300, bbox_inches="tight")
+fig.savefig(OUT_PDF, dpi=300, bbox_inches="tight")
+fig.savefig(OUT_PNG, dpi=300, bbox_inches="tight")
 plt.close()
 
-print(f"Saved: {OUT}")
-print(f"Saved: {OUT.with_suffix('.png')}")
+print(f"Saved: {OUT_PDF}")
+print(f"Saved: {OUT_PNG}")

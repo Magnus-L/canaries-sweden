@@ -5,7 +5,7 @@
 \documentclass[10pt,a4paper]{article}
 
 % --- Packages ---
-\usepackage[top=1.4cm, bottom=1.2cm, left=1.8cm, right=1.8cm]{geometry}
+\usepackage[top=1.2cm, bottom=1.0cm, left=1.8cm, right=1.8cm]{geometry}
 \usepackage{graphicx}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{enumitem}
@@ -26,7 +26,7 @@
 
 % --- Section formatting ---
 \titleformat{\section}{\small\bfseries\color{darkblue}}{}{0pt}{}
-\titlespacing{\section}{0pt}{6pt}{2pt}
+\titlespacing{\section}{0pt}{4pt}{1pt}
 
 % --- No page numbers ---
 \pagestyle{empty}
@@ -76,32 +76,34 @@
   \textsuperscript{c}Aarhus University / Kiel Institut}
 \end{center}
 
-\vspace{0.08cm}
+\vspace{0.04cm}
 \noindent\textcolor{darkblue}{\rule{\textwidth}{0.4pt}}
 
 % === KEY FINDING BOX ===
-\vspace{0.12cm}
+\vspace{0.08cm}
 \noindent
 \colorbox{lightgray}{%
   \parbox{\dimexpr\textwidth-2\fboxsep}{%
     \vspace{3pt}
     \centering\small
     {\bfseries\color{darkblue} Key finding:}
-    In the two and a half years after ChatGPT's launch, employment of \textbf{\textcolor{orange}{22--25 year olds}}
-    in AI-exposed occupations fell by \textbf{\textcolor{orange}{6.5\%}} relative to less exposed
-    occupations, while employment of \textbf{\textcolor{teal}{workers over~50}} \textbf{\textcolor{teal}{rose by~1.5\%}}.
+    After ChatGPT's launch, employment of \textbf{\textcolor{orange}{22--25 year olds}}
+    in AI-exposed occupations began declining relative to less exposed
+    occupations, reaching \textbf{\textcolor{orange}{$-$5.5\%}} by early 2025,
+    while employment of \textbf{\textcolor{teal}{workers over~50}} \textbf{\textcolor{teal}{rose by~1.3\%}}.
+    The gap is accelerating.
     \vspace{3pt}
   }%
 }
 
 % === FIGURE ===
-\vspace{0.12cm}
+\vspace{0.08cm}
 \begin{center}
-  \includegraphics[width=0.78\textwidth]{../figures/onepager_age_gradient.pdf}
+  \includegraphics[width=0.74\textwidth]{../figures/onepager_age_gradient.pdf}
 \end{center}
 
 % === TWO COLUMNS: FINDINGS + POLICY ===
-\vspace{-0.3cm}
+\vspace{-0.35cm}
 \begin{multicols}{2}
 
 \section{What we found}
@@ -116,16 +118,18 @@
         in AI-exposed occupations (e.g., software developers, customer
         service agents, administrative assistants) are disproportionately
         losing employment, a shift invisible in aggregate statistics.
-  \item The age gradient is \textbf{monotonic}: the younger the worker,
-        the larger the negative effect. An event study with flat pre-trends
-        shows the gap \textbf{widening through mid-2025}. The result mirrors
-        US findings (Brynjolfsson et al., 2025) and contrasts with a Finnish
-        null (Kauhanen, 2025); our within-employer design using
-        \textbf{full-population} data may capture composition shifts not
-        visible at the occupation level.
-  \item The effect is \textbf{stronger for women}: young women in
-        AI-exposed occupations lost 8.2\% of employment, compared
-        with 5.4\% for young men.
+  \item The effect \textbf{accelerates over time}: by early 2025,
+        22--25 year olds in high-AI occupations had lost \textbf{5.5\%}
+        of employment relative to low-AI occupations, up from near zero
+        at launch. Workers aged 26--30 follow a similar trajectory
+        ($-$4.9\% by 2025H1). Meanwhile, workers over~50 \emph{gained}
+        1.3\%. The result mirrors US findings (Brynjolfsson et al., 2025)
+        and contrasts with a Finnish null (Kauhanen, 2025); our
+        within-employer design using \textbf{full-population} data
+        may capture composition shifts not visible at the occupation level.
+  \item The effect is \textbf{stronger for women}: the average treatment
+        effect for young women is $-$1.6\%, more than double the $-$0.7\%
+        for young men.
 \end{itemize}
 
 \section{Policy implications}
@@ -147,9 +151,9 @@
 \end{multicols}
 
 % === FOOTER ===
-\vspace{-0.05cm}
+\vspace{-0.1cm}
 \noindent\textcolor{darkblue}{\rule{\textwidth}{0.4pt}}
-\vspace{0.08cm}
+\vspace{0.04cm}
 
 \noindent
 {\scriptsize\color{medgray}
@@ -161,9 +165,10 @@ AI exposure measured using the DAIOE index
 and employer$\times$month fixed effects, following Brynjolfsson et al.\ (2025).
 SEs clustered by employer.
 DAIOE is constructed from pre-2022 work content, fixed across the sample period.
-\hfill \textbf{11 March 2026}}
+\hfill \textbf{13 March 2026}\\[1pt]
+\hfill Code: \href{https://github.com/Magnus-L/canaries-sweden}{github.com/Magnus-L/canaries-sweden}}
 
-\vspace{0.08cm}
+\vspace{0.04cm}
 \noindent
 {\scriptsize\color{medgray}
 \textit{Preliminary results. \href{https://www.ai-econlab.com/papers}{Working paper} forthcoming 16 March 2026.
