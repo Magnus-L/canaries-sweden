@@ -432,6 +432,30 @@ For ages 41--49 and 50+, the pre-treatment event study coefficients trace an upw
 
 For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path breaks sharply downward: coefficients fall to $-0.049$ by 2025H1, far exceeding any linear extrapolation of the pre-trend. The average DiD coefficient ($+0.000$) masks the late-period effect because it pools the mildly positive early post-treatment (2022H2--2023H2) with the sharp late decline (2024H1--2025H1). By the most recent period, the 26--30 effect size approaches that of the 22--25 group, suggesting that AI-related employment displacement is diffusing up the age distribution as adoption deepens. A formal sensitivity analysis along the lines of \citet{rambachan2023more} could quantify the robustness of these conclusions to alternative trend assumptions.
 
+\paragraph{Cumulative pre-trend bias.}
+Table~\ref{tab:pretrend_bias} quantifies the scope for pre-trend contamination of the post-treatment estimates. For each age group, we fit a linear trend through the six pre-treatment event study coefficients (2019H1--2021H2) and extrapolate over the six post-treatment half-years to compute cumulative bias. The pre-trend slope is \emph{positive} for all age groups, including the core 22--25 group ($+0.0007$/half-year, $R^2 = 0.02$) and the 26--30 group ($+0.0012$/half-year, $R^2 = 0.09$). Because the post-treatment effects for these groups are negative ($-0.055$ and $-0.049$ by 2025H1), linear extrapolation of pre-trends biases \emph{against} the canaries finding: the true effects may be larger than estimated. The near-zero $R^2$ values confirm that the pre-period coefficients for 22--25 and 26--30 are essentially noise rather than a systematic trend.
+
+For the 50+ group, the picture is different: the pre-trend slope ($+0.003$/half-year, $R^2 = 0.88$) extrapolates to a cumulative bias of $+0.019$, exceeding the observed endpoint ($+0.013$). The positive 50+ result may therefore partly reflect trend continuation rather than a treatment effect, and should be interpreted with caution.
+
+\begin{table}[htbp]
+\centering
+\caption{Cumulative pre-trend bias analysis. Pre-trend slope fitted through the six pre-treatment event study coefficients (2019H1--2021H2) via OLS. Cumulative bias = slope $\times$ 6 post-treatment half-years. ``Bias/endpoint'' gives the ratio of cumulative bias to the 2025H1 coefficient; negative ratios indicate that the pre-trend works \emph{against} the finding.}
+\label{tab:pretrend_bias}
+\footnotesize
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint & Bias/endpoint \\
+\midrule
+22--25 & $+0.0007$ & 0.02 & $\times 6$ & $+0.004$ & $-0.055$ & $-7\%$ \\
+26--30 & $+0.0012$ & 0.09 & $\times 6$ & $+0.007$ & $-0.049$ & $-15\%$ \\
+31--34 & $+0.0016$ & 0.34 & $\times 6$ & $+0.010$ & $-0.013$ & $-75\%$ \\
+35--40 & $+0.0012$ & 0.30 & $\times 6$ & $+0.007$ & $-0.009$ & $-80\%$ \\
+41--49 & $+0.0022$ & 0.70 & $\times 6$ & $+0.013$ & $-0.004$ & $-385\%$ \\
+50+ & $+0.0032$ & 0.88 & $\times 6$ & $+0.019$ & $+0.013$ & $+149\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Gender heterogeneity}
 \label{sec:gender}

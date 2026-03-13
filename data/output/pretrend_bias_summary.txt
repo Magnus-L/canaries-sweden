@@ -1,0 +1,53 @@
+============================================================
+CUMULATIVE PRE-TREND BIAS ANALYSIS
+Script: 31_cumulative_pretrend_bias.py
+Input: /Users/mslk/Documents/Workspace/projects/canaries-sweden/data/output/corrected_es_all_ref2022H1.csv
+Reference period: 2022H1
+Pre-treatment periods: 2019H1, 2019H2, 2020H1, 2020H2, 2021H1, 2021H2 (6 periods)
+Post-treatment periods: 2022H2, 2023H1, 2023H2, 2024H1, 2024H2, 2025H1 (6 periods)
+Endpoint: 2025H1
+============================================================
+
+METHOD:
+  For each age group, fit OLS through pre-treatment event study
+  coefficients: coef_t = alpha + beta * t. Then extrapolate:
+  cumulative_bias = beta * N_post_periods. Compare to the actual
+  endpoint coefficient to get the 'bias share': what fraction of
+  the observed effect could be explained by trend continuation.
+
+RESULTS:
+
+==========================================================================================
+CUMULATIVE PRE-TREND BIAS ANALYSIS
+==========================================================================================
+
+ Age Group |  Pre-trend |     R2 | x periods | = Cum.bias |   Endpoint | Bias/Endpt
+------------------------------------------------------------------------------------------
+     22-25 |    +0.0007 |  0.022 | x      6 |    +0.0041 |    -0.0548 |        -7%
+     26-30 |    +0.0012 |  0.090 | x      6 |    +0.0074 |    -0.0490 |       -15%
+     31-34 |    +0.0016 |  0.341 | x      6 |    +0.0097 |    -0.0129 |       -75%
+     35-40 |    +0.0012 |  0.299 | x      6 |    +0.0073 |    -0.0091 |       -80%
+     41-49 |    +0.0022 |  0.702 | x      6 |    +0.0134 |    -0.0035 |      -385%
+       50+ |    +0.0032 |  0.879 | x      6 |    +0.0194 |    +0.0131 |       149%
+------------------------------------------------------------------------------------------
+
+INTERPRETATION:
+  22-25: Pre-trend slope (+0.0007) goes in OPPOSITE direction to endpoint (-0.0548). Pre-trend biases AGAINST the finding. The true effect may be larger than estimated.
+  26-30: Pre-trend slope (+0.0012) goes in OPPOSITE direction to endpoint (-0.0490). Pre-trend biases AGAINST the finding. The true effect may be larger than estimated.
+  31-34: Pre-trend slope (+0.0016) goes in OPPOSITE direction to endpoint (-0.0129). Pre-trend biases AGAINST the finding. The true effect may be larger than estimated.
+  35-40: Pre-trend slope (+0.0012) goes in OPPOSITE direction to endpoint (-0.0091). Pre-trend biases AGAINST the finding. The true effect may be larger than estimated.
+  41-49: Pre-trend slope (+0.0022) goes in OPPOSITE direction to endpoint (-0.0035). Pre-trend biases AGAINST the finding. The true effect may be larger than estimated.
+  50+: Bias share = 149%. Pre-trend could explain a large share of the endpoint. The post-treatment effect may partly reflect trend continuation rather than a treatment effect.
+
+NOTE ON R-SQUARED:
+  R2 of the linear fit through pre-treatment coefficients indicates
+  how well a simple linear trend describes the pre-period pattern.
+  Low R2 means the pre-period coefficients are noisy / non-linear,
+  making linear extrapolation less meaningful. High R2 means the
+  pre-trend is well-characterised and the extrapolation is informative.
+
+NOTE ON DIRECTION:
+  When the pre-trend slope goes in the opposite direction to the
+  post-treatment effect, the pre-trend works AGAINST our finding.
+  In this case, the formal pre-trend test failure (p<0.05) actually
+  makes our results more conservative, not less credible.
