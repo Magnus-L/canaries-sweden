@@ -1,7 +1,7 @@
 """
 Figure 3 for main paper: Event study of employment effects by age group.
 Shows 22-25 and 50+ age groups with 95% confidence intervals.
-Reference period: 2022H1. Coefficients in percentage points.
+Reference period: 2022H1. Coefficients as approximate percentage changes.
 """
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,7 +29,7 @@ for age in ["22-25", "50+"]:
     sub["period_idx"] = sub["period"].map({p: i for i, p in enumerate(period_order)})
     sub = sub.dropna(subset=["period_idx"]).sort_values("period_idx")
 
-    # Convert to percentage points for readability
+    # Convert to approximate percentage change for readability
     coef_pct = sub["coef"] * 100
     se_pct = sub["se"] * 100
 
@@ -53,9 +53,9 @@ ax.text(chatgpt_x + 0.15, ax.get_ylim()[0] + 0.3, "ChatGPT", fontsize=8,
 ax.set_xticks(range(len(period_order)))
 ax.set_xticklabels(period_order, rotation=45, ha="right", fontsize=8.5)
 
-# Y-axis: percentage points
-ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f pp"))
-ax.set_ylabel("Coefficient (percentage points)")
+# Y-axis: approximate percentage change
+ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f%%"))
+ax.set_ylabel("Employment change (%)")
 
 # Clean spines
 ax.spines["top"].set_visible(False)

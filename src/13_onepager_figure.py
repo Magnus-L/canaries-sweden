@@ -77,7 +77,7 @@ def main():
     if not young_end.empty:
         val = young_end["coef"].iloc[0] * 100
         x_pos = period_order.index("2025H1")
-        ax.annotate(f"{val:.1f} pp", (x_pos, val),
+        ax.annotate(f"{val:.1f}%", (x_pos, val),
                     textcoords="offset points", xytext=(-38, -8),
                     fontsize=8.5, fontweight="bold", color=ORANGE)
 
@@ -86,7 +86,7 @@ def main():
     if not old_end.empty:
         val = old_end["coef"].iloc[0] * 100
         x_pos = period_order.index("2025H1")
-        ax.annotate(f"+{val:.1f} pp", (x_pos, val),
+        ax.annotate(f"+{val:.1f}%", (x_pos, val),
                     textcoords="offset points", xytext=(-38, 8),
                     fontsize=8.5, fontweight="bold", color=TEAL)
 
@@ -103,9 +103,9 @@ def main():
     ax.set_xticks(range(len(period_order)))
     ax.set_xticklabels(period_order, rotation=45, ha="right", fontsize=8.5)
 
-    # --- Y-axis: percentage points ---
-    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f pp"))
-    ax.set_ylabel("Employment change (percentage points)", fontsize=10,
+    # --- Y-axis: approximate percentage change ---
+    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.0f%%"))
+    ax.set_ylabel("Employment change (%)", fontsize=10,
                   color=DARK_TEXT)
 
     # --- Clean spines ---
