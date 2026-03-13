@@ -1,0 +1,24 @@
+==================================================
+CORRECTED EVENT STUDY SUMMARY
+==================================================
+Script: 18_mona_eventstudy_corrected.py
+FE: employer×quartile (entity) + employer×month (other_effects)
+Runtime: 112.0 minutes
+
+--- PRIMARY (ref = 2022H1) ---
+PRE-TREND TESTS (joint chi2, H0: all pre-period coefficients = 0):
+     22-25: chi2(6) =  383.25, p = 0.0000  [FAIL]
+     26-30: chi2(6) =  544.89, p = 0.0000  [FAIL]
+     31-34: chi2(6) =  189.85, p = 0.0000  [FAIL]
+     35-40: chi2(6) =  169.68, p = 0.0000  [FAIL]
+     41-49: chi2(6) =  126.74, p = 0.0000  [FAIL]
+       50+: chi2(6) =  179.42, p = 0.0000  [FAIL]
+
+--- ROBUSTNESS (ref = 2021H2) ---
+PRE-TREND TESTS:
+     22-25: chi2(5) =  382.14, p = 0.0000  [FAIL]
+     26-30: chi2(5) =  504.99, p = 0.0000  [FAIL]
+     31-34: chi2(5) =  172.23, p = 0.0000  [FAIL]
+     35-40: chi2(5) =  158.21, p = 0.0000  [FAIL]
+     41-49: chi2(5) =  113.85, p = 0.0000  [FAIL]
+       50+: chi2(5) =  166.38, p = 0.0000  [FAIL]

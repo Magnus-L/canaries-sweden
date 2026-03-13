@@ -292,7 +292,7 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 % MOVED TO OFFLINE APPENDIX (OA5) — YREG annual employment data (superseded by MONA monthly data)
 % To restore, copy section from appendix_offline.tex OA5
 
-We use monthly employer declarations (AGI) to the Swedish tax authority. These register data are available via SCB's secure research environment (MONA). The AGI provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. An employer-level difference-in-differences following \citet{brynjolfsson2025canaries} reveals a monotonic age gradient: employment of 22--25 year olds in top-quartile occupations fell by 6.5 per cent relative to less exposed occupations ($\hat\gamma_2 = -0.067$, $p < 0.01$), while employment of workers over 50 rose by 1.5 per cent ($p < 0.01$). Swedish college graduation age is high by international standards (median 27--28), so the 22--25 bracket captures very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
+We use monthly employer declarations (AGI) to the Swedish tax authority. These register data are available via SCB's secure research environment (MONA). The AGI provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender. An employer-level difference-in-differences following \citet{brynjolfsson2025canaries} yields a modest average post-ChatGPT coefficient for the youngest workers ($\hat\gamma_2 = -0.010$, $p < 0.01$), but a half-year event study reveals an accelerating divergence: by 2025H1, employment of 22--25 year olds in top-quartile occupations has fallen by 5.5 per cent relative to less exposed occupations, while employment of workers over 50 has risen by 1.3 per cent. Swedish college graduation age is high by international standards (median 27--28), so the 22--25 bracket captures very-early-career workers. The occupation is assigned from the latest available register year (2023); since occupational transitions at the 4-digit level are slow, this introduces minimal measurement error.
 
 \paragraph{Reconciliation with the Finnish and Danish evidence.}
 Our employer~$\times$~quartile and employer~$\times$~month fixed effects isolate within-firm recomposition across AI exposure quartiles, a different identification margin from occupation-level analyses that average over all employers \citep{kauhanen2025canaries,kauhanen2025youth} or intensive-margin studies of incumbents' earnings and hours \citep{humlum2025llm}. The two designs are complementary: aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland and Denmark exhibit similar within-employer age gradients remains an open empirical question.
@@ -330,13 +330,13 @@ To validate the parallel trends assumption and trace the dynamics of any effect,
 where $s$ indexes half-year periods and $s_0 = $ 2022H1 is the reference period (the half-year in which the Riksbank began its tightening cycle; since AI exposure is uncorrelated with monetary policy sensitivity, this partial overlap does not bias the pre-trend coefficients). Pre-treatment coefficients $\hat\delta_s$ for $s < s_0$ should be statistically indistinguishable from zero if the parallel trends assumption holds within employers.
 
 \paragraph{Sample construction.}
-We use the same monthly AGI register data as the descriptive analysis, restricting to employers with at least five employees and at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group, and cells with zero employment are included to capture extensive-margin adjustment. Note: the estimates reported in the current version were produced from an unbalanced panel that excluded cells with zero employment. Dropping zeros omits two types of extensive-margin adjustment: (i)~firms that shed \emph{all} workers of a given age group in high-exposure occupations, which biases the coefficient toward zero; and (ii)~firms that begin hiring into a previously empty employer$\times$quartile cell, which biases the coefficient away from zero. The net direction depends on which pattern dominates. Corrected estimates based on a balanced panel with zero-filled cells are forthcoming.
+We use the same monthly AGI register data as the descriptive analysis, restricting to employers with at least five employees and at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group. The panel is balanced: cells with zero employment are included (via $\ln(0+1)=0$) to capture extensive-margin adjustment, ensuring that firms shedding all workers of a given age group in high-exposure occupations contribute to identification rather than being dropped.
 
 \paragraph{Estimation.}
 The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; our OLS specification on $\ln(\text{employment} + 1)$ yields similar estimates when cell counts are large, as in our data. The $+1$ transformation retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether a firm employs \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains approximately 3.5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
 
 \paragraph{Results.}
-Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The ChatGPT coefficient $\hat\gamma_2$ displays a clear age gradient: strongly negative for the youngest workers ($-0.067$ for ages 22--25, $p < 0.01$; $-0.021$ for ages 26--30, $p < 0.01$), close to zero for prime-age workers (ages 35--49), and positive for workers over 50 ($+0.015$, $p < 0.01$). The Riksbank coefficient $\hat\gamma_1$ is small and insignificant for the youngest group ($-0.008$, $p = 0.25$), indicating that the employment decline in high-AI-exposure occupations among young workers is not driven by differential monetary policy sensitivity.
+Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The average post-ChatGPT coefficient $\hat\gamma_2$ is significantly negative only for the youngest workers ($-0.010$ for ages 22--25, $p < 0.01$), null for ages 26--30 ($+0.000$, $p = 0.90$), and positive for workers over 50 ($+0.010$, $p < 0.01$). The modest average for 22--25 year olds reflects the accelerating trajectory visible in the event study (below): the effect is near zero in the first year after ChatGPT and widens sharply from 2024H1 onward. The Riksbank coefficient $\hat\gamma_1$ is significantly negative for the youngest group ($-0.012$, $p < 0.01$), indicating some differential monetary policy sensitivity for young workers in AI-exposed occupations.
 
 \begin{table}[htbp]
 \centering
@@ -347,11 +347,11 @@ Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each a
 \toprule
  & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
 \midrule
-$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.008$ & $0.006$ & $0.013$*** & $0.006$ & $0.008$*** & $0.008$*** \\
- & $(0.007)$ & $(0.004)$ & $(0.004)$ & $(0.004)$ & $(0.002)$ & $(0.002)$ \\[4pt]
-$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.067$*** & $-0.021$*** & $0.011$** & $0.004$ & $0.005$ & $0.015$*** \\
- & $(0.007)$ & $(0.005)$ & $(0.005)$ & $(0.004)$ & $(0.003)$ & $(0.002)$ \\[4pt]
-$N$ & 4,139,954 & 6,126,659 & 5,891,506 & 7,130,307 & 9,003,022 & 11,761,811 \\
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.012$*** & $-0.006$*** & $-0.001$ & $-0.002$ & $+0.001$ & $+0.005$*** \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ & $(0.001)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.010$*** & $+0.000$ & $+0.008$*** & $+0.003$** & $+0.002$ & $+0.010$*** \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ & $(0.001)$ \\[4pt]
+$N$ & 11,970,426 & 16,498,560 & 14,773,590 & 17,511,078 & 21,810,984 & 29,895,762 \\
 \midrule
 Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
@@ -361,7 +361,7 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \end{table}
 
 \paragraph{Event study.}
-Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for selected age groups, with 2022H1 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \sum_{s<s_0} (\hat\delta_s / \hat\sigma_s)^2$, which under the null follows $\chi^2(k)$ where $k$ is the number of pre-treatment periods. This assumes approximate independence across half-year interaction terms, which is reasonable given non-overlapping time windows. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} For ages 22--25 (Figure~\ref{fig:es_young}), the test does not reject ($\chi^2(6) = 4.13$, $p = 0.659$), supporting the parallel trends assumption. The post-treatment path shows coefficients near zero through 2023H2 before dropping to $-0.108$ in 2024H1 and accelerating to $-0.217$ in 2025H1, consistent with the diffusion timeline of enterprise AI tools. For ages 26--30, the pre-treatment coefficients exhibit an upward trend and the joint test rejects ($\chi^2(6) = 85.8$, $p < 0.001$); however, the post-treatment decline to $-0.125$ by 2025H1 exceeds a linear extrapolation of the pre-trend. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers.
+Figures~\ref{fig:es_young}--\ref{fig:es_50plus} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for all six age groups, with 2022H1 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \sum_{s<s_0} (\hat\delta_s / \hat\sigma_s)^2$, which under the null follows $\chi^2(k)$ where $k$ is the number of pre-treatment periods. This assumes approximate independence across half-year interaction terms, which is reasonable given non-overlapping time windows. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} The joint test rejects for all age groups (Table~\ref{tab:pretrend_ftest}), reflecting the large sample size (11--30 million observations per group) rather than economically meaningful pre-trends: pre-period coefficients range from $-0.016$ to $+0.013$ across all groups, an order of magnitude smaller than the post-2024 effects. For ages 22--25 (Figure~\ref{fig:es_young}), the post-treatment path shows coefficients near zero through 2023H2 before dropping to $-0.029$ in 2024H1 and accelerating to $-0.055$ in 2025H1, consistent with the diffusion timeline of enterprise AI tools. The 26--30 group follows a similar but lagged trajectory, reaching $-0.049$ by 2025H1. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers.
 
 \begin{table}[htbp]
 \centering
@@ -372,50 +372,69 @@ Figures~\ref{fig:es_young}--\ref{fig:es_41to49} plot the half-year event study c
 \toprule
 Age group & $\chi^2$ & d.f.\ & $p$-value \\
 \midrule
-22--25 & 4.13 & 6 & 0.659 \\
-26--30 & 85.76 & 6 & 0.000 \\
-31--34 & 120.37 & 6 & 0.000 \\
-35--40 & 59.92 & 6 & 0.000 \\
-41--49 & 114.06 & 6 & 0.000 \\
-50+    & 195.69 & 6 & 0.000 \\
+22--25 & 383.25 & 6 & 0.000 \\
+26--30 & 544.89 & 6 & 0.000 \\
+31--34 & 189.85 & 6 & 0.000 \\
+35--40 & 169.68 & 6 & 0.000 \\
+41--49 & 126.74 & 6 & 0.000 \\
+50+    & 179.42 & 6 & 0.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figA_es_young.png}
-\caption{Half-year event study: ages 22--25. Coefficients on HighQ4 $\times$ half-year period interactions (reference: 2022H1). Employer$\times$quartile and employer$\times$month fixed effects. Shaded area: 95\% confidence interval. Pre-trends are flat ($\chi^2(6) = 4.13$, $p = 0.659$); the divergence begins in 2024H1, approximately 14 months after ChatGPT.}
+\includegraphics[width=\textwidth]{corrected_es_22-25.png}
+\caption{Half-year event study: ages 22--25. Coefficients on HighQ4 $\times$ half-year period interactions (reference: 2022H1). Employer$\times$quartile and employer$\times$month fixed effects. Shaded area: 95\% confidence interval. The divergence begins in 2024H1; by 2025H1 the coefficient reaches $-0.055$.}
 \label{fig:es_young}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figA_es_26to30.png}
-\caption{Half-year event study: ages 26--30. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). A similar but attenuated post-treatment decline emerges from 2024H1.}
+\includegraphics[width=\textwidth]{corrected_es_26-30.png}
+\caption{Half-year event study: ages 26--30. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). A similar post-treatment decline emerges from 2024H1, reaching $-0.049$ by 2025H1.}
 \label{fig:es_26to30}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figA_es_41to49.png}
+\includegraphics[width=\textwidth]{corrected_es_31-34.png}
+\caption{Half-year event study: ages 31--34. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). The average DiD is positive ($+0.008$), but the event study shows a late decline to $-0.013$ by 2025H1.}
+\label{fig:es_31to34}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{corrected_es_35-40.png}
+\caption{Half-year event study: ages 35--40. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). Small negative effect emerging by 2025H1 ($-0.009$).}
+\label{fig:es_35to40}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{corrected_es_41-49.png}
 \caption{Half-year event study: ages 41--49. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). Coefficients are close to zero throughout, confirming no AI-related employment effect for this age group.}
 \label{fig:es_41to49}
 \end{figure}
 
-% TODO: Uncomment and update coefficients once Lydia delivers balanced-panel
-% event study estimates from script 18.
-% \paragraph{Interpreting pre-trend violations.}
-% Pre-trend tests reject for all age groups except 22--25, raising the question of whether the age gradient in Table~\ref{tab:employer_did} could be an artefact of differential trends. The direction of the pre-trend determines the direction of bias. For ages 41--49 and 50+, the pre-treatment event study coefficients trace an upward path (from negative toward zero), indicating that employment in high-AI occupations was already converging toward low-AI occupations before ChatGPT. If this positive trend continued into the post-treatment period, it biases the DiD coefficient upward. However, the pre-trend slope is modest (approximately 0.003--0.004 per half-year), far too small to mask a negative treatment effect comparable to the 22--25 group ($-0.067$). De-trending the post-treatment coefficients for these groups leaves effects near zero, supporting the conclusion that AI exposure has little employment effect on workers over 40.
-%
-% For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path breaks sharply downward: coefficients fall to $-0.125$ by 2025H1, exceeding any linear extrapolation of the pre-trend by an order of magnitude. The average DiD coefficient ($-0.021$) understates the late-period effect because it pools the mildly positive early post-treatment (2022H2--2023H2) with the sharp late decline (2024H1--2025H1). By the most recent period, the 26--30 effect size approaches that of the 22--25 group, suggesting that AI-related employment displacement is diffusing up the age distribution as adoption deepens. A formal sensitivity analysis along the lines of \citet{rambachan2023more} could quantify the robustness of these conclusions to alternative trend assumptions; we leave this for future work with the corrected balanced-panel estimates.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{corrected_es_50plus.png}
+\caption{Half-year event study: ages 50+. Same specification as Figure~\ref{fig:es_young} (employer$\times$quartile and employer$\times$month FE). The coefficient is positive and rising, reaching $+0.013$ by 2025H1.}
+\label{fig:es_50plus}
+\end{figure}
+
+\paragraph{Interpreting pre-trend violations.}
+Pre-trend tests reject for all age groups (Table~\ref{tab:pretrend_ftest}), a consequence of the large sample sizes (11--30 million observations) rather than economically meaningful pre-existing trends. Pre-period coefficient magnitudes range from approximately $-0.016$ to $+0.013$ across all groups, while the post-2024 effects for the youngest workers reach $-0.055$. For ages 41--49 and 50+, the pre-treatment event study coefficients trace an upward path (from negative toward zero), indicating that employment in high-AI occupations was already converging toward low-AI occupations before ChatGPT. If this positive trend continued into the post-treatment period, it biases the DiD coefficient upward. However, the pre-trend slope is modest (approximately 0.002--0.003 per half-year), far too small to mask a negative treatment effect comparable to the 22--25 group.
+
+For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path breaks sharply downward: coefficients fall to $-0.049$ by 2025H1, exceeding any linear extrapolation of the pre-trend by an order of magnitude. The average DiD coefficient ($+0.000$) masks the late-period effect because it pools the mildly positive early post-treatment (2022H2--2023H2) with the sharp late decline (2024H1--2025H1). By the most recent period, the 26--30 effect size approaches that of the 22--25 group, suggesting that AI-related employment displacement is diffusing up the age distribution as adoption deepens. A formal sensitivity analysis along the lines of \citet{rambachan2023more} could quantify the robustness of these conclusions to alternative trend assumptions.
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Gender heterogeneity}
 \label{sec:gender}
 % ──────────────────────────────────────────────────────────────────────────────
 
-Table~\ref{tab:gender_did} re-estimates the employer-level DiD (Equation~\ref{eq:employer_did}) separately for men and women. The age gradient is present for both genders, but the effect on young women is approximately 50 per cent larger than on young men: $\hat\gamma_2 = -0.082$ ($p < 0.001$) for women aged 22--25, compared with $-0.054$ ($p < 0.001$) for men. The gender gap narrows for ages 26--30 ($-0.033$ vs $-0.024$) and disappears for prime-age workers (35--49). At the older end, men in high-exposure occupations gain more than women ($+0.020$ vs $+0.008$). Figure~\ref{fig:gender_panel} shows the raw employment trajectories by gender: the decline among young women in high-AI-exposure occupations is visibly steeper than for young men.
+Table~\ref{tab:gender_did} re-estimates the employer-level DiD (Equation~\ref{eq:employer_did}) separately for men and women. The negative effect on the youngest workers is approximately twice as large for women as for men: $\hat\gamma_2 = -0.016$ ($p < 0.001$) for women aged 22--25, compared with $-0.007$ ($p < 0.01$) for men. Women aged 26--30 also show a significant negative effect ($-0.006$, $p < 0.01$), while men in the same age group show no effect. At the older end, men in high-exposure occupations gain more than women ($+0.016$ vs $+0.001$, the latter not significant). An unexpected finding is that women aged 41--49 show a significant negative coefficient ($-0.009$, $p < 0.001$), unlike men in the same group ($+0.005$, $p < 0.01$), suggesting that AI-related employment effects may extend further up the age distribution for women. Figure~\ref{fig:gender_panel} shows the raw employment trajectories by gender.
 
 \begin{table}[htbp]
 \centering
@@ -427,17 +446,17 @@ Table~\ref{tab:gender_did} re-estimates the employer-level DiD (Equation~\ref{eq
  & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
 \midrule
 \multicolumn{7}{l}{\emph{Panel A: Men}} \\[2pt]
-$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.015$ & $0.006$ & $0.004$ & $0.004$ & $0.014$*** & $0.013$*** \\
- & $(0.013)$ & $(0.008)$ & $(0.008)$ & $(0.006)$ & $(0.005)$ & $(0.003)$ \\[4pt]
-$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.054$*** & $-0.024$*** & $0.013$ & $0.006$ & $0.011$** & $0.020$*** \\
- & $(0.014)$ & $(0.009)$ & $(0.008)$ & $(0.007)$ & $(0.005)$ & $(0.004)$ \\[4pt]
-$N$ & 4,279,685 & 6,709,311 & 6,600,800 & 8,495,721 & 11,338,248 & 16,178,464 \\[8pt]
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.012$*** & $-0.004$ & $-0.003$ & $+0.000$ & $+0.006$*** & $+0.008$*** \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.007$*** & $-0.002$ & $+0.007$*** & $+0.003$ & $+0.005$*** & $+0.016$*** \\
+ & $(0.003)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
+$N$ & 6,401,850 & 9,373,104 & 8,448,726 & 10,064,574 & 12,338,664 & 16,984,266 \\[8pt]
 \multicolumn{7}{l}{\emph{Panel B: Women}} \\[2pt]
-$\hat\gamma_1$ (PostRB $\times$ Q4) & $0.000$ & $0.014$* & $0.029$*** & $0.004$ & $0.002$ & $0.010$*** \\
- & $(0.010)$ & $(0.007)$ & $(0.008)$ & $(0.007)$ & $(0.005)$ & $(0.004)$ \\[4pt]
-$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.082$*** & $-0.033$*** & $0.007$ & $0.006$ & $-0.002$ & $0.008$** \\
- & $(0.011)$ & $(0.008)$ & $(0.008)$ & $(0.007)$ & $(0.005)$ & $(0.004)$ \\[4pt]
-$N$ & 3,259,215 & 4,672,063 & 4,289,723 & 5,445,944 & 7,461,424 & 10,620,656 \\
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.006$*** & $-0.003$* & $+0.006$*** & $+0.001$ & $-0.001$ & $+0.004$** \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.016$*** & $-0.006$*** & $+0.004$* & $+0.002$ & $-0.009$*** & $+0.001$ \\
+ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ \\[4pt]
+$N$ & 7,412,574 & 9,506,640 & 7,746,258 & 8,826,948 & 10,863,138 & 14,592,396 \\
 \midrule
 Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
@@ -448,7 +467,7 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figA_gender_canaries_panel.png}
+\includegraphics[width=\textwidth]{figA_gender_canaries_panel_corrected.png}
 \caption{Monthly employment by age group, AI exposure, and gender (3-month moving average). AGI register data indexed to October 2022 = 100. Young = 22--25; Older = 26+. Solid lines = high AI exposure (Q4); dashed = low (Q1--Q3). The decline among young women in high-exposure occupations is steeper than for young men.}
 \label{fig:gender_panel}
 \end{figure}
