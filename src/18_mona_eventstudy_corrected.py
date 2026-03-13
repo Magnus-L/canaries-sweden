@@ -94,41 +94,129 @@ GRAY = "#8C8C8C"
 #   STEP 1: LOAD DATA (same pipeline as scripts 14-15)
 # ======================================================================
 
+def pull_year(year, conn):
+    """
+    Pull one year of AGI data with cascading SSYK lookup (2023 -> 2022 -> 2021).
+    Same approach as scripts 14 and 15 for data consistency.
+    """
+    print(f"  Processing year {year}...")
+
+    individ_year = min(year, 2023)
+
+    if year < 2025:
+        suffix = "_def"
+        max_month = 12
+    else:
+        suffix = "_prel"
+        max_month = 6
+
+    monthly_queries = []
+    for month in range(1, max_month + 1):
+        ym = f"{year}{month:02d}"
+
+        if individ_year >= 2023:
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    COALESCE(ind23.Ssyk4_2012_J16,
+                             ind22.Ssyk4_2012_J16,
+                             ind21.Ssyk4_2012_J16) AS ssyk4,
+                    COALESCE(ind23.FodelseAr,
+                             ind22.FodelseAr,
+                             ind21.FodelseAr) AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_2023 ind23
+                    ON agi.P1207_LOPNR_PERSONNR = ind23.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2022 ind22
+                    ON agi.P1207_LOPNR_PERSONNR = ind22.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2021 ind21
+                    ON agi.P1207_LOPNR_PERSONNR = ind21.P1207_LopNr_PersonNr
+            """)
+        else:
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    ind.Ssyk4_2012_J16 AS ssyk4,
+                    ind.FodelseAr AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_{individ_year} ind
+                    ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
+            """)
+
+    union_query = "\nUNION ALL\n".join(monthly_queries)
+
+    query = f"""
+    WITH base AS (
+        {union_query}
+    ),
+    age_calc AS (
+        SELECT
+            employer_id,
+            period,
+            RIGHT('0000'+CAST(ssyk4 AS VARCHAR(4)),4) AS ssyk4,
+            person_id,
+            CAST(LEFT(period,4) AS INT) - birth_year AS age
+        FROM base
+        WHERE birth_year IS NOT NULL
+    )
+    SELECT
+        employer_id,
+        LEFT(period,4) + '-' + SUBSTRING(period,5,2) AS year_month,
+        ssyk4,
+        CASE
+            WHEN age BETWEEN 22 AND 25 THEN '22-25'
+            WHEN age BETWEEN 26 AND 30 THEN '26-30'
+            WHEN age BETWEEN 31 AND 34 THEN '31-34'
+            WHEN age BETWEEN 35 AND 40 THEN '35-40'
+            WHEN age BETWEEN 41 AND 49 THEN '41-49'
+            WHEN age BETWEEN 50 AND 69 THEN '50+'
+            ELSE NULL
+        END AS age_group,
+        COUNT(DISTINCT person_id) AS n_emp
+    FROM age_calc
+    WHERE age BETWEEN 22 AND 69
+    GROUP BY
+        employer_id,
+        period,
+        ssyk4,
+        CASE
+            WHEN age BETWEEN 22 AND 25 THEN '22-25'
+            WHEN age BETWEEN 26 AND 30 THEN '26-30'
+            WHEN age BETWEEN 31 AND 34 THEN '31-34'
+            WHEN age BETWEEN 35 AND 40 THEN '35-40'
+            WHEN age BETWEEN 41 AND 49 THEN '41-49'
+            WHEN age BETWEEN 50 AND 69 THEN '50+'
+            ELSE NULL
+        END
+    """
+    return pd.read_sql(query, conn)
+
+
 def load_and_prepare():
     """
-    Load AGI data via SQL, merge DAIOE quartiles, assign age groups,
+    Load AGI data year by year (same pipeline as scripts 14-15),
+    merge DAIOE quartiles, assign age groups,
     aggregate to employer × quartile × age_group × month cells.
     """
     print("=" * 70)
     print("STEP 1: Loading and preparing data")
     print("=" * 70)
 
-    # SQL query: individual-level AGI records
-    # Adjust column names if Lydia's extract uses different names
-    sql = """
-    SELECT
-        LopNr       AS person_id,
-        ArbstId     AS employer_id,
-        Period      AS year_month,
-        SSYK4       AS ssyk4,
-        FodelseAr   AS birth_year
-    FROM [dbo].[agi_monthly]
-    """
-
-    print("  Running SQL query...")
+    # Pull year by year (consistent with scripts 14 and 15)
+    frames = []
     t0 = time.time()
-    df = pd.read_sql(sql, conn)
+    for year in range(2019, 2026):
+        frames.append(pull_year(year, conn))
+    df = pd.concat(frames, ignore_index=True)
     print(f"  Loaded {len(df):,} records in {time.time()-t0:.0f}s")
 
-    # Parse year-month
-    df["year_month"] = df["year_month"].astype(str).str[:7]
-
-    # Compute age
-    year = df["year_month"].str[:4].astype(int)
-    df["age"] = year - df["birth_year"].astype(int)
-
-    # Filter to 22-69
-    df = df[(df["age"] >= 22) & (df["age"] <= 69)].copy()
+    # Drop rows without SSYK or age group
+    df = df[df["ssyk4"].notna() & (df["ssyk4"] != "None")].copy()
+    df = df[df["age_group"].notna()].copy()
 
     # SSYK4 as string
     df["ssyk4"] = df["ssyk4"].astype(str).str.zfill(4)
@@ -143,31 +231,25 @@ def load_and_prepare():
     df = df.merge(daioe[["ssyk4", "exposure_quartile"]], on="ssyk4", how="inner")
     print(f"  After DAIOE merge: {len(df):,} records")
 
-    # Assign age groups
-    def get_age_group(age):
-        for label, (lo, hi) in AGE_GROUPS.items():
-            if lo <= age <= hi:
-                return label
-        return None
-
-    df["age_group"] = df["age"].apply(get_age_group)
-    df = df[df["age_group"].notna()].copy()
+    # Rename for consistency with downstream code
+    df = df.rename(columns={"n_emp": "person_count"})
 
     # Filter small employers
-    emp_size = df.groupby("employer_id")["person_id"].nunique()
+    emp_size = df.groupby("employer_id")["person_count"].sum()
     large_emp = emp_size[emp_size >= MIN_EMPLOYER_SIZE].index
     df = df[df["employer_id"].isin(large_emp)].copy()
     print(f"  Employers with >={MIN_EMPLOYER_SIZE} workers: "
           f"{df['employer_id'].nunique():,}")
 
     # Aggregate to employer × quartile × age_group × month
+    # (already aggregated in SQL, but re-aggregate to collapse across ssyk4)
     print("  Aggregating to employer × quartile × age_group × month...")
     agg = (
         df.groupby(["employer_id", "exposure_quartile", "age_group", "year_month"])
-        ["person_id"]
-        .nunique()
+        ["person_count"]
+        .sum()
         .reset_index()
-        .rename(columns={"person_id": "n_emp"})
+        .rename(columns={"person_count": "n_emp"})
     )
     print(f"  Panel cells: {len(agg):,}")
     print(f"  Period: {agg['year_month'].min()} to {agg['year_month'].max()}")
@@ -263,18 +345,28 @@ def pretrend_joint_test(res, event_periods, ref_period):
     return {"chi2": round(wald, 2), "df": k, "p_value": round(p, 4)}
 
 
-def run_corrected_event_study(agg):
+def run_corrected_event_study(agg, ref_halfyear=None):
     """
     Half-year event study with the CORRECT FE specification:
       entity FE = employer × quartile  (PanelOLS entity_effects)
       other FE  = employer × month     (PanelOLS other_effects)
 
-    This matches the main DiD in script 14 Step 2.
+    This matches the main DiD in script 15 Step 2.
+
+    Parameters
+    ----------
+    ref_halfyear : str, optional
+        Reference period to omit (e.g. "2022H1" or "2021H2").
+        Defaults to global REF_HALFYEAR.
     """
     from linearmodels.panel import PanelOLS
 
+    if ref_halfyear is None:
+        ref_halfyear = REF_HALFYEAR
+
     print("\n" + "=" * 70)
-    print("STEP 2: Corrected event study (employer×quartile + employer×month FE)")
+    print(f"STEP 2: Corrected event study (ref = {ref_halfyear})")
+    print("  FE: employer×quartile + employer×month")
     print("=" * 70)
 
     agg = agg.copy()
@@ -282,7 +374,7 @@ def run_corrected_event_study(agg):
     # Compute half-year labels on raw agg (needed for event period list)
     agg["halfyear"] = agg["year_month"].apply(assign_halfyear)
     all_periods = sorted(agg["halfyear"].unique())
-    event_periods = [p for p in all_periods if p != REF_HALFYEAR]
+    event_periods = [p for p in all_periods if p != ref_halfyear]
 
     print(f"  Half-year periods: {all_periods}")
     print(f"  Reference period: {REF_HALFYEAR}")
@@ -366,14 +458,14 @@ def run_corrected_event_study(agg):
             # Add reference period (zero by construction)
             all_es_results.append({
                 "age_group": age_label,
-                "period": REF_HALFYEAR,
+                "period": ref_halfyear,
                 "coef": 0.0,
                 "se": 0.0,
                 "pval": 1.0,
             })
 
             # Pre-trend joint test
-            pt = pretrend_joint_test(res, event_periods, REF_HALFYEAR)
+            pt = pretrend_joint_test(res, event_periods, ref_halfyear)
             if pt:
                 print(f"  Pre-trend test: chi2({pt['df']}) = {pt['chi2']:.2f}, "
                       f"p = {pt['p_value']:.4f}")
@@ -384,16 +476,18 @@ def run_corrected_event_study(agg):
             print("  This age group failed -- check memory/data.")
             continue
 
-    # --- Save results ---
+    # --- Save results (suffix with reference period for robustness runs) ---
+    suffix = f"_ref{ref_halfyear}"
     if all_es_results:
         es_df = pd.DataFrame(all_es_results)
-        es_df.to_csv(OUTPUT_DIR / "corrected_es_all.csv", index=False)
-        print(f"\n  Saved event study coefficients -> corrected_es_all.csv")
+        fname = f"corrected_es_all{suffix}.csv"
+        es_df.to_csv(OUTPUT_DIR / fname, index=False)
+        print(f"\n  Saved event study coefficients -> {fname}")
 
     if pretrend_tests:
         pt_df = pd.DataFrame(pretrend_tests)
-        pt_df.to_csv(OUTPUT_DIR / "corrected_pretrends.csv", index=False)
-        pt_path = OUTPUT_DIR / "corrected_pretrends.txt"
+        pt_df.to_csv(OUTPUT_DIR / f"corrected_pretrends{suffix}.csv", index=False)
+        pt_path = OUTPUT_DIR / f"corrected_pretrends{suffix}.txt"
         pt_df.to_string(pt_path, index=False)
         print(f"  Saved pre-trend tests -> corrected_pretrends.txt")
         print("\n  === PRE-TREND TEST RESULTS ===")
@@ -510,28 +604,33 @@ if __name__ == "__main__":
 
     t_start = time.time()
 
-    # Step 1: Load data
+    # Step 1: Load data (once — reused for both reference periods)
     agg = load_and_prepare()
 
-    # Step 2: Run corrected event study
-    es_df, pt_tests = run_corrected_event_study(agg)
-
-    # Step 3: Plot
+    # Step 2a: Primary event study (reference = 2022H1)
+    es_df, pt_tests = run_corrected_event_study(agg, ref_halfyear="2022H1")
     plot_event_studies(es_df)
+
+    # Step 2b: Robustness — alternative reference period (2021H2)
+    # Addresses concern that 2022H1 partially overlaps with Riksbank hike
+    print("\n" + "=" * 70)
+    print("ROBUSTNESS: Re-running with reference period 2021H2")
+    print("=" * 70)
+    es_df_alt, pt_tests_alt = run_corrected_event_study(agg, ref_halfyear="2021H2")
 
     elapsed = time.time() - t_start
     print(f"\n  Total runtime: {elapsed/60:.1f} minutes")
 
-    # Summary
+    # Summary for both runs
     summary = [
         "=" * 50,
         "CORRECTED EVENT STUDY SUMMARY",
         "=" * 50,
         f"Script: 18_mona_eventstudy_corrected.py",
         f"FE: employer×quartile (entity) + employer×month (other_effects)",
-        f"Reference period: {REF_HALFYEAR}",
         f"Runtime: {elapsed/60:.1f} minutes",
         "",
+        "--- PRIMARY (ref = 2022H1) ---",
         "PRE-TREND TESTS (joint chi2, H0: all pre-period coefficients = 0):",
     ]
     for pt in pt_tests:
@@ -541,13 +640,14 @@ if __name__ == "__main__":
             f"p = {pt['p_value']:.4f}  [{status}]"
         )
     summary.append("")
-    summary.append("Compare with old pre-trend results (script 14, weaker FE):")
-    summary.append("  22-25:   chi2(6) =   6.93, p = 0.3277  [PASS]")
-    summary.append("  26-30:   chi2(6) = 161.38, p = 0.0000  [FAIL]")
-    summary.append("  31-34:   chi2(6) = 254.25, p = 0.0000  [FAIL]")
-    summary.append("  35-40:   chi2(6) =  37.70, p = 0.0000  [FAIL]")
-    summary.append("  41-49:   chi2(6) = 117.64, p = 0.0000  [FAIL]")
-    summary.append("  50+:     chi2(6) = 267.92, p = 0.0000  [FAIL]")
+    summary.append("--- ROBUSTNESS (ref = 2021H2) ---")
+    summary.append("PRE-TREND TESTS:")
+    for pt in pt_tests_alt:
+        status = "PASS" if pt["p_value"] > 0.05 else "FAIL"
+        summary.append(
+            f"  {pt['age_group']:>8s}: chi2({pt['df']}) = {pt['chi2']:>7.2f}, "
+            f"p = {pt['p_value']:.4f}  [{status}]"
+        )
 
     summary_text = "\n".join(summary)
     (OUTPUT_DIR / "corrected_es_summary.txt").write_text(summary_text)
