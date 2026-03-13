@@ -106,6 +106,14 @@ The Python script can be adapted for DST data by:
 3. Adjusting age group definitions if needed
 4. Adjusting the employer identifier variable name
 
+## Outstanding MONA Tasks (pre-submission)
+
+1. **Employment summary statistics** for appendix Table A2: N employers, N employer×quartile cells, mean/median cell sizes, share of zero cells by age group.
+2. **Spotlight figures** for payroll administrators (SSYK 4112) and receptionists (SSYK 4225) — same format as software developers and customer service figures.
+3. **Rambachan-Roth sensitivity analysis** for the employment event study (at minimum ages 22-25). Use the `honestdid` R package or implement in Python following Rambachan & Roth (2023, RES). Report the breakdown value $\bar{M}$ and honest confidence intervals under relative magnitudes restrictions. This is needed to preempt the standard referee concern about failing pre-trend tests.
+4. **Alternative reference period (2021H2)**: Script 18 already computes this. Export the event study coefficients CSV and confirm results are qualitatively unchanged from the 2022H1 baseline. The appendix states this; we need the output to back it up.
+5. **Poisson QMLE robustness**: re-estimate the main DiD (Equation A1) using Poisson quasi-maximum likelihood instead of OLS on ln(count+1), following Chen & Roth (2024, QJE). Report alongside the main OLS results. Script 15 has a pyfixest Poisson fallback — adapt for the balanced panel.
+
 ## Reference
 
 Brynjolfsson, E., Chandar, B., & Chen, R. (2025). "Canaries in the Coal

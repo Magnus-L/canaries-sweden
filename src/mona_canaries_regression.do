@@ -1,6 +1,13 @@
 /*==============================================================================
   CANARIES REGRESSION — Brynjolfsson-style Employment DiD
 
+  NOTE: SUPERSEDED by Python scripts 15_mona_employer_did.py and
+  18_mona_eventstudy_corrected.py, which use different age group
+  definitions (22-25, 26-30, 31-34, 35-40, 41-49, 50+). This Stata
+  file uses an earlier set of age groups (16-24, 25-30, 31-40, 41-49,
+  50+) and cannot serve as a direct replication of the paper's results.
+  Retained for reference only.
+
   Paper:  "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring"
   Author: Lydia Löthman (to run on MONA)
   Date:   February 2026
