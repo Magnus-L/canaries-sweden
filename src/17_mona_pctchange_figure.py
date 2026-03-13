@@ -155,17 +155,39 @@ def pull_year(year, conn):
     monthly_queries = []
     for month in range(1, max_month + 1):
         ym = f"{year}{month:02d}"
-        monthly_queries.append(f"""
-            SELECT
-                agi.P1207_LOPNR_PEORGNR AS employer_id,
-                agi.PERIOD AS period,
-                ind.Ssyk4_2012_J16 AS ssyk4,
-                ind.FodelseAr AS birth_year,
-                agi.P1207_LOPNR_PERSONNR AS person_id
-            FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
-            LEFT JOIN dbo.Individ_{individ_year} ind
-                ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
-        """)
+        if individ_year >= 2023:
+            # Cascading SSYK lookup: try Individ_2023, then 2022, then 2021.
+            # LISA-based Individ tables end at 2023. Workers who entered the
+            # labour market after the latest Individ vintage will be missing
+            # from Individ_2023 but may appear in an earlier vintage.
+            # COALESCE picks the most recent available match.
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    COALESCE(ind23.Ssyk4_2012_J16, ind22.Ssyk4_2012_J16, ind21.Ssyk4_2012_J16) AS ssyk4,
+                    COALESCE(ind23.FodelseAr, ind22.FodelseAr, ind21.FodelseAr) AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_2023 ind23
+                    ON agi.P1207_LOPNR_PERSONNR = ind23.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2022 ind22
+                    ON agi.P1207_LOPNR_PERSONNR = ind22.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2021 ind21
+                    ON agi.P1207_LOPNR_PERSONNR = ind21.P1207_LopNr_PersonNr
+            """)
+        else:
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    ind.Ssyk4_2012_J16 AS ssyk4,
+                    ind.FodelseAr AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_{individ_year} ind
+                    ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
+            """)
 
     union_query = "\nUNION ALL\n".join(monthly_queries)
 

@@ -14,24 +14,29 @@ from within-firm, within-month variation across AI exposure levels.
 
 ## Files
 
-- **Python script**: `14_mona_employer_regression.py` — the complete analysis
-- **DAIOE quartiles**: `daioe_quartiles.csv` — crosswalk from SSYK4 to exposure quartile (numeric 1-4)
+- **`14_mona_canaries_descriptive.py`** — descriptive canaries analysis (triple-diff, spotlight figures)
+- **`14_mona_employer_regression.py`** — employer-level DiD regression (Brynjolfsson-style)
+- **DAIOE quartiles**: `daioe_quartiles.csv` on the MONA network share at `\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\`
 - **Stata do-file**: `mona_canaries_regression.do` — Stata version (for replication/verification only)
+
+## Data Access
+
+Both Python scripts query AGI tables directly via pyodbc (SQL Server on `monasql.micro.intra`, database `P1207`). No file-based extract needed.
+
+**SQL table structure:**
+- AGI tables: `dbo.Arb_AGIIndivid{YYYYMM}{suffix}` where suffix is `_def` (years < 2025) or `_prel` (2025, months 1-6)
+- Individ tables: `dbo.Individ_{year}` (e.g., `Individ_2023`)
+- Key columns: `P1207_LOPNR_PERSONNR` (person ID), `P1207_LOPNR_PEORGNR` (employer ID), `PERIOD` (YYYYMM), `Ssyk4_2012_J16` (SSYK 4-digit), `FodelseAr` (birth year)
+
+**Cascading SSYK lookup (years >= 2023):**
+For 2023-2025 data, the scripts join to `Individ_2023`, `Individ_2022`, and `Individ_2021` using COALESCE to recover individuals who lack a 2023 SSYK code but had one in an earlier register year. For years < 2023, the scripts join to that year's own Individ table.
 
 ## What You Need to Do
 
-1. **Copy** `14_mona_employer_regression.py` and `daioe_quartiles.csv` to MONA
-2. **Edit** the three `FILL_IN_PATH` variables at the top of the script (lines ~80-90):
-   - `INPUT_PATH` — your AGI monthly extract (parquet, CSV, or SAS)
-   - `DAIOE_PATH` — the DAIOE quartile file
-   - `OUTPUT_DIR` — an output directory
-3. **Check** the `AGI_COLUMNS` dict (line ~85) — map your column names:
-   - `person_id` — encrypted individual identifier
-   - `employer_id` — encrypted employer/workplace identifier
-   - `ssyk4` — SSYK 2012 four-digit occupation code
-   - `birth_year` — birth year (to compute age)
-   - `year_month` — period as YYYY-MM string
-4. **Run**: `python 14_mona_employer_regression.py`
+1. **Copy** the Python script(s) to your MONA project folder
+2. **Verify** the pyodbc connection string at the top of the script matches your MONA setup
+3. **Verify** `DAIOE_PATH` points to the correct location of `daioe_quartiles.csv`
+4. **Run**: `python 14_mona_canaries_descriptive.py` (or `14_mona_employer_regression.py`)
 5. **Export** all files from the output directory
 
 ## What the Code Does
@@ -80,13 +85,18 @@ always feasible).
 
 ## Computational Notes
 
-- The employer×month FE can be very large (potentially millions of groups).
-  The script filters to employers with ≥5 workers by default.
+- Both scripts query SQL Server year-by-year, using UNION ALL across months
+  within each year. This is the bottleneck; expect ~1-2 minutes per year.
+- The employer regression script (`14_mona_employer_regression.py`) has
+  employer×month FE that can be very large (potentially millions of groups).
+  It filters to employers with >=5 workers by default.
   If memory is still an issue, increase `MIN_EMPLOYER_SIZE` to 10 or 20.
-- If `linearmodels` is not installed on MONA, the code falls back to a
+- If `linearmodels` is not installed on MONA, both scripts fall back to
   manual within-transformation using only pandas + statsmodels (always available).
 - If even the within-transformation is too memory-intensive, the code
   falls back to occupation-level regressions automatically.
+- **pyodbc** must be installed in the MONA Python environment. If not
+  available, contact SCB support (it is standard on MONA).
 
 ## For Koch (Danish Analysis)
 

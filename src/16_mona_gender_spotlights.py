@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-15_mona_gender_and_spotlights.py -- Gender heterogeneity + occupation spotlights.
+16_mona_gender_spotlights.py -- Gender heterogeneity + occupation spotlights.
 
 ======================================================================
   THIS SCRIPT RUNS IN SCB's MONA SECURE ENVIRONMENT.
@@ -84,7 +84,7 @@ conn = pyodbc.connect(
 DAIOE_PATH = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\daioe_quartiles.csv"
 
 # --- Output directory ---
-OUTPUT_DIR = Path("output_15")
+OUTPUT_DIR = Path("output_16")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # --- Treatment dates ---
@@ -158,18 +158,41 @@ def pull_year(year, conn):
     monthly_queries = []
     for month in range(1, max_month + 1):
         ym = f"{year}{month:02d}"
-        monthly_queries.append(f"""
-            SELECT
-                agi.P1207_LOPNR_PEORGNR AS employer_id,
-                agi.PERIOD AS period,
-                ind.Ssyk4_2012_J16 AS ssyk4,
-                ind.FodelseAr AS birth_year,
-                ind.Kon AS gender,
-                agi.P1207_LOPNR_PERSONNR AS person_id
-            FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
-            LEFT JOIN dbo.Individ_{individ_year} ind
-                ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
-        """)
+        if individ_year >= 2023:
+            # Cascading SSYK lookup: try Individ_2023, then 2022, then 2021.
+            # LISA-based Individ tables end at 2023. Workers who entered the
+            # labour market after the latest Individ vintage will be missing
+            # from Individ_2023 but may appear in an earlier vintage.
+            # COALESCE picks the most recent available match.
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    COALESCE(ind23.Ssyk4_2012_J16, ind22.Ssyk4_2012_J16, ind21.Ssyk4_2012_J16) AS ssyk4,
+                    COALESCE(ind23.FodelseAr, ind22.FodelseAr, ind21.FodelseAr) AS birth_year,
+                    COALESCE(ind23.Kon, ind22.Kon, ind21.Kon) AS gender,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_2023 ind23
+                    ON agi.P1207_LOPNR_PERSONNR = ind23.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2022 ind22
+                    ON agi.P1207_LOPNR_PERSONNR = ind22.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2021 ind21
+                    ON agi.P1207_LOPNR_PERSONNR = ind21.P1207_LopNr_PersonNr
+            """)
+        else:
+            monthly_queries.append(f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    ind.Ssyk4_2012_J16 AS ssyk4,
+                    ind.FodelseAr AS birth_year,
+                    ind.Kon AS gender,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_{individ_year} ind
+                    ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
+            """)
 
     union_query = "\nUNION ALL\n".join(monthly_queries)
 
@@ -658,6 +681,178 @@ def _run_panel_ols(sub, label):
 
 
 # ======================================================================
+#   PART A3: IPW-REWEIGHTED GENDER DiD (Oaxaca-style)
+# ======================================================================
+
+def run_gender_did_reweighted(raw):
+    """
+    Re-run the gender DiD with inverse-probability weights that make
+    women's occupational composition within each DAIOE quartile match
+    men's.
+
+    WHY: If the larger canaries effect for women is driven by women
+    being concentrated in Q4 occupations that are particularly exposed
+    to automation (rather than augmentation), then the gender difference
+    is an artefact of occupational segregation. IPW controls for this.
+
+    METHOD (Oaxaca-style reweighting):
+      1. Compute SSYK4 employment shares within each quartile, by gender,
+         using PRE-treatment data only (before Dec 2022).
+      2. For each (quartile, ssyk4) cell, compute the weight:
+         w = male_share / female_share.
+      3. Apply these weights to women's data. Men keep weight = 1.
+      4. Re-aggregate to employer × quartile × age_group × month using
+         weighted counts.
+      5. Re-run the same DiD specification.
+
+    If the gender gap in gamma2 survives reweighting, the difference
+    is NOT explained by occupational composition.
+    """
+    print("\n" + "=" * 70)
+    print("PART A3: IPW-reweighted gender DiD")
+    print("  (controls for occupational composition within quartiles)")
+    print("=" * 70)
+
+    # --- Step 1: Compute SSYK4 shares by gender, pre-treatment ---
+    pre = raw[raw["year_month"] < CHATGPT_YM].copy()
+
+    # Total employment by gender × quartile × ssyk4 (pre-treatment)
+    shares = (
+        pre.groupby(["gender_label", "exposure_quartile", "ssyk4"])["n_emp"]
+        .sum()
+        .reset_index()
+    )
+
+    # Within each gender × quartile, compute the share of each ssyk4
+    totals = (
+        shares.groupby(["gender_label", "exposure_quartile"])["n_emp"]
+        .transform("sum")
+    )
+    shares["share"] = shares["n_emp"] / totals
+
+    # Pivot to get male and female shares side by side
+    male_shares = (
+        shares[shares["gender_label"] == "Men"]
+        [["exposure_quartile", "ssyk4", "share"]]
+        .rename(columns={"share": "male_share"})
+    )
+    female_shares = (
+        shares[shares["gender_label"] == "Women"]
+        [["exposure_quartile", "ssyk4", "share"]]
+        .rename(columns={"share": "female_share"})
+    )
+
+    weights = male_shares.merge(
+        female_shares,
+        on=["exposure_quartile", "ssyk4"],
+        how="outer",
+    )
+    # Where female share is zero but male share is positive, the weight
+    # would be infinite — drop these cells (they contribute nothing to
+    # women's regression anyway). Where male share is zero, weight = 0.
+    weights["female_share"] = weights["female_share"].fillna(0)
+    weights["male_share"] = weights["male_share"].fillna(0)
+    weights["ipw"] = np.where(
+        weights["female_share"] > 0,
+        weights["male_share"] / weights["female_share"],
+        0,
+    )
+    # Cap extreme weights at the 99th percentile to avoid instability
+    cap = weights.loc[weights["ipw"] > 0, "ipw"].quantile(0.99)
+    weights["ipw"] = weights["ipw"].clip(upper=cap)
+
+    print(f"  Weight distribution (women only):")
+    print(f"    Mean:   {weights['ipw'].mean():.2f}")
+    print(f"    Median: {weights['ipw'].median():.2f}")
+    print(f"    Max:    {weights['ipw'].max():.2f} (capped at p99)")
+    print(f"    Zeros:  {(weights['ipw'] == 0).sum()} occupations")
+
+    # --- Step 2: Apply weights to raw data ---
+    # Men get weight = 1, women get IPW
+    raw_w = raw.merge(
+        weights[["exposure_quartile", "ssyk4", "ipw"]],
+        on=["exposure_quartile", "ssyk4"],
+        how="left",
+    )
+    raw_w["ipw"] = raw_w["ipw"].fillna(1)  # unmatched cells keep weight 1
+    raw_w.loc[raw_w["gender_label"] == "Men", "ipw"] = 1
+
+    # Weighted employment count
+    raw_w["n_emp_w"] = raw_w["n_emp"] * raw_w["ipw"]
+
+    # --- Step 3: Re-aggregate and run DiD ---
+    # Aggregate to employer × quartile × age_group × gender × month
+    # using WEIGHTED counts for women, raw counts for men
+    agg_w = (
+        raw_w.groupby([
+            "employer_id", "exposure_quartile", "age_group",
+            "gender_label", "year_month"
+        ])["n_emp_w"].sum()
+        .reset_index()
+        .rename(columns={"n_emp_w": "n_emp"})
+    )
+
+    all_months = sorted(agg_w["year_month"].unique())
+    all_results = []
+
+    for gender in ["Men", "Women"]:
+        agg_g = agg_w[agg_w["gender_label"] == gender].copy()
+        label_suffix = "" if gender == "Men" else " (reweighted)"
+        print(f"\n  === {gender}{label_suffix} ===")
+
+        for age_label in AGE_GROUPS:
+            sub = _balance_panel_for_age(agg_g, age_label, all_months)
+
+            if len(sub) < 100:
+                print(f"    {age_label}: too few obs, skipping")
+                continue
+
+            # Treatment variables
+            sub["post_rb"] = (sub["year_month"] >= RIKSBANK_YM).astype(int)
+            sub["post_gpt"] = (sub["year_month"] >= CHATGPT_YM).astype(int)
+            sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+            sub["post_rb_x_high"] = sub["post_rb"] * sub["high"]
+            sub["post_gpt_x_high"] = sub["post_gpt"] * sub["high"]
+            sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+
+            sub["fe_emp_q"] = (
+                sub["employer_id"].astype(str) + "_" +
+                sub["exposure_quartile"].astype(str)
+            )
+            sub["fe_emp_t"] = (
+                sub["employer_id"].astype(str) + "_" +
+                sub["year_month"]
+            )
+
+            result = _run_panel_ols(sub, f"{gender}_reweighted_{age_label}")
+            if result is not None:
+                result["gender"] = gender
+                result["age_group"] = age_label
+                result["method_note"] = "IPW-reweighted" if gender == "Women" else "unweighted"
+                all_results.append(result)
+                print(f"    {age_label}: g2={result['gamma2_gpt_high']:+.4f} "
+                      f"(SE={result['se2']:.4f}, p={result['pval2']:.4f})")
+
+    if all_results:
+        results_df = pd.DataFrame(all_results)
+        out = OUTPUT_DIR / "gender_did_reweighted.csv"
+        results_df.to_csv(out, index=False)
+        print(f"\n  Saved -> {out.name}")
+
+        print("\n  === IPW COMPARISON (gamma2 = PostGPT x High) ===")
+        print("  If women's reweighted coefficients are similar to unweighted,")
+        print("  the gender gap is NOT explained by occupational composition.")
+        pivot = results_df.pivot(
+            index="age_group", columns="gender",
+            values=["gamma2_gpt_high", "pval2"],
+        )
+        print(pivot.to_string())
+        return results_df
+
+    return pd.DataFrame()
+
+
+# ======================================================================
 #   PART B1: OCCUPATION SPOTLIGHT DESCRIPTIVE FIGURES
 # ======================================================================
 
@@ -1035,11 +1230,20 @@ def _run_spotlight_event_study(panel, ssyk4, occ_label):
         p2["date"] = pd.to_datetime(p2["year_month"] + "-01")
         p2 = p2.set_index(["fe_emp_age", "date"])
 
+        # employer × month as other_effects (matches main DiD and
+        # corrected event study in script 18; absorbs all firm-level
+        # time-varying shocks rather than just calendar month FE)
+        other_fe = pd.DataFrame(
+            {"fe_emp_t": p2["fe_emp_t"]},
+            index=p2.index,
+        )
+
         mod = PanelOLS(
             dependent=p2["ln_emp"],
             exog=p2[interaction_cols],
             entity_effects=True,
-            time_effects=True,
+            time_effects=False,       # NOT calendar-month FE
+            other_effects=other_fe,   # employer×month FE instead
         )
         res = mod.fit(cov_type="clustered", cluster_entity=True)
 
@@ -1144,7 +1348,7 @@ def write_summary(raw, gender_results, spotlight_results):
 
 def main():
     print("=" * 70)
-    print("SCRIPT 15: Gender heterogeneity + occupation spotlights")
+    print("SCRIPT 16: Gender heterogeneity + occupation spotlights")
     print("=" * 70)
 
     # Step 1: Pull all data
@@ -1155,6 +1359,10 @@ def main():
 
     # Part A2: Gender DiD regression
     gender_results = run_gender_did(raw)
+
+    # Part A3: IPW-reweighted gender DiD
+    # Controls for occupational segregation within DAIOE quartiles
+    reweighted_results = run_gender_did_reweighted(raw)
 
     # Part B1: Occupation spotlight descriptives
     plot_spotlight_descriptives(raw)
@@ -1170,6 +1378,7 @@ def main():
     print(f"  Output directory: {OUTPUT_DIR}")
     print("  A1: gender_canaries_panel.png")
     print("  A2: gender_did_results.csv")
+    print("  A3: gender_did_reweighted.csv")
     print("  B1: spotlight_2512.png, spotlight_4112.png, ...")
     print("  B2: spotlight_regression_results.csv")
     print("  B2: spotlight_es_2512.png, spotlight_es_2512.csv, ...")

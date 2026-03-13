@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-09_mona_agi_canaries.py — Canaries test using AGI data in MONA.
+14_mona_canaries_descriptive.py — Canaries test using AGI data in MONA.
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  THIS SCRIPT IS DESIGNED TO RUN IN SCB's MONA SECURE ENVIRONMENT   ║
-║  It uses monthly AGI (employer declaration) register data.          ║
+║  It queries AGI tables via pyodbc (SQL Server on monasql.micro.intra).║
 ║  Do NOT run outside MONA — the data is not available externally.    ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
@@ -14,16 +14,21 @@ Purpose:
   high-AI-exposure occupations experience disproportionate employment
   declines after ChatGPT?
 
-Data requirements:
-  - AGI (Arbetsgivardeklaration) individual-level data, monthly,
-    2019-01 to 2025-06 (or latest available)
-  - Variables needed: personnummer (or encrypted ID), year-month,
-    SSYK 4-digit occupation code, age (or birth year), employment status
-  - DAIOE genAI exposure: copy daioe_quartiles.csv into MONA
+Data access:
+  - Connects to SQL Server (P1207 database) via pyodbc
+  - Queries AGI (Arb_AGIIndivid) tables year-by-year, 2019-2025
+  - Joins to Individ tables for SSYK 4-digit occupation codes
+  - For years >= 2023: cascading SSYK lookup (2023 → 2022 → 2021)
+    to recover individuals who lack a 2023 SSYK code
+  - For years < 2023: uses the year's own Individ table
+  - Uses _def suffix for years < 2025, _prel for 2025 (max_month=6)
+  - DAIOE quartiles loaded from the MONA network share
 
 Analysis:
-  1. Aggregate AGI to: occupation × age_group × year-month cells
-     (age groups: 16-24, 25-34, 35-54, 55+)
+  1. Pull individual-level AGI data via SQL, aggregate in Python to:
+     - agg_fine:  ssyk4 × year_month × age_band  (for spotlight figures)
+     - agg_broad: ssyk4 × year_month × young      (for canaries regression)
+     (COUNT DISTINCT person_id for deduplication)
   2. Merge with DAIOE quartiles
   3. Run monthly event study: interact month dummies with Young × HighAI
   4. Run triple-diff regression:
@@ -37,14 +42,15 @@ Output:
   - figA8c_mona_canaries_economy.png (broad canaries: young×high vs others)
   - mona_canaries_regression.csv (regression coefficients)
 
-Runtime: should complete in <5 minutes on MONA hardware.
+Runtime: should complete in <10 minutes on MONA hardware (SQL queries
+  are the bottleneck; one UNION ALL query per year).
 
 INSTRUCTIONS FOR CO-AUTHOR:
-  1. Copy this script + daioe_quartiles.csv into your MONA project folder
-  2. Adjust INPUT_PATH below to point to your AGI extract
-  3. Adjust AGI_COLUMNS if the column names differ in your extract
-  4. Run: python 09_mona_agi_canaries.py
-  5. Copy the four output files back for inclusion in the paper
+  1. Copy this script to your MONA project folder
+  2. Ensure daioe_quartiles.csv is at the DAIOE_PATH below
+     (or adjust the path)
+  3. Run: python 14_mona_canaries_descriptive.py
+  4. Copy the output files back for inclusion in the paper
 """
 
 import pandas as pd
@@ -55,27 +61,23 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
+import pyodbc
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
 # ║  CONFIGURATION — ADJUST THESE FOR YOUR MONA ENVIRONMENT            ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
-# Path to your AGI extract (CSV, parquet, or SAS file)
-# The extract should contain individual-level monthly employment records.
-INPUT_PATH = Path("agi_monthly_extract.parquet")
+# SQL Server connection (MONA environment)
+conn = pyodbc.connect(
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=monasql.micro.intra;"
+    "DATABASE=P1207;"
+    "Trusted_Connection=yes;"
+)
 
-# Column names in the AGI extract — adjust if yours differ
-AGI_COLUMNS = {
-    "person_id": "LopNr",          # Encrypted person ID (for dedup)
-    "year_month": "Period",         # Year-month as YYYY-MM or similar
-    "ssyk4": "SSYK4",              # 4-digit SSYK 2012 code
-    "birth_year": "FodelseAr",     # Birth year (to compute age)
-    "employment": "Anstallda",     # Employment indicator or count
-}
-
-# Path to DAIOE quartiles (copy from the project's data/processed/)
-DAIOE_PATH = Path("daioe_quartiles.csv")
+# Path to DAIOE quartiles on the MONA network share
+DAIOE_PATH = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\daioe_quartiles.csv"
 
 # Output paths
 OUTPUT_DIR = Path("output")
@@ -109,7 +111,7 @@ GENAI_MILESTONES = [
 MILESTONE_COLOR = "#7B2D8E"  # purple, distinct from existing orange/teal
 
 # Fine age bands matching Brynjolfsson et al.
-# NOTE: ages 16-21 are excluded from spotlight (included in broad canaries).
+# NOTE: ages below 22 are excluded (consistent with employer-level DiD, script 15).
 AGE_BANDS = [
     (22, 25, "22–25"),
     (26, 30, "26–30"),
@@ -137,72 +139,137 @@ BASE_MONTH = "2022-10"
 # ║  STEP 1: LOAD AND PREPARE AGI DATA                                 ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
+def pull_individual_year(year, conn):
+    """
+    Pull individual-level AGI records for one year from SQL Server.
+
+    For each month in the year, queries dbo.Arb_AGIIndivid{ym}{suffix}
+    and joins to the appropriate Individ table(s) for SSYK codes.
+
+    Cascading SSYK lookup for years >= 2023:
+      Try Individ_2023 first, fall back to 2022, then 2021.
+      This recovers individuals who lack a 2023 SSYK code but had one
+      in an earlier register year (e.g. workers with employment gaps).
+
+    For years < 2023: joins to Individ_{year} directly (no cascade).
+
+    Uses _def suffix for years < 2025, _prel for 2025 (max_month=6).
+
+    Returns a DataFrame with columns:
+      person_id, period (YYYYMM string), ssyk4, birth_year
+    """
+    print(f"  Querying year {year}...")
+
+    if year < 2025:
+        suffix = "_def"
+        max_month = 12
+    else:
+        suffix = "_prel"
+        max_month = 6
+
+    monthly_queries = []
+
+    for month in range(1, max_month + 1):
+        ym = f"{year}{month:02d}"
+
+        if year >= 2023:
+            # Cascading SSYK lookup: 2023 → 2022 → 2021
+            monthly_queries.append(
+                f"""
+                SELECT
+                    agi.PERIOD AS period,
+                    COALESCE(ind23.Ssyk4_2012_J16,
+                             ind22.Ssyk4_2012_J16,
+                             ind21.Ssyk4_2012_J16) AS ssyk4,
+                    COALESCE(ind23.FodelseAr,
+                             ind22.FodelseAr,
+                             ind21.FodelseAr) AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_2023 ind23
+                    ON agi.P1207_LOPNR_PERSONNR = ind23.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2022 ind22
+                    ON agi.P1207_LOPNR_PERSONNR = ind22.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2021 ind21
+                    ON agi.P1207_LOPNR_PERSONNR = ind21.P1207_LopNr_PersonNr
+                """
+            )
+        else:
+            # For years <= 2022: use the year's own Individ table
+            individ_year = year
+            monthly_queries.append(
+                f"""
+                SELECT
+                    agi.PERIOD AS period,
+                    ind.Ssyk4_2012_J16 AS ssyk4,
+                    ind.FodelseAr AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_{individ_year} ind
+                    ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
+                """
+            )
+
+    # Combine all months for this year into one query
+    union_query = "\nUNION ALL\n".join(monthly_queries)
+    full_query = f"""
+    SELECT * FROM (
+        {union_query}
+    ) AS combined
+    WHERE birth_year IS NOT NULL
+      AND ssyk4 IS NOT NULL
+    """
+
+    df_year = pd.read_sql(full_query, conn)
+    print(f"    {len(df_year):,} records for {year}")
+    return df_year
+
+
 def load_agi():
     """
-    Load AGI data and aggregate to two panels:
+    Pull individual-level AGI data via SQL year-by-year, then aggregate
+    in Python to two panels:
       1. agg_fine:  ssyk4 × year_month × age_band  (for spotlight figures)
       2. agg_broad: ssyk4 × year_month × young      (for canaries regression)
 
+    Uses COUNT DISTINCT person_id for deduplication (same as before).
+
     Age groups for broad panel:
-      - Young: 16-24 (entry-level, the "canaries" in Brynjolfsson)
-      - Older: 25+ (everyone else)
+      - Young: 22-25 (entry-level, aligned with Brynjolfsson et al. 2025)
+      - Older: 26+ (everyone else)
     Fine age bands (22-25, 26-30, ..., 50+) match Brynjolfsson et al.
     """
-    print("Loading AGI data...")
+    print("Loading AGI data from SQL Server...")
 
-    # Load based on file format
-    col_map = AGI_COLUMNS
-    suffix = INPUT_PATH.suffix.lower()
+    # Pull individual-level data year by year
+    years = list(range(2019, 2026))
+    all_years = []
 
-    if suffix == ".parquet":
-        df = pd.read_parquet(INPUT_PATH)
-    elif suffix == ".csv":
-        df = pd.read_csv(INPUT_PATH)
-    elif suffix in (".sas7bdat", ".sas"):
-        df = pd.read_sas(INPUT_PATH)
-    else:
-        raise ValueError(f"Unsupported file format: {suffix}")
+    for y in years:
+        df_year = pull_individual_year(y, conn)
+        all_years.append(df_year)
 
-    print(f"  Loaded {len(df):,} records")
-    print(f"  Columns: {df.columns.tolist()}")
+    df = pd.concat(all_years, ignore_index=True)
+    print(f"  Total records: {len(df):,}")
 
-    # Rename columns to standard names
-    rename_map = {v: k for k, v in col_map.items() if v in df.columns}
-    df = df.rename(columns=rename_map)
-
-    # Ensure required columns exist
-    required = ["person_id", "year_month", "ssyk4"]
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        raise KeyError(
-            f"Missing columns: {missing}. "
-            f"Available: {df.columns.tolist()}. "
-            f"Adjust AGI_COLUMNS in the configuration section."
-        )
-
-    # Parse year-month
-    df["year_month"] = df["year_month"].astype(str).str[:7]  # "YYYY-MM"
+    # Parse year-month from PERIOD (YYYYMM → YYYY-MM)
+    df["period"] = df["period"].astype(str)
+    df["year_month"] = df["period"].str[:4] + "-" + df["period"].str[4:6]
     df["date"] = pd.to_datetime(df["year_month"] + "-01")
 
-    # Compute age if birth_year is available
-    if "birth_year" in df.columns:
-        df["age"] = df["date"].dt.year - df["birth_year"].astype(int)
-    elif "age" in df.columns:
-        pass  # Already have age
-    else:
-        raise KeyError(
-            "Need either 'birth_year' or 'age' column. "
-            "Adjust AGI_COLUMNS."
-        )
+    # Compute age from birth year
+    df["birth_year"] = df["birth_year"].astype(int)
+    df["age"] = df["date"].dt.year - df["birth_year"]
 
-    # Age group: young (16-24) vs older (25+)
-    df["young"] = ((df["age"] >= 16) & (df["age"] <= 24)).astype(int)
+    # Age group: young (22-25) vs older (26+)
+    # Aligned with script 15's youngest age group and Brynjolfsson et al. (2025)
+    df["young"] = ((df["age"] >= 22) & (df["age"] <= 25)).astype(int)
 
-    # SSYK 4-digit code
+    # SSYK 4-digit code (zero-padded)
     df["ssyk4"] = df["ssyk4"].astype(str).str.zfill(4)
 
-    # Filter to working-age population
-    df = df[(df["age"] >= 16) & (df["age"] <= 69)].copy()
+    # Filter to working-age population (22-69, aligned with script 15)
+    df = df[(df["age"] >= 22) & (df["age"] <= 69)].copy()
 
     # --- Fine age bands (for spotlight figures) ---
     def assign_band(age):
@@ -558,13 +625,13 @@ def plot_canaries(merged):
 
     styles = {
         (1, 1): {"color": ORANGE, "lw": 2.5, "ls": "-",
-                  "label": "Young (16-24), High AI"},
+                  "label": "Young (22-25), High AI"},
         (1, 0): {"color": ORANGE, "lw": 1.5, "ls": "--",
-                  "label": "Young (16-24), Low AI"},
+                  "label": "Young (22-25), Low AI"},
         (0, 1): {"color": DARK_BLUE, "lw": 2.5, "ls": "-",
-                  "label": "Older (25+), High AI"},
+                  "label": "Older (26+), High AI"},
         (0, 0): {"color": DARK_BLUE, "lw": 1.5, "ls": "--",
-                  "label": "Older (25+), Low AI"},
+                  "label": "Older (26+), Low AI"},
     }
 
     for (young, high), style in styles.items():

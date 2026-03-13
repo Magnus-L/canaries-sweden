@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-14_mona_employer_regression.py -- Brynjolfsson-style employer-level DiD.
+15_mona_employer_did.py -- Brynjolfsson-style employer-level DiD.
 
 ======================================================================
   THIS SCRIPT IS DESIGNED TO RUN IN SCB's MONA SECURE ENVIRONMENT
-  It uses monthly AGI (employer declaration) register data.
+  It queries monthly AGI (employer declaration) register data via SQL.
   Do NOT run outside MONA -- the data is not available externally.
 ======================================================================
 
@@ -28,9 +28,16 @@ Design:
   Run SEPARATELY for each age group. The "canaries" finding is that
   g2 is negative and significant for ages 22-25, but not for older groups.
 
+Data access:
+  SQL via pyodbc to MONA SQL Server (P1207). Year-by-year queries to
+  dbo.Arb_AGIIndivid{ym}{suffix} tables, joined to Individ tables for
+  SSYK codes. For years >= 2023, uses cascading SSYK lookup:
+  COALESCE(Individ_2023, Individ_2022, Individ_2021).
+
 Panel construction:
-  - Aggregate individual records to employer x quartile x age_group x month
-  - Build BALANCED panel: every (employer, quartile) ever observed × all months
+  - SQL aggregates to employer x ssyk4 x age_group x month cells
+  - Python merges DAIOE quartiles, re-aggregates to employer x quartile
+  - Build BALANCED panel: every (employer, quartile) ever observed x all months
   - Zero-fill missing cells (n_emp = 0) -- captures extensive margin
   - Restrict to employers with workers in both Q4 and Q1-Q3 (identification)
 
@@ -41,9 +48,10 @@ Estimator:
     under heteroskedasticity; Santos Silva & Tenreyro 2006, Chen & Roth 2024)
   - If linearmodels unavailable: manual within-transformation with pandas
 
-Input files (on MONA):
-  1. AGI individual records (same extract as 09_mona_agi_canaries.py)
-  2. daioe_quartiles.csv (ssyk4, exposure_quartile)
+Input (on MONA SQL Server):
+  1. dbo.Arb_AGIIndivid{ym}{suffix} -- monthly AGI tables
+  2. dbo.Individ_{year} -- individual register tables (SSYK, birth year)
+  3. daioe_quartiles.csv on network share (ssyk4, exposure_quartile)
 
 Output files (export from MONA):
   1. canaries_did_results.csv       -- DiD coefficient table by age group
@@ -61,29 +69,24 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import warnings
 import time
+import pyodbc
 warnings.filterwarnings("ignore")
+
+# Database connection to MONA SQL Server
+conn = pyodbc.connect(
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=monasql.micro.intra;"
+    "DATABASE=P1207;"
+    "Trusted_Connection=yes;"
+)
 
 
 # ======================================================================
 #   CONFIGURATION -- ADJUST THESE FOR YOUR MONA ENVIRONMENT
 # ======================================================================
 
-# Path to your AGI extract (parquet, CSV, or SAS)
-# >>> USE THE SAME PATH AS IN 09_mona_agi_canaries.py <<<
-INPUT_PATH = Path("agi_monthly_extract.parquet")
-
-# Column names in the AGI extract -- adjust if yours differ
-# >>> MUST MATCH 09_mona_agi_canaries.py, plus employer_id <<<
-AGI_COLUMNS = {
-    "person_id": "LopNr",          # Encrypted person ID (same as script 09)
-    "employer_id": "ArbstId",      # Encrypted employer/workplace ID (NEW)
-    "year_month": "Period",         # Year-month (same as script 09)
-    "ssyk4": "SSYK4",              # 4-digit SSYK 2012 (same as script 09)
-    "birth_year": "FodelseAr",     # Birth year (same as script 09)
-}
-
-# Path to DAIOE quartiles (same file as script 09 uses)
-DAIOE_PATH = Path("daioe_quartiles.csv")
+# Path to DAIOE quartiles on MONA network share
+DAIOE_PATH = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\daioe_quartiles.csv"
 
 # Output paths (saves alongside script 09 output)
 OUTPUT_DIR = Path("output")
@@ -119,105 +122,203 @@ DARK_TEXT = "#2C2C2C"
 
 
 # ======================================================================
-#   STEP 1: LOAD AND PREPARE DATA
+#   STEP 1a: SQL DATA PULL -- YEAR BY YEAR
+# ======================================================================
+
+def pull_and_aggregate_year_employer(year, conn):
+    """
+    Query one year of AGI data from MONA SQL Server, aggregated to
+    employer x ssyk4 x age_group x month cells with COUNT(DISTINCT person_id).
+
+    For years >= 2023, uses cascading SSYK lookup:
+      COALESCE(Individ_2023, Individ_2022, Individ_2021)
+    This recovers individuals who lack a 2023 SSYK code but had one
+    in an earlier register year (e.g. workers with employment gaps).
+
+    For years < 2023, uses a single LEFT JOIN to Individ_{year}.
+
+    Table naming: _def suffix for years < 2025, _prel for 2025 (max 6 months).
+    """
+    print(f"  Processing year {year}...")
+
+    # Primary SSYK source: 2023 (or current year if before 2023)
+    individ_year = min(year, 2023)
+
+    if year < 2025:
+        suffix = "_def"
+        max_month = 12
+    else:
+        suffix = "_prel"
+        max_month = 6
+
+    monthly_queries = []
+
+    for month in range(1, max_month + 1):
+        ym = f"{year}{month:02d}"
+
+        # Cascading SSYK lookup for years >= 2023
+        if individ_year >= 2023:
+            monthly_queries.append(
+                f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    COALESCE(ind23.Ssyk4_2012_J16,
+                             ind22.Ssyk4_2012_J16,
+                             ind21.Ssyk4_2012_J16) AS ssyk4,
+                    COALESCE(ind23.FodelseAr,
+                             ind22.FodelseAr,
+                             ind21.FodelseAr) AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_2023 ind23
+                    ON agi.P1207_LOPNR_PERSONNR = ind23.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2022 ind22
+                    ON agi.P1207_LOPNR_PERSONNR = ind22.P1207_LopNr_PersonNr
+                LEFT JOIN dbo.Individ_2021 ind21
+                    ON agi.P1207_LOPNR_PERSONNR = ind21.P1207_LopNr_PersonNr
+                """
+            )
+        else:
+            # For years <= 2022, use the year's own Individ table
+            monthly_queries.append(
+                f"""
+                SELECT
+                    agi.P1207_LOPNR_PEORGNR AS employer_id,
+                    agi.PERIOD AS period,
+                    ind.Ssyk4_2012_J16 AS ssyk4,
+                    ind.FodelseAr AS birth_year,
+                    agi.P1207_LOPNR_PERSONNR AS person_id
+                FROM dbo.Arb_AGIIndivid{ym}{suffix} agi
+                LEFT JOIN dbo.Individ_{individ_year} ind
+                    ON agi.P1207_LOPNR_PERSONNR = ind.P1207_LopNr_PersonNr
+                """
+            )
+
+    # Combine all months for this year, compute age, assign age groups,
+    # and aggregate to employer x ssyk4 x age_group x month cells
+    union_query = "\nUNION ALL\n".join(monthly_queries)
+
+    query = f"""
+    WITH base AS (
+        {union_query}
+    ),
+    age_calc AS (
+        SELECT
+            employer_id,
+            period,
+            RIGHT('0000'+CAST(ssyk4 AS VARCHAR(4)),4) AS ssyk4,
+            person_id,
+            CAST(LEFT(period,4) AS INT) - birth_year AS age
+        FROM base
+        WHERE birth_year IS NOT NULL
+    )
+    SELECT
+        employer_id,
+        LEFT(period,4) + '-' + SUBSTRING(period,5,2) AS year_month,
+        ssyk4,
+        CASE
+            WHEN age BETWEEN 22 AND 25 THEN '22-25'
+            WHEN age BETWEEN 26 AND 30 THEN '26-30'
+            WHEN age BETWEEN 31 AND 34 THEN '31-34'
+            WHEN age BETWEEN 35 AND 40 THEN '35-40'
+            WHEN age BETWEEN 41 AND 49 THEN '41-49'
+            WHEN age BETWEEN 50 AND 69 THEN '50+'
+            ELSE NULL
+        END AS age_group,
+        COUNT(DISTINCT person_id) AS n_emp
+    FROM age_calc
+    WHERE age BETWEEN 22 AND 69
+    GROUP BY
+        employer_id,
+        period,
+        ssyk4,
+        CASE
+            WHEN age BETWEEN 22 AND 25 THEN '22-25'
+            WHEN age BETWEEN 26 AND 30 THEN '26-30'
+            WHEN age BETWEEN 31 AND 34 THEN '31-34'
+            WHEN age BETWEEN 35 AND 40 THEN '35-40'
+            WHEN age BETWEEN 41 AND 49 THEN '41-49'
+            WHEN age BETWEEN 50 AND 69 THEN '50+'
+            ELSE NULL
+        END
+    """
+
+    return pd.read_sql(query, conn)
+
+
+# ======================================================================
+#   STEP 1b: LOAD AND PREPARE (merge DAIOE, re-aggregate)
 # ======================================================================
 
 def load_and_prepare():
     """
-    Load AGI individual data, merge DAIOE quartiles, assign age groups,
+    Pull AGI data year by year via SQL (2019-2025), merge DAIOE quartiles,
     and aggregate to employer x quartile x age_group x month cells.
 
-    This is the unit of analysis in Brynjolfsson et al. (2025).
+    The SQL step aggregates to employer x ssyk4 x age_group x month
+    (with COUNT(DISTINCT person_id)) for performance. Then Python merges
+    DAIOE quartiles on ssyk4 and re-aggregates to employer x quartile x
+    age_group x month -- the unit of analysis in Brynjolfsson et al. (2025).
     """
     print("=" * 70)
-    print("STEP 1: Loading and preparing data")
+    print("STEP 1: Loading and preparing data via SQL")
     print("=" * 70)
 
-    # --- Load AGI ---
-    suffix = INPUT_PATH.suffix.lower()
-    if suffix == ".parquet":
-        df = pd.read_parquet(INPUT_PATH)
-    elif suffix == ".csv":
-        df = pd.read_csv(INPUT_PATH)
-    elif suffix in (".sas7bdat", ".sas"):
-        df = pd.read_sas(INPUT_PATH)
-    else:
-        raise ValueError(f"Unsupported format: {suffix}")
+    # --- Pull year by year from SQL ---
+    years = list(range(2019, 2026))
+    all_years = []
 
-    print(f"  Loaded {len(df):,} individual-month records")
-    print(f"  Columns: {df.columns.tolist()}")
+    for y in years:
+        df_year = pull_and_aggregate_year_employer(y, conn)
+        all_years.append(df_year)
+        print(f"    Year {y}: {len(df_year):,} cells")
 
-    # Rename columns
-    rename_map = {v: k for k, v in AGI_COLUMNS.items() if v in df.columns}
-    df = df.rename(columns=rename_map)
-
-    # Check required columns
-    required = ["person_id", "employer_id", "year_month", "ssyk4"]
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        raise KeyError(
-            f"Missing columns after rename: {missing}. "
-            f"Available: {df.columns.tolist()}. "
-            f"Adjust AGI_COLUMNS dict."
-        )
-
-    # Parse year-month
-    df["year_month"] = df["year_month"].astype(str).str[:7]
-
-    # Compute age
-    if "birth_year" in df.columns:
-        year = df["year_month"].str[:4].astype(int)
-        df["age"] = year - df["birth_year"].astype(int)
-    elif "age" not in df.columns:
-        raise KeyError("Need 'birth_year' or 'age'. Adjust AGI_COLUMNS.")
-
-    # Filter working age
-    df = df[(df["age"] >= 16) & (df["age"] <= 69)].copy()
-
-    # SSYK4 as string
-    df["ssyk4"] = df["ssyk4"].astype(str).str.zfill(4)
+    agg = pd.concat(all_years, ignore_index=True)
+    print(f"\n  Rows after SQL aggregation: {len(agg):,}")
 
     # --- Merge DAIOE quartiles ---
-    print("\n  Merging DAIOE quartiles...")
+    print("  Merging DAIOE quartiles...")
     daioe = pd.read_csv(DAIOE_PATH)
     daioe["ssyk4"] = daioe["ssyk4"].astype(str).str.zfill(4)
-    # Ensure numeric quartile (1-4)
+
+    # Parse quartile labels to numeric (handles "Q1 (lowest)", "Q2", etc.)
     if daioe["exposure_quartile"].dtype == object:
-        q_map = {"Q1 (lowest)": 1, "Q2": 2, "Q3": 3, "Q4 (highest)": 4}
-        daioe["exposure_quartile"] = daioe["exposure_quartile"].map(q_map)
-    df = df.merge(daioe[["ssyk4", "exposure_quartile"]], on="ssyk4", how="inner")
-    print(f"  After DAIOE merge: {len(df):,} records, "
-          f"{df['ssyk4'].nunique()} occupations")
+        daioe["exposure_quartile"] = (
+            daioe["exposure_quartile"]
+            .str.strip()
+            .str.extract(r"Q(\d)")
+            .astype(int)
+        )
 
-    # --- Assign age groups ---
-    def get_age_group(age):
-        for label, (lo, hi) in AGE_GROUPS.items():
-            if lo <= age <= hi:
-                return label
-        return None
+    agg["ssyk4"] = agg["ssyk4"].astype(str).str.zfill(4)
 
-    df["age_group"] = df["age"].apply(get_age_group)
-    df = df[df["age_group"].notna()].copy()
+    agg = agg.merge(
+        daioe[["ssyk4", "exposure_quartile"]],
+        on="ssyk4",
+        how="inner",
+    )
+    print(f"  Rows after DAIOE merge: {len(agg):,}")
 
-    # --- Filter small employers ---
-    emp_size = df.groupby("employer_id")["person_id"].nunique()
-    large_emp = emp_size[emp_size >= MIN_EMPLOYER_SIZE].index
-    n_before = df["employer_id"].nunique()
-    df = df[df["employer_id"].isin(large_emp)].copy()
-    print(f"  Employers: {n_before:,} total -> {df['employer_id'].nunique():,} "
-          f"(>={MIN_EMPLOYER_SIZE} workers)")
-
-    # --- Aggregate to employer x quartile x age_group x month ---
-    print("\n  Aggregating to employer x quartile x age_group x month...")
+    # --- Re-aggregate to employer x quartile x age_group x month ---
+    # (SQL grouped by ssyk4; now collapse across occupations within quartile)
     agg = (
-        df.groupby(["employer_id", "exposure_quartile", "age_group", "year_month"])
-        ["person_id"]
-        .nunique()
+        agg.groupby(
+            ["employer_id", "year_month", "exposure_quartile", "age_group"]
+        )["n_emp"]
+        .sum()
         .reset_index()
-        .rename(columns={"person_id": "n_emp"})
     )
 
-    print(f"  Panel cells: {len(agg):,}")
+    # --- Filter small employers ---
+    emp_size = agg.groupby("employer_id")["n_emp"].sum()
+    large_emp = emp_size[emp_size >= MIN_EMPLOYER_SIZE].index
+    n_before = agg["employer_id"].nunique()
+    agg = agg[agg["employer_id"].isin(large_emp)].copy()
+    print(f"  Employers: {n_before:,} total -> {agg['employer_id'].nunique():,} "
+          f"(>={MIN_EMPLOYER_SIZE} total workers)")
+
+    print(f"\n  Final panel cells: {len(agg):,}")
     print(f"  Employers: {agg['employer_id'].nunique():,}")
     print(f"  Months: {agg['year_month'].nunique()}")
     print(f"  Period: {agg['year_month'].min()} to {agg['year_month'].max()}")
@@ -230,7 +331,7 @@ def load_and_prepare():
 
 
 # ======================================================================
-#   STEP 1b: BUILD BALANCED PANEL (ZERO-FILL)
+#   STEP 1c: BUILD BALANCED PANEL (ZERO-FILL)
 # ======================================================================
 
 def balance_panel_for_age(agg, age_label):
@@ -314,38 +415,42 @@ def run_did_by_age(agg):
     print("STEP 2: DiD regressions by age group")
     print("=" * 70)
 
-    # Treatment variables
-    agg = agg.copy()
-    agg["post_rb"] = (agg["year_month"] >= RIKSBANK_YM).astype(int)
-    agg["post_gpt"] = (agg["year_month"] >= CHATGPT_YM).astype(int)
-    agg["high"] = (agg["exposure_quartile"] == 4).astype(int)
-    agg["post_rb_x_high"] = agg["post_rb"] * agg["high"]
-    agg["post_gpt_x_high"] = agg["post_gpt"] * agg["high"]
-
-    # Log outcome (add 1 to handle zeros)
-    agg["ln_emp"] = np.log(agg["n_emp"] + 1)
-
-    # Create FE group identifiers
-    agg["fe_emp_q"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["exposure_quartile"].astype(str)
-    )
-    agg["fe_emp_t"] = (
-        agg["employer_id"].astype(str) + "_" +
-        agg["year_month"]
-    )
-
     all_results = []
 
     for age_label, (age_lo, age_hi) in AGE_GROUPS.items():
         print(f"\n--- Age group: {age_label} ---")
 
         # Build balanced panel with zero-filled cells
+        # NOTE: balance_panel_for_age() returns only employer_id,
+        # exposure_quartile, year_month, n_emp, age_group.
+        # Treatment variables and FE identifiers must be created AFTER
+        # balancing, not before (otherwise they are dropped by the
+        # cross-join + left-merge inside balance_panel_for_age).
         sub = balance_panel_for_age(agg, age_label)
 
         if len(sub) < 100:
             print(f"  Too few observations ({len(sub)}), skipping")
             continue
+
+        # Create treatment variables on the balanced panel
+        sub["post_rb"] = (sub["year_month"] >= RIKSBANK_YM).astype(int)
+        sub["post_gpt"] = (sub["year_month"] >= CHATGPT_YM).astype(int)
+        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+        sub["post_rb_x_high"] = sub["post_rb"] * sub["high"]
+        sub["post_gpt_x_high"] = sub["post_gpt"] * sub["high"]
+
+        # Log outcome (add 1 to handle zeros from balanced panel)
+        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+
+        # Create FE group identifiers
+        sub["fe_emp_q"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["exposure_quartile"].astype(str)
+        )
+        sub["fe_emp_t"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["year_month"]
+        )
 
         print(f"  Observations: {len(sub):,}")
         print(f"  Employers: {sub['employer_id'].nunique():,}")
@@ -680,12 +785,10 @@ def run_halfyear_event_study(agg):
     print("STEP 3: Half-year event study")
     print("=" * 70)
 
-    agg = agg.copy()
-    agg["halfyear"] = assign_halfyear(agg["year_month"])
-    agg["high"] = (agg["exposure_quartile"] == 4).astype(int)
-    agg["ln_emp"] = np.log(agg["n_emp"] + 1)
-
-    all_periods = sorted(agg["halfyear"].unique())
+    # Determine half-year periods from the raw data
+    # (don't modify agg -- variables are created per age group after balancing)
+    _hy = assign_halfyear(agg["year_month"])
+    all_periods = sorted(_hy.unique())
     event_periods = [p for p in all_periods if p != REF_HALFYEAR]
 
     all_es_results = []
@@ -701,32 +804,49 @@ def run_halfyear_event_study(agg):
             print(f"  Too few observations, skipping")
             continue
 
-        # Create interaction dummies
+        # Create variables on the balanced panel (same pattern as script 18)
+        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+        sub["halfyear"] = assign_halfyear(sub["year_month"])
+        sub["fe_emp_q"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["exposure_quartile"].astype(str)
+        )
+        sub["fe_emp_t"] = (
+            sub["employer_id"].astype(str) + "_" +
+            sub["year_month"]
+        )
+
+        # Create interaction dummies: halfyear × high
         for p in event_periods:
             sub[f"hy_{p}"] = ((sub["halfyear"] == p).astype(int) * sub["high"])
 
         interaction_cols = [f"hy_{p}" for p in event_periods]
 
-        # Try linearmodels, fall back to manual approach
+        # Try linearmodels with CORRECT FE (matching main DiD and script 18)
         try:
             from linearmodels.panel import PanelOLS
 
             panel = sub.copy()
             panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
 
-            # Use occupation-level FE here (employer-level too many groups
-            # for event study with many interaction terms)
-            panel["entity"] = (
-                panel["exposure_quartile"].astype(str) + "_" +
-                panel["employer_id"].astype(str)
+            # Entity = employer × quartile (same as main DiD)
+            panel = panel.set_index(["fe_emp_q", "date"])
+
+            # employer × month as other_effects (THE KEY FIX --
+            # matches main DiD and script 18, absorbs all firm-level
+            # time-varying shocks instead of just calendar month FE)
+            other_fe = pd.DataFrame(
+                {"fe_emp_t": panel["fe_emp_t"]},
+                index=panel.index,
             )
-            panel = panel.set_index(["entity", "date"])
 
             mod = PanelOLS(
                 dependent=panel["ln_emp"],
                 exog=panel[interaction_cols],
                 entity_effects=True,
-                time_effects=True,
+                time_effects=False,       # NOT calendar-month FE
+                other_effects=other_fe,   # employer×month FE instead
             )
             res = mod.fit(cov_type="clustered", cluster_entity=True)
 
