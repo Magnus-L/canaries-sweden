@@ -15,7 +15,7 @@ from within-firm, within-month variation across AI exposure levels.
 ## Files
 
 - **`14_mona_canaries_descriptive.py`** — descriptive canaries analysis (triple-diff, spotlight figures)
-- **`14_mona_employer_regression.py`** — employer-level DiD regression (Brynjolfsson-style)
+- **`15_mona_employer_did.py`** — employer-level DiD regression (Brynjolfsson-style)
 - **DAIOE quartiles**: `daioe_quartiles.csv` on the MONA network share at `\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\`
 - **Stata do-file**: `mona_canaries_regression.do` — Stata version (for replication/verification only)
 
@@ -87,7 +87,7 @@ always feasible).
 
 - Both scripts query SQL Server year-by-year, using UNION ALL across months
   within each year. This is the bottleneck; expect ~1-2 minutes per year.
-- The employer regression script (`14_mona_employer_regression.py`) has
+- The employer regression script (`15_mona_employer_did.py`) has
   employer×month FE that can be very large (potentially millions of groups).
   It filters to employers with >=5 workers by default.
   If memory is still an issue, increase `MIN_EMPLOYER_SIZE` to 10 or 20.

@@ -153,5 +153,7 @@ def fig_riksbank_rate():
     print(f"  Saved → {out.name}")
 
 
+main = fig_riksbank_rate
+
 if __name__ == "__main__":
     fig_riksbank_rate()

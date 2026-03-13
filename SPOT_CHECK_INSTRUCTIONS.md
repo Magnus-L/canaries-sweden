@@ -1,6 +1,6 @@
 # Manual Spot-Check Instructions for Erik Engberg
 
-**Paper:** Two Economies? Stock Markets, Job Postings, and AI Exposure in Sweden
+**Paper:** Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring
 **Purpose:** Independent verification of data pipeline (Platsbanken processing + telework crosswalk)
 **Estimated time:** 1–2 hours
 
