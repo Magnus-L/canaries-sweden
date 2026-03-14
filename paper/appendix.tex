@@ -307,6 +307,13 @@ Figure~\ref{fig:riksbank_rate} shows the Riksbank's policy rate from 2020 throug
 
 We use monthly employer declarations (AGI) to the Swedish tax authority. These register data are available via SCB's secure research environment (MONA). The AGI provides population-level individual employment records matched to SSYK~4-digit occupations by age and gender (detailed documentation in Part~IV). An employer-level difference-in-differences following \citet{brynjolfsson2025canaries} yields a modest average post-ChatGPT coefficient for the youngest workers ($\hat\gamma_2 = -0.010$, $p < 0.01$), but a half-year event study reveals an accelerating divergence: by 2025H1, employment of 22--25 year olds in top-quartile occupations has fallen by 5.5 per cent relative to less exposed occupations, while employment of workers over 50 has risen by 1.3 per cent. Swedish college graduation age is high by international standards (median 27--28), so the 22--25 bracket captures very-early-career workers.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_canaries_economy_raw.png}
+\caption{Monthly employment by age group and AI exposure, unsmoothed. Same data as Figure~2 in the main paper but without the 3-month moving average, showing that the divergence is not an artefact of smoothing. Strong seasonality is visible, particularly for the 22--25 group (summer employment peaks). The accelerating decline of young workers in high-AI occupations (solid orange) from 2024 onward partly reflects SSYK matching attrition as LISA coverage ends in 2023 (see Part~IV).}
+\label{fig:canaries_raw}
+\end{figure}
+
 \paragraph{Reconciliation with the Finnish and Danish evidence.}
 Our employer~$\times$~quartile and employer~$\times$~month fixed effects isolate within-firm recomposition across AI exposure quartiles, a different identification margin from occupation-level analyses that average over all employers \citep{kauhanen2025canaries,kauhanen2025youth} or intensive-margin studies of incumbents' earnings and hours \citep{humlum2025llm}. The two designs are complementary: aggregate occupation-level effects may be zero even if the composition of employment within employers is shifting. Whether Finland and Denmark exhibit similar within-employer age gradients remains an open empirical question.
 
