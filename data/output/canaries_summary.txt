@@ -1,0 +1,37 @@
+CANARIES REGRESSION -- SUMMARY
+==================================================
+
+Total panel cells (non-zero): 75,180,417
+Employers: 510,213
+Months: 78
+Period: 2019-01 to 2025-06
+Min employer size: 5
+
+--- Age group sizes (non-zero cells) ---
+  22-25: 6,390,184 cells
+  26-30: 9,540,844 cells
+  31-34: 9,225,915 cells
+  35-40: 11,776,499 cells
+  41-49: 15,820,838 cells
+  50+: 22,426,137 cells
+
+--- Quartile distribution ---
+  Q1: 79,444,673 person-months
+  Q2: 118,145,854 person-months
+  Q3: 73,105,626 person-months
+  Q4: 107,021,074 person-months
+
+--- DiD Results (OLS + Poisson) ---
+age_group   method    n_obs  gamma1_rb_high      se1        pval1  gamma2_gpt_high      se2        pval2
+    22-25 PanelOLS 11970426       -0.012484 0.001806 4.739320e-12        -0.009781 0.001848 1.207371e-07
+    26-30 PanelOLS 16498560       -0.006365 0.001629 9.323705e-05         0.000215 0.001653 8.965004e-01
+    31-34 PanelOLS 14773590       -0.001241 0.001690 4.627622e-01         0.008414 0.001747 1.459805e-06
+    35-40 PanelOLS 17511078       -0.002415 0.001513 1.104267e-01         0.003181 0.001567 4.237926e-02
+    41-49 PanelOLS 21810984        0.001487 0.001312 2.570854e-01         0.001666 0.001359 2.203199e-01
+      50+ PanelOLS 29895762        0.005105 0.001033 7.762535e-07         0.010254 0.001090 0.000000e+00
+
+FE structure: employer x quartile + employer x month
+SEs clustered by employer
+Panel: balanced (zero-filled), restricted to employers with Q4 and Q1-Q3
+Main estimator: OLS on ln(count+1)
+Robustness: Poisson PML via pyfixest (if available)

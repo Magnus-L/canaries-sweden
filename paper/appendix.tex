@@ -92,24 +92,32 @@ DAIOE genAI pctl (mean) & 12.4 & 37.4 & 61.9 & 88.2 & 48.4 \\
 
 \begin{table}[htbp]
 \centering
-\caption{Summary statistics: employer-level employment sample (employer$\times$quartile$\times$month panel).}
+\caption{Summary statistics: employer-level employment sample (employer$\times$quartile$\times$month panel, 2019:01--2025:06).}
 \label{tab:sumstats_employment}
 \footnotesize
-\begin{tabular}{@{}lrrrrr@{}}
+\begin{tabular}{@{}lr@{}}
 \toprule
- & Q1 & Q2 & Q3 & Q4 & All \\
+ & Value \\
 \midrule
-Employers & \multicolumn{5}{c}{\emph{[To be completed from MONA]}} \\
-Emp$\times$quartile$\times$month obs & --- & --- & --- & --- & --- \\[4pt]
-Workers per cell, 22--25 (mean) & --- & --- & --- & --- & --- \\
-Workers per cell, 26--30 (mean) & --- & --- & --- & --- & --- \\
-Workers per cell, 31--34 (mean) & --- & --- & --- & --- & --- \\
-Workers per cell, 35--40 (mean) & --- & --- & --- & --- & --- \\
-Workers per cell, 41--49 (mean) & --- & --- & --- & --- & --- \\
-Workers per cell, 50+ (mean)    & --- & --- & --- & --- & --- \\[4pt]
-Share zero-employment cells (\%) & --- & --- & --- & --- & --- \\
+Employers & 510,213 \\
+Months & 78 \\
+Non-zero panel cells & 75,180,417 \\
+Min employer size & 5 \\[4pt]
+\multicolumn{2}{@{}l}{\emph{Non-zero cells by age group}} \\
+\quad 22--25 & 6,390,184 \\
+\quad 26--30 & 9,540,844 \\
+\quad 31--34 & 9,225,915 \\
+\quad 35--40 & 11,776,499 \\
+\quad 41--49 & 15,820,838 \\
+\quad 50+ & 22,426,137 \\[4pt]
+\multicolumn{2}{@{}l}{\emph{Person-months by quartile}} \\
+\quad Q1 (lowest exposure) & 79,444,673 \\
+\quad Q2 & 118,145,854 \\
+\quad Q3 & 73,105,626 \\
+\quad Q4 (highest exposure) & 107,021,074 \\
 \bottomrule
-\multicolumn{6}{l}{\scriptsize Q1 = lowest genAI exposure; Q4 = highest. Employers with $\geq$5 workers.}
+\multicolumn{2}{l}{\scriptsize Balanced panel with zero-filled cells. Employers with $\geq$5 workers.} \\
+\multicolumn{2}{l}{\scriptsize Restricted to employers observed in both Q4 and at least one of Q1--Q3.}
 \end{tabular}
 \end{table}
 
@@ -539,7 +547,11 @@ The composition channel is more consequential at older ages. For women aged 41--
 
 \citet{brynjolfsson2025canaries} highlight specific ``spotlight'' occupations (software developers and customer service agents) where AI adoption is particularly visible. A forecast report independently documents declining employment in administration and customer service in Sweden, noting that ``unemployment among white-collar workers has risen faster than among blue-collar workers'' \citep{unionen2025konjunktur}. Using monthly AGI (employer declaration) register data from SCB's secure environment (MONA), we plot employment trajectories by fine age band (22--25, 26--30, 31--34, 35--40, 41--49, 50+) for these occupations, indexed to October 2022 (just before ChatGPT).
 
-The economy-wide employment figure by age group and AI exposure appears as Figure~2 in the main paper. Below we show the occupation-specific spotlight analyses.
+The economy-wide employment figure by age group and AI exposure appears as Figure~2 in the main paper. Below we show occupation-specific spotlight analyses for four high-exposure occupations that span the augmentation--automation spectrum.
+
+Software developers (SSYK~2512) represent a setting where AI primarily augments experienced workers: senior developers leverage code-generation tools to become more productive, potentially reducing demand for junior coding tasks. Payroll administrators (SSYK~4112) and receptionists (SSYK~4225) represent occupations where routine entry-level tasks -- data entry, scheduling, basic enquiries -- are more directly automatable. Customer service agents (SSYK~4222) lie between these poles. That all four occupations display the same age gradient -- young workers declining, older workers stable or rising -- suggests that both augmentation and automation channels reduce demand for entry-level workers, albeit through different mechanisms: augmentation by raising the productivity of experienced workers, automation by eliminating codified tasks disproportionately performed by juniors.
+
+The augmentation--automation spectrum in these spotlight occupations connects to the gender gap documented in Section~\ref{sec:gender}. Three of the four occupations are female-dominated: payroll administrators (82\% female), customer service agents and receptionists (66\% female), while software developers are 76\% male (SCB Yrkesregistret 2024, 3-digit SSYK). The Oaxaca-Blinder decomposition shows that reweighting women to men's occupational distribution within Q4 narrows the gender gap by one-third, consistent with women's concentration in the administrative and service occupations where age-gradient effects are largest.
 
 % MOVED TO OFFLINE APPENDIX (OA6) — GenAI capability timeline (speculative causal narrative, conflicts with measured tone)
 % To restore, copy section from appendix_offline.tex OA6
@@ -560,17 +572,15 @@ The economy-wide employment figure by age group and AI exposure appears as Figur
 
 \begin{figure}[htbp]
 \centering
-%\includegraphics[width=\textwidth]{figA8c_mona_canaries_payrolladmin.png}  % PLACEHOLDER — awaiting MONA output from Lydia
-\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{Figure placeholder — awaiting MONA output}\vspace{3cm}}}
-\caption{Monthly employment by age group: Payroll Administrators (SSYK~4112). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). Payroll administrators rank at the 96th percentile of DAIOE genAI exposure.}
+\includegraphics[width=\textwidth]{figA8c_mona_canaries_payrolladmin.png}
+\caption{Monthly employment by age group: Payroll Administrators (SSYK~4112). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). Payroll administrators rank at the 96th percentile of DAIOE genAI exposure. The 22--25 group drops to approximately 60\% of the base by early 2025.}
 \label{fig:spotlight_payroll}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-%\includegraphics[width=\textwidth]{figA8d_mona_canaries_receptionists.png}  % PLACEHOLDER — awaiting MONA output from Lydia
-\fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}\textit{Figure placeholder — awaiting MONA output}\vspace{3cm}}}
-\caption{Monthly employment by age group: Receptionists (SSYK~4225). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). Receptionists rank at the 76th percentile of DAIOE genAI exposure.}
+\includegraphics[width=\textwidth]{figA8d_mona_canaries_receptionists.png}
+\caption{Monthly employment by age group: Receptionists (SSYK~4225). AGI register data, indexed to base month = 100. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022). Receptionists rank at the 76th percentile of DAIOE genAI exposure. The pattern is noisier than for software developers or payroll administrators, likely reflecting smaller cell sizes.}
 \label{fig:spotlight_receptionists}
 \end{figure}
 
