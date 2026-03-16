@@ -1,0 +1,38 @@
+============================================================
+SSYK ATTRITION ROBUSTNESS SUMMARY
+============================================================
+Script: 28_mona_ssyk_attrition.py
+Sample: 2019-2023 ONLY (SSYK coverage 90%+)
+FE: employer x quartile (entity) + employer x month (other_effects)
+Runtime: 59.2 minutes
+
+RATIONALE:
+  SSYK non-match rate rises from ~10% (2019-2023) to ~20% (2025).
+  If results hold in 2019-2023, the 2024-2025 acceleration is less
+  likely to be an artifact of differential SSYK attrition.
+
+EVENT STUDY PERIODS: 2019H1 through 2023H2
+Reference: 2022H1
+Post-treatment: 2022H2, 2023H1, 2023H2
+
+PRE-TREND TESTS (joint chi2, H0: all pre-period coefficients = 0):
+     22-25: chi2(6) =  391.66, p = 0.0000  [FAIL]
+     26-30: chi2(6) =  568.21, p = 0.0000  [FAIL]
+     31-34: chi2(6) =  187.66, p = 0.0000  [FAIL]
+     35-40: chi2(6) =  166.87, p = 0.0000  [FAIL]
+     41-49: chi2(6) =  127.29, p = 0.0000  [FAIL]
+       50+: chi2(6) =  169.98, p = 0.0000  [FAIL]
+
+DiD RESULTS (post = 2022H2+):
+     22-25: coef =   0.0009 (SE = 0.0018, p = 0.6237) 
+     26-30: coef =   0.0089 (SE = 0.0017, p = 0.0000) ***
+     31-34: coef =   0.0111 (SE = 0.0018, p = 0.0000) ***
+     35-40: coef =   0.0031 (SE = 0.0017, p = 0.0677) *
+     41-49: coef =   0.0038 (SE = 0.0014, p = 0.0084) ***
+       50+: coef =   0.0112 (SE = 0.0012, p = 0.0000) ***
+
+INTERPRETATION:
+  Compare these coefficients with full-sample (script 18) results.
+  If signs and significance match, the SSYK attrition concern
+  does not drive the main findings. If effects disappear, the
+  2024-2025 results may reflect differential attrition.

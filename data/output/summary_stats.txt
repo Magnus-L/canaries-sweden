@@ -1,0 +1,67 @@
+======================================================================
+EMPLOYMENT SUMMARY STATISTICS — CANARIES-SWEDEN
+Script: 24_mona_summary_stats.py
+Generated: 2026-03-15 23:01
+======================================================================
+
+--- PANEL STRUCTURE BY AGE GROUP ---
+
+age_group  n_employers  n_emp_q_cells  total_panel_cells  n_zero_cells  zero_cell_share  mean_n_emp  median_n_emp  p25_n_emp  p75_n_emp  mean_n_emp_positive  median_n_emp_positive
+    22-25        48211         153467           11970426       8420713           0.7035        1.77           0.0        0.0        1.0                 5.97                    1.0
+    26-30        69145         211520           16498560      10910222           0.6613        2.20           0.0        0.0        1.0                 6.49                    1.0
+    31-34        64981         189405           14773590       9671280           0.6546        2.16           0.0        0.0        1.0                 6.25                    1.0
+    35-40        78086         224501           17511078      10949717           0.6253        2.60           0.0        0.0        1.0                 6.93                    1.0
+    41-49        97848         279628           21810984      12815631           0.5876        3.17           0.0        0.0        1.0                 7.68                    1.0
+      50+       131294         383279           29895762      16749168           0.5603        4.29           0.0        0.0        1.0                 9.75                    1.0
+
+
+--- INTERPRETATION ---
+N employers: unique employer_id with both Q4 and Q1-Q3 workers
+N emp×q cells: unique employer × quartile combinations in panel
+total_panel_cells: emp×q cells × 78 months (Jan 2019 – Jun 2025)
+zero_cell_share: fraction of cells where n_emp = 0 (zero-filled)
+mean/median_n_emp: cell size including zeros
+mean/median_n_emp_positive: cell size excluding zeros
+
+
+--- ZERO-CELL SHARE DIAGNOSTIC (22-25, Q4 vs Q1-Q3) ---
+
+halfyear  Q4_zero_share  Q1-Q3_zero_share  Q4_minus_Q1Q3
+  2019H1         0.7658          0.682033       0.083767
+  2019H2         0.7601          0.665367       0.094733
+  2020H1         0.7720          0.692167       0.079833
+  2020H2         0.7685          0.682333       0.086167
+  2021H1         0.7790          0.703500       0.075500
+  2021H2         0.7575          0.661433       0.096067
+  2022H1         0.7573          0.668767       0.088533
+  2022H2         0.7540          0.650433       0.103567
+  2023H1         0.7568          0.677700       0.079100
+  2023H2         0.7574          0.671067       0.086333
+  2024H1         0.8023          0.691700       0.110600
+  2024H2         0.7908          0.674333       0.116467
+  2025H1         0.8281          0.697367       0.130733
+
+
+If Q4_minus_Q1Q3 increases post-2022H2, it means young workers
+in high-AI-exposure occupations are disappearing from employer
+panels at a higher rate than workers in low-AI occupations.
+This is the extensive-margin channel: employers stop hiring
+young workers into AI-exposed roles entirely.
+
+
+--- ZERO-CELL SHARE DIAGNOSTIC (50+, Q4 vs Q1-Q3) ---
+
+halfyear  Q4_zero_share  Q1-Q3_zero_share  Q4_minus_Q1Q3
+  2019H1         0.6039          0.577200       0.026700
+  2019H2         0.6022          0.576000       0.026200
+  2020H1         0.5735          0.555567       0.017933
+  2020H2         0.5762          0.559667       0.016533
+  2021H1         0.5655          0.554700       0.010800
+  2021H2         0.5576          0.544000       0.013600
+  2022H1         0.5448          0.532567       0.012233
+  2022H2         0.5438          0.531500       0.012300
+  2023H1         0.5590          0.549267       0.009733
+  2023H2         0.5630          0.553833       0.009167
+  2024H1         0.5626          0.554800       0.007800
+  2024H2         0.5669          0.556767       0.010133
+  2025H1         0.5671          0.560100       0.007000

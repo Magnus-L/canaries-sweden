@@ -1,0 +1,75 @@
+============================================================
+PLACEBO DATE TEST SUMMARY
+============================================================
+Script: 25_mona_placebo_dates.py
+FE: employer x quartile (entity) + employer x month (other_effects)
+Runtime: 110.1 minutes
+
+PURPOSE:
+  Test whether the post-ChatGPT employment composition shift
+  (young workers in high-AI-exposure occupations) could be
+  explained by a pre-existing trend rather than AI adoption.
+
+  If no acceleration appears at the placebo dates, this confirms
+  the pattern is specific to the post-ChatGPT period.
+
+--- Placebo: Nov 2021 (1 year before ChatGPT) ---
+  Fake treatment: 2021H2  | Reference: 2021H1
+  PRE-TREND TESTS (joint chi2, H0: all pre-placebo coefficients = 0):
+       22-25: chi2(4) =  135.72, p = 0.0000  [FAIL]
+       26-30: chi2(4) =  217.25, p = 0.0000  [FAIL]
+       31-34: chi2(4) =   70.03, p = 0.0000  [FAIL]
+       35-40: chi2(4) =   52.35, p = 0.0000  [FAIL]
+       41-49: chi2(4) =   63.98, p = 0.0000  [FAIL]
+         50+: chi2(4) =  157.01, p = 0.0000  [FAIL]
+
+  KEY COEFFICIENTS (22-25 age group):
+    2019H1: -0.0134 (SE=0.0023)***
+    2019H2: -0.0218 (SE=0.0023)***
+    2020H1: -0.0062 (SE=0.0019)***
+    2020H2: -0.0093 (SE=0.0018)***
+    2021H1: +0.0000 (SE=0.0000)
+    2021H2: -0.0211 (SE=0.0012)***
+    2022H1: -0.0133 (SE=0.0020)***
+    2022H2: -0.0264 (SE=0.0022)***
+    2023H1: -0.0027 (SE=0.0024)
+    2023H2: -0.0081 (SE=0.0024)***
+    2024H1: -0.0425 (SE=0.0024)***
+    2024H2: -0.0486 (SE=0.0025)***
+    2025H1: -0.0681 (SE=0.0025)***
+
+--- Placebo: Jul 2022 (between Riksbank hike and ChatGPT) ---
+  Fake treatment: 2022H2  | Reference: 2022H1
+  PRE-TREND TESTS (joint chi2, H0: all pre-placebo coefficients = 0):
+       22-25: chi2(6) =  383.25, p = 0.0000  [FAIL]
+       26-30: chi2(6) =  544.89, p = 0.0000  [FAIL]
+       31-34: chi2(6) =  189.85, p = 0.0000  [FAIL]
+       35-40: chi2(6) =  169.68, p = 0.0000  [FAIL]
+       41-49: chi2(6) =  126.74, p = 0.0000  [FAIL]
+         50+: chi2(6) =  179.42, p = 0.0000  [FAIL]
+
+  KEY COEFFICIENTS (22-25 age group):
+    2019H1: -0.0001 (SE=0.0025)
+    2019H2: -0.0085 (SE=0.0025)***
+    2020H1: +0.0071 (SE=0.0023)***
+    2020H2: +0.0040 (SE=0.0023)*
+    2021H1: +0.0133 (SE=0.0020)***
+    2021H2: -0.0078 (SE=0.0019)***
+    2022H1: +0.0000 (SE=0.0000)
+    2022H2: -0.0131 (SE=0.0012)***
+    2023H1: +0.0106 (SE=0.0021)***
+    2023H2: +0.0053 (SE=0.0022)**
+    2024H1: -0.0292 (SE=0.0023)***
+    2024H2: -0.0353 (SE=0.0023)***
+    2025H1: -0.0548 (SE=0.0025)***
+
+INTERPRETATION GUIDE:
+  - Flat or near-zero coefficients at the placebo date = GOOD.
+    This means the post-ChatGPT pattern is not a continuation
+    of a pre-existing trend.
+  - Significant negative coefficients for young workers at the
+    placebo date = CONCERNING. Would suggest pre-existing trend
+    or confounding (e.g. Riksbank hike for Jul 2022 placebo).
+  - Compare the magnitude and trajectory of coefficients here
+    with the real event study (script 18) to assess whether
+    there is a structural break at the ChatGPT launch.

@@ -1,0 +1,43 @@
+================================================================================
+ALTERNATIVE SE CLUSTERING: SIDE-BY-SIDE COMPARISON
+================================================================================
+
+Specification: ln(n_emp+1) = a_{f,q} + b_{f,t} + g1*PostRB*High + g2*PostGPT*High
+FE: employer x quartile (entity) + employer x month (other_effects)
+Point estimates are identical; only SEs and p-values change.
+
+   Age  Clustering                #Clust        g1    SE(g1)     p(g1)        g2    SE(g2)     p(g2)
+----------------------------------------------------------------------------------------------------
+ 22-25  entity (emp x Q)         153,467   -0.0125  (0.0018)    0.0000   -0.0098***  (0.0018)    0.0000
+
+ 26-30  entity (emp x Q)         211,520   -0.0064  (0.0016)    0.0001   +0.0002     (0.0017)    0.8965
+
+ 31-34  entity (emp x Q)         189,405   -0.0012  (0.0017)    0.4628   +0.0084***  (0.0017)    0.0000
+
+ 35-40  entity (emp x Q)         224,501   -0.0024  (0.0015)    0.1104   +0.0032**   (0.0016)    0.0424
+
+ 41-49  entity (emp x Q)         279,628   +0.0015  (0.0013)    0.2571   +0.0017     (0.0014)    0.2203
+
+   50+  entity (emp x Q)         383,279   +0.0051  (0.0010)    0.0000   +0.0103***  (0.0011)    0.0000
+
+================================================================================
+INTERPRETATION GUIDE:
+================================================================================
+
+If SEs increase substantially with coarser clustering (employer or SSYK2),
+the baseline entity-level SEs may understate uncertainty. Key question:
+does g2 for 22-25 remain significant at conventional levels?
+
+Entity clusters (emp x Q): ~millions. Most precise SEs but may
+  understate uncertainty if errors are correlated within employers.
+
+Employer clusters: fewer (one per employer). Absorbs within-employer
+  correlation across quartiles. A natural robustness check.
+
+SSYK 2-digit clusters: ~40. Most conservative. Treatment (DAIOE
+  exposure) varies at the occupation level, so this is the cluster
+  level recommended by Cameron & Miller (2015) for treatment-level
+  inference. CAVEAT: with only ~40 clusters, the cluster-robust
+  variance estimator may be unreliable (rule of thumb: G >= 50).
+  Wild cluster bootstrap would be the gold standard here, but
+  is computationally infeasible with this panel size.
