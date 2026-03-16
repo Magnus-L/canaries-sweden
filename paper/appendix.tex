@@ -54,7 +54,7 @@
 \tableofcontents
 \bigskip
 
-\noindent This appendix provides supplementary analysis for the main paper. Part~I documents the AI exposure measure and its occupational distribution. Part~II presents robustness checks for the posting analysis, including macro contextualisation of the ``scary chart.'' Part~III reports the employer-level employment analysis and compares our approach with the emerging literature. Part~IV documents data sources, coverage, and access procedures.
+\noindent This appendix provides supplementary analysis for the main paper. Part~I documents the AI exposure measure and its occupational distribution. Part~II presents robustness checks for the posting analysis, including macro contextualisation of the ``scary chart.'' Part~III reports the employer-level employment analysis, including placebo date tests and extensive-margin diagnostics, and compares our approach with the emerging literature. Part~IV documents data sources, coverage, and access procedures.
 
 % ══════════════════════════════════════════════════════════════════════════════
 %   PART I: DATA AND MEASUREMENT
@@ -131,6 +131,27 @@ Min employer size & 5 \\[4pt]
 \bottomrule
 \multicolumn{2}{l}{\scriptsize Balanced panel with zero-filled cells. Employers with $\geq$5 workers.} \\
 \multicolumn{2}{l}{\scriptsize Restricted to employers observed in both Q4 and at least one of Q1--Q3.}
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Panel structure by age group: balanced employer$\times$quartile$\times$month panel.}
+\label{tab:panel_structure}
+\footnotesize
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
+\midrule
+Employers & 48,211 & 69,145 & 64,981 & 78,086 & 97,848 & 131,294 \\
+Emp$\times$Q cells & 153,467 & 211,520 & 189,405 & 224,501 & 279,628 & 383,279 \\
+Total panel cells & 11.97M & 16.50M & 14.77M & 17.51M & 21.81M & 29.90M \\
+Zero-cell share & 0.704 & 0.661 & 0.655 & 0.625 & 0.588 & 0.560 \\[4pt]
+Mean cell size & 1.77 & 2.20 & 2.16 & 2.60 & 3.17 & 4.29 \\
+Mean (if $>0$) & 5.97 & 6.49 & 6.25 & 6.93 & 7.68 & 9.75 \\
+\bottomrule
+\multicolumn{7}{l}{\scriptsize Zero-cell share: fraction of employer$\times$quartile$\times$month cells with zero employment.} \\
+\multicolumn{7}{l}{\scriptsize The high zero-cell share for young workers reflects smaller cohort sizes, not data quality.}
 \end{tabular}
 \end{table}
 
@@ -476,6 +497,40 @@ Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint &
 \bottomrule
 \end{tabular}
 \end{table}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Placebo date test}
+\label{sec:placebo}
+% ──────────────────────────────────────────────────────────────────────────────
+
+A direct way to assess whether the post-ChatGPT acceleration is specific to the AI channel is to re-estimate the event study with a placebo treatment date. We set the fake treatment to July 2022, halfway between the Riksbank's first rate hike (April 2022) and the ChatGPT launch (November 2022), with 2022H1 as the reference period. If the age-gradient effect reflects a pre-existing trend or the Riksbank tightening rather than AI, a comparable divergence should appear at this placebo date.
+
+Figure~\ref{fig:placebo_jul2022} shows the results. For ages 22--25, the coefficient at the placebo date (2022H2) is $-0.013$, comparable to the modest average DiD, but the trajectory through 2023 is flat or slightly positive ($+0.011$ in 2023H1, $+0.005$ in 2023H2). The sharp acceleration begins only in 2024H1 ($-0.029$) and deepens to $-0.055$ by 2025H1. This timing pattern is inconsistent with a smooth continuation of pre-existing trends or a Riksbank-driven effect; instead, it aligns with the enterprise AI adoption timeline. For workers over 50, the upward trajectory is more gradual, consistent with the pre-trend continuation noted in Table~\ref{tab:pretrend_bias}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{placebo_jul2022_es_panel.png}
+\caption{Event study with placebo treatment date: July 2022 (reference period: 2022H1). Employer$\times$quartile and employer$\times$month fixed effects. Vertical dashed lines mark the Riksbank's first rate hike and the ChatGPT launch. The key finding is the flat trajectory through 2023 for ages 22--25, followed by a sharp acceleration in 2024--2025 that is absent at the placebo date.}
+\label{fig:placebo_jul2022}
+\end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Extensive margin: zero-employment cells}
+\label{sec:zero_cells}
+% ──────────────────────────────────────────────────────────────────────────────
+
+Our balanced panel includes zero-employment cells (employer$\times$quartile$\times$month observations where no worker of a given age group is employed). These zeros are informative: a rising zero-cell share in Q4 relative to Q1--Q3 indicates that employers are ceasing to employ \emph{any} young workers in high-AI-exposure occupations, the extensive-margin counterpart of the intensive-margin coefficients in Table~\ref{tab:employer_did}.
+
+Figure~\ref{fig:zero_cells} plots the zero-cell share separately for Q4 (high AI exposure) and Q1--Q3 (low exposure) by age group. For ages 22--25, the Q4--Q1Q3 gap in zero-cell share widens from approximately 8.9 percentage points in 2022H1 to 13.1 percentage points by 2025H1, indicating that employers are increasingly likely to have no young workers at all in AI-exposed roles. For workers over 50, the gap narrows from 1.2 to 0.7 percentage points, consistent with Q4 retaining or gaining older workers. The extensive-margin pattern reinforces the event study: the canaries effect operates partly through employers dropping young Q4 employment entirely, not only through reductions in cell size.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{zero_cell_shares_q4_vs_rest.png}
+\caption{Zero-employment cell share in balanced panels: Q4 (high AI exposure) vs Q1--Q3 (low exposure), by age group and half-year period. The widening Q4--Q1Q3 gap for ages 22--25 from 2022H2 onward indicates that employers are increasingly dropping all young workers from AI-exposed roles (extensive margin). For ages 50+, the gap narrows, consistent with retention of experienced workers.}
+\label{fig:zero_cells}
+\end{figure}
+
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Gender heterogeneity}

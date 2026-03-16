@@ -1,0 +1,53 @@
+============================================================
+ENTRANT COMPOSITION ANALYSIS
+Script: 30_mona_entrant_composition.py
+============================================================
+
+QUESTION: Does the Q4 share among young entrants change
+differentially after ChatGPT, suggesting a composition/sorting
+channel rather than (or in addition to) within-occupation
+displacement?
+
+--- Age group: 22-25 ---
+  Year    Q4 share     N(Q4)    N(total)
+  2019      0.1396    49,814     356,810
+  2020      0.1836     2,384      12,984
+  2021      0.2016     1,749       8,674
+  2022      0.2115     1,630       7,707
+  2023      0.2574     1,212       4,708
+  2024      0.0750         3          40
+  2025      0.1818         2          11
+  Pre-ChatGPT mean (2019-2022): 0.1841
+  Post-ChatGPT mean (2023-2025): 0.1714
+  Difference: -0.0127
+  --> DECLINING: Young entrants sorting away from Q4.
+      Composition channel may contribute to canaries result.
+
+--- Age group: 26-30 ---
+  Year    Q4 share     N(Q4)    N(total)
+  2019      0.2436   137,258     563,374
+  2020      0.2619    12,210      46,628
+  2021      0.3088     4,569      14,794
+  2022      0.3518     4,600      13,076
+  2023      0.3755     2,995       7,975
+  2024      0.0902        12         133
+  2025      0.0323         1          31
+  Pre-ChatGPT mean (2019-2022): 0.2915
+  Post-ChatGPT mean (2023-2025): 0.1660
+  Difference: -0.1255
+  --> DECLINING: Young entrants sorting away from Q4.
+      Composition channel may contribute to canaries result.
+
+INTERPRETATION:
+  If Q4 share is stable across years, the canaries finding in the
+  main employment analysis reflects within-occupation displacement
+  (fewer young workers hired into Q4 roles), not a change in which
+  occupations young workers sort into.
+
+  If Q4 share declines post-ChatGPT, both channels may operate:
+  young workers are simultaneously displaced from Q4 occupations
+  (main result) AND sorting away from them (this result).
+
+  CAVEAT: 2019 'entrants' include incumbents who entered before
+  our data window. The 2019 cohort overstates entrants. Focus
+  the interpretation on 2020-2025 trends.
