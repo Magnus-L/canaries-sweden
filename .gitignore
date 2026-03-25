@@ -38,6 +38,12 @@ venv/
 !figures/*.pdf
 !onepager/*.pdf
 
+# Presentations (local only, not public by default)
+presentation/
+
+# Media materials (drafts, op-eds — local only)
+media/
+
 # Internal working files (not for public repo)
 SESSION_PICKUP.md
 SESSION_SUMMARY.md

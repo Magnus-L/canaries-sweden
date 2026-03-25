@@ -1,0 +1,90 @@
+============================================================
+RAMBACHAN-ROTH (2023) SENSITIVITY ANALYSIS
+Employment event study (script 18 output, ref = 2022H1)
+============================================================
+
+Method: Relative magnitudes restriction (HonestDiD package)
+Covariance: Diagonal (conservative -- no cross-period covariance)
+Significance level: alpha = 0.05
+M_bar grid: 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4
+
+--- 22-25 ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        0.0
+  Honest CI (M_bar=0.0): [Inf, -Inf] 
+  Honest CI (M_bar=0.5): [-0.0174, 0.0174]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0174, 0.0174]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0174, 0.0174]  <-- includes zero
+
+--- 26-30 ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        0.0
+  Honest CI (M_bar=0.0): [-0.0136, -0.0107] 
+  Honest CI (M_bar=0.5): [-0.0153, 0.0153]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0153, 0.0153]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0153, 0.0153]  <-- includes zero
+
+--- 31-34 ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        < 0 (not significant even under exact parallel trends)
+  Honest CI (M_bar=0.0): [-0.0012, 0.0019]  <-- includes zero
+  Honest CI (M_bar=0.5): [-0.0159, 0.0159]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0159, 0.0159]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0159, 0.0159]  <-- includes zero
+
+--- 35-40 ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        0.0
+  Honest CI (M_bar=0.0): [-0.0044, -0.0017] 
+  Honest CI (M_bar=0.5): [-0.0142, 0.0142]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0142, 0.0142]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0142, 0.0142]  <-- includes zero
+
+--- 41-49 ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        0.0
+  Honest CI (M_bar=0.0): [-0.0032, -0.0008] 
+  Honest CI (M_bar=0.5): [-0.0122, 0.0122]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0122, 0.0122]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0122, 0.0122]  <-- includes zero
+
+--- 50+ ---
+  Pre-treatment periods:  6
+  Post-treatment periods: 6
+  Breakdown M_bar:        0.0
+  Honest CI (M_bar=0.0): [0.0063, 0.0082] 
+  Honest CI (M_bar=0.5): [-0.0096, 0.0096]  <-- includes zero
+  Honest CI (M_bar=1.0): [-0.0096, 0.0096]  <-- includes zero
+  Honest CI (M_bar=2.0): [-0.0096, 0.0096]  <-- includes zero
+
+============================================================
+INTERPRETATION GUIDE
+============================================================
+
+The breakdown value M_bar tells you how robust the result is to
+violations of parallel trends in the post-treatment period.
+
+  M_bar > 1: Result survives even if post-treatment trend violations
+             are LARGER than the worst pre-period violation. Strong.
+
+  M_bar ~ 1: Result survives if post-treatment violations are at most
+             as large as the worst pre-period violation. Moderate.
+
+  M_bar < 1: Result breaks down for violations SMALLER than those
+             observed pre-treatment. The result is fragile.
+
+  M_bar = NA: The result is not significant even under exact parallel
+              trends (M_bar = 0). No sensitivity analysis needed.
+
+NOTE: We use a diagonal covariance matrix (no cross-period covariance).
+This is conservative -- the true honest CIs would be narrower if we
+accounted for positive correlation between adjacent period estimates.
+The breakdown values reported here are therefore LOWER BOUNDS on the
+true breakdown values.
+
+Generated: 2026-03-23 18:10:37.341488
