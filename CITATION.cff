@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring"
+authors:
+  - family-names: Lodefalk
+    given-names: Magnus
+    orcid: "https://orcid.org/0000-0002-5313-4417"
+    affiliation: "Örebro University"
+  - family-names: Löthman
+    given-names: Lydia
+    affiliation: "Örebro University"
+  - family-names: Koch
+    given-names: Michael
+    affiliation: "Aarhus University"
+  - family-names: Engberg
+    given-names: Erik
+    affiliation: "Örebro University"
+type: article
+date-released: "2026-03-01"
+keywords:
+  - artificial intelligence
+  - labour market
+  - age gradient
+  - hiring
+  - job postings
+license: CC-BY-4.0
