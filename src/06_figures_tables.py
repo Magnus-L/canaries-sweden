@@ -330,37 +330,44 @@ def fig_sweden_vs_us():
         print(f"  WARNING: US data not available: {e}")
         return
 
-    fig, (ax_us, ax_se) = plt.subplots(1, 2, figsize=(14, 5.5), sharey=False)
+    # Single shared y-axis per panel + sharey across panels.
+    # Both series within a panel are indexed to Feb 2020 = 100, so they
+    # belong on the same axis. Sharing across panels makes US and Sweden
+    # directly visually comparable both within and between countries.
+    fig, (ax_us, ax_se) = plt.subplots(1, 2, figsize=(14, 5.5),
+                                        sharey=True, sharex=True)
 
     # US panel
-    ax_us.plot(sp500.index, sp500["sp500_idx"], color=DARK_BLUE, linewidth=2, label="S&P 500")
-    ax_us_r = ax_us.twinx()
-    # Indeed column name may vary
     indeed_col = [c for c in indeed.columns if "US" in c.upper() or "indeed" in c.lower()]
+    ax_us.plot(sp500.index, sp500["sp500_idx"],
+               color=DARK_BLUE, linewidth=2.2, label="S&P 500")
     if indeed_col:
-        ax_us_r.plot(indeed.index, indeed[indeed_col[0]], color=ORANGE, linewidth=2, label="Indeed US")
+        ax_us.plot(indeed.index, indeed[indeed_col[0]],
+                   color=ORANGE, linewidth=2.2, label="Indeed (total postings)")
     ax_us.set_title("United States", fontsize=13, fontweight="bold")
-    ax_us.set_ylabel("S&P 500 (index)", color=DARK_BLUE)
-    ax_us_r.set_ylabel("Indeed postings (index)", color=ORANGE)
+    ax_us.set_ylabel("Index (Feb 2020 = 100)", fontsize=12)
+    ax_us.legend(loc="upper left", fontsize=9, framealpha=0.9)
 
-    # Sweden panel — smooth postings with 3-month MA for comparability with US
-    ax_se.plot(omxs.index, omxs["omxs30_idx"], color=DARK_BLUE, linewidth=2, label="OMXS30")
-    ax_se_r = ax_se.twinx()
+    # Sweden panel — 3-month MA only (no faint raw background)
     postings_sorted = postings.sort_index()
-    # Raw as faint background
-    ax_se_r.plot(postings_sorted.index, postings_sorted["ads_idx"],
-                 color=ORANGE, linewidth=0.6, alpha=0.25)
-    # 3-month MA prominent
-    postings_sorted["ads_ma3"] = postings_sorted["ads_idx"].rolling(3, center=True, min_periods=1).mean()
-    ax_se_r.plot(postings_sorted.index, postings_sorted["ads_ma3"],
-                 color=ORANGE, linewidth=2, label="Platsbanken (3-mo MA)")
+    postings_sorted["ads_ma3"] = postings_sorted["ads_idx"].rolling(
+        3, center=True, min_periods=1).mean()
+    ax_se.plot(omxs.index, omxs["omxs30_idx"],
+               color=DARK_BLUE, linewidth=2.2, label="OMXS30")
+    ax_se.plot(postings_sorted.index, postings_sorted["ads_ma3"],
+               color=ORANGE, linewidth=2.2, label="Platsbanken (3-mo MA)")
     ax_se.set_title("Sweden", fontsize=13, fontweight="bold")
-    ax_se.set_ylabel("OMXS30 (index)", color=DARK_BLUE)
-    ax_se_r.set_ylabel("Platsbanken postings (index)", color=ORANGE)
+    ax_se.legend(loc="upper left", fontsize=9, framealpha=0.9)
 
+    # Shared cosmetics on both panels
     for ax in [ax_us, ax_se]:
         format_date_axis(ax)
-        ax.axvline(pd.Timestamp(CHATGPT_LAUNCH), color=GRAY, linestyle=":", linewidth=1, alpha=0.5)
+        # Subtle treatment marker (December 2022 ChatGPT launch)
+        ax.axvline(pd.Timestamp(CHATGPT_LAUNCH),
+                   color=GRAY, linestyle=":", linewidth=1, alpha=0.5)
+        # Reference line at the indexing base (=100)
+        ax.axhline(100, color=GRAY, linewidth=0.6,
+                   linestyle="--", alpha=0.5, zorder=0)
 
     fig.suptitle(
         "Stock markets vs job postings: US and Sweden (Feb 2020 = 100)",
