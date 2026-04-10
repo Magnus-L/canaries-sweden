@@ -527,10 +527,14 @@ def pretrend_joint_test(res, event_periods, ref_period):
 def run_corrected_event_study(agg, ref_halfyear=None):
     """
     Half-year event study with the CORRECT FE specification:
-      entity FE = employer x quartile  (PanelOLS entity_effects)
-      other FE  = employer x month     (PanelOLS other_effects)
+      entity FE = employer x quartile  (manual within-transformation)
+      other FE  = employer x month     (manual within-transformation)
 
-    This matches the main DiD in script 15 Step 2.
+    Uses manual double-demeaning (Frisch-Waugh-Lovell) instead of
+    PanelOLS, because PanelOLS with high-dimensional other_effects
+    hangs silently on large panels without raising an exception
+    (same issue fixed in scripts 15 and 16). The within-transformation
+    is mathematically equivalent and scales via vectorised pandas groupby.
 
     Parameters
     ----------
@@ -538,7 +542,7 @@ def run_corrected_event_study(agg, ref_halfyear=None):
         Reference period to omit (e.g. "2022H1" or "2021H2").
         Defaults to global REF_HALFYEAR.
     """
-    from linearmodels.panel import PanelOLS
+    import statsmodels.api as sm
 
     if ref_halfyear is None:
         ref_halfyear = REF_HALFYEAR
@@ -596,42 +600,44 @@ def run_corrected_event_study(agg, ref_halfyear=None):
 
         interaction_cols = [f"hy_{p}" for p in event_periods]
 
-        # --- PanelOLS with CORRECT FE ---
-        # Entity = employer x quartile (same as main DiD)
-        # Other  = employer x month    (same as main DiD)
+        # --- Manual double-demean (replaces PanelOLS to avoid silent hang) ---
+        # Step 1: demean by employer x quartile (entity FE)
+        # Step 2: demean again by employer x month (other FE)
+        # FWL theorem says this is equivalent to including both FE in OLS.
         panel = sub.copy()
-        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
 
-        # Set index: entity = employer x quartile, time = date
-        panel = panel.set_index(["fe_emp_q", "date"])
-
-        # employer x month as other_effects (THE KEY FIX)
-        other_fe = pd.DataFrame(
-            {"fe_emp_t": panel["fe_emp_t"]},
-            index=panel.index,
-        )
+        cols_to_demean = ["ln_emp"] + interaction_cols
+        for col in cols_to_demean:
+            panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
+                lambda x: x - x.mean()
+            )
+        for col in cols_to_demean:
+            panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
+                lambda x: x - x.mean()
+            )
 
         try:
-            mod = PanelOLS(
-                dependent=panel["ln_emp"],
-                exog=panel[interaction_cols],
-                entity_effects=True,
-                time_effects=False,       # NOT calendar-month FE
-                other_effects=other_fe,   # employer x month FE instead
+            y = panel["ln_emp_dm"].values
+            # Pass X as DataFrame so statsmodels preserves column names
+            X = panel[[f"{c}_dm" for c in interaction_cols]].copy()
+            X.columns = interaction_cols  # restore original names for indexing
+            mod = sm.OLS(y, X)
+            res = mod.fit(
+                cov_type="cluster",
+                cov_kwds={"groups": panel["employer_id"].values},
             )
-            res = mod.fit(cov_type="clustered", cluster_entity=True)
 
             elapsed = time.time() - t0
-            print(f"  Estimated in {elapsed:.0f}s")
+            print(f"  Estimated [within-transformation] in {elapsed:.0f}s")
 
-            # Collect coefficients
+            # Collect coefficients (statsmodels uses res.bse, not res.std_errors)
             for p in event_periods:
                 col = f"hy_{p}"
                 all_es_results.append({
                     "age_group": age_label,
                     "period": p,
                     "coef": res.params[col],
-                    "se": res.std_errors[col],
+                    "se": res.bse[col],
                     "pval": res.pvalues[col],
                 })
 
@@ -781,8 +787,11 @@ def run_did(agg):
     """
     Simple DiD with post-treatment dummy (post x high_exposure).
     Same specification as script 15 Step 2, but using Eloundou exposure.
+
+    Uses manual double-demeaning instead of PanelOLS for the same reason
+    as run_corrected_event_study above (silent hangs on large panels).
     """
-    from linearmodels.panel import PanelOLS
+    import statsmodels.api as sm
 
     print("\n" + "=" * 70)
     print("STEP 4: DiD (post x high_exposure)")
@@ -820,38 +829,41 @@ def run_did(agg):
             sub["year_month"]
         )
 
+        # --- Manual double-demean (FWL) — replaces PanelOLS to avoid hang ---
         panel = sub.copy()
-        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
-        panel = panel.set_index(["fe_emp_q", "date"])
 
-        other_fe = pd.DataFrame(
-            {"fe_emp_t": panel["fe_emp_t"]},
-            index=panel.index,
-        )
+        for col in ["ln_emp", "post_high"]:
+            panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
+                lambda x: x - x.mean()
+            )
+        for col in ["ln_emp", "post_high"]:
+            panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
+                lambda x: x - x.mean()
+            )
 
         try:
-            mod = PanelOLS(
-                dependent=panel["ln_emp"],
-                exog=panel[["post_high"]],
-                entity_effects=True,
-                time_effects=False,
-                other_effects=other_fe,
+            y = panel["ln_emp_dm"].values
+            X = panel[["post_high_dm"]].copy()
+            X.columns = ["post_high"]  # restore name for indexing
+            mod = sm.OLS(y, X)
+            res = mod.fit(
+                cov_type="cluster",
+                cov_kwds={"groups": panel["employer_id"].values},
             )
-            res = mod.fit(cov_type="clustered", cluster_entity=True)
 
             elapsed = time.time() - t0
-            print(f"  Estimated in {elapsed:.0f}s")
+            print(f"  Estimated [within-transformation] in {elapsed:.0f}s")
             print(f"  post_high: {res.params['post_high']:.4f} "
-                  f"(SE: {res.std_errors['post_high']:.4f}, "
+                  f"(SE: {res.bse['post_high']:.4f}, "
                   f"p: {res.pvalues['post_high']:.4f})")
 
             did_results.append({
                 "age_group": age_label,
                 "coef": res.params["post_high"],
-                "se": res.std_errors["post_high"],
+                "se": res.bse["post_high"],
                 "pval": res.pvalues["post_high"],
-                "n_obs": res.nobs,
-                "n_entities": res.entity_info.total,
+                "n_obs": int(res.nobs),
+                "n_entities": int(panel["employer_id"].nunique()),
             })
 
         except Exception as e:
