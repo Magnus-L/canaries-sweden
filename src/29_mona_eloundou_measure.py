@@ -785,8 +785,14 @@ def plot_event_studies(es_df):
 
 def run_did(agg):
     """
-    Simple DiD with post-treatment dummy (post x high_exposure).
-    Same specification as script 15 Step 2, but using Eloundou exposure.
+    Two-treatment DiD: Riksbank x High and ChatGPT x High.
+    Mirrors script 15's main DiD specification exactly, with Eloundou
+    exposure quartiles in place of DAIOE. The two separate treatment
+    dummies preserve the timing identification (Riksbank rate hike in
+    April 2022 vs ChatGPT launch in December 2022) that is the headline
+    contribution of the paper. The PostGPT x High coefficient (gamma2)
+    is the canaries coefficient and is what should be compared with
+    script 15's main result.
 
     Uses manual double-demeaning instead of PanelOLS for the same reason
     as run_corrected_event_study above (silent hangs on large panels).
@@ -794,16 +800,15 @@ def run_did(agg):
     import statsmodels.api as sm
 
     print("\n" + "=" * 70)
-    print("STEP 4: DiD (post x high_exposure)")
+    print("STEP 4: Two-treatment DiD (Riksbank x High, ChatGPT x High)")
     print("  FE: employer x quartile + employer x month")
     print("  EXPOSURE MEASURE: Eloundou GPT exposure")
+    print(f"  Riksbank cutoff: {RIKSBANK_YM}")
+    print(f"  ChatGPT cutoff:  {CHATGPT_YM}")
     print("=" * 70)
 
     agg = agg.copy()
     agg["halfyear"] = agg["year_month"].apply(assign_halfyear)
-
-    # Post = after ChatGPT (2022H2 onwards)
-    agg["post"] = (agg["year_month"] >= "2022-07").astype(int)
 
     did_results = []
 
@@ -818,8 +823,10 @@ def run_did(agg):
 
         sub["ln_emp"] = np.log(sub["n_emp"] + 1)
         sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
-        sub["post"] = (sub["year_month"] >= "2022-07").astype(int)
-        sub["post_high"] = sub["post"] * sub["high"]
+        sub["post_rb"] = (sub["year_month"] >= RIKSBANK_YM).astype(int)
+        sub["post_gpt"] = (sub["year_month"] >= CHATGPT_YM).astype(int)
+        sub["post_rb_x_high"] = sub["post_rb"] * sub["high"]
+        sub["post_gpt_x_high"] = sub["post_gpt"] * sub["high"]
         sub["fe_emp_q"] = (
             sub["employer_id"].astype(str) + "_" +
             sub["exposure_quartile"].astype(str)
@@ -832,19 +839,21 @@ def run_did(agg):
         # --- Manual double-demean (FWL) — replaces PanelOLS to avoid hang ---
         panel = sub.copy()
 
-        for col in ["ln_emp", "post_high"]:
+        regressors = ["post_rb_x_high", "post_gpt_x_high"]
+        cols_to_demean = ["ln_emp"] + regressors
+        for col in cols_to_demean:
             panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
                 lambda x: x - x.mean()
             )
-        for col in ["ln_emp", "post_high"]:
+        for col in cols_to_demean:
             panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
                 lambda x: x - x.mean()
             )
 
         try:
             y = panel["ln_emp_dm"].values
-            X = panel[["post_high_dm"]].copy()
-            X.columns = ["post_high"]  # restore name for indexing
+            X = panel[[f"{c}_dm" for c in regressors]].copy()
+            X.columns = regressors  # restore original names for indexing
             mod = sm.OLS(y, X)
             res = mod.fit(
                 cov_type="cluster",
@@ -853,15 +862,18 @@ def run_did(agg):
 
             elapsed = time.time() - t0
             print(f"  Estimated [within-transformation] in {elapsed:.0f}s")
-            print(f"  post_high: {res.params['post_high']:.4f} "
-                  f"(SE: {res.bse['post_high']:.4f}, "
-                  f"p: {res.pvalues['post_high']:.4f})")
+            for r in regressors:
+                print(f"    {r:20s} = {res.params[r]:+.4f} "
+                      f"(SE = {res.bse[r]:.4f}, p = {res.pvalues[r]:.4f})")
 
             did_results.append({
                 "age_group": age_label,
-                "coef": res.params["post_high"],
-                "se": res.bse["post_high"],
-                "pval": res.pvalues["post_high"],
+                "gamma1_rb_high": res.params["post_rb_x_high"],
+                "se1": res.bse["post_rb_x_high"],
+                "pval1": res.pvalues["post_rb_x_high"],
+                "gamma2_gpt_high": res.params["post_gpt_x_high"],
+                "se2": res.bse["post_gpt_x_high"],
+                "pval2": res.pvalues["post_gpt_x_high"],
                 "n_obs": int(res.nobs),
                 "n_entities": int(panel["employer_id"].nunique()),
             })
@@ -874,7 +886,7 @@ def run_did(agg):
         did_df = pd.DataFrame(did_results)
         did_df.to_csv(OUTPUT_DIR / "eloundou_did_results.csv", index=False)
         print(f"\n  Saved DiD results -> eloundou_did_results.csv")
-        print("\n  === DiD RESULTS (Eloundou exposure) ===")
+        print("\n  === DiD RESULTS (Eloundou exposure, two-treatment) ===")
         print(did_df.to_string(index=False))
 
     return did_results
@@ -949,12 +961,19 @@ if __name__ == "__main__":
             f"p = {pt['p_value']:.4f}  [{status}]"
         )
     summary.append("")
-    summary.append("DiD RESULTS (post = 2022H2+):")
+    summary.append("DiD RESULTS (two-treatment, mirrors script 15):")
+    summary.append("  gamma1 = Riksbank x High (post 2022-04)")
+    summary.append("  gamma2 = ChatGPT  x High (post 2022-12)  <-- canaries coef")
     for dr in did_results:
-        sig = "***" if dr["pval"] < 0.01 else "**" if dr["pval"] < 0.05 else "*" if dr["pval"] < 0.1 else ""
+        sig1 = "***" if dr["pval1"] < 0.01 else "**" if dr["pval1"] < 0.05 else "*" if dr["pval1"] < 0.1 else ""
+        sig2 = "***" if dr["pval2"] < 0.01 else "**" if dr["pval2"] < 0.05 else "*" if dr["pval2"] < 0.1 else ""
         summary.append(
-            f"  {dr['age_group']:>8s}: coef = {dr['coef']:>8.4f} "
-            f"(SE = {dr['se']:.4f}, p = {dr['pval']:.4f}) {sig}"
+            f"  {dr['age_group']:>8s}:  g1 = {dr['gamma1_rb_high']:>+8.4f} "
+            f"(SE = {dr['se1']:.4f}, p = {dr['pval1']:.4f}) {sig1}"
+        )
+        summary.append(
+            f"  {'':>8s}   g2 = {dr['gamma2_gpt_high']:>+8.4f} "
+            f"(SE = {dr['se2']:.4f}, p = {dr['pval2']:.4f}) {sig2}"
         )
     summary.append("")
     summary.append("INTERPRETATION:")
