@@ -598,53 +598,20 @@ def run_gender_did(raw):
 def _run_panel_ols(sub, label):
     """
     Estimate DiD with employer x quartile + employer x month FE.
-    Uses linearmodels PanelOLS with absorbed effects.
-    Falls back to within-transformation if linearmodels fails.
+    Uses manual double-demeaning (Frisch-Waugh-Lovell) instead of
+    PanelOLS, because PanelOLS with high-dimensional other_effects
+    hangs silently on large panels without raising an exception.
+    The within-transformation is mathematically equivalent and scales
+    via vectorised pandas groupby.
     """
     t0 = time.time()
 
-    # --- Approach A: linearmodels ---
-    try:
-        from linearmodels.panel import PanelOLS
-
-        panel = sub.copy()
-        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
-        panel = panel.set_index(["fe_emp_q", "date"])
-
-        other_fe = pd.DataFrame(
-            {"fe_emp_t": panel["fe_emp_t"]},
-            index=panel.index,
-        )
-
-        mod = PanelOLS(
-            dependent=panel["ln_emp"],
-            exog=panel[["post_rb_x_high", "post_gpt_x_high"]],
-            entity_effects=True,
-            time_effects=False,
-            other_effects=other_fe,
-        )
-        res = mod.fit(cov_type="clustered", cluster_entity=True)
-
-        return {
-            "label": label,
-            "method": "PanelOLS",
-            "n_obs": int(res.nobs),
-            "gamma1_rb_high": res.params["post_rb_x_high"],
-            "se1": res.std_errors["post_rb_x_high"],
-            "pval1": res.pvalues["post_rb_x_high"],
-            "gamma2_gpt_high": res.params["post_gpt_x_high"],
-            "se2": res.std_errors["post_gpt_x_high"],
-            "pval2": res.pvalues["post_gpt_x_high"],
-        }
-
-    except Exception as e:
-        print(f"      linearmodels failed ({e}), trying within-transformation")
-
-    # --- Approach B: within-transformation ---
     try:
         import statsmodels.api as sm
 
         panel = sub.copy()
+
+        # Double-demean: first by employer x quartile, then by employer x month
         for col in ["ln_emp", "post_rb_x_high", "post_gpt_x_high"]:
             panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
                 lambda x: x - x.mean()
@@ -663,6 +630,9 @@ def _run_panel_ols(sub, label):
             cov_kwds={"groups": panel["employer_id"].values},
         )
 
+        elapsed = time.time() - t0
+        print(f"    [within-transformation, {elapsed:.0f}s]")
+
         return {
             "label": label,
             "method": "within-transformation",
@@ -676,7 +646,7 @@ def _run_panel_ols(sub, label):
         }
 
     except Exception as e:
-        print(f"      within-transformation also failed: {e}")
+        print(f"      within-transformation failed: {e}")
         return None
 
 
@@ -1063,7 +1033,7 @@ def run_spotlight_regressions(raw):
             panel["employer_id"].astype(str) + "_" + panel["year_month"]
         )
 
-        # --- Run PanelOLS ---
+        # --- Run spotlight regression ---
         result = _run_spotlight_ols(panel, ssyk4, occ_label)
         if result is not None:
             all_results.append(result)
@@ -1092,64 +1062,22 @@ def _run_spotlight_ols(panel, ssyk4, occ_label):
     """
     Run the within-occupation DiD for one SSYK code.
     employer x age FE + employer x month FE.
+
+    Uses manual double-demeaning (Frisch-Waugh-Lovell) instead of
+    PanelOLS, because PanelOLS with high-dimensional other_effects
+    hangs on large panels (e.g. SSYK 2512 has thousands of employers,
+    creating hundreds of thousands of employer x month FE categories).
+    The within-transformation is mathematically equivalent and scales
+    via vectorised pandas groupby.
     """
     t0 = time.time()
 
     try:
-        from linearmodels.panel import PanelOLS
-
-        p = panel.copy()
-        p["date"] = pd.to_datetime(p["year_month"] + "-01")
-        p = p.set_index(["fe_emp_age", "date"])
-
-        other_fe = pd.DataFrame(
-            {"fe_emp_t": p["fe_emp_t"]},
-            index=p.index,
-        )
-
-        mod = PanelOLS(
-            dependent=p["ln_emp"],
-            exog=p[["post_rb_x_young", "post_gpt_x_young"]],
-            entity_effects=True,
-            time_effects=False,
-            other_effects=other_fe,
-        )
-        res = mod.fit(cov_type="clustered", cluster_entity=True)
-
-        elapsed = time.time() - t0
-        gamma_rb = res.params["post_rb_x_young"]
-        gamma_gpt = res.params["post_gpt_x_young"]
-
-        print(f"    [PanelOLS, {elapsed:.0f}s]")
-        print(f"    g_rb  (PostRB x Young)  = {gamma_rb:+.4f} "
-              f"(SE={res.std_errors['post_rb_x_young']:.4f}, "
-              f"p={res.pvalues['post_rb_x_young']:.4f})")
-        print(f"    g_gpt (PostGPT x Young) = {gamma_gpt:+.4f} "
-              f"(SE={res.std_errors['post_gpt_x_young']:.4f}, "
-              f"p={res.pvalues['post_gpt_x_young']:.4f})")
-
-        return {
-            "ssyk4": ssyk4,
-            "occupation": occ_label,
-            "method": "PanelOLS",
-            "n_cells": int(res.nobs),
-            "n_employers": panel["employer_id"].nunique(),
-            "gamma_rb_young": gamma_rb,
-            "se_rb": res.std_errors["post_rb_x_young"],
-            "pval_rb": res.pvalues["post_rb_x_young"],
-            "gamma_gpt_young": gamma_gpt,
-            "se": res.std_errors["post_gpt_x_young"],
-            "pval": res.pvalues["post_gpt_x_young"],
-        }
-
-    except Exception as e:
-        print(f"    PanelOLS failed: {e}")
-
-    # --- Fallback: within-transformation ---
-    try:
         import statsmodels.api as sm
 
         p = panel.copy()
+
+        # Double-demean: first by employer x age, then by employer x month
         for col in ["ln_emp", "post_rb_x_young", "post_gpt_x_young"]:
             p[f"{col}_dm1"] = p.groupby("fe_emp_age")[col].transform(
                 lambda x: x - x.mean()
@@ -1168,7 +1096,10 @@ def _run_spotlight_ols(panel, ssyk4, occ_label):
             cov_kwds={"groups": p["employer_id"].values},
         )
 
-        print(f"    [within-transformation]")
+        elapsed = time.time() - t0
+        print(f"    [within-transformation, {elapsed:.0f}s]")
+        print(f"    g_rb  (PostRB x Young)  = {res.params[0]:+.4f} "
+              f"(SE={res.bse[0]:.4f}, p={res.pvalues[0]:.4f})")
         print(f"    g_gpt (PostGPT x Young) = {res.params[1]:+.4f} "
               f"(SE={res.bse[1]:.4f}, p={res.pvalues[1]:.4f})")
 
@@ -1187,7 +1118,7 @@ def _run_spotlight_ols(panel, ssyk4, occ_label):
         }
 
     except Exception as e:
-        print(f"    Within-transformation also failed: {e}")
+        print(f"    Within-transformation failed: {e}")
         return {
             "ssyk4": ssyk4,
             "occupation": occ_label,
@@ -1224,37 +1155,38 @@ def _run_spotlight_event_study(panel, ssyk4, occ_label):
     interaction_cols = [f"hy_{pp}" for pp in event_periods]
 
     try:
-        from linearmodels.panel import PanelOLS
+        import statsmodels.api as sm
 
-        p2 = p.copy()
-        p2["date"] = pd.to_datetime(p2["year_month"] + "-01")
-        p2 = p2.set_index(["fe_emp_age", "date"])
+        # Double-demean: employer x age FE, then employer x month FE
+        # (same within-transformation as _run_spotlight_ols — avoids
+        # PanelOLS hang on large panels)
+        demean_cols = ["ln_emp"] + interaction_cols
+        for col in demean_cols:
+            p[f"{col}_dm1"] = p.groupby("fe_emp_age")[col].transform(
+                lambda x: x - x.mean()
+            )
+        for col in demean_cols:
+            p[f"{col}_dm"] = p.groupby("fe_emp_t")[f"{col}_dm1"].transform(
+                lambda x: x - x.mean()
+            )
 
-        # employer × month as other_effects (matches main DiD and
-        # corrected event study in script 18; absorbs all firm-level
-        # time-varying shocks rather than just calendar month FE)
-        other_fe = pd.DataFrame(
-            {"fe_emp_t": p2["fe_emp_t"]},
-            index=p2.index,
+        y = p["ln_emp_dm"].values
+        X_cols_dm = [f"{c}_dm" for c in interaction_cols]
+        X = p[X_cols_dm].values
+
+        mod = sm.OLS(y, X)
+        res = mod.fit(
+            cov_type="cluster",
+            cov_kwds={"groups": p["employer_id"].values},
         )
-
-        mod = PanelOLS(
-            dependent=p2["ln_emp"],
-            exog=p2[interaction_cols],
-            entity_effects=True,
-            time_effects=False,       # NOT calendar-month FE
-            other_effects=other_fe,   # employer×month FE instead
-        )
-        res = mod.fit(cov_type="clustered", cluster_entity=True)
 
         # Collect coefficients
         es_data = []
-        for pp in event_periods:
-            col = f"hy_{pp}"
+        for i, pp in enumerate(event_periods):
             es_data.append({
                 "period": pp,
-                "coef": res.params[col],
-                "se": res.std_errors[col],
+                "coef": res.params[i],
+                "se": res.bse[i],
             })
         # Add reference period
         es_data.append({"period": REF_HALFYEAR, "coef": 0.0, "se": 0.0})
