@@ -124,18 +124,13 @@ def fig_scary_chart():
     # Quartile posting lines on right axis
     ax2 = ax1.twinx()
 
-    # ── Fix 2: Plot raw lines faintly, then 3-month MA prominently ──
+    # ── Plot 3-month MA only (raw lines removed for visual clarity) ──
     for q_name, color in Q_COLORS.items():
         qdf = quartile[quartile["exposure_quartile"] == q_name].sort_values("date").copy()
         linewidth = 2.0 if "Q4" in q_name or "Q1" in q_name else 1.4
         linestyle = "-" if "Q4" in q_name or "Q1" in q_name else "--"
 
-        # Raw line (faint)
-        ax2.plot(
-            qdf["date"], qdf["ads_idx"],
-            color=color, linewidth=0.6, linestyle=linestyle, alpha=0.25,
-        )
-        # 3-month rolling average (prominent)
+        # 3-month rolling average (the only quartile line shown)
         qdf["ads_ma3"] = qdf["ads_idx"].rolling(3, center=True, min_periods=1).mean()
         ax2.plot(
             qdf["date"], qdf["ads_ma3"],
@@ -323,6 +318,12 @@ def fig_sweden_vs_us():
 
         indeed = pd.read_csv(RAW / "indeed_us_aggregate.csv")
         indeed["date"] = pd.to_datetime(indeed["date"])
+        # Filter to a single variable type — the file contains multiple
+        # series per date (total postings, new postings, etc.) and plotting
+        # without filtering connects across them, producing a spurious
+        # near-horizontal line through the panel.
+        if "variable" in indeed.columns:
+            indeed = indeed[indeed["variable"] == "total postings"]
         indeed = indeed.set_index("date")
         # Indeed is already indexed to ~100 at Feb 2020
     except Exception as e:
