@@ -236,6 +236,45 @@ Table~\ref{tab:eloundou_robust} reports the results. The two measures agree on t
 
 \input{../tables/eloundou_robustness.tex}
 
+\subsection*{Employment event study with Eloundou exposure}
+\label{sec:eloundou_es}
+
+To extend the Eloundou robustness to the employment margin, we re-estimate the half-year event study (Equation~\ref{eq:employer_es}) assigning AI exposure via the Eloundou $\beta$-measure rather than DAIOE, holding the employer$\times$quartile and employer$\times$month fixed-effects structure fixed. Figure~\ref{fig:es_eloundou} plots the resulting coefficients by age group.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{../figures/eloundou_es/eloundou_es_panel.png}
+\caption{Event study with Eloundou $\beta$ exposure instead of DAIOE: employer-level DiD coefficients by age group (reference period 2022H1). Shaded area shows 95\% confidence interval. Fixed-effects structure is identical to Figures~\ref{fig:es_young}--\ref{fig:es_50plus}.}
+\label{fig:es_eloundou}
+\end{figure}
+
+Three patterns emerge. First, the accelerating decline for workers aged 22--25 and 26--30 replicates: the 2025H1 coefficients are approximately $-0.035$ and $-0.030$ respectively, about two-thirds of the magnitudes obtained with DAIOE. The direction of the main result, that young workers in AI-exposed occupations bear a disproportionate employment adjustment, is therefore robust to the choice of exposure measure.
+
+Second, the older age groups diverge from the DAIOE results. With DAIOE, workers aged 50+ show a modest \emph{gain} ($+0.010$) and prime-age workers (35--49) are essentially flat; with Eloundou, all age groups except 50+ show negative 2025H1 coefficients in the range $-0.010$ to $-0.017$, and the 50+ coefficient is approximately zero. The within-employer \emph{reallocation} pattern that DAIOE reveals, with fewer young workers and more older workers in the same high-exposure occupations, is thus specific to the DAIOE ranking. Under Eloundou, the pattern is better described as a broader contraction concentrated on young workers but present across ages.
+
+Third, the joint pre-trend tests reject for every age group (Table~\ref{tab:eloundou_pretrend}), at levels consistent with the DAIOE-based tests reported earlier in this appendix. As in the DAIOE analysis, these rejections reflect the sample size rather than economically meaningful pre-trends: the pre-period coefficients fluctuate in a band of roughly $\pm 0.015$ relative to post-period magnitudes reaching $-0.035$.
+
+The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
+
+\begin{table}[htbp]
+\centering
+\caption{Joint pre-trend test for employer-level event study with Eloundou $\beta$ exposure. $H_0$: all pre-treatment coefficients $\hat\delta_s = 0$ for $s < 2022\text{H1}$.}
+\label{tab:eloundou_pretrend}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Age group & $\chi^2$ & d.f.\ & $p$-value \\
+\midrule
+22--25 & 329.31 & 6 & $<$0.001 \\
+26--30 & 331.49 & 6 & $<$0.001 \\
+31--34 & 114.72 & 6 & $<$0.001 \\
+35--40 & 116.58 & 6 & $<$0.001 \\
+41--49 &  24.44 & 6 & $<$0.001 \\
+50+    & 179.91 & 6 & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Event study (monthly)}
