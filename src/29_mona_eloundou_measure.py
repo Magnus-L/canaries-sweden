@@ -18,12 +18,22 @@ WHY THIS SCRIPT EXISTS:
   the variance across AI exposure metrics documented by Gimbel et al. (2026).
 
 SPECIFICATION:
-  Identical to script 18 (corrected FE event study):
-    entity FE = employer x quartile  (PanelOLS entity_effects)
-    other FE  = employer x month     (PanelOLS other_effects)
+  Identical to script 15 (employer-level DiD):
+    ln(n_emp_{f,q,t} + 1) = a_{f,q} + b_{f,t}
+                             + g1*PostRB_t*High_q
+                             + g2*PostGPT_t*High_q + e
 
-  Only change: exposure quartiles come from Eloundou GPT scores
-  (crosswalked SOC -> ISCO -> SSYK) instead of DAIOE.
+  where f = employer, q = exposure quartile, t = month.
+  Only change: quartiles from Eloundou GPT scores (SOC -> ISCO -> SSYK)
+  instead of DAIOE.
+
+  Event study skipped -- Lydia already has that output from a prior run.
+
+ESTIMATOR (mirrors script 15's three-approach fallback):
+  A. linearmodels PanelOLS with employer x quartile entity FE +
+     employer x month as absorbed other_effects
+  B. Manual within-transformation (double-demean, then OLS)
+  C. Occupation-level backup (weaker identification)
 
 EXPOSURE FILE:
   Tries to load from:
@@ -34,36 +44,59 @@ EXPOSURE FILE:
   Expected columns: ssyk4 (4-digit SSYK code), eloundou_quartile (1-4).
 
 OUTPUT FILES:
-  1. eloundou_es_all.csv          -- event study coefficients
-  2. eloundou_did_results.csv     -- DiD coefficients
-  3. eloundou_pretrends.txt       -- pre-trend joint F-test results
-  4. eloundou_es_*.png            -- figures per age group
-  5. eloundou_comparison.txt      -- notes for comparison with DAIOE results
+  1. eloundou_did_results.csv     -- DiD coefficients by age group
+  2. eloundou_comparison.txt      -- summary for comparison with DAIOE
 """
+
+import sys
+import time
+from pathlib import Path
+
+# --- _Tee logger: BatchClient does not capture stdout/stderr ---
+class _Tee:
+    def __init__(self, log_path):
+        self._stdout = sys.stdout
+        self._log = open(log_path, "w", encoding="utf-8", buffering=1)
+    def write(self, text):
+        try:
+            self._stdout.write(text)
+        except UnicodeEncodeError:
+            self._stdout.write(text.encode("cp1252", errors="replace").decode("cp1252"))
+        self._log.write(text)
+        self._log.flush()
+    def flush(self):
+        self._stdout.flush()
+        self._log.flush()
+
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_LOG_PATH = _SCRIPT_DIR / f"{Path(__file__).stem}_log.txt"
+try:
+    sys.stdout = _Tee(str(_LOG_PATH))
+    sys.stderr = sys.stdout
+    print(f"Log: {_LOG_PATH}")
+    print(f"Started: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"sys.argv: {sys.argv}")
+except Exception as e:
+    print(f"WARNING: Could not create log file: {e}")
 
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from pathlib import Path
 import warnings
-import time
+import pyodbc
 warnings.filterwarnings("ignore")
 
-
-# ======================================================================
-#   CONFIGURATION
-# ======================================================================
-
-# --- MONA SQL connection (same as scripts 14-15, 18) ---
-import pyodbc
+# Database connection to MONA SQL Server
 conn = pyodbc.connect(
     "DRIVER={ODBC Driver 17 for SQL Server};"
     "SERVER=monasql.micro.intra;"
     "DATABASE=P1207;"
     "Trusted_Connection=yes;"
 )
+
+
+# ======================================================================
+#   CONFIGURATION
+# ======================================================================
 
 # --- Eloundou exposure file (crosswalked to SSYK4) ---
 ELOUNDOU_PATH = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\eloundou_ssyk4.csv"
@@ -81,10 +114,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 RIKSBANK_YM = "2022-04"
 CHATGPT_YM = "2022-12"
 
-# --- Reference period (omitted dummy) ---
-REF_HALFYEAR = "2022H1"
-
-# --- Age group definitions (same as script 15 / Lydia's runs) ---
+# --- Age group definitions (same as script 15) ---
 AGE_GROUPS = {
     "22-25": (22, 25),
     "26-30": (26, 30),
@@ -96,11 +126,6 @@ AGE_GROUPS = {
 
 # --- Minimum employer size ---
 MIN_EMPLOYER_SIZE = 5
-
-# --- Colours ---
-ORANGE = "#E8873A"
-TEAL = "#2E7D6F"
-GRAY = "#8C8C8C"
 
 
 # ======================================================================
@@ -127,11 +152,9 @@ def load_eloundou_quartiles():
         df = pd.read_csv(ELOUNDOU_PATH)
         df["ssyk4"] = df["ssyk4"].astype(str).str.zfill(4)
 
-        # Handle column naming flexibility
         if "eloundou_quartile" in df.columns:
             df = df.rename(columns={"eloundou_quartile": "exposure_quartile"})
         elif "exposure_quartile" not in df.columns:
-            # Try to find any quartile column
             q_cols = [c for c in df.columns if "quartile" in c.lower()]
             if q_cols:
                 df = df.rename(columns={q_cols[0]: "exposure_quartile"})
@@ -141,7 +164,6 @@ def load_eloundou_quartiles():
                     f"Columns: {list(df.columns)}"
                 )
 
-        # Ensure integer quartiles
         if df["exposure_quartile"].dtype == object:
             q_map = {"Q1 (lowest)": 1, "Q2": 2, "Q3": 3, "Q4 (highest)": 4,
                      "Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4}
@@ -163,11 +185,9 @@ def load_eloundou_quartiles():
     if raw_path.exists() and soc_isco_path.exists() and isco_ssyk_path.exists():
         print(f"  Found all three files, building crosswalk...")
 
-        # Load raw Eloundou scores (expected: SOC code + exposure score)
         raw = pd.read_csv(ELOUNDOU_RAW_PATH)
         print(f"  Raw Eloundou columns: {list(raw.columns)}")
 
-        # Identify SOC and score columns (flexible naming)
         soc_col = None
         score_col = None
         for c in raw.columns:
@@ -182,14 +202,11 @@ def load_eloundou_quartiles():
             _print_instructions()
             raise SystemExit(1)
 
-        # Load crosswalks
         soc_isco = pd.read_csv(SOC_ISCO_CROSSWALK)
         isco_ssyk = pd.read_csv(ISCO_SSYK_CROSSWALK)
 
-        # Standardise SOC codes (remove dots/dashes)
         raw[soc_col] = raw[soc_col].astype(str).str.replace(r"[\.\-]", "", regex=True)
 
-        # Identify crosswalk columns
         soc_cw_col = [c for c in soc_isco.columns if "soc" in c.lower()][0]
         isco_cw_col_1 = [c for c in soc_isco.columns if "isco" in c.lower()][0]
         soc_isco[soc_cw_col] = soc_isco[soc_cw_col].astype(str).str.replace(
@@ -198,12 +215,10 @@ def load_eloundou_quartiles():
         isco_cw_col_2 = [c for c in isco_ssyk.columns if "isco" in c.lower()][0]
         ssyk_cw_col = [c for c in isco_ssyk.columns if "ssyk" in c.lower()][0]
 
-        # Merge: SOC -> ISCO -> SSYK
         merged = raw.merge(soc_isco, left_on=soc_col, right_on=soc_cw_col, how="inner")
         merged = merged.merge(isco_ssyk, left_on=isco_cw_col_1,
                               right_on=isco_cw_col_2, how="inner")
 
-        # Average exposure within SSYK4
         merged[ssyk_cw_col] = merged[ssyk_cw_col].astype(str).str.zfill(4)
         ssyk_scores = (
             merged.groupby(ssyk_cw_col)[score_col]
@@ -212,7 +227,6 @@ def load_eloundou_quartiles():
             .rename(columns={ssyk_cw_col: "ssyk4", score_col: "eloundou_score"})
         )
 
-        # Assign quartiles
         ssyk_scores["exposure_quartile"] = pd.qcut(
             ssyk_scores["eloundou_score"], 4, labels=[1, 2, 3, 4]
         ).astype(int)
@@ -222,7 +236,6 @@ def load_eloundou_quartiles():
         print(f"  Quartile distribution:\n"
               f"{ssyk_scores['exposure_quartile'].value_counts().sort_index()}")
 
-        # Save for future use
         ssyk_scores[["ssyk4", "exposure_quartile"]].to_csv(
             ELOUNDOU_PATH, index=False)
         print(f"  Saved to: {ELOUNDOU_PATH}")
@@ -273,7 +286,7 @@ FILE FORMAT for eloundou_ssyk4.csv:
 
 
 # ======================================================================
-#   STEP 1: LOAD DATA (same pipeline as script 18)
+#   STEP 1: SQL DATA PULL (same as script 15 / 18)
 # ======================================================================
 
 def pull_year(year, conn):
@@ -380,7 +393,7 @@ def pull_year(year, conn):
 
 def load_and_prepare():
     """
-    Load AGI data year by year (same pipeline as script 18),
+    Load AGI data year by year (same pipeline as script 15/18),
     merge ELOUNDOU quartiles (instead of DAIOE), assign age groups,
     aggregate to employer x quartile x age_group x month cells.
     """
@@ -389,7 +402,6 @@ def load_and_prepare():
     print("  EXPOSURE MEASURE: Eloundou GPT exposure (not DAIOE)")
     print("=" * 70)
 
-    # Pull year by year (consistent with script 18)
     frames = []
     t0 = time.time()
     for year in range(2019, 2026):
@@ -397,20 +409,16 @@ def load_and_prepare():
     df = pd.concat(frames, ignore_index=True)
     print(f"  Loaded {len(df):,} records in {time.time()-t0:.0f}s")
 
-    # Drop rows without SSYK or age group
     df = df[df["ssyk4"].notna() & (df["ssyk4"] != "None")].copy()
     df = df[df["age_group"].notna()].copy()
-
-    # SSYK4 as string
     df["ssyk4"] = df["ssyk4"].astype(str).str.zfill(4)
 
-    # Merge ELOUNDOU quartiles (KEY DIFFERENCE from script 18)
+    # Merge ELOUNDOU quartiles
     print("  Loading Eloundou GPT exposure quartiles...")
     eloundou = load_eloundou_quartiles()
     df = df.merge(eloundou[["ssyk4", "exposure_quartile"]], on="ssyk4", how="inner")
     print(f"  After Eloundou merge: {len(df):,} records")
 
-    # Rename for consistency with downstream code
     df = df.rename(columns={"n_emp": "person_count"})
 
     # Filter small employers
@@ -421,7 +429,6 @@ def load_and_prepare():
           f"{df['employer_id'].nunique():,}")
 
     # Aggregate to employer x quartile x age_group x month
-    # (already aggregated in SQL, but re-aggregate to collapse across ssyk4)
     print("  Aggregating to employer x quartile x age_group x month...")
     agg = (
         df.groupby(["employer_id", "exposure_quartile", "age_group", "year_month"])
@@ -432,6 +439,11 @@ def load_and_prepare():
     )
     print(f"  Panel cells: {len(agg):,}")
     print(f"  Period: {agg['year_month'].min()} to {agg['year_month'].max()}")
+
+    # Incremental save: cache aggregated panel
+    cache_path = OUTPUT_DIR / "eloundou_agg_cache.csv"
+    agg.to_csv(cache_path, index=False)
+    print(f"  Cached aggregated panel -> {cache_path.name}")
 
     return agg
 
@@ -447,15 +459,10 @@ def balance_panel_for_age(agg, age_label):
     Missing cells filled with n_emp = 0.
 
     Applies identification restriction: employers with both Q4 and Q1-Q3.
-
-    WHY: Without zero-filling, firms that shed ALL workers of an age group
-    in a quartile disappear from the data. This drops the strongest
-    treatment cases and biases the DiD toward zero.
     """
     sub = agg[agg["age_group"] == age_label].copy()
     all_months = sorted(agg["year_month"].unique())
 
-    # Unique employer-quartile pairs for this age group
     emp_q = (
         sub.groupby(["employer_id", "exposure_quartile"])
         .size()
@@ -493,340 +500,50 @@ def balance_panel_for_age(agg, age_label):
 
 
 # ======================================================================
-#   STEP 2: CORRECTED EVENT STUDY
+#   STEP 2: DiD BY AGE GROUP (mirrors script 15's three-approach logic)
 # ======================================================================
 
-def assign_halfyear(ym):
-    """Map year-month string to half-year label, e.g. '2022-03' -> '2022H1'."""
-    year = ym[:4]
-    month = int(ym[5:7])
-    half = "H1" if month <= 6 else "H2"
-    return f"{year}{half}"
-
-
-def pretrend_joint_test(res, event_periods, ref_period):
-    """Joint chi2 test: H0 = all pre-treatment event-study coefficients are zero."""
-    from scipy import stats as sp_stats
-
-    pre_cols = [f"hy_{p}" for p in event_periods if p < ref_period]
-    if not pre_cols:
-        return None
-
-    beta = res.params[pre_cols].values
-    try:
-        V = res.cov.loc[pre_cols, pre_cols].values        # linearmodels
-    except AttributeError:
-        V = res.cov_params().loc[pre_cols, pre_cols].values  # statsmodels
-
-    k = len(pre_cols)
-    wald = float(beta @ np.linalg.solve(V, beta))
-    p = 1 - sp_stats.chi2.cdf(wald, k)
-    return {"chi2": round(wald, 2), "df": k, "p_value": round(p, 4)}
-
-
-def run_corrected_event_study(agg, ref_halfyear=None):
+def run_did_by_age(agg):
     """
-    Half-year event study with the CORRECT FE specification:
-      entity FE = employer x quartile  (manual within-transformation)
-      other FE  = employer x month     (manual within-transformation)
+    For each age group, estimate:
 
-    Uses manual double-demeaning (Frisch-Waugh-Lovell) instead of
-    PanelOLS, because PanelOLS with high-dimensional other_effects
-    hangs silently on large panels without raising an exception
-    (same issue fixed in scripts 15 and 16). The within-transformation
-    is mathematically equivalent and scales via vectorised pandas groupby.
+      ln(n_emp_{f,q,t} + 1) = a_{f,q} + b_{f,t}
+                               + g1*PostRB_t*High_q
+                               + g2*PostGPT_t*High_q + e
 
-    Parameters
-    ----------
-    ref_halfyear : str, optional
-        Reference period to omit (e.g. "2022H1" or "2021H2").
-        Defaults to global REF_HALFYEAR.
+    Uses script 15's three-approach fallback:
+      A. linearmodels PanelOLS
+      B. Manual within-transformation (double-demean)
+      C. Occupation-level backup
     """
-    import statsmodels.api as sm
-
-    if ref_halfyear is None:
-        ref_halfyear = REF_HALFYEAR
-
     print("\n" + "=" * 70)
-    print(f"STEP 2: Corrected event study (ref = {ref_halfyear})")
-    print("  FE: employer x quartile + employer x month")
-    print("  EXPOSURE MEASURE: Eloundou GPT exposure")
-    print("=" * 70)
-
-    agg = agg.copy()
-
-    # Compute half-year labels on raw agg (needed for event period list)
-    agg["halfyear"] = agg["year_month"].apply(assign_halfyear)
-    all_periods = sorted(agg["halfyear"].unique())
-    event_periods = [p for p in all_periods if p != ref_halfyear]
-
-    print(f"  Half-year periods: {all_periods}")
-    print(f"  Reference period: {ref_halfyear}")
-    print(f"  Event dummies: {len(event_periods)}")
-
-    all_es_results = []
-    pretrend_tests = []
-
-    for age_label in AGE_GROUPS:
-        print(f"\n--- Event study: {age_label} ---")
-        t0 = time.time()
-
-        # Build balanced panel with zero-filled cells
-        sub = balance_panel_for_age(agg, age_label)
-        if len(sub) < 100:
-            print(f"  Too few observations, skipping")
-            continue
-
-        print(f"  Observations: {len(sub):,}")
-        print(f"  Employers: {sub['employer_id'].nunique():,}")
-        print(f"  Zero cells: {(sub['n_emp'] == 0).sum():,}")
-
-        # Compute variables on the balanced panel
-        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
-        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
-        sub["halfyear"] = sub["year_month"].apply(assign_halfyear)
-        sub["fe_emp_q"] = (
-            sub["employer_id"].astype(str) + "_" +
-            sub["exposure_quartile"].astype(str)
-        )
-        sub["fe_emp_t"] = (
-            sub["employer_id"].astype(str) + "_" +
-            sub["year_month"]
-        )
-
-        # Create interaction dummies: halfyear x high
-        for p in event_periods:
-            sub[f"hy_{p}"] = ((sub["halfyear"] == p).astype(int) * sub["high"])
-
-        interaction_cols = [f"hy_{p}" for p in event_periods]
-
-        # --- Manual double-demean (replaces PanelOLS to avoid silent hang) ---
-        # Step 1: demean by employer x quartile (entity FE)
-        # Step 2: demean again by employer x month (other FE)
-        # FWL theorem says this is equivalent to including both FE in OLS.
-        panel = sub.copy()
-
-        cols_to_demean = ["ln_emp"] + interaction_cols
-        for col in cols_to_demean:
-            panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
-                lambda x: x - x.mean()
-            )
-        for col in cols_to_demean:
-            panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
-                lambda x: x - x.mean()
-            )
-
-        try:
-            y = panel["ln_emp_dm"].values
-            # Pass X as DataFrame so statsmodels preserves column names
-            X = panel[[f"{c}_dm" for c in interaction_cols]].copy()
-            X.columns = interaction_cols  # restore original names for indexing
-            mod = sm.OLS(y, X)
-            res = mod.fit(
-                cov_type="cluster",
-                cov_kwds={"groups": panel["employer_id"].values},
-            )
-
-            elapsed = time.time() - t0
-            print(f"  Estimated [within-transformation] in {elapsed:.0f}s")
-
-            # Collect coefficients (statsmodels uses res.bse, not res.std_errors)
-            for p in event_periods:
-                col = f"hy_{p}"
-                all_es_results.append({
-                    "age_group": age_label,
-                    "period": p,
-                    "coef": res.params[col],
-                    "se": res.bse[col],
-                    "pval": res.pvalues[col],
-                })
-
-            # Add reference period (zero by construction)
-            all_es_results.append({
-                "age_group": age_label,
-                "period": ref_halfyear,
-                "coef": 0.0,
-                "se": 0.0,
-                "pval": 1.0,
-            })
-
-            # Pre-trend joint test
-            pt = pretrend_joint_test(res, event_periods, ref_halfyear)
-            if pt:
-                print(f"  Pre-trend test: chi2({pt['df']}) = {pt['chi2']:.2f}, "
-                      f"p = {pt['p_value']:.4f}")
-                pretrend_tests.append({"age_group": age_label, **pt})
-
-        except Exception as e:
-            print(f"  ERROR: {e}")
-            print("  This age group failed -- check memory/data.")
-            continue
-
-    # --- Save results ---
-    suffix = f"_ref{ref_halfyear}"
-    if all_es_results:
-        es_df = pd.DataFrame(all_es_results)
-        fname = f"eloundou_es_all{suffix}.csv"
-        es_df.to_csv(OUTPUT_DIR / fname, index=False)
-        print(f"\n  Saved event study coefficients -> {fname}")
-
-    if pretrend_tests:
-        pt_df = pd.DataFrame(pretrend_tests)
-        pt_df.to_csv(OUTPUT_DIR / f"eloundou_pretrends{suffix}.csv", index=False)
-        pt_path = OUTPUT_DIR / f"eloundou_pretrends{suffix}.txt"
-        pt_df.to_string(pt_path, index=False)
-        print(f"  Saved pre-trend tests -> eloundou_pretrends{suffix}.txt")
-        print("\n  === PRE-TREND TEST RESULTS ===")
-        print(pt_df.to_string(index=False))
-
-    return es_df if all_es_results else pd.DataFrame(), pretrend_tests
-
-
-# ======================================================================
-#   STEP 3: FIGURES
-# ======================================================================
-
-def plot_event_studies(es_df):
-    """One figure per age group, plus a combined panel."""
-    if es_df.empty:
-        return
-
-    print("\n" + "=" * 70)
-    print("STEP 3: Plotting event studies")
-    print("=" * 70)
-
-    for age_label in AGE_GROUPS:
-        sub = es_df[es_df["age_group"] == age_label].copy()
-        if sub.empty:
-            continue
-
-        sub = sub.sort_values("period")
-
-        # Numeric x-axis
-        periods_sorted = sorted(sub["period"].unique())
-        x_map = {p: i for i, p in enumerate(periods_sorted)}
-        sub["x"] = sub["period"].map(x_map)
-        ref_x = x_map.get(REF_HALFYEAR, None)
-
-        fig, ax = plt.subplots(figsize=(10, 5))
-
-        # Confidence intervals
-        sub["ci_lo"] = sub["coef"] - 1.96 * sub["se"]
-        sub["ci_hi"] = sub["coef"] + 1.96 * sub["se"]
-
-        ax.fill_between(sub["x"], sub["ci_lo"], sub["ci_hi"],
-                        alpha=0.2, color=TEAL)
-        ax.plot(sub["x"], sub["coef"], "o-", color=TEAL, linewidth=2,
-                markersize=6)
-        ax.axhline(0, color="black", linewidth=0.5)
-
-        # Reference period marker
-        if ref_x is not None:
-            ax.axvline(ref_x, color=GRAY, linestyle="--", linewidth=1,
-                       label=f"Reference: {REF_HALFYEAR}")
-
-        ax.set_xticks(range(len(periods_sorted)))
-        ax.set_xticklabels(periods_sorted, rotation=45, ha="right", fontsize=9)
-        ax.set_ylabel("Coefficient (ln employment)", fontsize=11)
-        ax.set_title(f"Event study: {age_label} (Eloundou GPT exposure)",
-                     fontsize=13)
-        ax.legend(fontsize=9)
-
-        fig.tight_layout()
-        fig.savefig(OUTPUT_DIR / f"eloundou_es_{age_label.replace('+','plus')}.png",
-                    dpi=150)
-        plt.close(fig)
-        print(f"  Saved figure for {age_label}")
-
-    # --- Combined panel (2x3) ---
-    age_list = list(AGE_GROUPS.keys())
-    fig, axes = plt.subplots(2, 3, figsize=(15, 8), sharey=False)
-
-    for idx, age_label in enumerate(age_list):
-        ax = axes[idx // 3, idx % 3]
-        sub = es_df[es_df["age_group"] == age_label].copy()
-        if sub.empty:
-            ax.set_title(age_label)
-            continue
-
-        sub = sub.sort_values("period")
-        periods_sorted = sorted(sub["period"].unique())
-        x_map = {p: i for i, p in enumerate(periods_sorted)}
-        sub["x"] = sub["period"].map(x_map)
-        ref_x = x_map.get(REF_HALFYEAR, None)
-
-        sub["ci_lo"] = sub["coef"] - 1.96 * sub["se"]
-        sub["ci_hi"] = sub["coef"] + 1.96 * sub["se"]
-
-        ax.fill_between(sub["x"], sub["ci_lo"], sub["ci_hi"],
-                        alpha=0.2, color=TEAL)
-        ax.plot(sub["x"], sub["coef"], "o-", color=TEAL, linewidth=1.5,
-                markersize=4)
-        ax.axhline(0, color="black", linewidth=0.5)
-        if ref_x is not None:
-            ax.axvline(ref_x, color=GRAY, linestyle="--", linewidth=0.8)
-
-        ax.set_xticks(range(len(periods_sorted)))
-        ax.set_xticklabels(periods_sorted, rotation=45, ha="right", fontsize=7)
-        ax.set_title(age_label, fontsize=11)
-
-    fig.suptitle("Eloundou GPT exposure: event study "
-                 "(employer x quartile + employer x month FE)",
-                 fontsize=13, y=1.01)
-    fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "eloundou_es_panel.png", dpi=150)
-    plt.close(fig)
-    print("  Saved combined panel figure")
-
-
-# ======================================================================
-#   STEP 4: DiD (simple post-treatment dummy, same as script 15)
-# ======================================================================
-
-def run_did(agg):
-    """
-    Two-treatment DiD: Riksbank x High and ChatGPT x High.
-    Mirrors script 15's main DiD specification exactly, with Eloundou
-    exposure quartiles in place of DAIOE. The two separate treatment
-    dummies preserve the timing identification (Riksbank rate hike in
-    April 2022 vs ChatGPT launch in December 2022) that is the headline
-    contribution of the paper. The PostGPT x High coefficient (gamma2)
-    is the canaries coefficient and is what should be compared with
-    script 15's main result.
-
-    Uses manual double-demeaning instead of PanelOLS for the same reason
-    as run_corrected_event_study above (silent hangs on large panels).
-    """
-    import statsmodels.api as sm
-
-    print("\n" + "=" * 70)
-    print("STEP 4: Two-treatment DiD (Riksbank x High, ChatGPT x High)")
-    print("  FE: employer x quartile + employer x month")
+    print("STEP 2: DiD regressions by age group")
     print("  EXPOSURE MEASURE: Eloundou GPT exposure")
     print(f"  Riksbank cutoff: {RIKSBANK_YM}")
     print(f"  ChatGPT cutoff:  {CHATGPT_YM}")
     print("=" * 70)
 
-    agg = agg.copy()
-    agg["halfyear"] = agg["year_month"].apply(assign_halfyear)
+    all_results = []
 
-    did_results = []
-
-    for age_label in AGE_GROUPS:
-        print(f"\n--- DiD: {age_label} ---")
-        t0 = time.time()
+    for age_label, (age_lo, age_hi) in AGE_GROUPS.items():
+        print(f"\n--- Age group: {age_label} ---")
 
         sub = balance_panel_for_age(agg, age_label)
+
         if len(sub) < 100:
-            print(f"  Too few observations, skipping")
+            print(f"  Too few observations ({len(sub)}), skipping")
             continue
 
-        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
-        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
+        # Create treatment variables on the balanced panel
         sub["post_rb"] = (sub["year_month"] >= RIKSBANK_YM).astype(int)
         sub["post_gpt"] = (sub["year_month"] >= CHATGPT_YM).astype(int)
+        sub["high"] = (sub["exposure_quartile"] == 4).astype(int)
         sub["post_rb_x_high"] = sub["post_rb"] * sub["high"]
         sub["post_gpt_x_high"] = sub["post_gpt"] * sub["high"]
+
+        sub["ln_emp"] = np.log(sub["n_emp"] + 1)
+
+        # FE group identifiers
         sub["fe_emp_q"] = (
             sub["employer_id"].astype(str) + "_" +
             sub["exposure_quartile"].astype(str)
@@ -836,60 +553,259 @@ def run_did(agg):
             sub["year_month"]
         )
 
-        # --- Manual double-demean (FWL) — replaces PanelOLS to avoid hang ---
+        print(f"  Observations: {len(sub):,}")
+        print(f"  Employers: {sub['employer_id'].nunique():,}")
+        print(f"  Mean employment: {sub['n_emp'].mean():.2f}")
+        print(f"  Zero cells: {(sub['n_emp'] == 0).sum():,}")
+
+        # --- Main: OLS on ln(count+1) ---
+        result = _estimate_did(sub, age_label)
+        if result is not None:
+            all_results.append(result)
+
+        # --- Robustness: Poisson (pyfixest) ---
+        poisson_result = _estimate_poisson(sub, age_label)
+        if poisson_result is not None:
+            all_results.append(poisson_result)
+
+    # Combine results
+    if all_results:
+        results_df = pd.DataFrame(all_results)
+        out = OUTPUT_DIR / "eloundou_did_results.csv"
+        results_df.to_csv(out, index=False)
+        print(f"\n  Saved DiD results -> {out.name}")
+        print("\n  === SUMMARY ===")
+        print(results_df.to_string(index=False))
+        return results_df
+
+    return pd.DataFrame()
+
+
+def _estimate_did(sub, age_label):
+    """
+    Estimate the DiD for one age group. Tries three approaches
+    (mirrors script 15 exactly):
+
+    A. linearmodels PanelOLS with employer x quartile entity FE +
+       employer x month as absorbed other_effects
+    B. Manual within-transformation (demean by employer x quartile,
+       then by employer x month)
+    C. Simple OLS with occupation + month FE (backup, weaker identification)
+    """
+    t0 = time.time()
+
+    # --- Approach A: linearmodels ---
+    try:
+        from linearmodels.panel import PanelOLS
+
+        panel = sub.copy()
+        panel["date"] = pd.to_datetime(panel["year_month"] + "-01")
+
+        panel = panel.set_index(["fe_emp_q", "date"])
+
+        other_fe = pd.DataFrame(
+            {"fe_emp_t": panel["fe_emp_t"]},
+            index=panel.index,
+        )
+
+        mod = PanelOLS(
+            dependent=panel["ln_emp"],
+            exog=panel[["post_rb_x_high", "post_gpt_x_high"]],
+            entity_effects=True,
+            time_effects=False,
+            other_effects=other_fe,
+        )
+        res = mod.fit(cov_type="clustered", cluster_entity=True)
+
+        gamma1 = res.params["post_rb_x_high"]
+        gamma2 = res.params["post_gpt_x_high"]
+        se1 = res.std_errors["post_rb_x_high"]
+        se2 = res.std_errors["post_gpt_x_high"]
+        p1 = res.pvalues["post_rb_x_high"]
+        p2 = res.pvalues["post_gpt_x_high"]
+
+        elapsed = time.time() - t0
+        print(f"  [linearmodels, {elapsed:.0f}s]")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+
+        return {
+            "age_group": age_label,
+            "method": "PanelOLS",
+            "n_obs": int(res.nobs),
+            "gamma1_rb_high": gamma1,
+            "se1": se1,
+            "pval1": p1,
+            "gamma2_gpt_high": gamma2,
+            "se2": se2,
+            "pval2": p2,
+        }
+
+    except ImportError:
+        print("  linearmodels not available -- trying manual within-transformation")
+    except Exception as e:
+        print(f"  linearmodels failed: {e}")
+        print("  Trying manual within-transformation...")
+
+    # --- Approach B: Manual within-transformation ---
+    try:
         panel = sub.copy()
 
-        regressors = ["post_rb_x_high", "post_gpt_x_high"]
-        cols_to_demean = ["ln_emp"] + regressors
-        for col in cols_to_demean:
+        for col in ["ln_emp", "post_rb_x_high", "post_gpt_x_high"]:
             panel[f"{col}_dm1"] = panel.groupby("fe_emp_q")[col].transform(
                 lambda x: x - x.mean()
             )
-        for col in cols_to_demean:
+
+        for col in ["ln_emp", "post_rb_x_high", "post_gpt_x_high"]:
             panel[f"{col}_dm"] = panel.groupby("fe_emp_t")[f"{col}_dm1"].transform(
                 lambda x: x - x.mean()
             )
 
-        try:
-            y = panel["ln_emp_dm"].values
-            X = panel[[f"{c}_dm" for c in regressors]].copy()
-            X.columns = regressors  # restore original names for indexing
-            mod = sm.OLS(y, X)
-            res = mod.fit(
-                cov_type="cluster",
-                cov_kwds={"groups": panel["employer_id"].values},
-            )
+        import statsmodels.api as sm
 
-            elapsed = time.time() - t0
-            print(f"  Estimated [within-transformation] in {elapsed:.0f}s")
-            for r in regressors:
-                print(f"    {r:20s} = {res.params[r]:+.4f} "
-                      f"(SE = {res.bse[r]:.4f}, p = {res.pvalues[r]:.4f})")
+        y = panel["ln_emp_dm"].values
+        X = panel[["post_rb_x_high_dm", "post_gpt_x_high_dm"]].values
 
-            did_results.append({
-                "age_group": age_label,
-                "gamma1_rb_high": res.params["post_rb_x_high"],
-                "se1": res.bse["post_rb_x_high"],
-                "pval1": res.pvalues["post_rb_x_high"],
-                "gamma2_gpt_high": res.params["post_gpt_x_high"],
-                "se2": res.bse["post_gpt_x_high"],
-                "pval2": res.pvalues["post_gpt_x_high"],
-                "n_obs": int(res.nobs),
-                "n_entities": int(panel["employer_id"].nunique()),
-            })
+        mod = sm.OLS(y, X)
+        res = mod.fit(
+            cov_type="cluster",
+            cov_kwds={"groups": panel["employer_id"].values},
+        )
 
-        except Exception as e:
-            print(f"  ERROR: {e}")
-            continue
+        gamma1 = res.params[0]
+        gamma2 = res.params[1]
+        se1 = res.bse[0]
+        se2 = res.bse[1]
+        p1 = res.pvalues[0]
+        p2 = res.pvalues[1]
 
-    if did_results:
-        did_df = pd.DataFrame(did_results)
-        did_df.to_csv(OUTPUT_DIR / "eloundou_did_results.csv", index=False)
-        print(f"\n  Saved DiD results -> eloundou_did_results.csv")
-        print("\n  === DiD RESULTS (Eloundou exposure, two-treatment) ===")
-        print(did_df.to_string(index=False))
+        elapsed = time.time() - t0
+        print(f"  [within-transformation, {elapsed:.0f}s]")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
 
-    return did_results
+        return {
+            "age_group": age_label,
+            "method": "within-transformation",
+            "n_obs": len(panel),
+            "gamma1_rb_high": gamma1,
+            "se1": se1,
+            "pval1": p1,
+            "gamma2_gpt_high": gamma2,
+            "se2": se2,
+            "pval2": p2,
+        }
+
+    except Exception as e:
+        print(f"  Within-transformation failed: {e}")
+
+    # --- Approach C: Backup -- occupation-level (weaker identification) ---
+    print("  Falling back to occupation-level regression (Section 5 backup)")
+    return _estimate_did_occupation_level(sub, age_label)
+
+
+def _estimate_did_occupation_level(sub, age_label):
+    """
+    Backup: occupation x month panel with occupation + month FE.
+    Weaker identification (no employer-level controls) but always feasible.
+    """
+    import statsmodels.api as sm
+
+    occ_panel = (
+        sub.groupby(["exposure_quartile", "year_month"])
+        .agg(n_emp=("n_emp", "sum"))
+        .reset_index()
+    )
+    occ_panel["high"] = (occ_panel["exposure_quartile"] == 4).astype(int)
+    occ_panel["post_rb"] = (occ_panel["year_month"] >= RIKSBANK_YM).astype(int)
+    occ_panel["post_gpt"] = (occ_panel["year_month"] >= CHATGPT_YM).astype(int)
+    occ_panel["post_rb_x_high"] = occ_panel["post_rb"] * occ_panel["high"]
+    occ_panel["post_gpt_x_high"] = occ_panel["post_gpt"] * occ_panel["high"]
+    occ_panel["ln_emp"] = np.log(occ_panel["n_emp"] + 1)
+
+    # Month dummies
+    month_dummies = pd.get_dummies(occ_panel["year_month"], prefix="m", drop_first=True)
+    # Quartile dummies
+    q_dummies = pd.get_dummies(occ_panel["exposure_quartile"], prefix="q", drop_first=True)
+
+    X = pd.concat([
+        occ_panel[["post_rb_x_high", "post_gpt_x_high"]],
+        month_dummies,
+        q_dummies,
+    ], axis=1).astype(float)
+    X = sm.add_constant(X)
+
+    mod = sm.OLS(occ_panel["ln_emp"], X)
+    res = mod.fit(cov_type="HC1")
+
+    gamma1 = res.params["post_rb_x_high"]
+    gamma2 = res.params["post_gpt_x_high"]
+    se1 = res.bse["post_rb_x_high"]
+    se2 = res.bse["post_gpt_x_high"]
+    p1 = res.pvalues["post_rb_x_high"]
+    p2 = res.pvalues["post_gpt_x_high"]
+
+    print(f"  [occupation-level backup]")
+    print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+    print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+
+    return {
+        "age_group": age_label,
+        "method": "occupation-level",
+        "n_obs": len(occ_panel),
+        "gamma1_rb_high": gamma1,
+        "se1": se1,
+        "pval1": p1,
+        "gamma2_gpt_high": gamma2,
+        "se2": se2,
+        "pval2": p2,
+    }
+
+
+def _estimate_poisson(sub, age_label):
+    """Robustness: Poisson PML via pyfixest (handles zeros naturally)."""
+    try:
+        import pyfixest as pf
+
+        panel = sub.copy()
+        panel["high_post_rb"] = panel["post_rb_x_high"]
+        panel["high_post_gpt"] = panel["post_gpt_x_high"]
+
+        mod = pf.feols(
+            "n_emp ~ high_post_rb + high_post_gpt | fe_emp_q + fe_emp_t",
+            data=panel,
+            vcov={"CRV1": "employer_id"},
+        )
+
+        gamma1 = mod.coef()["high_post_rb"]
+        gamma2 = mod.coef()["high_post_gpt"]
+        se1 = mod.se()["high_post_rb"]
+        se2 = mod.se()["high_post_gpt"]
+        p1 = mod.pvalue()["high_post_rb"]
+        p2 = mod.pvalue()["high_post_gpt"]
+
+        print(f"  [pyfixest Poisson]")
+        print(f"  g1 (PostRB x High)  = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+        print(f"  g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+
+        return {
+            "age_group": age_label,
+            "method": "pyfixest",
+            "n_obs": int(mod.nobs),
+            "gamma1_rb_high": gamma1,
+            "se1": se1,
+            "pval1": p1,
+            "gamma2_gpt_high": gamma2,
+            "se2": se2,
+            "pval2": p2,
+        }
+
+    except ImportError:
+        print("  pyfixest not available -- skipping Poisson robustness")
+        return None
+    except Exception as e:
+        print(f"  pyfixest failed: {e}")
+        return None
 
 
 # ======================================================================
@@ -897,98 +813,84 @@ def run_did(agg):
 # ======================================================================
 
 if __name__ == "__main__":
-    print("\n" + "=" * 70)
-    print("29_mona_eloundou_measure.py")
-    print("Robustness: Eloundou GPT exposure instead of DAIOE")
-    print("Event study with employer x quartile + employer x month FE")
-    print("(matching the main DiD specification)")
-    print("=" * 70)
+    try:
+        print("\n" + "=" * 70)
+        print("29_mona_eloundou_measure.py")
+        print("Robustness: Eloundou GPT exposure instead of DAIOE")
+        print("DiD only (event study skipped -- already generated)")
+        print("Regression logic mirrors script 15 (PanelOLS -> manual -> backup)")
+        print("=" * 70)
 
-    t_start = time.time()
+        t_start = time.time()
 
-    # Step 1: Load data (with Eloundou exposure)
-    agg = load_and_prepare()
+        # Step 1: Load data (with Eloundou exposure)
+        agg = load_and_prepare()
 
-    # Step 2a: Primary event study (reference = 2022H1)
-    es_df, pt_tests = run_corrected_event_study(agg, ref_halfyear="2022H1")
-    plot_event_studies(es_df)
+        # Step 2: DiD by age group
+        results_df = run_did_by_age(agg)
 
-    # Step 2b: Robustness -- alternative reference period (2021H2)
-    print("\n" + "=" * 70)
-    print("ROBUSTNESS: Re-running with reference period 2021H2")
-    print("=" * 70)
-    es_df_alt, pt_tests_alt = run_corrected_event_study(agg, ref_halfyear="2021H2")
+        elapsed = time.time() - t_start
+        print(f"\n  Total runtime: {elapsed/60:.1f} minutes")
 
-    # Step 3: DiD
-    did_results = run_did(agg)
+        # Comparison summary
+        summary = [
+            "=" * 60,
+            "ELOUNDOU GPT EXPOSURE -- COMPARISON WITH DAIOE",
+            "=" * 60,
+            f"Script: 29_mona_eloundou_measure.py",
+            f"Exposure measure: Eloundou et al. (2024) GPT exposure scores",
+            f"Crosswalk: SOC -> ISCO -> SSYK4",
+            f"FE: employer x quartile (entity) + employer x month (other)",
+            f"Estimator: same three-approach fallback as script 15",
+            f"Runtime: {elapsed/60:.1f} minutes",
+            "",
+            "RATIONALE:",
+            "  Gimbel et al. (2026) show that AI exposure metrics agree on which",
+            "  occupations have LOW exposure but disagree on magnitude at the top.",
+            "  If the canaries result holds with Eloundou (a different measure",
+            "  from a different methodology), it is robust to measure choice.",
+            "",
+            "DiD RESULTS (two-treatment, mirrors script 15):",
+            "  gamma1 = Riksbank x High (post 2022-04)",
+            "  gamma2 = ChatGPT  x High (post 2022-12)  <-- canaries coef",
+        ]
 
-    elapsed = time.time() - t_start
-    print(f"\n  Total runtime: {elapsed/60:.1f} minutes")
+        if not results_df.empty:
+            for _, row in results_df.iterrows():
+                sig1 = "***" if row["pval1"] < 0.01 else "**" if row["pval1"] < 0.05 else "*" if row["pval1"] < 0.1 else ""
+                sig2 = "***" if row["pval2"] < 0.01 else "**" if row["pval2"] < 0.05 else "*" if row["pval2"] < 0.1 else ""
+                summary.append(
+                    f"  {row['age_group']:>8s} ({row['method']}):  "
+                    f"g1 = {row['gamma1_rb_high']:>+8.4f} "
+                    f"(SE = {row['se1']:.4f}, p = {row['pval1']:.4f}) {sig1}"
+                )
+                summary.append(
+                    f"  {'':>8s}  {'':>{len(row['method'])+3}s}"
+                    f"g2 = {row['gamma2_gpt_high']:>+8.4f} "
+                    f"(SE = {row['se2']:.4f}, p = {row['pval2']:.4f}) {sig2}"
+                )
 
-    # Comparison summary
-    summary = [
-        "=" * 60,
-        "ELOUNDOU GPT EXPOSURE -- COMPARISON WITH DAIOE",
-        "=" * 60,
-        f"Script: 29_mona_eloundou_measure.py",
-        f"Exposure measure: Eloundou et al. (2024) GPT exposure scores",
-        f"Crosswalk: SOC -> ISCO -> SSYK4",
-        f"FE: employer x quartile (entity) + employer x month (other_effects)",
-        f"Runtime: {elapsed/60:.1f} minutes",
-        "",
-        "RATIONALE:",
-        "  Gimbel et al. (2026) show that AI exposure metrics agree on which",
-        "  occupations have LOW exposure but disagree on magnitude at the top.",
-        "  If the canaries result holds with Eloundou (a different measure",
-        "  from a different methodology), it is robust to measure choice.",
-        "",
-        "--- PRIMARY EVENT STUDY (ref = 2022H1) ---",
-        "PRE-TREND TESTS (joint chi2, H0: all pre-period coefficients = 0):",
-    ]
-    for pt in pt_tests:
-        status = "PASS" if pt["p_value"] > 0.05 else "FAIL"
-        summary.append(
-            f"  {pt['age_group']:>8s}: chi2({pt['df']}) = {pt['chi2']:>7.2f}, "
-            f"p = {pt['p_value']:.4f}  [{status}]"
-        )
-    summary.append("")
-    summary.append("--- ROBUSTNESS EVENT STUDY (ref = 2021H2) ---")
-    summary.append("PRE-TREND TESTS:")
-    for pt in pt_tests_alt:
-        status = "PASS" if pt["p_value"] > 0.05 else "FAIL"
-        summary.append(
-            f"  {pt['age_group']:>8s}: chi2({pt['df']}) = {pt['chi2']:>7.2f}, "
-            f"p = {pt['p_value']:.4f}  [{status}]"
-        )
-    summary.append("")
-    summary.append("DiD RESULTS (two-treatment, mirrors script 15):")
-    summary.append("  gamma1 = Riksbank x High (post 2022-04)")
-    summary.append("  gamma2 = ChatGPT  x High (post 2022-12)  <-- canaries coef")
-    for dr in did_results:
-        sig1 = "***" if dr["pval1"] < 0.01 else "**" if dr["pval1"] < 0.05 else "*" if dr["pval1"] < 0.1 else ""
-        sig2 = "***" if dr["pval2"] < 0.01 else "**" if dr["pval2"] < 0.05 else "*" if dr["pval2"] < 0.1 else ""
-        summary.append(
-            f"  {dr['age_group']:>8s}:  g1 = {dr['gamma1_rb_high']:>+8.4f} "
-            f"(SE = {dr['se1']:.4f}, p = {dr['pval1']:.4f}) {sig1}"
-        )
-        summary.append(
-            f"  {'':>8s}   g2 = {dr['gamma2_gpt_high']:>+8.4f} "
-            f"(SE = {dr['se2']:.4f}, p = {dr['pval2']:.4f}) {sig2}"
-        )
-    summary.append("")
-    summary.append("INTERPRETATION:")
-    summary.append("  Compare sign, magnitude, and significance with DAIOE results")
-    summary.append("  (script 18 / output_18). Key questions:")
-    summary.append("  1. Does the 22-25 age group still show negative effect?")
-    summary.append("  2. Is the 50+ group still positive or null?")
-    summary.append("  3. Does the age gradient (young negative, old positive) hold?")
-    summary.append("  4. Are pre-trends comparable?")
-    summary.append("")
-    summary.append("  If patterns match: result is robust to exposure measure.")
-    summary.append("  If patterns differ: discuss which occupations are classified")
-    summary.append("  differently by DAIOE vs Eloundou and why.")
+        summary.extend([
+            "",
+            "INTERPRETATION:",
+            "  Compare sign, magnitude, and significance with DAIOE results",
+            "  (script 15 / canaries_did_results.csv). Key questions:",
+            "  1. Does the 22-25 age group still show negative effect?",
+            "  2. Is the 50+ group still positive or null?",
+            "  3. Does the age gradient (young negative, old positive) hold?",
+            "",
+            "  If patterns match: result is robust to exposure measure.",
+            "  If patterns differ: discuss which occupations are classified",
+            "  differently by DAIOE vs Eloundou and why.",
+        ])
 
-    summary_text = "\n".join(summary)
-    (OUTPUT_DIR / "eloundou_comparison.txt").write_text(summary_text)
-    print(f"\n{summary_text}")
-    print(f"\n  All output in: {OUTPUT_DIR}/")
+        summary_text = "\n".join(summary)
+        (OUTPUT_DIR / "eloundou_comparison.txt").write_text(summary_text)
+        print(f"\n{summary_text}")
+        print(f"\n  All output in: {OUTPUT_DIR}/")
+
+    except BaseException as e:
+        print(f"\nFATAL ERROR: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
