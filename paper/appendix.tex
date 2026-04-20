@@ -254,6 +254,29 @@ Second, the older age groups diverge from the DAIOE results. With DAIOE, workers
 
 Third, the joint pre-trend tests reject for every age group (Table~\ref{tab:eloundou_pretrend}), at levels consistent with the DAIOE-based tests reported earlier in this appendix. As in the DAIOE analysis, these rejections reflect the sample size rather than economically meaningful pre-trends: the pre-period coefficients fluctuate in a band of roughly $\pm 0.015$ relative to post-period magnitudes reaching $-0.035$.
 
+Table~\ref{tab:eloundou_did} reports the average post-treatment DiD coefficients, mirroring the DAIOE specification in the main text. The ChatGPT coefficient for workers aged 22--25 is $\hat\gamma_2 = -0.006$ ($p < 0.001$), approximately 60 per cent of the DAIOE estimate ($-0.010$), confirming that the headline result is robust to the choice of exposure measure. The 50+ coefficient is economically zero ($-0.000$, $p = 0.74$), consistent with the event study finding that the within-employer reallocation toward older workers is DAIOE-specific. One anomaly warrants note: the 41--49 group shows a larger negative coefficient ($\hat\gamma_2 = -0.007$, $p < 0.001$) than the 22--25 group, breaking the monotonic age gradient that DAIOE produces. This likely reflects the Eloundou ranking placing more mid-career cognitive occupations in the top exposure quartile, generating a broader contraction pattern rather than a clean young-to-old gradient.
+
+\begin{table}[htbp]
+\centering
+\caption{Employer-level DiD with Eloundou $\beta$ exposure instead of DAIOE. Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered by employer.}
+\label{tab:eloundou_did}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{$\hat\gamma_1$ (Riksbank $\times$ High)} & \multicolumn{3}{c}{$\hat\gamma_2$ (ChatGPT $\times$ High)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+Age group & Coef.\ & SE & $p$ & Coef.\ & SE & $p$ \\
+\midrule
+22--25 & $-$0.002 & 0.002 & 0.209 & $-$0.006 & 0.002 & 0.001 \\
+26--30 & $-$0.004 & 0.002 & 0.023 & $+$0.004 & 0.002 & 0.013 \\
+31--34 & $-$0.002 & 0.002 & 0.277 & $+$0.005 & 0.002 & 0.005 \\
+35--40 & $-$0.003 & 0.001 & 0.044 & $+$0.002 & 0.002 & 0.254 \\
+41--49 & $-$0.003 & 0.001 & 0.011 & $-$0.007 & 0.001 & $<$0.001 \\
+50+    & $+$0.009 & 0.001 & $<$0.001 & $-$0.000 & 0.001 & 0.738 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
 
 \begin{table}[htbp]
