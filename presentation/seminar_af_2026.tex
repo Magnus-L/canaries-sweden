@@ -1,0 +1,659 @@
+ \documentclass[aspectratio=169,11pt]{beamer}
+
+% Theme and colours
+\usetheme{Madrid}
+\usecolortheme{default}
+\definecolor{oruBlue}{RGB}{0,63,114}
+\definecolor{oruGray}{RGB}{100,100,100}
+\setbeamercolor{structure}{fg=oruBlue}
+\setbeamercolor{frametitle}{bg=oruBlue,fg=white}
+\setbeamercolor{title}{bg=oruBlue,fg=white}
+\setbeamercolor{block title}{bg=oruBlue,fg=white}
+\setbeamercolor{item}{fg=oruBlue}
+\setbeamercolor{footline}{fg=oruGray}
+\setbeamertemplate{blocks}[rounded][shadow=false]                              
+
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{appendixnumberbeamer}
+
+% Suppress navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% Footline with short info
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.4\paperwidth,ht=2.5ex,dp=1ex,left]{footline}%
+      \hspace*{2mm}\footnotesize Lodefalk --- Arbetsförmedlingen Seminar
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.5ex,dp=1ex,center]{footline}%
+      \footnotesize 26 March 2026
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.5ex,dp=1ex,right]{footline}%
+      \footnotesize\insertframenumber{}/\inserttotalframenumber\hspace*{2mm}
+    \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+% Figure path
+\graphicspath{{../figures/}{./}}
+
+% Meta
+\title[Canaries in the Coal Mine]{Same Storm, Different Boats:\\Generative AI and the Age Gradient in Hiring}
+\author[Lodefalk]{Magnus Lodefalk\inst{1,2} \and Lydia Löthman\inst{1} \and Michael Koch\inst{3,4} \and Erik Engberg\inst{1,2}}
+\institute[ORU]{\inst{1}Örebro University \inst{2}RATIO Institute \inst{3}Aarhus University \inst{4}Kiel Institute}
+\date{Arbetsförmedlingen --- Analysavdelningen\\26 March 2026}
+
+\begin{document}
+
+% ============================================================
+% TITLE SLIDE
+% ============================================================
+\begin{frame}[plain]
+\titlepage
+\vspace{-6mm}
+\begin{center}
+\raisebox{-0.5\height}{\includegraphics[height=0.7cm]{orebro_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.55cm]{ratio_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.6cm]{ai_econ_lab_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.55cm]{aiscaf_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.45cm]{wasphs_logo.png}}
+\end{center}
+\end{frame}
+
+% ============================================================
+% HOOK: SvD HEADLINE
+% ============================================================
+\begin{frame}[plain]
+\begin{columns}[c]
+\begin{column}{0.45\textwidth}
+\includegraphics[width=\textwidth]{svd_ungdomsbarometern.png}
+\end{column}
+\begin{column}{0.50\textwidth}
+\Large\textcolor{oruBlue}{``Inte längre självklart att en utbildning ger jobb''}\\[5mm]
+\normalsize
+\textit{Nearly half of young Swedes have reconsidered their education or career because of AI.}\\[3mm]
+\footnotesize SvD / Generationsrapporten 2026\\
+Published 24 March 2026\\[5mm]
+\normalsize\textbf{Are they right to worry?}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% CONTEXT: AI-ECON LAB AND AISCAF
+% ============================================================
+\begin{frame}{Context: AI-Econ Lab and AISCAF}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\textbf{AI-Econ Lab} (Örebro University)
+\begin{itemize}
+    \item International, multidisciplinary research environment
+    \item Focus: AI's impact on labour markets
+    \item Unique Swedish admin data (ORU-MICRO-AI): population-level linked employer-employee data, monthly frequency, 4-digit occupations
+\end{itemize}
+\vspace{3mm}
+\textbf{AISCAF} (WASP-HS cluster, 2025--2030)
+\begin{itemize}
+    \item ``AI, Structural Change, and the Future of Work''
+    \item 30.3 MSEK, 3 nodes (Uppsala, Stockholm, Örebro)
+    \item Skans (UU), Bursell (SU), Lodefalk (ORU)
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\begin{block}{Today's paper}
+How does generative AI affect \textbf{who gets hired}?\\[3mm]
+\footnotesize
+\begin{itemize}
+    \item 4.6M Swedish job postings
+    \item Full-population employer-employee register data (AGI)
+    \item Employer-level DiD design
+    \item Result: young workers displaced, older workers retained
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% OUTLINE
+% ============================================================
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+% ============================================================
+% THE SCARY CHART
+% ============================================================
+\begin{frame}{The ``Scary Chart'': is AI killing jobs?}
+\begin{columns}[c]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+    \item US: sharp decline in job postings for AI-exposed occupations since late 2022
+    \item Viral in media, policy circles (Thompson 2025)
+    \item Sweden shows the \textbf{same pattern}
+    \item But wait: OMXS30 peaked, Riksbank hiked rates in \textbf{April 2022} --- seven months \textit{before} ChatGPT
+\end{itemize}
+\vspace{2mm}
+\begin{alertblock}{Key question}
+Is the decline driven by AI, or by monetary tightening?
+\end{alertblock}
+{\tiny\hyperlink{backup:riksbank}{\beamergotobutton{Riksbank rate}}}
+\end{column}
+\hypertarget{main:scarychart}{}
+\begin{column}{0.43\textwidth}
+\includegraphics[width=\textwidth]{fig1_scary_chart.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% MOTIVATION: WHAT WE KNOW
+% ============================================================
+\begin{frame}{What do we know about GenAI and employment?}
+\begin{itemize}
+    \item \textbf{Brynjolfsson et al.\ (2025):} 13\% decline in young US workers (ADP payroll, 25M+ workers)
+    \item \textbf{Hosseini \& Lichtinger (2025):} seniority-biased technological change
+    \item \textbf{Humlum \& Vestergaard (2025):} null on Danish earnings; borderline hiring decline for 22--25
+    \item \textbf{Kauhanen \& Rouvinen (2025, 2026):} null in Finland (synthetic DiD)
+    \item \textbf{Teutloff, Kässi et al.\ (2025):} 20--50\% decline in substitutable freelance skills
+    \item \textbf{Massenkoff \& McCrory (2026):} observed exposure measure; slowed young hiring
+\end{itemize}
+\vspace{2mm}
+\begin{block}{Our contribution}
+\begin{enumerate}
+    \item Reconcile aggregate decline (macro) with compositional shift (AI)
+    \item Exploit Sweden's 7-month gap between rate hike and ChatGPT as timing test
+    \item First population-register evidence of accelerating age-gradient canaries effect outside the US
+\end{enumerate}
+\end{block}
+\end{frame}
+
+\section{Data and Identification}
+
+% ============================================================
+% DATA
+% ============================================================
+\begin{frame}{Two margins of analysis}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{Posting margin}
+\begin{itemize}
+    \item \textbf{Platsbanken} (AF): 4.6M ads, 2020--2026
+    \item Matched to SSYK 4-digit occupations
+    \item AI exposure via DAIOE quartiles
+    \item Timing test: Riksbank hike vs ChatGPT
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Employment margin}
+\begin{itemize}
+    \item \textbf{AGI register}: full population, monthly, employer-employee linked
+    \item Six age groups: 22--25 through 50+
+    \item Within-employer DiD design
+    \item Question: does the \textit{age composition} shift?
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\vspace{5mm}
+\begin{center}
+\textit{Next two slides: how we measure AI exposure, and why Swedish register data matters}
+\end{center}
+\end{frame}
+
+% ============================================================
+% DAIOE: AI EXPOSURE MEASURE
+% ============================================================
+\begin{frame}{Measuring AI exposure: DAIOE}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\textbf{DAIOE} (Engberg et al.\ 2024, IZA DP 16717)
+\begin{enumerate}
+    \item Start from 52 AI capabilities (what current AI systems can do)
+    \item Match capabilities to O*NET cognitive ability ratings
+    \item Aggregate ability-level scores to occupations
+    \item Map to Swedish occupations: SOC $\to$ ISCO $\to$ SSYK
+\end{enumerate}
+\vspace{2mm}
+\begin{itemize}
+    \item Captures \textit{what AI can do}, not whether firms have adopted
+    \item GenAI-specific variant isolates generative AI capabilities
+    \item Cross-validated: Eloundou et al.\ (2024), Pulito et al.\ (2026)
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\begin{block}{High exposure (Q4)}
+\footnotesize
+Customer service, payroll administrators, receptionists, software developers, bookkeepers, secretaries
+\end{block}
+\vspace{2mm}
+\begin{block}{Low exposure (Q1)}
+\footnotesize
+Construction workers, vehicle drivers, cleaners, childcare workers, chefs, nurses
+\end{block}
+\end{column}
+\end{columns}
+\hypertarget{main:daioe}{}
+\end{frame}
+
+% ============================================================
+% DATA: REGISTER DATA DEEP DIVE
+% ============================================================
+\begin{frame}{Register data: AGI}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\textbf{Arbetsgivardeklarationen (AGI)}
+\begin{itemize}
+    \item Monthly employer declarations to Skatteverket
+    \item Administrative population data --- every employee, every employer
+    \item Individual-level since January 2019
+    \item SSYK 2012 at 4-digit level (from 2023)
+    \item Employer-employee link: who works where, when
+\end{itemize}
+\vspace{2mm}
+\textbf{What this enables:}
+\begin{itemize}
+    \item Within-employer analysis (not possible with surveys)
+    \item Monthly dynamics (not annual snapshots)
+    \item No sampling error
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\begin{block}{Panel dimensions}
+\footnotesize
+\begin{tabular}{ll}
+Employers & 510,213 \\
+& {\tiny (with $\geq$1 SSYK-coded} \\
+& {\tiny employee)} \\
+Age groups & 6 \\
+AI quartiles & 4 \\
+Months & 73 \\
+Non-zero cells & 75M \\
+\end{tabular}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% IDENTIFICATION: POSTING MARGIN
+% ============================================================
+\begin{frame}{Identification: posting margin}
+\textbf{Baseline DiD with two treatment periods:}
+\vspace{-2mm}
+\begin{equation*}
+\ln V_{o,t} = \alpha_o + \alpha_t + \beta_1 (\text{PostRB}_t \times \text{High}_o) + \beta_2 (\text{PostGPT}_t \times \text{High}_o) + \varepsilon_{o,t}
+\end{equation*}
+
+\begin{itemize}
+    \item $\alpha_o$: occupation FE; \quad $\alpha_t$: month FE
+    \item PostRB: April 2022 (Riksbank first hike); \quad PostGPT: November 2022 (ChatGPT launch)
+    \item High$_o$: top DAIOE quartile (Q4)
+    \item SEs clustered at occupation level
+\end{itemize}
+
+\vspace{3mm}
+\begin{block}{Timing test logic}
+If $\beta_1 < 0$ and $\beta_2 \approx 0$: decline is monetary, not AI\\
+If $\beta_1 \approx 0$ and $\beta_2 < 0$: decline is AI, not monetary\\
+AI exposure is uncorrelated with interest rate sensitivity ($r = 0.04$, $p = 0.51$)
+\end{block}
+\end{frame}
+
+% ============================================================
+% IDENTIFICATION: EMPLOYMENT MARGIN
+% ============================================================
+\begin{frame}{Identification: employment margin}
+\textbf{Employer-level DiD} (following Brynjolfsson et al.\ 2025):
+\vspace{-2mm}
+\begin{equation*}
+\ln E_{j,q,t}^{a} = \gamma_1 (\text{PostGPT}_t \times Q4_q) + \gamma_2 (\text{PostGPT}_t \times Q4_q \times \text{Young}^a) + \delta_{j,q} + \delta_{j,t} + \varepsilon_{j,q,t}
+\end{equation*}
+
+\begin{itemize}
+    \item $\delta_{j,q}$: employer $\times$ quartile FE --- absorbs permanent employer-occupation composition
+    \item $\delta_{j,t}$: employer $\times$ month FE --- absorbs \textbf{all time-varying employer shocks}
+    \item[$\Rightarrow$] Identification: \textit{within the same employer, in the same month}, do workers in high-AI occupations shift differently by age?
+    \item Separate regressions for each age group $a$
+\end{itemize}
+\vspace{2mm}
+\begin{alertblock}{What employer $\times$ month FE absorbs}
+All time-varying employer-level shocks: hiring freezes, downsizing, industry cycles, regional shocks, seasonal patterns. Remaining variation: \textit{within}-employer shifts across AI exposure quartiles, by age.
+\end{alertblock}
+\end{frame}
+
+\section{Results}
+
+% ============================================================
+% RESULT 1: POSTING MARGIN
+% ============================================================
+\begin{frame}{Result 1: posting decline is monetary, not AI}
+\begin{columns}[c]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+    \item $\hat{\beta}_1$ (PostRB $\times$ High) $= -0.127$, $p < 0.01$
+    \item $\hat{\beta}_2$ (PostGPT $\times$ High) $= -0.062$, $p = 0.11$
+    \item Divergence opens with monetary tightening, not ChatGPT
+    \item AI exposure uncorrelated with rate sensitivity ($r = 0.04$)
+\end{itemize}
+\vspace{3mm}
+\textbf{Robustness:}
+\begin{itemize}
+    \item Negative in 7/8 specifications, significant in 2
+    \item Teleworkability split: zero effect in teleworkable occupations; $\beta_2 = -0.233$ ($p < 0.01$) in non-teleworkable
+\end{itemize}
+\end{column}
+\begin{column}{0.43\textwidth}
+\includegraphics[width=\textwidth]{fig1_scary_chart.png}\\[2mm]
+\footnotesize \textit{Posting indices (Feb 2020 = 100) by DAIOE quartile, with OMXS30 and policy rate timeline}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% RESULT 2: CANARIES
+% ============================================================
+\begin{frame}{Result 2: young workers are the ``canaries''}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{fig2_mona_canaries_ma3.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{itemize}
+    \item Within the \textbf{same employers}: employment of 22--25-year-olds in high-AI occupations diverges sharply after ChatGPT
+    \item Gap widens through 2024--2025
+    \item Workers 50+ show \textit{opposite} pattern: rising in high-AI occupations
+    \item[$\Rightarrow$] Compositional shift, not aggregate destruction
+\end{itemize}
+\vspace{2mm}
+\footnotesize
+\textit{Residualised employment gap (Q4 minus Q1--Q3) within employers, 3-month MA. Full-population AGI data.}\\[1mm]
+{\tiny\hyperlink{backup:spotlight}{\beamergotobutton{Spotlight occupations}}}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% RESULT 3: EVENT STUDY
+% ============================================================
+\begin{frame}{Result 3: accelerating age gradient}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{fig3_event_study_main.png}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Key numbers:}
+\begin{itemize}
+    \item 22--25 in Q4: $-5.5\%$ by early 2025
+    \item 26--30 in Q4: $-4.9\%$ by early 2025
+    \item 50+ in Q4: $+1.3\%$
+    \item Age gradient monotonic by 2025H1
+\end{itemize}
+\vspace{3mm}
+\textbf{Consistent with Brynjolfsson et al.\ (2025):}
+\begin{itemize}
+    \item US: 13\% decline (ADP payroll, 25M+ workers)
+    \item Sweden: 5.5\% (AGI register, full population)
+    \item Both within-employer, same direction
+\end{itemize}
+\vspace{2mm}
+\footnotesize $\hat{\gamma}_2 = -0.010$ ($p < 0.01$) for 22--25; $+0.010$ ($p < 0.01$) for 50+
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% EVENT STUDY PANEL (ALL AGE GROUPS)
+% ============================================================
+\begin{frame}{Event studies by age group}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{corrected_es_panel.png}
+\end{center}
+\vspace{-3mm}
+\footnotesize Employer $\times$ quartile FE + employer $\times$ month FE. 95\% CIs. Vertical line: ChatGPT (Nov 2022).
+\end{frame}
+
+% ============================================================
+% GENDER
+% ============================================================
+\begin{frame}{Gender heterogeneity}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{figA_gender_canaries_panel_corrected.png}
+\end{column}
+\begin{column}{0.50\textwidth}
+\begin{itemize}
+    \item Effect roughly \textbf{twice as large for young women} ($\hat{\gamma}_2 = -0.016$) as for young men ($-0.007$)
+    \item Oaxaca-Blinder reweighting: occupational composition explains $\sim$1/3 of the gap
+    \item Remaining 2/3 is \textbf{within-occupation}
+    \item For 41--49 women: entire negative effect disappears after reweighting
+\end{itemize}
+\vspace{2mm}
+\begin{alertblock}{Policy implication}
+Young women in AI-exposed occupations face a double disadvantage: occupational sorting \textit{and} within-occupation effects
+\end{alertblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Robustness}
+
+% ============================================================
+% PLACEBO AND PRE-TRENDS
+% ============================================================
+\begin{frame}{Robustness: placebo and pre-trends}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{placebo_jul2022_es_panel.png}\\
+\footnotesize \textit{Placebo: July 2022 treatment date}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Placebo test (July 2022):}
+\begin{itemize}
+    \item Flat through 2023
+    \item Sharp acceleration only in 2024--2025
+    \item Inconsistent with pre-existing trends
+\end{itemize}
+\vspace{3mm}
+\textbf{Pre-trend assessment:}
+\begin{itemize}
+    \item Pre-trend tests reject for all age groups (Roth 2022)
+    \item But: slopes are \textit{positive} for young workers --- works \textit{against} our finding
+    \item Cumulative pre-trend bias for 22--25: $+0.004$ vs endpoint $-0.055$ (7\%, wrong direction)
+    \item Rambachan-Roth: average effects fragile (dilution of late-period signal)
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ============================================================
+% ADDITIONAL ROBUSTNESS
+% ============================================================
+\begin{frame}{Additional robustness}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Posting margin}
+\begin{itemize}
+    \item 8 specifications: negative in 7/8, significant in 2
+    \item Alternative AI measure (Eloundou et al.\ 2024, GPT-specific): timing shifts to ChatGPT period --- consistent with measure capturing GenAI vs broad AI
+    \item 85\% quartile agreement between measures
+    \item Interest rate sensitivity uncorrelated with AI exposure ($r = 0.04$)
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Employment margin}
+\begin{itemize}
+    \item Placebo dates: July 2022, November 2021 --- no effect
+    \item Extensive margin: zero-cell share for 22--25 widens from 8.9pp to 13.1pp {\tiny\hyperlink{backup:extensive}{\beamergotobutton{Fig}}}
+    \item Spotlight occupations: software devs, customer service, payroll admin, receptionists --- all show age gradient
+    \item SSYK match robustness (cascading lookup)
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Interpretation}
+
+% ============================================================
+% INTERPRETATION
+% ============================================================
+\begin{frame}{Interpretation: task-based framework}
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=oruBlue, fill=oruBlue!10, rounded corners, text width=5cm, minimum height=1.2cm, align=center, font=\small},
+    arrow/.style={->, thick, oruBlue}
+]
+\node[box] (ai) at (0,3) {GenAI automates \textbf{codified, entry-level tasks}\\(data entry, scheduling, drafting, customer queries)};
+\node[box] (young) at (-4.5,0) {Young workers\\disproportionately perform\\these tasks\\$\Rightarrow$ \textbf{displaced}};
+\node[box] (old) at (4.5,0) {Experienced workers\\provide \textbf{tacit judgement}\\complementary to AI\\$\Rightarrow$ \textbf{retained/expanded}};
+\node[box, fill=oruBlue!5] (net) at (0,-2.5) {Aggregate employment broadly stable\\$\Rightarrow$ \textbf{reallocation}, not destruction\\(Acemoglu \& Restrepo 2019)};
+\draw[arrow] (ai) -- (young);
+\draw[arrow] (ai) -- (old);
+\draw[arrow] (young) -- (net);
+\draw[arrow] (old) -- (net);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+% ============================================================
+% INTERNATIONAL COMPARISON
+% ============================================================
+\begin{frame}{International comparison}
+\begin{center}
+\footnotesize
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Study} & \textbf{Country} & \textbf{Data} & \textbf{Age?} & \textbf{Key result} \\
+\midrule
+\href{https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/}{Brynjolfsson et al.\ (2025)} & US & ADP payroll & Yes & $-13\%$ young \\
+\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5425555}{Hosseini \& Lichtinger (2025)} & US & BLS/CPS & Yes & Seniority bias \\
+\href{https://www.sciencedirect.com/science/article/pii/S0167268124004591}{Teutloff, Kässi et al.\ (2025)} & Global & Online platforms & No & $-20$--$50\%$ subst.\ skills \\
+\href{https://www.anthropic.com/research/labor-market-impacts}{Massenkoff \& McCrory (2026)} & US & Payroll & Yes & Slowed young hiring \\
+\href{https://www.nber.org/papers/w33777}{Humlum \& Vestergaard (2025)} & DK & Admin registers & Yes & Null earnings \\
+\href{https://research.aalto.fi/files/184802089/BIZ_Kauhanen_Rouvinen_Assessing_early_labour_market_effects_of_generative_AI_evidence_from_population_data_2025_pdfa2b.pdf}{Kauhanen \& Rouvinen (2025)} & FI & Admin registers & No & Null \\
+Kauhanen \& Rouvinen (2026) & FI & Admin registers & Yes & Null \\
+\textbf{This paper} & \textbf{SE} & \textbf{Admin registers} & \textbf{Yes} & \textbf{$-5.5\%$ young} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{2mm}
+\begin{itemize}
+    \footnotesize
+    \item Why Finland differs: shorter sample, broader AI measure, synthetic DiD design
+    \item Why Denmark differs: intensive margin (earnings/hours), not extensive margin (employment composition)
+\end{itemize}
+\end{frame}
+
+% ============================================================
+% CAVEATS
+% ============================================================
+\begin{frame}{Caveats and limitations}
+\begin{enumerate}
+    \item \textbf{Pre-trends:} reject for all groups, but slopes work against findings (positive bias in pre-period for young workers)
+    \item \textbf{No direct AI adoption observation:} we use occupational exposure, not firm-level adoption
+    \item \textbf{LAS seniority:} Swedish employment protection law protects senior workers --- cannot fully disentangle from AI complementarity
+    \item \textbf{Educational sorting:} if university enrolment rose for AI-exposed fields, supply-side effects possible
+    \item \textbf{Population employment stable:} this is reallocation across age groups within employers, not aggregate job destruction
+    \item \textbf{Rambachan-Roth:} average treatment effects fragile under linear violations --- driven by dilution of accelerating late-period signal by early null periods
+\end{enumerate}
+\end{frame}
+
+\section{Conclusion}
+
+% ============================================================
+% CONCLUSION AND POLICY
+% ============================================================
+\begin{frame}{Conclusions and policy implications}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Findings}
+\begin{enumerate}
+    \item Aggregate posting decline $=$ monetary tightening
+    \item Compositional employment shift $=$ AI
+    \item Young workers in AI-exposed occupations: $-5.5\%$ by early 2025 (accelerating)
+    \item Older workers: $+1.3\%$
+    \item Effect twice as large for young women
+\end{enumerate}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Policy relevance for AF}
+\begin{itemize}
+    \item Early-career workers in AI-exposed occupations need targeted support
+    \item Transition pathways: redesign of entry-level roles
+    \item Gender dimension: young women face double disadvantage
+    \item Monitoring: Platsbanken enables real-time tracking of the \textit{demand} side (postings)
+    \item This is reallocation, not destruction --- but reallocation has losers
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{2mm}
+\begin{center}
+\large\textcolor{oruBlue}{Thank you! Questions?}\\[1mm]
+\scriptsize magnus.lodefalk@oru.se
+\end{center}
+\end{frame}
+
+% ============================================================
+% BACKUP SLIDES
+% ============================================================
+\appendix
+\begin{frame}[plain]
+\begin{center}
+\vspace{2cm}
+{\Large\textcolor{oruBlue}{Backup Slides}}
+\end{center}
+\end{frame}
+
+\begin{frame}{Spotlight: four AI-exposed occupations}
+\hypertarget{backup:spotlight}{}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{figA8a_mona_canaries_softwaredevelopers.png}\\[-1mm]
+\footnotesize Software developers (SSYK 2512)
+\vspace{1mm}
+\includegraphics[width=\textwidth]{figA8b_mona_canaries_customerservice.png}\\[-1mm]
+\footnotesize Customer service (SSYK 4221/4222)
+\end{column}
+\begin{column}{0.48\textwidth}
+\includegraphics[width=\textwidth]{figA8c_mona_canaries_payrolladmin.png}\\[-1mm]
+\footnotesize Payroll administrators (SSYK 4112)
+\vspace{1mm}
+\includegraphics[width=\textwidth]{figA8d_mona_canaries_receptionists.png}\\[-1mm]
+\footnotesize Receptionists (SSYK 4225)
+\end{column}
+\end{columns}
+\vspace{1mm}
+\hfill{\tiny\hyperlink{main:daioe}{\beamerreturnbutton{Back}}}
+\end{frame}
+
+\begin{frame}{Riksbank policy rate timeline}
+\hypertarget{backup:riksbank}{}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{figA10_riksbank_rate.png}
+\end{center}
+\footnotesize Riksbank policy rate, 2020--2026. First hike: April 2022. ChatGPT launch: November 2022. Seven-month gap exploited for timing identification.
+\hfill{\tiny\hyperlink{main:scarychart}{\beamerreturnbutton{Back}}}
+\end{frame}
+
+\begin{frame}{Extensive margin: zero-cell shares}
+\hypertarget{backup:extensive}{}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{zero_cell_shares_q4_vs_rest.png}
+\end{center}
+\footnotesize Share of employer $\times$ occupation cells with zero employment. Young workers (22--25) in Q4 occupations increasingly absent from employer rosters; opposite for 50+.
+\hfill{\tiny\hyperlink{main:daioe}{\beamerreturnbutton{Back}}}
+\end{frame}
+
+\end{document}
