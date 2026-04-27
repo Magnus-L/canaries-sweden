@@ -316,7 +316,7 @@ def load_and_prepare():
     n_before = agg["employer_id"].nunique()
     agg = agg[agg["employer_id"].isin(large_emp)].copy()
     print(f"  Employers: {n_before:,} total -> {agg['employer_id'].nunique():,} "
-          f"(>={MIN_EMPLOYER_SIZE} total workers)")
+          f"(>={MIN_EMPLOYER_SIZE} total person-months across all periods)")
 
     print(f"\n  Final panel cells: {len(agg):,}")
     print(f"  Employers: {agg['employer_id'].nunique():,}")
@@ -338,18 +338,12 @@ def balance_panel_for_age(agg, age_label):
     """
     Build balanced panel for one age group: every (employer, quartile)
     combination the employer is ever observed in × all months.
-    Missing cells filled with n_emp = 0.
+    Missing cells filled with n_emp = 0 to capture the extensive margin.
 
     Also applies identification restriction from the paper: keep only
     employers observed in both Q4 and at least one of Q1-Q3. This
     ensures that the employer×quartile FE actually absorbs within-
     employer variation — single-quartile employers contribute nothing.
-
-    WHY THIS MATTERS: Without zero-filling, the groupby aggregation in
-    load_and_prepare() only creates cells where employment > 0. Firms
-    that shed ALL workers of an age group in a quartile-month simply
-    disappear from the data. This drops the strongest treatment cases
-    (extensive margin) and biases the DiD toward zero.
     """
     sub = agg[agg["age_group"] == age_label].copy()
 
@@ -574,7 +568,7 @@ def _estimate_did(sub, age_label):
         mod = sm.OLS(y, X)
         res = mod.fit(
             cov_type="cluster",
-            cov_kwds={"groups": panel["employer_id"].values},
+            cov_kwds={"groups": panel["fe_emp_q"].values},
         )
 
         gamma1 = res.params[0]
