@@ -70,25 +70,6 @@
 \end{frame}
 
 % ============================================================
-% HOOK: SvD HEADLINE
-% ============================================================
-\begin{frame}[plain]
-\begin{columns}[c]
-\begin{column}{0.45\textwidth}
-\includegraphics[width=\textwidth]{svd_ungdomsbarometern.png}
-\end{column}
-\begin{column}{0.50\textwidth}
-\Large\textcolor{oruBlue}{``Inte längre självklart att en utbildning ger jobb''}\\[5mm]
-\normalsize
-\textit{Nearly half of young Swedes have reconsidered their education or career because of AI.}\\[3mm]
-\footnotesize SvD / Generationsrapporten 2026\\
-Published 24 March 2026\\[5mm]
-\normalsize\textbf{Are they right to worry?}
-\end{column}
-\end{columns}
-\end{frame}
-
-% ============================================================
 % CONTEXT: AI-ECON LAB AND AISCAF
 % ============================================================
 \begin{frame}{Context: AI-Econ Lab and AISCAF}
@@ -98,13 +79,12 @@ Published 24 March 2026\\[5mm]
 \begin{itemize}
     \item International, multidisciplinary research environment
     \item Focus: AI's impact on labour markets
-    \item Unique Swedish admin data (ORU-MICRO-AI): population-level linked employer-employee data, monthly frequency, 4-digit occupations
 \end{itemize}
 \vspace{3mm}
 \textbf{AISCAF} (WASP-HS cluster, 2025--2030)
 \begin{itemize}
     \item ``AI, Structural Change, and the Future of Work''
-    \item 30.3 MSEK, 3 nodes (Uppsala, Stockholm, Örebro)
+    \item 3 nodes (Uppsala, Stockholm, Örebro)
     \item Skans (UU), Bursell (SU), Lodefalk (ORU)
 \end{itemize}
 \end{column}
@@ -116,7 +96,8 @@ How does generative AI affect \textbf{who gets hired}?\\[3mm]
     \item 4.6M Swedish job postings
     \item Full-population employer-employee register data (AGI)
     \item Employer-level DiD design
-    \item Result: young workers displaced, older workers retained
+    \item Result: young workers displaced, older workers retained 
+    \item Women face a larger \textit{relative} decline and are overrepresented in group that face the largest decline 
 \end{itemize}
 \end{block}
 \end{column}
@@ -146,7 +127,7 @@ How does generative AI affect \textbf{who gets hired}?\\[3mm]
 \end{itemize}
 \vspace{2mm}
 \begin{alertblock}{Key question}
-Is the decline driven by AI, or by monetary tightening?
+Is the decline driven by AI, or by monetary tightening? Are there any observable gender differences?
 \end{alertblock}
 {\tiny\hyperlink{backup:riksbank}{\beamergotobutton{Riksbank rate}}}
 \end{column}
@@ -162,19 +143,16 @@ Is the decline driven by AI, or by monetary tightening?
 % ============================================================
 \begin{frame}{What do we know about GenAI and employment?}
 \begin{itemize}
-    \item \textbf{Brynjolfsson et al.\ (2025):} 13\% decline in young US workers (ADP payroll, 25M+ workers)
-    \item \textbf{Hosseini \& Lichtinger (2025):} seniority-biased technological change
+    \item \textbf{Brynjolfsson et al.\ (2025):} 16\% relative employment decline for young workers in AI-exposed fields
     \item \textbf{Humlum \& Vestergaard (2025):} null on Danish earnings; borderline hiring decline for 22--25
     \item \textbf{Kauhanen \& Rouvinen (2025, 2026):} null in Finland (synthetic DiD)
     \item \textbf{Teutloff, Kässi et al.\ (2025):} 20--50\% decline in substitutable freelance skills
-    \item \textbf{Massenkoff \& McCrory (2026):} observed exposure measure; slowed young hiring
 \end{itemize}
 \vspace{2mm}
 \begin{block}{Our contribution}
 \begin{enumerate}
     \item Reconcile aggregate decline (macro) with compositional shift (AI)
     \item Exploit Sweden's 7-month gap between rate hike and ChatGPT as timing test
-    \item First population-register evidence of accelerating age-gradient canaries effect outside the US
 \end{enumerate}
 \end{block}
 \end{frame}
@@ -184,19 +162,14 @@ Is the decline driven by AI, or by monetary tightening?
 % ============================================================
 \begin{frame}{What do we know about gender differences?}
 \begin{itemize}
-    \item xxxx
-    \item xxxx
-    \item xxxx
-    \item xxxx
-    \item xxxx
-    \item xxxx
+    \item \textbf{{Brynjolfsson et al.\ (2025):}} find similar trends for men and women, with a slightly larger decline for young women in exposed professions.
+    \item \textbf{{Cazzaniga et al.\ (2025):}} a higher share of women than men work in AI exposed occupations which makes them more likely to be affected.
+    \item \textbf{{Gardberg et al.\ (2025):}} simulations indicate that the gender wage gap may widen in many scenarios, as women are disproportionately represented in highly exposed occupations.
 \end{itemize}
 \vspace{2mm}
 \begin{block}{Our contribution}
 \begin{enumerate}
-    \item xxxx
-    \item xxxx
-    \item xxxx
+    \item Population-register evidence on gender differences in development in \textit{employment} since launch of ChatGPT
 \end{enumerate}
 \end{block}
 \end{frame}
@@ -318,14 +291,14 @@ Non-zero cells & 75M \\
 \textbf{Employer-level DiD} (following Brynjolfsson et al.\ 2025):
 \vspace{-2mm}
 \begin{equation*}
-\ln E_{j,q,t}^{a} = \gamma_1 (\text{PostGPT}_t \times Q4_q) + \gamma_2 (\text{PostGPT}_t \times Q4_q \times \text{Young}^a) + \delta_{j,q} + \delta_{j,t} + \varepsilon_{j,q,t}
+\ln E_{j,q,t}^{a} = \gamma_1 (\text{PostRB}_t \times Q4_q) + \gamma_2 (\text{PostGPT}_t \times Q4_q ) + \delta_{j,q} + \delta_{j,t} + \varepsilon_{j,q,t}
 \end{equation*}
 
 \begin{itemize}
     \item $\delta_{j,q}$: employer $\times$ quartile FE --- absorbs permanent employer-occupation composition
     \item $\delta_{j,t}$: employer $\times$ month FE --- absorbs \textbf{all time-varying employer shocks}
     \item[$\Rightarrow$] Identification: \textit{within the same employer, in the same month}, do workers in high-AI occupations shift differently by age?
-    \item Separate regressions for each age group $a$
+    \item Separate regressions for each age group and gender
 \end{itemize}
 \vspace{2mm}
 \begin{alertblock}{What employer $\times$ month FE absorbs}
@@ -345,7 +318,6 @@ All time-varying employer-level shocks: hiring freezes, downsizing, industry cyc
     \item $\hat{\beta}_1$ (PostRB $\times$ High) $= -0.127$, $p < 0.01$
     \item $\hat{\beta}_2$ (PostGPT $\times$ High) $= -0.062$, $p = 0.11$
     \item Divergence opens with monetary tightening, not ChatGPT
-    \item AI exposure uncorrelated with rate sensitivity ($r = 0.04$)
 \end{itemize}
 \vspace{3mm}
 \textbf{Robustness:}
@@ -398,72 +370,98 @@ All time-varying employer-level shocks: hiring freezes, downsizing, industry cyc
     \item 22--25 in Q4: $-5.5\%$ by early 2025
     \item 26--30 in Q4: $-4.9\%$ by early 2025
     \item 50+ in Q4: $+1.3\%$
-    \item Age gradient monotonic by 2025H1
 \end{itemize}
 \vspace{3mm}
 \textbf{Consistent with Brynjolfsson et al.\ (2025):}
 \begin{itemize}
-    \item US: 13\% decline (ADP payroll, 25M+ workers)
+    \item US: 16\% decline (ADP payroll, 25M+ workers)
     \item Sweden: 5.5\% (AGI register, full population)
     \item Both within-employer, same direction
+    \item Differs from Danish and Finnish findings
 \end{itemize}
 \vspace{2mm}
-\footnotesize $\hat{\gamma}_2 = -0.010$ ($p < 0.01$) for 22--25; $+0.010$ ($p < 0.01$) for 50+
 \end{column}
 \end{columns}
+\end{frame}
+
+\section{Interpretation}
+
+
+% ============================================================
+% INTERPRETATION
+% ============================================================
+\begin{frame}{Interpretation: task-based framework}
+\begin{center}
+\resizebox{0.8\textwidth}{!}{
+\begin{tikzpicture}[
+    box/.style={rectangle, draw=oruBlue, fill=oruBlue!10, rounded corners, text width=5cm, minimum height=1.2cm, align=center, font=\small},
+    arrow/.style={->, thick, oruBlue}
+]
+\node[box] (ai) at (0,3) {GenAI automates \textbf{codified, entry-level tasks}\\(data entry, scheduling, drafting, customer queries)};
+\node[box] (young) at (-4.5,0) {Young workers\\disproportionately perform\\these tasks\\$\Rightarrow$ \textbf{displaced}};
+\node[box] (old) at (4.5,0) {Experienced workers\\provide \textbf{tacit judgement}\\complementary to AI\\$\Rightarrow$ \textbf{retained/expanded}};
+\node[box, fill=oruBlue!5] (net) at (0,-2.5) {Aggregate employment broadly stable\\$\Rightarrow$ \textbf{reallocation}, not destruction\\(Acemoglu \& Restrepo 2019)};
+\draw[arrow] (ai) -- (young);
+\draw[arrow] (ai) -- (old);
+\draw[arrow] (young) -- (net);
+\draw[arrow] (old) -- (net);
+\end{tikzpicture}
+}
+\end{center}
+
+\vspace{2mm}
+{\footnotesize \textit{Slight caveat: Swedish employment protection law protects senior workers — cannot
+fully disentangle from AI complementarity.}}
 \end{frame}
 
 
 % ============================================================
 % GENDER
 % ============================================================
-\begin{frame}{Gender heterogeneity}
-\begin{columns}[c]
-\begin{column}{0.48\textwidth}
-\includegraphics[width=\textwidth]{figA_gender_canaries_panel_corrected.png}
-\end{column}
-\begin{column}{0.50\textwidth}
-\vspace{2mm}
-\end{column}
-\end{columns}
-\end{frame}
 
 \begin{frame}{Gender heterogeneity}
-\begin{table}
 \centering
-\footnotesize
-\resizebox{\textwidth}{!}{
-\begin{tabular}{@{}lcccccc@{}}
+
+\begin{table}[htbp]
+\centering
+\caption{Employment distribution by AI exposure and gender (ages 22--25, full sample)}
+\label{tab:ai_exposure_gender_full}
+\begin{tabular}{llcccc}
 \toprule
- & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
+Period & Gender & High AI (Q4) & Low AI (Q1--Q3) & Total & Share Q4 (\%) \\
 \midrule
-\multicolumn{7}{l}{\emph{Panel A: Men}} \\[2pt]
-$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.012$*** & $-0.004$ & $-0.003$ & $+0.000$ & $+0.006$*** & $+0.008$*** \\
- & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
-$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.007$*** & $-0.002$ & $+0.007$*** & $+0.003$ & $+0.005$*** & $+0.016$*** \\
- & $(0.003)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
-$N$ & 6,401,850 & 9,373,104 & 8,448,726 & 10,064,574 & 12,338,664 & 16,984,266 \\[8pt]
-\multicolumn{7}{l}{\emph{Panel B: Women}} \\[2pt]
-$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.006$*** & $-0.003$* & $+0.006$*** & $+0.001$ & $-0.001$ & $+0.004$** \\
- & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.001)$ \\[4pt]
-$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.016$*** & $-0.006$*** & $+0.004$* & $+0.002$ & $-0.009$*** & $+0.001$ \\
- & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ & $(0.002)$ \\[4pt]
-$N$ & 7,412,574 & 9,506,640 & 7,746,258 & 8,826,948 & 10,863,138 & 14,592,396 \\
+\multirow{Base (2022-10)} 
+ & Men   & 657,510 & 1,881,204 & 2,538,714 & 25.90 \\
+ & Women & 765,533 & 1,694,078 & 2,459,611 & 31.12 \\
 \midrule
-Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
-Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
+\multirow{Latest (2025-06)} 
+ & Men   & 648,332 & 1,820,761 & 2,469,093 & 26.26 \\
+ & Women & 756,708 & 1,719,810 & 2,476,518 & 30.56 \\
 \bottomrule
 \end{tabular}
-}
+
+\begin{flushleft}
+\footnotesize \textit{Shares are calculated within gender. Women are consistently more concentrated in high-AI occupations than men, although the share declines slightly over time.}
+\end{flushleft}
+
 \end{table}
 \end{frame}
 
 \begin{frame}{Gender heterogeneity}
+\centering
+
+Effect roughly \textbf{twice as large for young women} ($\hat{\gamma}_2 = -0.016$) as for young men ($-0.007$) but...
+
+\vspace{3mm}
+
+\includegraphics[width=0.9\textwidth]{figA_gender_canaries_panel_corrected.png}
+\end{frame}
+
+\begin{frame}{Gender heterogeneity}
 \begin{itemize}
-    \item Effect roughly \textbf{twice as large for young women} ($\hat{\gamma}_2 = -0.016$) as for young men ($-0.007$)
-    \item The difference could reflect either (i) occupational composition – men and women sort into different occupations within
-    the top AI exposure quartile – or (ii) within-occupation differences in how AI exposure affects employment by gender.
-    \item To separate these channels, we apply an Oaxaca-Blinder-style reweighting decomposition: we re-estimate the women’s regressions using inverse probability weights (IPW) that adjust women’s occupational distribution within Q4 to match men’s. If the gender gap narrows after reweighting, the between-occupation (composition) component is a contributing factor; if the gap persists, the within-occupation (coefficient) component dominates.
+    \item Labour outcomes for men in low AI-exposure occupations have declined more than for women in the same occupations. This makes the relative difference larger for women. 
+    \item To investigate whether this can be explained by the fact that women and men sort into different occupations, we apply an Oaxaca-Blinder-style re-weighting decomposition
+    \item We re-estimate the women’s regressions using inverse probability weights (IPW) that adjust women’s occupational distribution within Q4 to match men’s. If the gender gap narrows after reweighting, the between-occupation (composition) component is a contributing factor; if the gap persists, the within-occupation (coefficient) component dominates.
 \end{itemize}
 \vspace{2mm}
 \end{frame}
@@ -473,19 +471,62 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \item The reweighting shows that occupational composition explains $\sim$1/3 of the gap
     \item Remaining 2/3 is \textbf{within-occupation}
     \item For 41--49 women: entire negative effect disappears after reweighting
+    \item Points to more adverse effects in female-dominated occupations
     \end{itemize}
-
-\begin{alertblock}{Policy implication}
-Young women in AI-exposed occupations face a double disadvantage: occupational sorting \textit{and} within-occupation effects
-\end{alertblock}
 
 \end{frame}
 
-\section{Robustness}
+
+\section{Conclusion}
+
+% ============================================================
+% CONCLUSION AND POLICY
+% ============================================================
+\begin{frame}{Conclusions and policy implications}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Findings}
+\begin{enumerate}
+    \item Aggregate posting decline $=$ monetary tightening
+    \item Compositional employment shift $=$ AI
+    \item Young workers in AI-exposed occupations: $-5.5\%$ by early 2025 (accelerating)
+    \item Older workers: $+1.3\%$
+    \item Young women in AI-exposed fields face a twice as large \textit{relative} decline
+    \item Women overrepresented in highly exposed occupations that face employment declines 
+\end{enumerate}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Policy relevance}
+\begin{itemize}
+    \item Early-career workers in AI-exposed occupations need targeted support
+    \item Transition pathways: redesign of entry-level roles
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{2mm}
+\begin{center}
+\large\textcolor{oruBlue}{Thank you! Questions?}\\[1mm]
+\scriptsize lydia.lothman@oru.se
+\end{center}
+\end{frame}
+
+% ============================================================
+% BACKUP SLIDES
+% ============================================================
+\appendix
+
 
 % ============================================================
 % PLACEBO AND PRE-TRENDS
 % ============================================================
+
+\begin{frame}[plain]
+\begin{center}
+\vspace{2cm}
+{\Large\textcolor{oruBlue}{Backup Slides}}
+\end{center}
+\end{frame}
+
 \begin{frame}{Robustness: placebo and pre-trends}
 \begin{columns}[c]
 \begin{column}{0.48\textwidth}
@@ -511,117 +552,8 @@ Young women in AI-exposed occupations face a double disadvantage: occupational s
 \end{columns}
 \end{frame}
 
-\section{Interpretation}
 
-% ============================================================
-% INTERPRETATION
-% ============================================================
-\begin{frame}{Interpretation: task-based framework}
-\begin{center}
-\begin{tikzpicture}[
-    box/.style={rectangle, draw=oruBlue, fill=oruBlue!10, rounded corners, text width=5cm, minimum height=1.2cm, align=center, font=\small},
-    arrow/.style={->, thick, oruBlue}
-]
-\node[box] (ai) at (0,3) {GenAI automates \textbf{codified, entry-level tasks}\\(data entry, scheduling, drafting, customer queries)};
-\node[box] (young) at (-4.5,0) {Young workers\\disproportionately perform\\these tasks\\$\Rightarrow$ \textbf{displaced}};
-\node[box] (old) at (4.5,0) {Experienced workers\\provide \textbf{tacit judgement}\\complementary to AI\\$\Rightarrow$ \textbf{retained/expanded}};
-\node[box, fill=oruBlue!5] (net) at (0,-2.5) {Aggregate employment broadly stable\\$\Rightarrow$ \textbf{reallocation}, not destruction\\(Acemoglu \& Restrepo 2019)};
-\draw[arrow] (ai) -- (young);
-\draw[arrow] (ai) -- (old);
-\draw[arrow] (young) -- (net);
-\draw[arrow] (old) -- (net);
-\end{tikzpicture}
-\end{center}
-\end{frame}
 
-% ============================================================
-% INTERNATIONAL COMPARISON
-% ============================================================
-\begin{frame}{International comparison}
-\begin{center}
-\footnotesize
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Study} & \textbf{Country} & \textbf{Data} & \textbf{Age?} & \textbf{Key result} \\
-\midrule
-\href{https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/}{Brynjolfsson et al.\ (2025)} & US & ADP payroll & Yes & $-13\%$ young \\
-\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5425555}{Hosseini \& Lichtinger (2025)} & US & BLS/CPS & Yes & Seniority bias \\
-\href{https://www.sciencedirect.com/science/article/pii/S0167268124004591}{Teutloff, Kässi et al.\ (2025)} & Global & Online platforms & No & $-20$--$50\%$ subst.\ skills \\
-\href{https://www.anthropic.com/research/labor-market-impacts}{Massenkoff \& McCrory (2026)} & US & Payroll & Yes & Slowed young hiring \\
-\href{https://www.nber.org/papers/w33777}{Humlum \& Vestergaard (2025)} & DK & Admin registers & Yes & Null earnings \\
-\href{https://research.aalto.fi/files/184802089/BIZ_Kauhanen_Rouvinen_Assessing_early_labour_market_effects_of_generative_AI_evidence_from_population_data_2025_pdfa2b.pdf}{Kauhanen \& Rouvinen (2025)} & FI & Admin registers & No & Null \\
-Kauhanen \& Rouvinen (2026) & FI & Admin registers & Yes & Null \\
-\textbf{This paper} & \textbf{SE} & \textbf{Admin registers} & \textbf{Yes} & \textbf{$-5.5\%$ young} \\
-\bottomrule
-\end{tabular}
-\end{center}
-\vspace{2mm}
-\begin{itemize}
-    \footnotesize
-    \item Why Finland differs: shorter sample, broader AI measure, synthetic DiD design
-    \item Why Denmark differs: intensive margin (earnings/hours), not extensive margin (employment composition)
-\end{itemize}
-\end{frame}
-
-% ============================================================
-% CAVEATS
-% ============================================================
-\begin{frame}{Caveats and limitations}
-\begin{enumerate}
-    \item \textbf{Pre-trends:} reject for all groups, but slopes work against findings (positive bias in pre-period for young workers)
-    \item \textbf{No direct AI adoption observation:} we use occupational exposure, not firm-level adoption
-    \item \textbf{LAS seniority:} Swedish employment protection law protects senior workers --- cannot fully disentangle from AI complementarity
-    \item \textbf{Educational sorting:} if university enrolment rose for AI-exposed fields, supply-side effects possible
-    \item \textbf{Population employment stable:} this is reallocation across age groups within employers, not aggregate job destruction
-    \item \textbf{Rambachan-Roth:} average treatment effects fragile under linear violations --- driven by dilution of accelerating late-period signal by early null periods
-\end{enumerate}
-\end{frame}
-
-\section{Conclusion}
-
-% ============================================================
-% CONCLUSION AND POLICY
-% ============================================================
-\begin{frame}{Conclusions and policy implications}
-\begin{columns}[T]
-\begin{column}{0.48\textwidth}
-\textbf{Findings}
-\begin{enumerate}
-    \item Aggregate posting decline $=$ monetary tightening
-    \item Compositional employment shift $=$ AI
-    \item Young workers in AI-exposed occupations: $-5.5\%$ by early 2025 (accelerating)
-    \item Older workers: $+1.3\%$
-    \item Effect twice as large for young women
-\end{enumerate}
-\end{column}
-\begin{column}{0.48\textwidth}
-\textbf{Policy relevance for AF}
-\begin{itemize}
-    \item Early-career workers in AI-exposed occupations need targeted support
-    \item Transition pathways: redesign of entry-level roles
-    \item Gender dimension: young women face double disadvantage
-    \item Monitoring: Platsbanken enables real-time tracking of the \textit{demand} side (postings)
-    \item This is reallocation, not destruction --- but reallocation has losers
-\end{itemize}
-\end{column}
-\end{columns}
-\vspace{2mm}
-\begin{center}
-\large\textcolor{oruBlue}{Thank you! Questions?}\\[1mm]
-\scriptsize magnus.lodefalk@oru.se
-\end{center}
-\end{frame}
-
-% ============================================================
-% BACKUP SLIDES
-% ============================================================
-\appendix
-\begin{frame}[plain]
-\begin{center}
-\vspace{2cm}
-{\Large\textcolor{oruBlue}{Backup Slides}}
-\end{center}
-\end{frame}
 
 \begin{frame}{Spotlight: four AI-exposed occupations}
 \hypertarget{backup:spotlight}{}
