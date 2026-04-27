@@ -269,6 +269,7 @@ def load_all_data():
         print(f"    {y}: {len(df_year):,} rows")
 
     raw = pd.concat(all_years, ignore_index=True)
+    raw["gender"] = pd.to_numeric(raw["gender"], errors="coerce")
     print(f"\n  Total rows from SQL: {len(raw):,}")
 
     # --- Merge DAIOE quartiles ---
@@ -292,7 +293,7 @@ def load_all_data():
     n_before = raw["employer_id"].nunique()
     raw = raw[raw["employer_id"].isin(large_emp)].copy()
     print(f"  Employers: {n_before:,} -> {raw['employer_id'].nunique():,} "
-          f"(>={MIN_EMPLOYER_SIZE} total person-months)")
+          f"(>={MIN_EMPLOYER_SIZE} total person-months across all periods)")
 
     # --- Gender labels ---
     raw["gender_label"] = raw["gender"].map({1: "Men", 2: "Women"})
@@ -321,13 +322,9 @@ def _balance_panel_for_age(agg, age_label, all_months):
     """
     Build balanced panel for one age group within a gender-filtered
     aggregation: every (employer, quartile) ever observed × all months.
-    Missing cells filled with n_emp = 0.
+    Missing cells filled with n_emp = 0 to capture the extensive margin.
 
     Applies identification restriction: employers with both Q4 and Q1-Q3.
-
-    WHY: Without zero-filling, firms that shed ALL workers of an age group
-    in a quartile disappear from the data. This drops the strongest
-    treatment cases and biases the DiD toward zero.
     """
     sub = agg[agg["age_group"] == age_label].copy()
 
@@ -368,42 +365,6 @@ def _balance_panel_for_age(agg, age_label, all_months):
     return balanced
 
 
-def _balance_spotlight_panel(panel, all_months):
-    """
-    Build balanced panel for one occupation's spotlight regression:
-    every (employer, age_binary) ever observed × all months.
-    Missing cells filled with n_emp = 0.
-
-    The identification restriction (employers with both young and old)
-    is already applied before calling this function.
-    """
-    # Unique employer-age pairs
-    emp_age = (
-        panel.groupby(["employer_id", "age_binary"])
-        .size()
-        .reset_index()[["employer_id", "age_binary"]]
-    )
-
-    # Cross join × all months
-    months_df = pd.DataFrame({"year_month": all_months})
-    emp_age["_k"] = 1
-    months_df["_k"] = 1
-    balanced = emp_age.merge(months_df, on="_k").drop(columns="_k")
-
-    # Left join actual counts
-    balanced = balanced.merge(
-        panel[["employer_id", "age_binary", "year_month", "n_emp"]],
-        on=["employer_id", "age_binary", "year_month"],
-        how="left",
-    )
-    balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
-
-    n_zeros = (balanced["n_emp"] == 0).sum()
-    pct_zero = 100 * n_zeros / len(balanced) if len(balanced) > 0 else 0
-    print(f"    Balanced: {len(balanced):,} cells "
-          f"({n_zeros:,} zeros = {pct_zero:.1f}%)")
-
-    return balanced
 
 
 # ======================================================================
@@ -445,7 +406,8 @@ def plot_gender_canaries(raw):
     agg["date"] = pd.to_datetime(agg["year_month"] + "-01")
     agg = agg.sort_values("date")
 
-    # 3-month moving average
+    # 3-month centred moving average (center=True: each month uses t-1, t, t+1;
+    # the base month Oct 2022 therefore includes Nov 2022 data)
     agg["n_emp_ma"] = (
         agg.groupby(["gender_label", "age_binary", "ai_binary"])["n_emp"]
         .transform(lambda x: x.rolling(3, min_periods=1, center=True).mean())
@@ -517,10 +479,6 @@ def run_gender_did(raw):
 
     Employer x quartile FE + employer x month FE.
     Run for each gender x age_group combination.
-
-    Economic question: Is the canaries effect equally strong for men
-    and women, or does it concentrate in one gender? This matters for
-    policy targeting.
     """
     print("\n" + "=" * 70)
     print("PART A2: Gender DiD regression")
@@ -627,7 +585,7 @@ def _run_panel_ols(sub, label):
         mod = sm.OLS(y, X)
         res = mod.fit(
             cov_type="cluster",
-            cov_kwds={"groups": panel["employer_id"].values},
+            cov_kwds={"groups": panel["fe_emp_q"].values},
         )
 
         elapsed = time.time() - t0
@@ -659,11 +617,6 @@ def run_gender_did_reweighted(raw):
     Re-run the gender DiD with inverse-probability weights that make
     women's occupational composition within each DAIOE quartile match
     men's.
-
-    WHY: If the larger canaries effect for women is driven by women
-    being concentrated in Q4 occupations that are particularly exposed
-    to automation (rather than augmentation), then the gender difference
-    is an artefact of occupational segregation. IPW controls for this.
 
     METHOD (Oaxaca-style reweighting):
       1. Compute SSYK4 employment shares within each quartile, by gender,
@@ -722,6 +675,7 @@ def run_gender_did_reweighted(raw):
     # women's regression anyway). Where male share is zero, weight = 0.
     weights["female_share"] = weights["female_share"].fillna(0)
     weights["male_share"] = weights["male_share"].fillna(0)
+    # Where female_share = 0 the weight would be infinite — set to 0 (no contribution)
     weights["ipw"] = np.where(
         weights["female_share"] > 0,
         weights["male_share"] / weights["female_share"],
@@ -834,10 +788,6 @@ def plot_spotlight_descriptives(raw):
 
     Produces one figure per occupation: lines for each age group,
     vertical markers for Riksbank and ChatGPT.
-
-    Economic intuition: The aggregate regression shows Q4 vs Q1-Q3.
-    These spotlights make the finding concrete — "here is what happened
-    to young software developers at Swedish firms."
     """
     print("\n" + "=" * 70)
     print("PART B1: Occupation spotlight descriptive figures")
@@ -928,316 +878,17 @@ def plot_spotlight_descriptives(raw):
             print(f"      {ag}: {n:,}")
 
 
-# ======================================================================
-#   PART B2: OCCUPATION SPOTLIGHT REGRESSIONS
-# ======================================================================
-
-def run_spotlight_regressions(raw):
-    """
-    Within-occupation DiD: does the canaries pattern hold at the
-    occupation level?
-
-    Design for each occupation:
-      ln(n_emp_{f,a,t} + 1) = alpha_{f,a} + beta_{f,t}
-                               + gamma*PostGPT_t*Young_a + e
-
-      f = employer, a = age binary (young/old), t = month
-      employer x age FE + employer x month FE
-      gamma = within-firm change in young vs old after ChatGPT
-
-    NOTE: This is a different identification strategy than the main
-    regression (which uses AI exposure variation). Here we hold
-    the occupation fixed and use age as the treatment dimension.
-    Requires that employers have BOTH young and old workers in
-    this specific occupation — so cell sizes may be small.
-
-    If cell sizes are insufficient (< 500 employer-age-month cells
-    or < 50 employers), the regression is skipped and only the
-    descriptive figure (Part B1) is available.
-    """
-    print("\n" + "=" * 70)
-    print("PART B2: Occupation spotlight regressions")
-    print("=" * 70)
-
-    all_results = []
-
-    for ssyk4, occ_label in SPOTLIGHT_OCCS.items():
-        print(f"\n  {ssyk4} — {occ_label}")
-        sub = raw[raw["ssyk4"] == ssyk4].copy()
-
-        if sub.empty:
-            print(f"    No data, skipping")
-            continue
-
-        # Create age binary: young (22-30) vs old (41+)
-        # Aggregate 22-25 + 26-30 into young; 41-49 + 50+ into old
-        sub["age_binary"] = None
-        sub.loc[sub["age_group"].isin(["22-25", "26-30"]), "age_binary"] = "Young"
-        sub.loc[sub["age_group"].isin(["41-49", "50+"]), "age_binary"] = "Old"
-        sub = sub[sub["age_binary"].notna()].copy()
-
-        # Aggregate to employer x age_binary x month
-        # (collapse across gender -- we already tested gender in Part A)
-        panel = (
-            sub.groupby(["employer_id", "age_binary", "year_month"])
-            ["n_emp"].sum()
-            .reset_index()
-        )
-
-        # Filter to employers that have BOTH young and old in at least some months
-        # This is necessary for the FE to be identified
-        emp_age_coverage = panel.groupby("employer_id")["age_binary"].nunique()
-        both_ages = emp_age_coverage[emp_age_coverage == 2].index
-        panel = panel[panel["employer_id"].isin(both_ages)].copy()
-
-        # Build balanced panel with zero-filled cells
-        all_months = sorted(raw["year_month"].unique())
-        panel = _balance_spotlight_panel(panel, all_months)
-
-        n_cells = len(panel)
-        n_employers = panel["employer_id"].nunique()
-        print(f"    Panel: {n_cells:,} cells, {n_employers:,} employers "
-              f"(with both young and old, balanced)")
-
-        # Check minimum requirements
-        if n_cells < 500 or n_employers < 50:
-            print(f"    WARNING: Too few observations for reliable regression.")
-            print(f"    Skipping regression. Use descriptive figure (B1) instead.")
-            all_results.append({
-                "ssyk4": ssyk4,
-                "occupation": occ_label,
-                "method": "SKIPPED (small N)",
-                "n_cells": n_cells,
-                "n_employers": n_employers,
-                "gamma_gpt_young": np.nan,
-                "se": np.nan,
-                "pval": np.nan,
-            })
-            continue
-
-        # Treatment variables
-        panel["post_gpt"] = (panel["year_month"] >= CHATGPT_YM).astype(int)
-        panel["young"] = (panel["age_binary"] == "Young").astype(int)
-        panel["post_gpt_x_young"] = panel["post_gpt"] * panel["young"]
-        panel["ln_emp"] = np.log(panel["n_emp"] + 1)
-
-        # Also add PostRB x Young for completeness
-        panel["post_rb"] = (panel["year_month"] >= RIKSBANK_YM).astype(int)
-        panel["post_rb_x_young"] = panel["post_rb"] * panel["young"]
-
-        # FE identifiers
-        panel["fe_emp_age"] = (
-            panel["employer_id"].astype(str) + "_" + panel["age_binary"]
-        )
-        panel["fe_emp_t"] = (
-            panel["employer_id"].astype(str) + "_" + panel["year_month"]
-        )
-
-        # --- Run spotlight regression ---
-        result = _run_spotlight_ols(panel, ssyk4, occ_label)
-        if result is not None:
-            all_results.append(result)
-
-        # --- Event study (if enough data) ---
-        if n_employers >= 100:
-            _run_spotlight_event_study(panel, ssyk4, occ_label)
-        else:
-            print(f"    Skipping event study (need >= 100 employers, have {n_employers})")
-
-    # Save results
-    if all_results:
-        results_df = pd.DataFrame(all_results)
-        out = OUTPUT_DIR / "spotlight_regression_results.csv"
-        results_df.to_csv(out, index=False)
-        print(f"\n  Saved -> {out.name}")
-        print("\n  === SPOTLIGHT REGRESSION SUMMARY ===")
-        print(results_df[["ssyk4", "occupation", "gamma_gpt_young", "se", "pval",
-                          "n_employers"]].to_string(index=False))
-        return results_df
-
-    return pd.DataFrame()
-
-
-def _run_spotlight_ols(panel, ssyk4, occ_label):
-    """
-    Run the within-occupation DiD for one SSYK code.
-    employer x age FE + employer x month FE.
-
-    Uses manual double-demeaning (Frisch-Waugh-Lovell) instead of
-    PanelOLS, because PanelOLS with high-dimensional other_effects
-    hangs on large panels (e.g. SSYK 2512 has thousands of employers,
-    creating hundreds of thousands of employer x month FE categories).
-    The within-transformation is mathematically equivalent and scales
-    via vectorised pandas groupby.
-    """
-    t0 = time.time()
-
-    try:
-        import statsmodels.api as sm
-
-        p = panel.copy()
-
-        # Double-demean: first by employer x age, then by employer x month
-        for col in ["ln_emp", "post_rb_x_young", "post_gpt_x_young"]:
-            p[f"{col}_dm1"] = p.groupby("fe_emp_age")[col].transform(
-                lambda x: x - x.mean()
-            )
-        for col in ["ln_emp", "post_rb_x_young", "post_gpt_x_young"]:
-            p[f"{col}_dm"] = p.groupby("fe_emp_t")[f"{col}_dm1"].transform(
-                lambda x: x - x.mean()
-            )
-
-        y = p["ln_emp_dm"].values
-        X = p[["post_rb_x_young_dm", "post_gpt_x_young_dm"]].values
-
-        mod = sm.OLS(y, X)
-        res = mod.fit(
-            cov_type="cluster",
-            cov_kwds={"groups": p["employer_id"].values},
-        )
-
-        elapsed = time.time() - t0
-        print(f"    [within-transformation, {elapsed:.0f}s]")
-        print(f"    g_rb  (PostRB x Young)  = {res.params[0]:+.4f} "
-              f"(SE={res.bse[0]:.4f}, p={res.pvalues[0]:.4f})")
-        print(f"    g_gpt (PostGPT x Young) = {res.params[1]:+.4f} "
-              f"(SE={res.bse[1]:.4f}, p={res.pvalues[1]:.4f})")
-
-        return {
-            "ssyk4": ssyk4,
-            "occupation": occ_label,
-            "method": "within-transformation",
-            "n_cells": len(p),
-            "n_employers": panel["employer_id"].nunique(),
-            "gamma_rb_young": res.params[0],
-            "se_rb": res.bse[0],
-            "pval_rb": res.pvalues[0],
-            "gamma_gpt_young": res.params[1],
-            "se": res.bse[1],
-            "pval": res.pvalues[1],
-        }
-
-    except Exception as e:
-        print(f"    Within-transformation failed: {e}")
-        return {
-            "ssyk4": ssyk4,
-            "occupation": occ_label,
-            "method": "FAILED",
-            "n_cells": len(panel),
-            "n_employers": panel["employer_id"].nunique(),
-            "gamma_gpt_young": np.nan,
-            "se": np.nan,
-            "pval": np.nan,
-        }
-
-
-def _run_spotlight_event_study(panel, ssyk4, occ_label):
-    """
-    Half-year event study for one occupation: interact half-year
-    dummies with Young indicator. Reference: 2022H1.
-
-    This shows (a) whether pre-trends are flat (key for credibility)
-    and (b) the time path of the young-old divergence.
-    """
-    print(f"    Running event study for {ssyk4}...")
-
-    p = panel.copy()
-    year = p["year_month"].str[:4]
-    month = p["year_month"].str[5:7].astype(int)
-    p["halfyear"] = year + np.where(month <= 6, "H1", "H2")
-
-    all_periods = sorted(p["halfyear"].unique())
-    event_periods = [pp for pp in all_periods if pp != REF_HALFYEAR]
-
-    # Create interaction dummies
-    for pp in event_periods:
-        p[f"hy_{pp}"] = ((p["halfyear"] == pp).astype(int) * p["young"])
-    interaction_cols = [f"hy_{pp}" for pp in event_periods]
-
-    try:
-        import statsmodels.api as sm
-
-        # Double-demean: employer x age FE, then employer x month FE
-        # (same within-transformation as _run_spotlight_ols — avoids
-        # PanelOLS hang on large panels)
-        demean_cols = ["ln_emp"] + interaction_cols
-        for col in demean_cols:
-            p[f"{col}_dm1"] = p.groupby("fe_emp_age")[col].transform(
-                lambda x: x - x.mean()
-            )
-        for col in demean_cols:
-            p[f"{col}_dm"] = p.groupby("fe_emp_t")[f"{col}_dm1"].transform(
-                lambda x: x - x.mean()
-            )
-
-        y = p["ln_emp_dm"].values
-        X_cols_dm = [f"{c}_dm" for c in interaction_cols]
-        X = p[X_cols_dm].values
-
-        mod = sm.OLS(y, X)
-        res = mod.fit(
-            cov_type="cluster",
-            cov_kwds={"groups": p["employer_id"].values},
-        )
-
-        # Collect coefficients
-        es_data = []
-        for i, pp in enumerate(event_periods):
-            es_data.append({
-                "period": pp,
-                "coef": res.params[i],
-                "se": res.bse[i],
-            })
-        # Add reference period
-        es_data.append({"period": REF_HALFYEAR, "coef": 0.0, "se": 0.0})
-
-        es_df = pd.DataFrame(es_data).sort_values("period")
-        es_df["ci_lo"] = es_df["coef"] - 1.96 * es_df["se"]
-        es_df["ci_hi"] = es_df["coef"] + 1.96 * es_df["se"]
-
-        # Plot
-        fig, ax = plt.subplots(figsize=(10, 5))
-        x = range(len(es_df))
-        ax.fill_between(x, es_df["ci_lo"], es_df["ci_hi"],
-                        alpha=0.15, color=ORANGE)
-        ax.plot(x, es_df["coef"], "o-", color=ORANGE, lw=2, ms=6)
-        ax.axhline(0, color=DARK_TEXT, lw=0.8, alpha=0.5)
-
-        # Mark reference and ChatGPT
-        ref_idx = list(es_df["period"]).index(REF_HALFYEAR)
-        ax.axvline(ref_idx, color=TEAL, ls="--", lw=1, alpha=0.7)
-        if "2022H2" in list(es_df["period"]):
-            gpt_idx = list(es_df["period"]).index("2022H2")
-            ax.axvline(gpt_idx, color=GRAY, ls=":", lw=1, alpha=0.7)
-
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(es_df["period"], rotation=45, ha="right", fontsize=9)
-        ax.set_ylabel("Coefficient (Young x period)")
-        ax.set_title(f"Event study: {ssyk4} — {occ_label}\n"
-                     "(Young vs Old, employer x age + employer x month FE)")
-
-        fig.tight_layout()
-        out = OUTPUT_DIR / f"spotlight_es_{ssyk4}.png"
-        fig.savefig(out, dpi=300)
-        plt.close()
-        print(f"    Saved -> {out.name}")
-
-        # Save CSV
-        es_df.to_csv(OUTPUT_DIR / f"spotlight_es_{ssyk4}.csv", index=False)
-
-    except Exception as e:
-        print(f"    Event study failed: {e}")
 
 
 # ======================================================================
 #   SUMMARY
 # ======================================================================
 
-def write_summary(raw, gender_results, spotlight_results):
-    """Write a comprehensive diagnostics file."""
+def write_summary(raw, gender_results):
+    """Write a diagnostics file."""
     out = OUTPUT_DIR / "spotlight_summary.txt"
     with open(out, "w") as f:
-        f.write("SCRIPT 15 — GENDER HETEROGENEITY + OCCUPATION SPOTLIGHTS\n")
+        f.write("SCRIPT 16 — GENDER HETEROGENEITY + OCCUPATION SPOTLIGHTS\n")
         f.write("=" * 60 + "\n\n")
         f.write(f"Data period: {raw['year_month'].min()} to {raw['year_month'].max()}\n")
         f.write(f"Total rows: {len(raw):,}\n")
@@ -1259,17 +910,10 @@ def write_summary(raw, gender_results, spotlight_results):
             f.write(f"  {ssyk4} ({label}): {sub['n_emp'].sum():,} person-months, "
                     f"{sub['employer_id'].nunique():,} employers\n")
 
-        if not spotlight_results.empty:
-            f.write("\n--- Spotlight regression results ---\n")
-            f.write(spotlight_results.to_string(index=False))
-            f.write("\n")
-
         f.write("\n--- FE structure ---\n")
-        f.write("Gender DiD: employer x quartile + employer x month (same as script 15)\n")
-        f.write("Spotlights: employer x age_binary + employer x month\n")
-        f.write("SEs clustered by employer (gender) / employer-age entity (spotlights)\n")
+        f.write("Gender DiD: employer x quartile + employer x month\n")
+        f.write("SEs clustered by employer x quartile (fe_emp_q)\n")
         f.write("Panel: balanced (zero-filled), restricted to employers with Q4 and Q1-Q3\n")
-        f.write("Spotlight panel: balanced (zero-filled), restricted to employers with both ages\n")
 
     print(f"\n  Saved summary -> {out.name}")
 
@@ -1299,11 +943,8 @@ def main():
     # Part B1: Occupation spotlight descriptives
     plot_spotlight_descriptives(raw)
 
-    # Part B2: Occupation spotlight regressions
-    spotlight_results = run_spotlight_regressions(raw)
-
     # Summary
-    write_summary(raw, gender_results, spotlight_results)
+    write_summary(raw, gender_results)
 
     print("\n" + "=" * 70)
     print("DONE. Export these files from MONA:")
@@ -1312,8 +953,6 @@ def main():
     print("  A2: gender_did_results.csv")
     print("  A3: gender_did_reweighted.csv")
     print("  B1: spotlight_2512.png, spotlight_4112.png, ...")
-    print("  B2: spotlight_regression_results.csv")
-    print("  B2: spotlight_es_2512.png, spotlight_es_2512.csv, ...")
     print("      spotlight_summary.txt")
     print("=" * 70)
 

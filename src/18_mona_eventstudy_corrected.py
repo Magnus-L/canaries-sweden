@@ -22,10 +22,6 @@ WHY THIS SCRIPT EXISTS:
   This script re-runs the event study with the SAME FE as the main DiD:
   employer×quartile entity FE + employer×month absorbed via other_effects.
 
-ESTIMATED RUNTIME:
-  ~30-60 min total (similar to main DiD per age group × 6 groups).
-  PanelOLS absorption cost is dominated by FE dimensions, not regressors.
-
 OUTPUT FILES:
   1. corrected_es_all.csv          -- event study coefficients
   2. corrected_pretrends.txt       -- pre-trend joint F-test results
@@ -265,13 +261,9 @@ def balance_panel_for_age(agg, age_label):
     """
     Build balanced panel for one age group: every (employer, quartile)
     combination the employer is ever observed in × all months.
-    Missing cells filled with n_emp = 0.
+    Missing cells filled with n_emp = 0 to capture the extensive margin.
 
     Applies identification restriction: employers with both Q4 and Q1-Q3.
-
-    WHY: Without zero-filling, firms that shed ALL workers of an age group
-    in a quartile disappear from the data. This drops the strongest
-    treatment cases and biases the DiD toward zero.
     """
     sub = agg[agg["age_group"] == age_label].copy()
     all_months = sorted(agg["year_month"].unique())

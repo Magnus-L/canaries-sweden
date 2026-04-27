@@ -52,7 +52,6 @@ INSTRUCTIONS FOR LYDIA:
   3. Export the three output files from output_17/
   4. Share the CSV — Magnus can re-plot locally if needed
 
-Runtime: ~5 minutes (same data pull as script 15, lighter computation).
 """
 
 import pandas as pd
@@ -100,16 +99,6 @@ TEAL = "#2E7D6F"
 GRAY = "#8C8C8C"
 DARK_BLUE = "#1B3A5C"
 LIGHT_GRAY = "#D0D0D0"
-MILESTONE_COLOR = "#7B2D8E"
-
-# --- GenAI capability milestones (same as script 09) ---
-GENAI_MILESTONES = [
-    (2023, 3, "GPT-4"),
-    (2023, 11, "Enterprise tools"),
-    (2024, 5, "GPT-4o"),
-    (2024, 9, "o1"),
-    (2025, 1, "DeepSeek R1"),
-]
 
 # --- Age group definitions ---
 # We produce the headline for 22-25 (direct Brynjolfsson comparison)
@@ -306,11 +295,6 @@ def compute_pctchange(raw):
 
     Returns a DataFrame with columns:
       year_month, date, group, n_emp, n_emp_ma, pct_change
-
-    Economic intuition: The percentage change shows *how much*
-    employment in each group has moved relative to the pre-ChatGPT
-    baseline. A -15% value means 15% fewer workers in that group
-    compared to October 2022.
     """
     print("\n" + "=" * 70)
     print("STEP 2: Computing percentage change from base month")
@@ -337,14 +321,14 @@ def compute_pctchange(raw):
         lambda r: label_map[(r["young"], r["high_ai"])], axis=1
     )
 
-    # 3-month centred moving average (smooths monthly noise)
+    # 3-month centred moving average (center=True: each month uses t-1, t, t+1;
+    # the base month Oct 2022 therefore includes Nov 2022 data)
     agg["n_emp_ma"] = (
         agg.groupby("group")["n_emp"]
         .transform(lambda x: x.rolling(MA_WINDOW, min_periods=1, center=True).mean())
     )
 
-    # Percentage change from base month
-    # pct_change = (current / base - 1) × 100
+    # Percentage change from base month: pct_change = (current / base - 1) × 100
     base = agg[agg["year_month"] == BASE_MONTH][["group", "n_emp_ma"]].copy()
     base = base.rename(columns={"n_emp_ma": "base_val"})
     agg = agg.merge(base, on="group", how="left")
@@ -371,33 +355,16 @@ def compute_pctchange(raw):
 
 def add_event_lines(ax, y_ref=0):
     """
-    Draw vertical annotation lines for events and GenAI milestones.
-    Same style as the rest of the paper.
+    Draw vertical annotation lines for Riksbank hike and ChatGPT launch.
 
-    y_ref: the horizontal reference line value (0 for pct change,
-           100 for index).
+    y_ref: horizontal reference line value (0 for pct change, 100 for index).
     """
-    # Riksbank rate hike (macro tightening)
     ax.axvline(pd.Timestamp(RIKSBANK_YM + "-01"),
                color=ORANGE, linewidth=1, linestyle=":", alpha=0.7,
                label="_nolegend_")
-
-    # ChatGPT launch
     ax.axvline(pd.Timestamp(CHATGPT_YM + "-01"),
                color=TEAL, linewidth=1.5, linestyle=":", alpha=0.9,
                label="_nolegend_")
-
-    # GenAI capability milestones
-    for year, month, label in GENAI_MILESTONES:
-        date = pd.Timestamp(f"{year}-{month:02d}-01")
-        ax.axvline(date, color=MILESTONE_COLOR, linewidth=0.9,
-                   linestyle="--", alpha=0.6, label="_nolegend_")
-        ax.text(date, ax.get_ylim()[1], label,
-                ha="center", va="bottom", fontsize=6,
-                color=MILESTONE_COLOR, fontweight="bold", alpha=0.8,
-                rotation=45)
-
-    # Horizontal reference at y_ref (0% change line)
     ax.axhline(y_ref, color=GRAY, linewidth=0.8, linestyle="--", alpha=0.5)
 
 

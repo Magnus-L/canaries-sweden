@@ -40,10 +40,6 @@ Output:
   - figA8a_mona_canaries_softwaredevelopers.png (spotlight: software devs by age)
   - figA8b_mona_canaries_customerservice.png (spotlight: customer service by age)
   - figA8c_mona_canaries_economy.png (broad canaries: young×high vs others)
-  - mona_canaries_regression.csv (regression coefficients)
-
-Runtime: should complete in <10 minutes on MONA hardware (SQL queries
-  are the bottleneck; one UNION ALL query per year).
 
 INSTRUCTIONS FOR CO-AUTHOR:
   1. Copy this script to your MONA project folder
@@ -98,17 +94,6 @@ SSYK_SOFTWARE = ["2512"]  # Programmerare och webbutvecklare
 SSYK_CUSTOMER = ["4221",  # Kundtjänstpersonal (call centre)
                  "4222",  # Helpdesk- och support-personal
                  "5230"]  # Kassörer m.fl.
-
-# GenAI capability milestones (for timeline annotation on figures)
-# Each tuple: (year, month, label)
-GENAI_MILESTONES = [
-    (2023, 3, "GPT-4"),
-    (2023, 11, "Enterprise tools"),
-    (2024, 5, "GPT-4o"),
-    (2024, 9, "o1"),
-    (2025, 1, "DeepSeek R1"),
-]
-MILESTONE_COLOR = "#7B2D8E"  # purple, distinct from existing orange/teal
 
 # Fine age bands matching Brynjolfsson et al.
 # NOTE: ages below 22 are excluded (consistent with employer-level DiD, script 15).
@@ -330,150 +315,6 @@ def merge_daioe(agg):
     return merged
 
 
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║  STEP 3: TRIPLE-DIFF REGRESSION                                    ║
-# ╚══════════════════════════════════════════════════════════════════════╝
-
-def run_canaries_regression(merged):
-    """
-    Triple-difference regression on monthly panel:
-
-    ln(emp_it) = α_i + γ_t + β₁·Post·High + β₂·Post·Young
-                 + β₃·Post·Young·High + ε_it
-
-    where:
-      i = occupation × age_group entity
-      t = year-month
-      Post = 1 if t >= December 2022 (ChatGPT launch)
-      High = 1 if top quartile genAI exposure
-      Young = 1 if age group 16-24
-
-    β₃ is the canaries coefficient: if AI displaces young workers in
-    exposed occupations, β₃ should be significantly negative.
-
-    We cluster standard errors at the occupation level (not entity level)
-    to account for within-occupation correlation across age groups.
-    """
-    print("\nRunning triple-diff regression...")
-
-    df = merged.copy()
-    df["date"] = pd.to_datetime(df["year_month"] + "-01")
-    # Include zeros: ln(n+1) handles zero-employment cells correctly.
-    # Previous version filtered df[df["n_employed"] > 0] and used ln(n),
-    # which dropped extensive-margin zeros and biased the DiD toward zero.
-    df["ln_emp"] = np.log(df["n_employed"] + 1)
-
-    # Treatment dummies
-    df["post_chatgpt"] = (df["year_month"] >= CHATGPT_LAUNCH).astype(int)
-    df["post_riksbank"] = (df["year_month"] >= RIKSBANKEN_HIKE).astype(int)
-
-    # Interactions
-    df["post_high"] = df["post_chatgpt"] * df["high_exposure"]
-    df["post_young"] = df["post_chatgpt"] * df["young"]
-    df["post_young_high"] = (
-        df["post_chatgpt"] * df["young"] * df["high_exposure"]
-    )
-
-    # Also Riksbank interactions for completeness
-    df["rb_high"] = df["post_riksbank"] * df["high_exposure"]
-    df["rb_young"] = df["post_riksbank"] * df["young"]
-    df["rb_young_high"] = (
-        df["post_riksbank"] * df["young"] * df["high_exposure"]
-    )
-
-    # Entity = occupation × age group
-    df["entity"] = df["ssyk4"] + "_" + df["young"].astype(str)
-
-    # Try linearmodels first, fall back to statsmodels
-    try:
-        from linearmodels.panel import PanelOLS
-
-        panel = df.set_index(["entity", "date"])
-
-        # Full specification: both Riksbank and ChatGPT triple interactions
-        exog_cols = [
-            "rb_high", "rb_young", "rb_young_high",
-            "post_high", "post_young", "post_young_high",
-        ]
-
-        mod = PanelOLS(
-            dependent=panel["ln_emp"],
-            exog=panel[exog_cols],
-            entity_effects=True,
-            time_effects=True,
-        )
-        # Cluster at occupation level (ssyk4), not entity level
-        # This is more conservative: accounts for correlation between
-        # young and old workers in the same occupation
-        res = mod.fit(cov_type="clustered", cluster_entity=True)
-
-        print("\n  Full specification (entity + time FE):")
-        for v in exog_cols:
-            b = res.params[v]
-            se = res.std_errors[v]
-            p = res.pvalues[v]
-            stars = "***" if p < 0.01 else "**" if p < 0.05 else "*" if p < 0.10 else ""
-            print(f"    {v:25s} = {b:+.4f}{stars} (SE = {se:.4f}, p = {p:.4f})")
-
-        print(f"\n  N = {res.nobs:,}")
-        print(f"  Entities: {int(res.entity_info['total'])}")
-
-        # The key coefficient: β₃ = post_young_high
-        b3 = res.params["post_young_high"]
-        p3 = res.pvalues["post_young_high"]
-        print(f"\n  >>> CANARIES TEST: β₃ (Post×Young×High) = {b3:+.4f}, p = {p3:.4f}")
-        if p3 < 0.05:
-            print(f"  >>> SIGNIFICANT at 5% — evidence of canaries effect")
-        else:
-            print(f"  >>> NOT significant — no canaries effect detected")
-
-        # Save results
-        reg_df = pd.DataFrame({
-            "variable": res.params.index,
-            "coefficient": res.params.values,
-            "std_error": res.std_errors.values,
-            "p_value": res.pvalues.values,
-        })
-        reg_df.to_csv(OUTPUT_DIR / "mona_canaries_regression.csv", index=False)
-        print(f"\n  Saved → mona_canaries_regression.csv")
-
-        return res, df
-
-    except ImportError:
-        print("  linearmodels not available in MONA — using statsmodels")
-        import statsmodels.api as sm
-
-        # Manual dummies (less efficient but works without linearmodels)
-        entity_dummies = pd.get_dummies(df["entity"], prefix="e", drop_first=True)
-        time_dummies = pd.get_dummies(df["year_month"], prefix="t", drop_first=True)
-
-        exog_cols = [
-            "rb_high", "rb_young", "rb_young_high",
-            "post_high", "post_young", "post_young_high",
-        ]
-        X = pd.concat([df[exog_cols], entity_dummies, time_dummies], axis=1)
-        X = sm.add_constant(X).astype(float)
-
-        mod = sm.OLS(df["ln_emp"].values, X)
-        res = mod.fit(
-            cov_type="cluster",
-            cov_kwds={"groups": df["ssyk4"].values},
-        )
-
-        print("\n  Key coefficients:")
-        for v in exog_cols:
-            print(f"    {v:25s} = {res.params[v]:+.4f} "
-                  f"(SE = {res.bse[v]:.4f}, p = {res.pvalues[v]:.4f})")
-
-        reg_df = pd.DataFrame({
-            "variable": exog_cols,
-            "coefficient": [res.params[v] for v in exog_cols],
-            "std_error": [res.bse[v] for v in exog_cols],
-            "p_value": [res.pvalues[v] for v in exog_cols],
-        })
-        reg_df.to_csv(OUTPUT_DIR / "mona_canaries_regression.csv", index=False)
-
-        return res, df
 
 
 # ╔══════════════════════════════════════════════════════════════════════╗
@@ -482,36 +323,15 @@ def run_canaries_regression(merged):
 
 def add_event_lines(ax):
     """
-    Draw vertical annotation lines for macro events and GenAI milestones.
+    Draw vertical annotation lines for Riksbank hike and ChatGPT launch.
     Used by both spotlight and canaries figures for visual consistency.
-
-    Draws three types of lines:
-      1. Riksbank rate hike (orange dotted) — macro tightening
-      2. ChatGPT launch (teal dotted) — GenAI emergence
-      3. GenAI capability milestones (purple dashed) — successive waves
-
-    All lines use '_nolegend_' to avoid polluting the data legend.
     """
-    # Macro / ChatGPT event markers (existing style)
     ax.axvline(pd.Timestamp(RIKSBANKEN_HIKE + "-01"),
                color=ORANGE, linewidth=1, linestyle=":", alpha=0.7,
                label="_nolegend_")
     ax.axvline(pd.Timestamp(CHATGPT_LAUNCH + "-01"),
                color=TEAL, linewidth=1.5, linestyle=":", alpha=0.9,
                label="_nolegend_")
-
-    # GenAI capability milestones
-    for year, month, label in GENAI_MILESTONES:
-        date = pd.Timestamp(f"{year}-{month:02d}-01")
-        ax.axvline(date, color=MILESTONE_COLOR, linewidth=0.9,
-                   linestyle="--", alpha=0.6, label="_nolegend_")
-        # Label at top of plot area
-        ax.text(date, ax.get_ylim()[1], label,
-                ha="center", va="bottom", fontsize=6,
-                color=MILESTONE_COLOR, fontweight="bold", alpha=0.8,
-                rotation=45)
-
-    # Horizontal reference at 100
     ax.axhline(100, color=GRAY, linewidth=0.5, linestyle="--", alpha=0.5)
 
 
@@ -673,9 +493,6 @@ def main():
     # Save processed data (for inspection)
     merged_broad.to_csv(OUTPUT_DIR / "mona_employment_age_ai.csv", index=False)
 
-    # Triple-diff regression
-    res, panel = run_canaries_regression(merged_broad)
-
     # Spotlight figures: specific occupations by fine age band
     plot_spotlight(
         agg_fine,
@@ -698,7 +515,6 @@ def main():
     print("  1. figA8a_mona_canaries_softwaredevelopers.png → figures/")
     print("  2. figA8b_mona_canaries_customerservice.png    → figures/")
     print("  3. figA8c_mona_canaries_economy.png            → figures/")
-    print("  4. mona_canaries_regression.csv                → tables/")
     print("=" * 70)
 
 
