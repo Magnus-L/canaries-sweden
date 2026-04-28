@@ -283,23 +283,42 @@ def _check_r_and_fixest():
     _RSCRIPT = rscript
     print(f"Rscript: {rscript}")
 
+    # Combined library-or-install probe. Per the MONA R banner, the local
+    # CRAN mirror is the default repos and packages installed under the
+    # user's account persist across R sessions. So if fixest is missing
+    # from this user's library, install it once on first run; subsequent
+    # runs hit the cached install and the cost is just the library load.
+    # Use single quotes inside the R expression because Windows subprocess
+    # escapes inner double quotes as \", which R's parser rejects.
+    fixest_probe = (
+        "if (!requireNamespace('fixest', quietly = TRUE)) { "
+        "  message('Installing fixest from local CRAN mirror (one-time)...'); "
+        "  install.packages('fixest', quiet = TRUE) "
+        "}; "
+        "suppressMessages(library(fixest)); "
+        "cat(as.character(packageVersion('fixest')))"
+    )
     try:
         proc = subprocess.run(
-            [rscript, "-e",
-             "suppressMessages(library(fixest)); "
-             "cat(as.character(packageVersion('fixest')))"],
-            capture_output=True, text=True, timeout=60,
+            [rscript, "-e", fixest_probe],
+            capture_output=True, text=True, timeout=600,
         )
     except BaseException as e:
         print(f"FATAL: Rscript invocation failed: {e}")
         raise SystemExit(1)
     if proc.returncode != 0:
-        print("FATAL: Rscript ran but fixest could not be loaded.")
+        print("FATAL: Rscript ran but fixest could not be loaded or installed.")
         if proc.stderr.strip():
             print(f"  stderr: {proc.stderr.strip()}")
         if proc.stdout.strip():
             print(f"  stdout: {proc.stdout.strip()}")
+        print("If install failed, try in an R session manually:")
+        print("    install.packages('fixest')")
         raise SystemExit(1)
+    # Surface install message if it ran
+    if "Installing fixest" in proc.stdout:
+        for line in proc.stdout.strip().splitlines()[:-1]:
+            print(f"  [R] {line}")
     version = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else "unknown"
     print(f"R + fixest version: {version}")
 
