@@ -72,3 +72,4 @@ src/*.py.zip
 # Sensitive
 .env
 *.env
+*_log.txt

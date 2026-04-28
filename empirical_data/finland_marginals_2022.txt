@@ -1,0 +1,89 @@
+dimension,code,label,share
+ISCO1,0,Armed forces occupations,0.002235
+ISCO1,1,Managers,0.023066
+ISCO1,2,Professionals,0.269495
+ISCO1,3,Technicians and associate professionals,0.193391
+ISCO1,4,Clerical support workers,0.053037
+ISCO1,5,Service and sales workers,0.187246
+ISCO1,6,"Skilled agricultural, forestry and fishery workers",0.025142
+ISCO1,7,Craft and related trades workers,0.100247
+ISCO1,8,"Plant and machine operators, and assemblers",0.075545
+ISCO1,9,Elementary occupations,0.070596
+NACE2,01,"Crop and animal production, hunting and related service activities",0.023
+NACE2,02,Forestry and logging,0.008305
+NACE2,07,Mining of metal ores,0.000918
+NACE2,08,Other mining and quarrying,0.001278
+NACE2,10,Manufacture of food products,0.014854
+NACE2,11,Manufacture of beverages,0.001398
+NACE2,13,Manufacture of textiles,0.001278
+NACE2,14,Manufacture of wearing apparel,0.001158
+NACE2,16,"Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials",0.008265
+NACE2,17,Manufacture of paper and paper products,0.006429
+NACE2,18,Printing and reproduction of recorded media,0.002795
+NACE2,19,Manufacture of coke and refined petroleum products,0.001996
+NACE2,20,Manufacture of chemicals and chemical products,0.004512
+NACE2,21,Manufacture of basic pharmaceutical products and pharmaceutical preparations,0.001757
+NACE2,22,Manufacture of rubber and plastic products,0.004432
+NACE2,23,Manufacture of other non-metallic mineral products,0.006029
+NACE2,24,Manufacture of basic metals,0.003554
+NACE2,25,"Manufacture of fabricated metal products, except machinery and equipment",0.01721
+NACE2,26,"Manufacture of computer, electronic and optical products",0.008785
+NACE2,27,Manufacture of electrical equipment,0.007427
+NACE2,28,Manufacture of machinery and equipment n.e.c.,0.018727
+NACE2,29,"Manufacture of motor vehicles, trailers and semi-trailers",0.003035
+NACE2,30,Manufacture of other transport equipment,0.003554
+NACE2,31,Manufacture of furniture,0.002715
+NACE2,32,Other manufacturing,0.001917
+NACE2,33,Repair and installation of machinery and equipment,0.008665
+NACE2,35,"Electricity, gas, steam and air conditioning supply",0.006229
+NACE2,36,"Water collection, treatment and supply",0.000998
+NACE2,37,Sewerage,0.000799
+NACE2,38,"Waste collection, treatment and disposal activities; materials recovery",0.004272
+NACE2,41,Construction of buildings,0.024118
+NACE2,42,Civil engineering,0.007866
+NACE2,43,Specialised construction activities,0.038931
+NACE2,45,Wholesale and retail trade and repair of motor vehicles and motorcycles,0.018527
+NACE2,46,"Wholesale trade, except of motor vehicles and motorcycles",0.033701
+NACE2,47,"Retail trade, except of motor vehicles and motorcycles",0.059974
+NACE2,49,Land transport and transport via pipelines,0.027272
+NACE2,50,Water transport,0.002076
+NACE2,51,Air transport,0.001677
+NACE2,52,Warehousing and support activities for transportation,0.013616
+NACE2,53,Postal and courier activities,0.007427
+NACE2,55,Accommodation,0.006229
+NACE2,56,Food and beverage service activities,0.032742
+NACE2,58,Publishing activities,0.006229
+NACE2,59,"Motion picture, video and television programme production, sound recording and music publishing activities",0.002276
+NACE2,60,Programming and broadcasting activities,0.001957
+NACE2,61,Telecommunications,0.005311
+NACE2,62,"Computer programming, consultancy and related activities",0.033741
+NACE2,63,Information service activities,0.003873
+NACE2,64,"Financial service activities, except insurance and pension funding",0.010262
+NACE2,65,"Insurance, reinsurance and pension funding, except compulsory social security",0.004951
+NACE2,66,Activities auxiliary to financial services and insurance activities,0.003594
+NACE2,68,Real estate activities,0.010781
+NACE2,69,Legal and accounting activities,0.012338
+NACE2,70,Activities of head offices; management consultancy activities,0.010502
+NACE2,71,Architectural and engineering activities; technical testing and analysis,0.02851
+NACE2,72,Scientific research and development,0.009982
+NACE2,73,Advertising and market research,0.004153
+NACE2,74,"Other professional, scientific and technical activities",0.006708
+NACE2,75,Veterinary activities,0.001477
+NACE2,77,Rental and leasing activities,0.002516
+NACE2,78,Employment activities,0.007587
+NACE2,79,"Travel agency, tour operator and other reservation service and related activities",0.001637
+NACE2,80,Security and investigation activities,0.005391
+NACE2,81,Services to buildings and landscape activities,0.030067
+NACE2,82,"Office administrative, office support and other business support activities",0.007068
+NACE2,84,Public administration and defence; compulsory social security,0.048115
+NACE2,85,Education,0.071714
+NACE2,86,Human health activities,0.067122
+NACE2,87,Residential care activities,0.038492
+NACE2,88,Social work activities without accommodation,0.054943
+NACE2,90,"Creative, arts and entertainment activities",0.007107
+NACE2,91,"Libraries, archives, museums and other cultural activities",0.004951
+NACE2,93,Sports activities and amusement and recreation activities,0.011819
+NACE2,94,Activities of membership organisations,0.019046
+NACE2,95,Repair of computers and personal and household goods,0.001198
+NACE2,96,Other personal service activities,0.01126
+NACE2,97,Activities of households as employers of domestic personnel,0.002875
