@@ -189,11 +189,14 @@ except ImportError as e:
 R_SCRIPT_PATH = Path(__file__).resolve().parent / "r_fepois.R"
 
 def _check_r_and_fixest():
+    # Note on quoting: Windows subprocess passes args by escaping inner
+    # double quotes as \", which R's parser sometimes rejects. Use single
+    # quotes inside the R expression to avoid that path.
     try:
         proc = subprocess.run(
             ["Rscript", "-e",
-             'suppressMessages(library(fixest)); '
-             'cat(as.character(packageVersion("fixest")))'],
+             "suppressMessages(library(fixest)); "
+             "cat(as.character(packageVersion('fixest')))"],
             capture_output=True, text=True, timeout=60,
         )
     except FileNotFoundError:
