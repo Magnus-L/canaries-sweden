@@ -81,11 +81,19 @@ OUTPUT FILES (under output_32/):
   9. kauhanen_summary.txt          -- prose summary for Magnus
 
 DEPENDENCIES:
-  Required: pandas, numpy, pyodbc, pyfixest
+  Required: pandas, numpy, pyodbc; R + fixest >=0.13 on PATH (Rscript)
   Optional: matplotlib (only used if FIGURE_OUTPUT == True)
 
-  pyfixest is REQUIRED. Pre-flight check at script start. If absent:
-      pip install pyfixest
+  R + fixest is REQUIRED. Pre-flight check at script start.
+  pyfixest cannot be installed in MONA (version conflicts confirmed by
+  SCB support 2026-04-28). Fallback: Poisson PML is run via
+  src/r_fepois.R, called as a subprocess from estimate_poisson() and
+  _estimate_poisson_weighted(). The R script uses fixest::fepois with
+  identical formula, FE structure, and cluster vcov.
+
+  fixest 0.13.2 is confirmed installed in MONA (per SCB support email
+  2026-04-28). Verify with:
+      Rscript -e 'cat(as.character(packageVersion("fixest")), "\n")'
 
 EXPECTED RUNTIME:
   Step 0 SQL pull       : 30-45 min one-off (cached afterwards)
@@ -106,7 +114,10 @@ EXPORT-SAFE:
   attrition diagnostic before tabulation.
 
 Magnus -- Run this first thing tomorrow morning. Sequence:
-  1. Pre-flight: ensure pyfixest is installed in MONA.
+  1. Pre-flight: confirm Rscript on PATH and library(fixest) loads.
+     The script auto-checks at startup; if it FATALs, run:
+         Rscript -e 'cat(as.character(packageVersion("fixest")), "\n")'
+     and confirm fixest 0.13.x is reported.
   2. python 32_mona_kauhanen_robustness.py
   3. If Step 1 (22-25, Poisson, current spec) is negative and significant,
      all three steps will run automatically and you have the full Kauhanen
@@ -117,6 +128,8 @@ Magnus -- Run this first thing tomorrow morning. Sequence:
 
 import sys
 import time
+import subprocess
+import tempfile
 from pathlib import Path
 
 # ======================================================================
@@ -169,16 +182,43 @@ except ImportError as e:
     print("This script requires pyodbc to query the MONA SQL Server.")
     raise SystemExit(1)
 
-try:
-    import pyfixest as pf
-    _HAS_PYFIXEST = True
-    print(f"pyfixest version: {pf.__version__ if hasattr(pf, '__version__') else 'unknown'}")
-except ImportError:
-    _HAS_PYFIXEST = False
-    print("FATAL: pyfixest not installed.")
-    print("Install in MONA via:    pip install pyfixest")
-    print("This script requires pyfixest for Poisson PML with high-dim FE.")
-    raise SystemExit(1)
+# --- R + fixest pre-flight (replaces pyfixest, blocked in MONA 2026-04-28) ---
+# Poisson PML calls are routed to src/r_fepois.R via subprocess. We need
+# Rscript on PATH and library(fixest) to load. fixest 0.13.2 is confirmed
+# installed by SCB support.
+R_SCRIPT_PATH = Path(__file__).resolve().parent / "r_fepois.R"
+
+def _check_r_and_fixest():
+    try:
+        proc = subprocess.run(
+            ["Rscript", "-e",
+             'suppressMessages(library(fixest)); '
+             'cat(as.character(packageVersion("fixest")))'],
+            capture_output=True, text=True, timeout=60,
+        )
+    except FileNotFoundError:
+        print("FATAL: Rscript not found on PATH.")
+        print("This script requires R + fixest >=0.13. fixest 0.13.2 is")
+        print("confirmed installed in MONA per SCB support 2026-04-28.")
+        raise SystemExit(1)
+    except BaseException as e:
+        print(f"FATAL: R + fixest pre-flight failed: {e}")
+        raise SystemExit(1)
+    if proc.returncode != 0:
+        print("FATAL: Rscript ran but fixest could not be loaded.")
+        if proc.stderr.strip():
+            print(f"  stderr: {proc.stderr.strip()}")
+        if proc.stdout.strip():
+            print(f"  stdout: {proc.stdout.strip()}")
+        raise SystemExit(1)
+    version = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else "unknown"
+    print(f"R + fixest version: {version}")
+    if not R_SCRIPT_PATH.exists():
+        print(f"FATAL: r_fepois.R not found at {R_SCRIPT_PATH}.")
+        print("Make sure src/r_fepois.R is in the same directory as this script.")
+        raise SystemExit(1)
+
+_check_r_and_fixest()
 
 
 # ======================================================================
@@ -639,8 +679,112 @@ def build_balanced_panel(sub, bin_col, n_bins):
 
 
 # ======================================================================
-#   POISSON REGRESSION (pyfixest)
+#   POISSON REGRESSION (R + fixest::fepois via subprocess)
 # ======================================================================
+
+def _run_rfepois(panel, weighted=False, age_label="", spec_label=""):
+    """
+    Call src/r_fepois.R with the prepared cell-level panel and return a
+    dict {gamma1, se1, p1, gamma2, se2, p2, n_obs, n_emp_total, converged,
+    elapsed_s} or None on failure.
+
+    Replaces pyfixest::fepois with R's fixest::fepois. Same formula:
+        n_emp ~ post_rb_x_high + post_gpt_x_high | fe_emp_bin + fe_emp_t
+    Same cluster vcov: CRV1 by employer_id.
+    Same optional weights: cell-level column "w" if weighted=True.
+
+    Tempfile lifecycle: input/output CSVs go in the OUTPUT_DIR (so logs
+    stay alongside results in MONA), with PIDs in the filename to avoid
+    collisions. Files are removed in `finally` regardless of outcome.
+    """
+    cols = [
+        "n_emp", "post_rb_x_high", "post_gpt_x_high",
+        "fe_emp_bin", "fe_emp_t", "employer_id",
+    ]
+    if weighted:
+        cols.append("w")
+
+    # Use OUTPUT_DIR rather than /tmp so MONA shells can see the path
+    # under the project dir; tag with PID + timestamp to avoid collisions
+    # if two age groups overlap (they won't, but cheap insurance).
+    tag = f"{spec_label}_{age_label}".replace(" ", "_")
+    in_path = OUTPUT_DIR / f"_rfepois_in_{tag}_{int(time.time() * 1000)}.csv"
+    out_path = OUTPUT_DIR / f"_rfepois_out_{tag}_{int(time.time() * 1000)}.csv"
+
+    try:
+        panel[cols].to_csv(in_path, index=False)
+
+        cmd = [
+            "Rscript", str(R_SCRIPT_PATH),
+            "--input", str(in_path),
+            "--output", str(out_path),
+            "--cluster", "employer_id",
+        ]
+        if weighted:
+            cmd.extend(["--weights", "w"])
+
+        t0 = time.time()
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=3600
+        )
+        elapsed = time.time() - t0
+
+        # Surface R stdout/stderr in the Python log for transparency
+        if proc.stdout:
+            for line in proc.stdout.strip().splitlines():
+                print(f"      [R] {line}")
+        if proc.returncode != 0:
+            print(f"      [R] non-zero exit {proc.returncode}")
+            if proc.stderr:
+                for line in proc.stderr.strip().splitlines():
+                    print(f"      [R-stderr] {line}")
+            # R writes a failure CSV even on exit 1; fall through and
+            # try to read it so we can record the status reason.
+
+        if not out_path.exists():
+            print(f"      [R] no output file written")
+            return None
+
+        result = pd.read_csv(out_path)
+        rb = result[result["term"] == "post_rb_x_high"]
+        gpt = result[result["term"] == "post_gpt_x_high"]
+        if len(rb) == 0 or len(gpt) == 0:
+            print(f"      [R] missing terms in output (have: {list(result['term'])})")
+            return None
+
+        rb = rb.iloc[0]
+        gpt = gpt.iloc[0]
+        if pd.isna(rb["coef"]) or pd.isna(gpt["coef"]):
+            print(f"      [R] coefficients NA, status={rb.get('status', 'unknown')}")
+            return None
+
+        return {
+            "gamma1": float(rb["coef"]),
+            "se1": float(rb["se"]),
+            "p1": float(rb["pvalue"]),
+            "gamma2": float(gpt["coef"]),
+            "se2": float(gpt["se"]),
+            "p2": float(gpt["pvalue"]),
+            "n_obs": int(rb["n_obs"]),
+            "n_emp_total": int(rb["n_emp_total"]),
+            "converged": bool(rb["converged"]),
+            "elapsed_s": elapsed,
+        }
+    except subprocess.TimeoutExpired:
+        print(f"      [R] timed out (>3600s) for {spec_label} / {age_label}")
+        return None
+    except BaseException as e:
+        print(f"      [R] subprocess wrapper raised: {e}")
+        return None
+    finally:
+        for p in (in_path, out_path):
+            try:
+                p.unlink()
+            except FileNotFoundError:
+                pass
+            except BaseException:
+                pass
+
 
 def estimate_poisson(balanced, bin_col, n_bins, age_label, spec_label):
     """
@@ -669,7 +813,7 @@ def estimate_poisson(balanced, bin_col, n_bins, age_label, spec_label):
     panel["post_rb_x_high"] = panel["post_rb"] * panel["high"]
     panel["post_gpt_x_high"] = panel["post_gpt"] * panel["high"]
 
-    # FE keys (string-typed for pyfixest's groupwise demeaning)
+    # FE keys (string-typed for fixest::fepois groupwise demeaning)
     panel["fe_emp_bin"] = (
         panel["employer_id"].astype(str) + "_" + panel[bin_col].astype(str)
     )
@@ -684,51 +828,38 @@ def estimate_poisson(balanced, bin_col, n_bins, age_label, spec_label):
     print(f"    [{spec_label} / {age_label}] N obs = {n_obs:,}, "
           f"N employers = {n_employers:,}, total person-months = {n_emp_total:,}")
 
-    t0 = time.time()
-    try:
-        fit = pf.fepois(
-            "n_emp ~ post_rb_x_high + post_gpt_x_high | fe_emp_bin + fe_emp_t",
-            data=panel,
-            vcov={"CRV1": "employer_id"},
-        )
-
-        coef = fit.coef()
-        se = fit.se()
-        pval = fit.pvalue()
-
-        gamma1 = float(coef["post_rb_x_high"])
-        gamma2 = float(coef["post_gpt_x_high"])
-        se1 = float(se["post_rb_x_high"])
-        se2 = float(se["post_gpt_x_high"])
-        p1 = float(pval["post_rb_x_high"])
-        p2 = float(pval["post_gpt_x_high"])
-
-        elapsed = time.time() - t0
-        print(f"      g1 (PostRB  x High) = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
-        print(f"      g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
-        print(f"      [{elapsed:.0f}s]")
-
-        return {
-            "spec": spec_label,
-            "age_group": age_label,
-            "gamma1": gamma1,
-            "se1": se1,
-            "p1": p1,
-            "gamma2": gamma2,
-            "se2": se2,
-            "p2": p2,
-            "n_obs": n_obs,
-            "n_emp_total": int(n_emp_total),
-            "n_employers": n_employers,
-            "estimator": "Poisson PML (pyfixest fepois)",
-            "fe": "employer x bin + employer x month",
-            "vcov": "CRV1 by employer",
-            "elapsed_s": round(elapsed, 1),
-        }
-
-    except BaseException as e:
-        print(f"      Poisson FAILED for {spec_label} / {age_label}: {e}")
+    res = _run_rfepois(
+        panel, weighted=False, age_label=age_label, spec_label=spec_label
+    )
+    if res is None:
+        print(f"      Poisson FAILED for {spec_label} / {age_label}")
         return None
+
+    gamma1, se1, p1 = res["gamma1"], res["se1"], res["p1"]
+    gamma2, se2, p2 = res["gamma2"], res["se2"], res["p2"]
+    elapsed = res["elapsed_s"]
+
+    print(f"      g1 (PostRB  x High) = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+    print(f"      g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+    print(f"      [{elapsed:.0f}s, converged={res['converged']}]")
+
+    return {
+        "spec": spec_label,
+        "age_group": age_label,
+        "gamma1": gamma1,
+        "se1": se1,
+        "p1": p1,
+        "gamma2": gamma2,
+        "se2": se2,
+        "p2": p2,
+        "n_obs": n_obs,
+        "n_emp_total": int(n_emp_total),
+        "n_employers": n_employers,
+        "estimator": "Poisson PML (R fixest::fepois via subprocess)",
+        "fe": "employer x bin + employer x month",
+        "vcov": "CRV1 by employer",
+        "elapsed_s": round(elapsed, 1),
+    }
 
 
 # ======================================================================
@@ -970,7 +1101,7 @@ def step4_poisson_reweighted(panel_ssyk_age, daioe):
 
     The weighting is implemented at the (employer, quartile, age, month)
     cell level by scaling each cell's count by the (occupation, industry)
-    weight averaged over its workers. For Poisson PML in pyfixest,
+    weight averaged over its workers. For Poisson PML in fixest::fepois,
     weights are passed via the `weights=` argument; the estimator
     handles the appropriate scaling internally.
     """
@@ -1111,7 +1242,7 @@ def step4_poisson_reweighted(panel_ssyk_age, daioe):
 
 
 def _estimate_poisson_weighted(balanced, bin_col, n_bins, age_label, spec_label):
-    """Same as estimate_poisson() but passes a cell-level weight to fepois."""
+    """Same as estimate_poisson() but passes a cell-level weight 'w' to fepois."""
     if len(balanced) < 100:
         print(f"    [{spec_label} / {age_label}] too few obs; skip")
         return None
@@ -1136,42 +1267,33 @@ def _estimate_poisson_weighted(balanced, bin_col, n_bins, age_label, spec_label)
     print(f"    [{spec_label} / {age_label}] N obs = {n_obs:,}, "
           f"N employers = {n_employers:,}")
 
-    t0 = time.time()
-    try:
-        fit = pf.fepois(
-            "n_emp ~ post_rb_x_high + post_gpt_x_high | fe_emp_bin + fe_emp_t",
-            data=panel,
-            vcov={"CRV1": "employer_id"},
-            weights="w",
-        )
-
-        coef = fit.coef()
-        se = fit.se()
-        pval = fit.pvalue()
-        gamma1, gamma2 = float(coef["post_rb_x_high"]), float(coef["post_gpt_x_high"])
-        se1, se2 = float(se["post_rb_x_high"]), float(se["post_gpt_x_high"])
-        p1, p2 = float(pval["post_rb_x_high"]), float(pval["post_gpt_x_high"])
-
-        elapsed = time.time() - t0
-        print(f"      g1 (PostRB  x High) = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
-        print(f"      g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
-        print(f"      [{elapsed:.0f}s, weighted]")
-
-        return {
-            "spec": spec_label, "age_group": age_label,
-            "gamma1": gamma1, "se1": se1, "p1": p1,
-            "gamma2": gamma2, "se2": se2, "p2": p2,
-            "n_obs": n_obs,
-            "n_emp_total": int(panel["n_emp"].sum()),
-            "n_employers": n_employers,
-            "estimator": "Poisson PML weighted (pyfixest fepois, weights=w)",
-            "fe": "employer x bin + employer x month",
-            "vcov": "CRV1 by employer",
-            "elapsed_s": round(elapsed, 1),
-        }
-    except BaseException as e:
-        print(f"      Weighted Poisson FAILED for {spec_label} / {age_label}: {e}")
+    res = _run_rfepois(
+        panel, weighted=True, age_label=age_label, spec_label=spec_label
+    )
+    if res is None:
+        print(f"      Weighted Poisson FAILED for {spec_label} / {age_label}")
         return None
+
+    gamma1, se1, p1 = res["gamma1"], res["se1"], res["p1"]
+    gamma2, se2, p2 = res["gamma2"], res["se2"], res["p2"]
+    elapsed = res["elapsed_s"]
+
+    print(f"      g1 (PostRB  x High) = {gamma1:+.4f} (SE={se1:.4f}, p={p1:.4f})")
+    print(f"      g2 (PostGPT x High) = {gamma2:+.4f} (SE={se2:.4f}, p={p2:.4f})")
+    print(f"      [{elapsed:.0f}s, weighted, converged={res['converged']}]")
+
+    return {
+        "spec": spec_label, "age_group": age_label,
+        "gamma1": gamma1, "se1": se1, "p1": p1,
+        "gamma2": gamma2, "se2": se2, "p2": p2,
+        "n_obs": n_obs,
+        "n_emp_total": int(panel["n_emp"].sum()),
+        "n_employers": n_employers,
+        "estimator": "Poisson PML weighted (R fixest::fepois via subprocess, weights=w)",
+        "fe": "employer x bin + employer x month",
+        "vcov": "CRV1 by employer",
+        "elapsed_s": round(elapsed, 1),
+    }
 
 
 # ======================================================================
