@@ -183,29 +183,115 @@ except ImportError as e:
     raise SystemExit(1)
 
 # --- R + fixest pre-flight (replaces pyfixest, blocked in MONA 2026-04-28) ---
-# Poisson PML calls are routed to src/r_fepois.R via subprocess. We need
+# Poisson PML calls are routed to r_fepois.R via subprocess. We need
 # Rscript on PATH and library(fixest) to load. fixest 0.13.2 is confirmed
 # installed by SCB support.
+#
+# In MONA, R is installed but Rscript is NOT on the system PATH that
+# Spyder's Python inherits. We auto-discover via the Windows registry
+# (R's installer always registers under HKLM\SOFTWARE\R-core\R) plus a
+# fallback glob across common install drives. PATH is then prepended for
+# this Python session so subsequent subprocess.run([\"Rscript\", ...])
+# calls just work. This avoids needing a separate find_rscript helper.
 R_SCRIPT_PATH = Path(__file__).resolve().parent / "r_fepois.R"
 
+
+def _discover_rscript():
+    """Return path to Rscript (or Rscript.exe), or None if not found.
+
+    Search order:
+      1. Already on PATH (shutil.which)
+      2. Windows registry HKLM/HKCU R-core keys (most reliable for MONA)
+      3. Glob across common Windows install roots and drives (E:, C:, D:)
+    """
+    import shutil, glob
+
+    direct = shutil.which("Rscript") or shutil.which("Rscript.exe")
+    if direct:
+        return direct
+
+    candidates = []
+
+    # 1. Windows registry (R's installer writes InstallPath here)
+    try:
+        import winreg
+        for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+            for subkey in (
+                r"SOFTWARE\R-core\R",
+                r"SOFTWARE\R-core\R64",
+                r"SOFTWARE\WOW6432Node\R-core\R",
+                r"SOFTWARE\WOW6432Node\R-core\R64",
+            ):
+                try:
+                    with winreg.OpenKey(hive, subkey) as key:
+                        install_path = winreg.QueryValueEx(key, "InstallPath")[0]
+                        for sub in (r"bin\x64\Rscript.exe", r"bin\Rscript.exe"):
+                            cand = os.path.join(install_path, sub)
+                            if os.path.exists(cand):
+                                candidates.append(cand)
+                except (FileNotFoundError, OSError):
+                    pass
+    except ImportError:
+        pass
+
+    # 2. Glob across drives (covers MONA's E:\Programs\R-... layout)
+    if not candidates:
+        for drive in ("E:", "C:", "D:", "F:", "M:", "N:"):
+            if not os.path.exists(drive + "\\"):
+                continue
+            for pat in (
+                rf"{drive}\Programs\R-*\bin\x64\Rscript.exe",
+                rf"{drive}\Programs\R\R-*\bin\x64\Rscript.exe",
+                rf"{drive}\Program Files\R\R-*\bin\x64\Rscript.exe",
+                rf"{drive}\Program Files (x86)\R\R-*\bin\x64\Rscript.exe",
+                rf"{drive}\R\R-*\bin\x64\Rscript.exe",
+                rf"{drive}\R-*\bin\x64\Rscript.exe",
+            ):
+                candidates.extend(glob.glob(pat))
+
+    if not candidates:
+        return None
+    # Prefer highest version (lexicographic on R-x.y.z works fine)
+    return sorted(set(candidates))[-1]
+
+
+import os  # safe to re-import; needed inside the discovery routine
+
+_RSCRIPT = "Rscript"  # default; overwritten if discovery finds a path
+
+
 def _check_r_and_fixest():
-    # Note on quoting: Windows subprocess passes args by escaping inner
-    # double quotes as \", which R's parser sometimes rejects. Use single
-    # quotes inside the R expression to avoid that path.
+    """Discover Rscript, prepend its bin dir to PATH, then probe library(fixest).
+
+    On Windows: subprocess passes args by escaping inner double quotes as
+    \", which R's parser rejects. Use single quotes inside the R expression
+    to avoid that path.
+    """
+    global _RSCRIPT
+
+    rscript = _discover_rscript()
+    if rscript is None:
+        print("FATAL: Rscript not found.")
+        print("Tried: PATH, Windows registry (HKLM/HKCU R-core), and globs")
+        print("under E:\\Programs, C:\\Program Files, etc. Ask SCB support")
+        print("where R is installed (fixest 0.13.2 was confirmed installed")
+        print("on 2026-04-28).")
+        raise SystemExit(1)
+
+    bin_dir = os.path.dirname(rscript)
+    os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
+    _RSCRIPT = rscript
+    print(f"Rscript: {rscript}")
+
     try:
         proc = subprocess.run(
-            ["Rscript", "-e",
+            [rscript, "-e",
              "suppressMessages(library(fixest)); "
              "cat(as.character(packageVersion('fixest')))"],
             capture_output=True, text=True, timeout=60,
         )
-    except FileNotFoundError:
-        print("FATAL: Rscript not found on PATH.")
-        print("This script requires R + fixest >=0.13. fixest 0.13.2 is")
-        print("confirmed installed in MONA per SCB support 2026-04-28.")
-        raise SystemExit(1)
     except BaseException as e:
-        print(f"FATAL: R + fixest pre-flight failed: {e}")
+        print(f"FATAL: Rscript invocation failed: {e}")
         raise SystemExit(1)
     if proc.returncode != 0:
         print("FATAL: Rscript ran but fixest could not be loaded.")
@@ -216,9 +302,10 @@ def _check_r_and_fixest():
         raise SystemExit(1)
     version = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else "unknown"
     print(f"R + fixest version: {version}")
+
     if not R_SCRIPT_PATH.exists():
         print(f"FATAL: r_fepois.R not found at {R_SCRIPT_PATH}.")
-        print("Make sure src/r_fepois.R is in the same directory as this script.")
+        print("Make sure r_fepois.R is in the same directory as this script.")
         raise SystemExit(1)
 
 _check_r_and_fixest()
@@ -718,7 +805,7 @@ def _run_rfepois(panel, weighted=False, age_label="", spec_label=""):
         panel[cols].to_csv(in_path, index=False)
 
         cmd = [
-            "Rscript", str(R_SCRIPT_PATH),
+            _RSCRIPT, str(R_SCRIPT_PATH),
             "--input", str(in_path),
             "--output", str(out_path),
             "--cluster", "employer_id",
