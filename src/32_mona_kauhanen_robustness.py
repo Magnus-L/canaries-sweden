@@ -1774,9 +1774,24 @@ def main():
     panel_ssyk_age = step0_pull_or_load_panel()
 
     # --- Load exposure files ---
+    # DAIOE is required for Steps 1, 2, 4, 5. Eloundou is required only
+    # for Step 3 (the full Kauhanen exact spec). If Eloundou is missing
+    # (no score column on the share, no raw+crosswalks), skip Step 3 and
+    # continue with the rest -- Steps 1+2 are the load-bearing tests.
     print("\n  Loading exposure files...")
     daioe = load_daioe_quartiles()
-    eloundou = load_eloundou_quintiles()
+    try:
+        eloundou = load_eloundou_quintiles()
+    except BaseException as e:
+        print(f"\n  Eloundou quintile load FAILED: {e}")
+        print("  Step 3 (full Kauhanen exact spec, Eloundou quintile) will")
+        print("  be SKIPPED. Steps 1, 2, 4, 5 use DAIOE quartiles and run")
+        print("  normally. To enable Step 3 later, ensure either")
+        print(f"    A. {ELOUNDOU_QUART_PATH}")
+        print("       has an 'eloundou_score' column, OR")
+        print(f"    B. {ELOUNDOU_RAW_PATH}")
+        print("       and the SOC->ISCO->SSYK crosswalks are on the share.")
+        eloundou = None
 
     # --- Step 1: Poisson, current spec ---
     step1 = step1_poisson_current(panel_ssyk_age, daioe)
@@ -1802,7 +1817,13 @@ def main():
     step2 = step2_poisson_threshold(panel_ssyk_age, daioe)
 
     # --- Step 3: Poisson, full Kauhanen exact spec ---
-    step3 = step3_poisson_kauhanen(panel_ssyk_age, eloundou)
+    if eloundou is not None:
+        step3 = step3_poisson_kauhanen(panel_ssyk_age, eloundou)
+    else:
+        print("\n" + "=" * 70)
+        print("STEP 3 SKIPPED: Eloundou quintiles unavailable")
+        print("=" * 70)
+        step3 = pd.DataFrame()
 
     # --- Step 4: Poisson, reweighted to Finnish composition (conditional) ---
     try:
