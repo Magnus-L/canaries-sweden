@@ -1,6 +1,11 @@
 # Run script 32 tomorrow morning — Kauhanen staged robustness
 
 **Created:** 2026-04-27 evening; updated 2026-04-28 with Steps 4 + 5
+**Updated 2026-04-28 afternoon:** pyfixest install blocked in MONA (SCB
+support, version conflicts). Poisson PML now runs via R + fixest 0.13.2
+(confirmed installed in MONA) called as a subprocess from Python. New
+companion file: `src/r_fepois.R`. Logic, formula, FE structure, and
+cluster vcov are identical; only the estimator backend changed.
 **Author:** Claude (Magnus's pickup file)
 **Estimated total runtime:** 90–180 min, dominated by the SQL pull (one-off)
 
@@ -22,12 +27,14 @@ at once and left you with an ambiguous null if it failed.
 
 ## Pre-flight checks (do these first)
 
-1. **Verify pyfixest is installed in MONA:**
+1. **Verify Rscript + fixest are available in MONA:**
    ```bash
-   python -c "import pyfixest; print(pyfixest.__version__)"
+   Rscript -e 'cat(as.character(packageVersion("fixest")), "\n")'
    ```
-   If not installed: `pip install pyfixest`. The script will fail-fast with
-   an instruction message if pyfixest is missing.
+   Should print `0.13.2` (or higher). If `Rscript` is not on PATH, ask SCB
+   support — they confirmed fixest 0.13.2 is already installed (email
+   2026-04-28). The Python script auto-checks at startup and FATALs early
+   with a clear instruction if either is missing.
 
 2. **Verify input files exist on the share:**
    - `\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\daioe_quartiles.csv` — required
@@ -37,13 +44,17 @@ at once and left you with an ambiguous null if it failed.
    - `\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\empirical_data\finland_marginals_2022.txt` — required for Step 4 only (script skips Step 4 with a clear log message if absent)
 
 3. **Upload sequence (canaries-sweden MONA layout is flat — script and data at the same root, matching `daioe_quartiles.csv` and `eloundou_ssyk4.csv`):**
-   - **Script (.txt → rename to .py inside MONA via Spyder):** upload `mona_package/32_mona_kauhanen_robustness.txt` to the Lydia P1207 root folder. Open in Spyder and save as `32_mona_kauhanen_robustness.py` (or rename via the file browser). MONA does not allow direct `.py` uploads.
+   - **Python script (.txt → rename to .py inside MONA via Spyder):** upload `mona_package/32_mona_kauhanen_robustness.txt` to the Lydia P1207 root folder. Open in Spyder and save as `32_mona_kauhanen_robustness.py` (or rename via the file browser).
+   - **R wrapper (.txt → rename to .R inside MONA):** upload `mona_package/r_fepois.txt` to the same root folder, then rename to `r_fepois.R`. The Python script looks for `r_fepois.R` next to itself (i.e. the same directory).
    - **Data file:** upload `empirical_data/finland_marginals_2022.txt` to the same Lydia P1207 root folder. Stays `.txt`.
    - The Foretagsdatabasen NACE-2 lookup happens inside the script via SQL — no separate import file needed.
 
 4. **Optional — if you have time before running:** the local logic tests pass
    already; you don't need to re-run them in MONA. (`test_32_kauhanen_logic.py`
-   in `src/` runs synthetic data tests outside MONA.)
+   in `src/` runs synthetic data tests outside MONA. A separate
+   `test_32_rfepois_e2e.py` exercises the R + fixest subprocess path locally
+   and was used to verify coefficient recovery on a known-DGP fixture
+   before shipping to MONA.)
 
 ## Running
 
@@ -122,18 +133,44 @@ Under `output_32/`:
 
 ## If something fails
 
-1. **pyfixest import error** — install per pre-flight check 1.
-2. **DAIOE or Eloundou file missing** — see error message; fix paths in the script's CONFIGURATION block.
-3. **SQL connection timeout** — retry (the script will resume from cache on next run).
-4. **Memory pressure during Poisson** — pyfixest does iterative demeaning; for the 50+ age group with ≥5 threshold, the panel can hit 30M cells. If you get a memory error, comment out the age groups you don't immediately need (default: just 22-25 and 50+ are essential). The `AGE_GROUPS` dict at the top of the script controls this.
-5. **Step 1 takes too long** — pyfixest fepois with high-D FEs converges in 5–20 iterations. Expect 5–15 min per age group at the ≥5 threshold (full sample). If a single age group exceeds 30 min, kill and reduce the sample by raising the threshold.
+1. **Rscript / fixest not found** — see pre-flight check 1. Confirm with SCB
+   support; fixest 0.13.2 was reported as installed on 2026-04-28.
+2. **`r_fepois.R` not found** — the Python script looks for `r_fepois.R` in
+   the same directory as itself. If you uploaded the .txt file but didn't
+   rename it, the script will FATAL early with a clear path. Rename in
+   Spyder.
+3. **DAIOE or Eloundou file missing** — see error message; fix paths in
+   the script's CONFIGURATION block.
+4. **SQL connection timeout** — retry (the script will resume from cache
+   on next run).
+5. **Memory pressure during Poisson** — fepois does iterative demeaning;
+   for the 50+ age group with ≥5 threshold, the panel can hit 30M cells.
+   The R + Python subprocess path adds a CSV-write step before each
+   regression call (script writes `_rfepois_in_*.csv` into `output_32/`,
+   reads `_rfepois_out_*.csv`, then unlinks both). For a 30M-cell panel
+   that's ~1–2 GB on disk transiently — fine, but make sure `output_32/`
+   has space. If you get a disk-space error, comment out the age groups
+   you don't immediately need. The `AGE_GROUPS` dict at the top of the
+   script controls this.
+6. **Step 1 takes too long** — fixest::fepois with high-D FEs converges in
+   5–20 iterations. Expect 5–15 min per age group at the ≥5 threshold (full
+   sample), plus ~10–30 s of CSV I/O overhead per call. If a single age
+   group exceeds 30 min, kill and reduce the sample by raising the threshold.
+7. **R subprocess output looks weird** — every R call's stdout/stderr is
+   surfaced into the Python log with `[R]` and `[R-stderr]` prefixes. If
+   fepois fails to converge, the R script writes a failure CSV and the
+   Python wrapper returns `None` for that (spec, age_group) — the rest of
+   the script continues.
 
 ## Contact
 
 Magnus, if anything is unclear or fails: the local logic tests pass on the
-synthetic fixture (`test_32_kauhanen_logic.py`), so any failure in MONA is
-either (a) data/path issue at the network share, (b) pyfixest absence, or
-(c) memory/runtime issue — not a logic bug in the panel construction.
+synthetic fixture (`test_32_kauhanen_logic.py`), and the R + fixest
+subprocess path passes coefficient-recovery on a known-DGP fixture
+(`test_32_rfepois_e2e.py`). So any failure in MONA is either (a) data/path
+issue at the network share, (b) Rscript / fixest absence, or (c)
+memory/runtime issue — not a logic bug in the panel construction or the
+estimator wrapper.
 
 If the SQL pull hits SSYK column-name mismatches (e.g. `Ssyk4_2012_J16`
 not present in some Individ table), update the COALESCE clauses in the

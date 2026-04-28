@@ -42,9 +42,31 @@ pyodbc_stub = types.ModuleType("pyodbc")
 pyodbc_stub.connect = lambda *a, **kw: None
 sys.modules["pyodbc"] = pyodbc_stub
 
+# pyfixest stub kept for backward-compat (no longer imported by script 32,
+# which now calls R + fixest::fepois via subprocess). Kept defensively in
+# case future edits reintroduce pyfixest imports.
 pyfixest_stub = types.ModuleType("pyfixest")
 pyfixest_stub.fepois = lambda *a, **kw: None
 sys.modules["pyfixest"] = pyfixest_stub
+
+# Mock subprocess.run so the script 32 R+fixest pre-flight passes even on
+# machines without Rscript installed. We only need the data-prep logic
+# tested; the R subprocess is exercised separately via end-to-end tests
+# that require local R + fixest.
+import subprocess as _subprocess
+_orig_run = _subprocess.run
+class _FakeProc:
+    def __init__(self):
+        self.returncode = 0
+        self.stdout = "0.13.2\n"
+        self.stderr = ""
+def _fake_run(cmd, *a, **kw):
+    # Only intercept the pre-flight Rscript call. For any other use, fall
+    # back to the real subprocess.run so future tests can call it freely.
+    if isinstance(cmd, list) and len(cmd) > 0 and cmd[0] == "Rscript":
+        return _FakeProc()
+    return _orig_run(cmd, *a, **kw)
+_subprocess.run = _fake_run
 
 spec = importlib.util.spec_from_file_location(
     "kauhanen", Path(__file__).parent / "32_mona_kauhanen_robustness.py"
