@@ -63,9 +63,16 @@ class _FakeProc:
 def _fake_run(cmd, *a, **kw):
     # Only intercept the pre-flight Rscript call. For any other use, fall
     # back to the real subprocess.run so future tests can call it freely.
-    if isinstance(cmd, list) and len(cmd) > 0 and cmd[0] == "Rscript":
-        return _FakeProc()
+    # Match by basename so that absolute paths returned by Rscript
+    # auto-discovery (e.g. /opt/homebrew/bin/Rscript or
+    # E:\Programs\R-4.5.3\bin\x64\Rscript.exe) are also intercepted.
+    if isinstance(cmd, list) and len(cmd) > 0:
+        first = str(cmd[0])
+        base = os.path.basename(first).lower()
+        if base.startswith("rscript"):
+            return _FakeProc()
     return _orig_run(cmd, *a, **kw)
+import os  # for basename
 _subprocess.run = _fake_run
 
 spec = importlib.util.spec_from_file_location(
