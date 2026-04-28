@@ -696,6 +696,46 @@ Figure~\ref{fig:zero_cells} plots the zero-cell share separately for Q4 (high AI
 
 
 % ──────────────────────────────────────────────────────────────────────────────
+\section{Hires and separations decomposition}
+\label{sec:hires_separations}
+% ──────────────────────────────────────────────────────────────────────────────
+
+The headline employer-level employment effect (Table~\ref{tab:employer_did}) is the net of two flow margins: hires into an employer$\times$quartile$\times$age cell and separations from it. To distinguish whether AI-exposed employers are dismissing young workers or simply not hiring them, we re-estimate Equation~\eqref{eq:employer_did} with monthly hires and separations as alternative dependent variables. A hire is recorded when a worker appears in an employer$\times$quartile$\times$age cell in month $t$ and was absent in each of the previous three months; a separation when the worker is absent in each of the next three months. The 3-month gap window treats short payroll interruptions (parental leave, unpaid sick leave, employer payroll-timing differences) as continuous employment rather than as genuine flows. Boundary months at the panel edges are not counted as flows. Table~\ref{tab:hires_separations} reports the results.
+
+The young-worker employment decline operates almost entirely through the hiring margin. The ChatGPT-period coefficient on hires for ages 22--25 is $\hat\gamma_2 = -0.0051$ ($p < 0.001$), while the corresponding coefficient on separations is one-quarter as large in absolute terms ($-0.0012$, $p < 0.01$). Q4 employers are not dismissing young incumbents; they are closing the entry door. For workers over 50, by contrast, both flow margins move upward and the hires effect ($+0.0032$, $p < 0.001$) exceeds the separations effect ($+0.0019$, $p < 0.001$), accounting for the net employment gain in Table~\ref{tab:employer_did}; the 50+ Q4 labour market is more dynamic on both sides rather than purely stickier. Middle age groups (26--49) show null effects on hires and modestly negative effects on separations, mechanically generating mild employment increases in the headline DiD.
+
+\begin{table}[htbp]
+\centering
+\caption{Flow decomposition: difference-in-differences for monthly hires and separations by age group. Dependent variable: $\ln(\text{flow}+1)$ where flow is the cell-month count of hires (Panel A) or separations (Panel B). A hire is recorded when a worker is present in an employer$\times$quartile$\times$age cell in month $t$ and absent in each of the previous three months; a separation symmetrically. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors clustered by employer$\times$quartile.}
+\label{tab:hires_separations}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & 22--25 & 26--30 & 31--34 & 35--40 & 41--49 & 50+ \\
+\midrule
+\multicolumn{7}{l}{\emph{Panel A: Hires}} \\[2pt]
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.0016$*** & $-0.0029$*** & $-0.0014$*** & $-0.0015$*** & $-0.0005$* & $-0.0011$*** \\
+ & $(0.0004)$ & $(0.0004)$ & $(0.0003)$ & $(0.0003)$ & $(0.0003)$ & $(0.0002)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.0051$*** & $-0.0004$ & $+0.0002$ & $+0.0004$ & $+0.0002$ & $+0.0032$*** \\
+ & $(0.0005)$ & $(0.0004)$ & $(0.0004)$ & $(0.0003)$ & $(0.0003)$ & $(0.0002)$ \\[4pt]
+Mean of dep.\ var. & $0.200$ & $0.144$ & $0.110$ & $0.111$ & $0.115$ & $0.149$ \\[8pt]
+\multicolumn{7}{l}{\emph{Panel B: Separations}} \\[2pt]
+$\hat\gamma_1$ (PostRB $\times$ Q4) & $-0.0002$ & $+0.0025$*** & $+0.0016$*** & $+0.0007$** & $+0.0009$*** & $-0.0003$ \\
+ & $(0.0004)$ & $(0.0003)$ & $(0.0003)$ & $(0.0003)$ & $(0.0003)$ & $(0.0002)$ \\[4pt]
+$\hat\gamma_2$ (PostGPT $\times$ Q4) & $-0.0012$*** & $-0.0030$*** & $-0.0017$*** & $-0.0010$*** & $-0.0009$*** & $+0.0019$*** \\
+ & $(0.0004)$ & $(0.0003)$ & $(0.0003)$ & $(0.0003)$ & $(0.0003)$ & $(0.0002)$ \\[4pt]
+Mean of dep.\ var. & $0.168$ & $0.139$ & $0.106$ & $0.108$ & $0.113$ & $0.163$ \\[8pt]
+$N$ (cell-months, both panels) & 11{,}970{,}426 & 16{,}498{,}560 & 14{,}773{,}590 & 17{,}511{,}078 & 21{,}810{,}984 & 29{,}895{,}762 \\
+\midrule
+Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
+Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
+\bottomrule
+\multicolumn{7}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. Standard errors in parentheses.}
+\end{tabular}
+\end{table}
+
+
+% ──────────────────────────────────────────────────────────────────────────────
 \section{Gender heterogeneity}
 \label{sec:gender}
 % ──────────────────────────────────────────────────────────────────────────────
