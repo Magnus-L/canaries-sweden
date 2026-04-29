@@ -437,7 +437,7 @@ where $s$ indexes half-year periods and $s_0 = $ 2022H1 is the reference period 
 We use the same monthly AGI register data as the descriptive analysis, restricting to employers with at least five employee-month observations over the sample period and at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group. The panel is balanced: cells with zero employment are included (via $\ln(0+1)=0$) to capture extensive-margin adjustment, ensuring that employers shedding all workers of a given age group in high-exposure occupations contribute to identification rather than being dropped.
 
 \paragraph{Estimation}
-The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; our OLS specification on $\ln(\text{employment} + 1)$ yields similar estimates when cell counts are large, as in our data. The $+1$ transformation retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether an employer retains \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains 3.5 to 5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
+The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). With potentially millions of employer $\times$ month fixed effects, memory constraints may bind; we implement a three-level estimation fallback: (i) direct absorption via \texttt{linearmodels}/\texttt{fixest}, (ii) manual within-transformation (demeaning), (iii) occupation-level aggregation if employer-level estimation is infeasible. \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; we report equivalent Poisson PML estimates as a robustness exercise in Section~\ref{sec:poisson_kauhanen}. The two estimators agree on sign and significance for the headline 22--25 finding, but the multiplicative Poisson effect is roughly an order of magnitude larger than the OLS coefficient on $\ln(\text{employment}+1)$. The discrepancy is the small-cell attenuation that \citet{chen2024logs} document: the $+1$ shift compresses the implied multiplicative effect when cells contain few workers, and our employer$\times$age-group panel is dominated by such cells. The OLS estimate on $\ln(\text{employment}+1)$ is therefore conservative, and the Poisson coefficient is the appropriate input for any quantitative comparison with US estimates that report multiplicative magnitudes. The $+1$ transformation nonetheless retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether an employer retains \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains 3.5 to 5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
 
 \paragraph{Results}
 Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The average post-ChatGPT coefficient $\hat\gamma_2$ is significantly negative only for the youngest workers ($-0.010$ for ages 22--25, $p < 0.01$), null for ages 26--30 ($+0.000$, $p = 0.90$), and positive for workers over 50 ($+0.010$, $p < 0.01$). The modest average for 22--25 year olds reflects the accelerating trajectory visible in the event study (below): the effect is near zero in the first year after ChatGPT and widens sharply from 2024H1 onward. The Riksbank coefficient $\hat\gamma_1$ is significantly negative for the youngest group ($-0.012$, $p < 0.01$), indicating some differential monetary policy sensitivity for young workers in AI-exposed occupations. Since the employer$\times$month fixed effects already absorb aggregate monetary effects, $\hat\gamma_1$ captures only the \emph{differential} sensitivity of high-AI occupations to tightening. The presence of a significant $\hat\gamma_1$ makes $\hat\gamma_2$ conservative: it measures the additional AI-related shift beyond any monetary vulnerability channel. Moreover, the event study shows a qualitative acceleration from 2024H1 onward, inconsistent with a smooth continuation of the pre-ChatGPT trend.
@@ -558,9 +558,67 @@ Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint &
 \end{table}
 
 % ──────────────────────────────────────────────────────────────────────────────
-\section{Rambachan-Roth sensitivity analysis: employment}
-\label{sec:rr_employment}
+\section{Poisson PML robustness: a four-dimension test}
+\label{sec:poisson_kauhanen}
 % ──────────────────────────────────────────────────────────────────────────────
+
+The main employer-level analysis (Section~\ref{sec:employer_did}) follows \citet{brynjolfsson2025canaries} in estimating $\ln(\text{emp}_{fqt}+1)$ by OLS. \citet{chen2024logs} note that the $+1$ shift attenuates the implied multiplicative effect when cell counts are small, biasing OLS toward zero. The contrast with \citet{kauhanen2026youth}, who report a Finnish null using Poisson QMLE on a more restricted sample, raises the question of whether the Sweden--Finland gap is method-dependent or economy-dependent. We test this directly by re-estimating Equation~\ref{eq:employer_did} as a Poisson PML in a staged sequence that varies one feature of the specification at a time.
+
+\paragraph{Specifications}
+\begin{itemize}
+\itemsep0pt
+\item \textbf{Step 1.} Poisson PML on the current sample (employer-quartile-month panel, $\geq 5$ cumulative employee-month observations, DAIOE quartile, $\text{High} = \text{Q4}$). Identical to the main specification except for the estimator. Tests whether the OLS$+1$ versus Poisson choice changes the result.
+\item \textbf{Step 2.} Poisson PML, Kauhanen-style sample restriction ($\geq 10$ mean monthly headcount and $\geq 100$ cumulative employee-months). Holds estimator and exposure measure fixed; isolates the sample threshold suspected as a source of the Finnish null.
+\item \textbf{Step 3.} Poisson PML, full Kauhanen specification: \citet{eloundou2024gpts} $\beta$-quintile exposure ($\text{High} = \text{Q5}$, top 20 per cent) plus the Kauhanen sample threshold. Combines Steps 1--2 with a different exposure ranking; tests joint robustness.
+\item \textbf{Step 4.} Poisson PML, Step 1 sample, with workers reweighted to mimic the Finnish marginal occupational (ISCO 1-digit) and industrial (NACE 2-digit) composition (Eurostat LFS 2022). Weights are winsorised at the 99th percentile or 10$\times$ the median, whichever is smaller, to prevent single-cell tail-domination of the estimator. Tests whether composition explains the Sweden--Finland divergence.
+\item \textbf{Step 5.} Step 1 sample, but excluding ICT specialists (SSYK 25xx). Tests whether the gradient is driven by software occupations, the same exclusion that \citet{brynjolfsson2025canaries} apply.
+\end{itemize}
+All specifications retain employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. Estimation uses \texttt{fixest::fepois} in R; coefficients are reported in log-multiplicative units, so $\hat\gamma_2$ implies a multiplicative effect of $\exp(\hat\gamma_2)-1$.
+
+\paragraph{Results}
+Table~\ref{tab:poisson_kauhanen} reports $\hat\gamma_2$ across the five specifications and six age groups. The 22--25 coefficient stays sharply negative throughout: $-0.174$, $-0.199$, $-0.147$, $-0.164$, and $-0.170$, corresponding to multiplicative declines of $-16.0$, $-18.1$, $-13.6$, $-15.1$, and $-15.6$ per cent. The point estimate sits in a tight $[-18, -14]$ per cent band across the four method-varying specifications, with $p<0.001$ in every case. The pre-period coefficient $\hat\gamma_1$ (PostRB $\times$ HighQ4) for 22--25 is statistically null in every step ($|\hat\gamma_1|<0.025$, $p\geq 0.21$), strengthening the placebo footnote in the main text: under Poisson there is no pre-GPT decline for the 22--25 group.
+
+\begin{table}[htbp]
+\centering
+\caption{Poisson PML staged robustness, $\hat\gamma_2$ (PostGPT $\times$ HighQ4) by age group. Each row reports the Poisson coefficient and clustered standard error. Specifications: Step 1, current sample, DAIOE Q4, $\geq 5$ cumulative; Step 2, DAIOE Q4, Kauhanen threshold ($\geq 10$ mean / $\geq 100$ cumulative); Step 3, Eloundou Q5 with Kauhanen threshold; Step 4, current sample, DAIOE Q4, reweighted to Finnish ISCO-1 $\times$ NACE-2 composition (winsorised weights); Step 5, current sample, DAIOE Q4, ICT (SSYK 25xx) excluded. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level.}
+\label{tab:poisson_kauhanen}
+\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & Step 1 & Step 2 & Step 3 & Step 4 & Step 5 \\
+ & DAIOE Q4 & DAIOE Q4 & Eloundou Q5 & Reweighted & DAIOE Q4 \\
+ & $\geq 5$ cum. & Kauhanen thr. & Kauhanen thr. & FI composition & no ICT \\
+\midrule
+22--25 & $-0.174$*** & $-0.199$*** & $-0.147$*** & $-0.164$*** & $-0.170$*** \\
+       & $(0.011)$    & $(0.014)$    & $(0.019)$    & $(0.012)$    & $(0.011)$ \\
+26--30 & $-0.053$*** & $-0.069$*** & $-0.024$    & $-0.051$*** & $-0.056$*** \\
+       & $(0.007)$    & $(0.008)$    & $(0.016)$    & $(0.008)$    & $(0.007)$ \\
+31--34 & $+0.009$     & $-0.001$     & $-0.011$     & $+0.010$     & $+0.003$ \\
+       & $(0.006)$    & $(0.007)$    & $(0.009)$    & $(0.006)$    & $(0.006)$ \\
+35--40 & $+0.006$     & $+0.005$     & $+0.005$     & $+0.004$     & $+0.001$ \\
+       & $(0.005)$    & $(0.005)$    & $(0.006)$    & $(0.005)$    & $(0.004)$ \\
+41--49 & $+0.000$     & $-0.002$     & $-0.005$     & $-0.002$     & $-0.001$ \\
+       & $(0.003)$    & $(0.003)$    & $(0.004)$    & $(0.003)$    & $(0.003)$ \\
+50+    & $+0.024$*** & $+0.023$*** & $+0.004$    & $+0.026$*** & $+0.020$*** \\
+       & $(0.004)$    & $(0.004)$    & $(0.004)$    & $(0.005)$    & $(0.004)$ \\
+\midrule
+$N$ (cells, 22--25) & 11.7M & 1.13M & 1.22M & 11.7M & 11.4M \\
+$N$ employers       & 46{,}496 & 3{,}641 & 3{,}181 & 46{,}402 & 44{,}988 \\
+\bottomrule
+\multicolumn{6}{l}{\scriptsize *** $p<0.001$. Standard errors clustered at the employer$\times$quartile level.}
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation across the four method-varying specifications}
+The 22--25 robustness picture has four useful properties. The estimator change (OLS$+1$ $\rightarrow$ Poisson, Step 1) leaves the coefficient sharply negative; the sample restriction (Kauhanen threshold, Step 2) does not flip the sign or remove significance; switching to the \citet{eloundou2024gpts} $\beta$-quintile (Step 3) yields a smaller but still highly significant decline; and excluding ICT occupations (Step 5) leaves the result essentially unchanged. The Sweden--Finland divergence reported by \citet{kauhanen2026youth} is therefore not driven by any of these four specification choices alone or in combination.
+
+\paragraph{Boundary-age groups under Eloundou} The 26--30 and 50+ coefficients track each other across the four specifications: both are sharply significant in Steps 1, 2, and 5 and both attenuate to near-zero in Step 3 when exposure is measured by the Eloundou $\beta$-quintile rather than the DAIOE quartile. This is mechanical. The Eloundou Q5 (top 20 per cent, 78 SSYK4 codes) is a stricter cut than the DAIOE Q4 (top 25 per cent, 99 codes), and the boundary-age groups (26--30 just above the canaries cohort, 50+ at the older end) are most sensitive to which occupations enter the top exposure bin. The 22--25 group is far enough inside the under-30 effect that it survives the change of measure.
+
+\paragraph{Reconciliation with the main-text estimate} The main-text OLS$+1$ coefficient for 22--25 is $\hat\gamma_2 = -0.010$, which in OLS$+1$ units approximates a 1 per cent effect. The Poisson PML coefficient $\hat\gamma_2 = -0.174$ corresponds to a $-16$ per cent multiplicative effect. The order-of-magnitude difference is the small-cell attenuation that \citet{chen2024logs} document: when cells contain few workers, the $+1$ shift compresses the implied multiplicative effect. Both estimators agree on sign and on the rejection of the null; the Poisson coefficient is the appropriate input for any quantitative comparison with US estimates reported in multiplicative magnitudes, while the OLS coefficient remains a conservative summary of the within-employer differential.
+
+\paragraph{Reweighting to Finnish composition (Step 4)} Step 4 holds the Step 1 sample fixed and reweights workers so the Swedish employer-month panel matches Finland's 2022 ISCO 1-digit by NACE 2-digit marginal distribution (Eurostat LFS). The 22--25 coefficient moves from $-0.174$ (Step 1) to $-0.164$ (Step 4), a multiplicative effect of $-15.1$ per cent, well within the $[-18, -14]$ per cent band reported above. The age gradient is preserved: 26--30 remains negative ($-0.051$, $p<0.001$); 31--34 is null ($+0.010$, $p=0.12$); 35--40 and 41--49 are null; 50+ remains positive and significant ($+0.026$, $p<0.001$). The Sweden--Finland divergence reported by \citet{kauhanen2026youth} is therefore not a composition story: even when Swedish workers are reweighted to mimic the Finnish industrial and occupational mix, the 22--25 decline persists at near-full magnitude. The residual divergence is most plausibly attributable to features Step 4 cannot equalise: institutions, language, neighbouring labour markets, and AI-adoption rates.
+
+
 
 We apply the relative magnitudes framework of \citet{rambachan2023more}
 to the employment event study coefficients from the main specification
