@@ -228,6 +228,7 @@ Table~\ref{tab:robustness} reports results from alternative specifications: (i)~
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Alternative AI exposure measure: Eloundou et al.\ (2024)}
+\label{sec:posting_eloundou}
 % ──────────────────────────────────────────────────────────────────────────────
 
 To test sensitivity to the choice of AI exposure measure, we re-estimate specifications~(2)--(4) using the GPT exposure score ($\beta$-measure) from \citet{eloundou2024gpts} instead of DAIOE. The $\beta$-measure combines human expert and GPT-4 ratings of task-level exposure to large language models ($E_1 + 0.5 \times E_2$, where $E_1$ is direct exposure and $E_2$ is exposure via complementary tools). We crosswalk from O*NET-SOC to SSYK~2012 via ISCO-08 using the BLS and SCB classification bridges, averaging scores across many-to-many links. The crosswalk matches 341 of 369 occupations in our panel (92\%).
@@ -235,69 +236,6 @@ To test sensitivity to the choice of AI exposure measure, we re-estimate specifi
 Table~\ref{tab:eloundou_robust} reports the results. The two measures agree on the direction: both yield negative Post-ChatGPT coefficients in the baseline specification. However, the timing attribution differs. DAIOE loads the effect onto the Riksbank period ($\hat\beta_1 = -0.127$, $p < 0.01$), while the Eloundou measure loads it onto the ChatGPT period ($\hat\beta_2 = -0.096$, $p = 0.025$). This likely reflects what each measure captures: DAIOE covers a broader range of AI capabilities in the area of language modelling and image generation, including pre-GPT applications, while the Eloundou $\beta$-measure is calibrated specifically to GPT-style generative AI. Both coefficients attenuate toward zero with occupation-specific trends or group~$\times$~month fixed effects, consistent with the fragility documented in the main analysis. Quartile assignments agree for 85\% of occupations.
 
 \input{../tables/eloundou_robustness.tex}
-
-\subsection*{Employment event study with Eloundou exposure}
-\label{sec:eloundou_es}
-
-To extend the Eloundou robustness to the employment margin, we re-estimate the half-year event study (Equation~\ref{eq:employer_es}) assigning AI exposure via the Eloundou $\beta$-measure rather than DAIOE, holding the employer$\times$quartile and employer$\times$month fixed-effects structure fixed. Figure~\ref{fig:es_eloundou} plots the resulting coefficients by age group.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{../figures/eloundou_es/eloundou_es_panel.png}
-\caption{Event study with Eloundou $\beta$ exposure instead of DAIOE: employer-level DiD coefficients by age group (reference period: first half of 2022). Shaded area shows 95\% confidence interval. Fixed-effects structure is identical to Figures~\ref{fig:es_young}--\ref{fig:es_50plus}.}
-\label{fig:es_eloundou}
-\end{figure}
-
-Three patterns emerge. First, the accelerating decline for workers aged 22--25 and 26--30 replicates: the mid-2025 coefficients are approximately $-0.035$ and $-0.030$ respectively, about two-thirds of the magnitudes obtained with DAIOE. The direction of the main result, that young workers in AI-exposed occupations bear a disproportionate employment adjustment, is therefore robust to the choice of exposure measure.
-
-Second, the older age groups diverge from the DAIOE results. With DAIOE, workers aged 50+ show a modest \emph{gain} ($+0.010$) and prime-age workers (35--49) are essentially flat; with Eloundou, all age groups except 50+ show negative mid-2025 coefficients in the range $-0.010$ to $-0.017$, and the 50+ coefficient is approximately zero. The within-employer \emph{reallocation} pattern that DAIOE reveals, with fewer young workers and more older workers in the same high-exposure occupations, is thus specific to the DAIOE ranking. Under Eloundou, the pattern is better described as a broader contraction concentrated on young workers but present across ages.
-
-Third, the joint pre-trend tests reject for every age group (Table~\ref{tab:eloundou_pretrend}), at levels consistent with the DAIOE-based tests reported earlier in this appendix. As in the DAIOE analysis, these rejections reflect the sample size rather than economically meaningful pre-trends: the pre-period coefficients fluctuate in a band of roughly $\pm 0.015$ relative to post-period magnitudes reaching $-0.035$.
-
-Table~\ref{tab:eloundou_did} reports the average post-treatment DiD coefficients, mirroring the DAIOE specification in the main text. The ChatGPT coefficient for workers aged 22--25 is $\hat\gamma_2 = -0.006$ ($p < 0.001$), approximately 60 per cent of the DAIOE estimate ($-0.010$), confirming that the headline result is robust to the choice of exposure measure. The 50+ coefficient is economically zero ($-0.000$, $p = 0.74$), consistent with the event study finding that the within-employer reallocation toward older workers is DAIOE-specific. One anomaly warrants note: the 41--49 group shows a larger negative coefficient ($\hat\gamma_2 = -0.007$, $p < 0.001$) than the 22--25 group, breaking the monotonic age gradient that DAIOE produces. This likely reflects the Eloundou ranking placing more mid-career cognitive occupations in the top exposure quartile, generating a broader contraction pattern rather than a clean young-to-old gradient.
-
-\begin{table}[htbp]
-\centering
-\caption{Employer-level DiD with Eloundou $\beta$ exposure instead of DAIOE. Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered by employer.}
-\label{tab:eloundou_did}
-\footnotesize
-\begin{tabular}{@{}lcccccc@{}}
-\toprule
- & \multicolumn{3}{c}{$\hat\gamma_1$ (Riksbank $\times$ High)} & \multicolumn{3}{c}{$\hat\gamma_2$ (ChatGPT $\times$ High)} \\
-\cmidrule(lr){2-4} \cmidrule(lr){5-7}
-Age group & Coef.\ & SE & $p$ & Coef.\ & SE & $p$ \\
-\midrule
-22--25 & $-$0.002 & 0.002 & 0.209 & $-$0.006 & 0.002 & 0.001 \\
-26--30 & $-$0.004 & 0.002 & 0.023 & $+$0.004 & 0.002 & 0.013 \\
-31--34 & $-$0.002 & 0.002 & 0.277 & $+$0.005 & 0.002 & 0.005 \\
-35--40 & $-$0.003 & 0.001 & 0.044 & $+$0.002 & 0.002 & 0.254 \\
-41--49 & $-$0.003 & 0.001 & 0.011 & $-$0.007 & 0.001 & $<$0.001 \\
-50+    & $+$0.009 & 0.001 & $<$0.001 & $-$0.000 & 0.001 & 0.738 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
-
-\begin{table}[htbp]
-\centering
-\caption{Joint pre-trend test for employer-level event study with Eloundou $\beta$ exposure. $H_0$: all pre-treatment coefficients $\hat\delta_s = 0$ for $s < 2022\text{H1}$.}
-\label{tab:eloundou_pretrend}
-\footnotesize
-\begin{tabular}{@{}lccc@{}}
-\toprule
-Age group & $\chi^2$ & d.f.\ & $p$-value \\
-\midrule
-22--25 & 329.31 & 6 & $<$0.001 \\
-26--30 & 331.49 & 6 & $<$0.001 \\
-31--34 & 114.72 & 6 & $<$0.001 \\
-35--40 & 116.58 & 6 & $<$0.001 \\
-41--49 &  24.44 & 6 & $<$0.001 \\
-50+    & 179.91 & 6 & $<$0.001 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Event study (monthly)}
@@ -466,7 +404,7 @@ Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \end{table}
 
 \paragraph{Event study}
-Figures~\ref{fig:es_young}--\ref{fig:es_50plus} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for all six age groups, with the first half of 2022 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \hat{\boldsymbol{\delta}}' \hat{V}^{-1} \hat{\boldsymbol{\delta}}$, where $\hat{\boldsymbol{\delta}}$ is the vector of pre-treatment coefficients and $\hat{V}$ is the corresponding block of the clustered variance-covariance matrix. Under the null, $W \sim \chi^2(k)$ where $k$ is the number of pre-treatment periods. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} The joint test rejects for all age groups (Table~\ref{tab:pretrend_ftest}), reflecting the large sample size (11--30 million observations per group) rather than economically meaningful pre-trends: pre-period coefficients range from $-0.016$ to $+0.013$ across all groups, substantially smaller than the post-2024 effects. For ages 22--25 (Figure~\ref{fig:es_young}), the post-treatment path shows coefficients near zero through late 2023 before dropping to $-0.029$ in early 2024 and accelerating to $-0.055$ in mid-2025, consistent with the diffusion timeline of enterprise AI tools. The 26--30 group follows a similar but lagged trajectory, reaching $-0.049$ by mid-2025. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers. A \citet{rambachan2023more} sensitivity analysis, which constructs honest confidence intervals under plausible violations of parallel trends, is a natural complement to these pre-trend tests; we apply it to the posting event study (Section~\ref{sec:rr_posting}). Because the employment event study shows pre-period coefficients an order of magnitude smaller than the post-2024 coefficients (here range $[-0.016,+0.013]$ versus the $-0.055$ endpoint at 22--25), the same logic implies that even modest violations would not overturn the headline 22--25 finding, although they may attenuate the average post-treatment coefficient that pools the flat 2023 with the late-period decline.
+Figures~\ref{fig:es_young}--\ref{fig:es_50plus} plot the half-year event study coefficients (Equation~\ref{eq:employer_es}) for all six age groups, with the first half of 2022 as the reference period. Table~\ref{tab:pretrend_ftest} reports a joint test of whether pre-treatment coefficients are collectively zero.\footnote{We compute a Wald statistic $W = \hat{\boldsymbol{\delta}}' \hat{V}^{-1} \hat{\boldsymbol{\delta}}$, where $\hat{\boldsymbol{\delta}}$ is the vector of pre-treatment coefficients and $\hat{V}$ is the corresponding block of the clustered variance-covariance matrix. Under the null, $W \sim \chi^2(k)$ where $k$ is the number of pre-treatment periods. Passing or failing a pre-test is neither necessary nor sufficient for parallel trends \citep{roth2022pretest}; the employer$\times$month fixed effects provide the primary identification, not the pre-trend test.} The joint test rejects for all age groups (Table~\ref{tab:pretrend_ftest}), reflecting the large sample size (11--30 million observations per group) rather than economically meaningful pre-trends: pre-period coefficients range from $-0.016$ to $+0.013$ across all groups, substantially smaller than the post-2024 effects. For ages 22--25 (Figure~\ref{fig:es_young}), the post-treatment path shows coefficients near zero through late 2023 before dropping to $-0.029$ in early 2024 and accelerating to $-0.055$ in mid-2025, consistent with the diffusion timeline of enterprise AI tools. The 26--30 group follows a similar but lagged trajectory, reaching $-0.049$ by mid-2025. For ages 41--49, coefficients are close to zero throughout, confirming no AI-related employment effect for prime-age workers. A \citet{rambachan2023more} sensitivity analysis, which constructs honest confidence intervals under plausible violations of parallel trends, is a natural complement to these pre-trend tests; we apply it to the employment event study in Section~\ref{sec:rr_employment} (the posting analogue is in Section~\ref{sec:rr_posting}). Because the employment event study shows pre-period coefficients an order of magnitude smaller than the post-2024 coefficients (here range $[-0.016,+0.013]$ versus the $-0.055$ endpoint at 22--25), the same logic implies that even modest violations would not overturn the headline 22--25 finding, although they may attenuate the average post-treatment coefficient that pools the flat 2023 with the late-period decline.
 
 \begin{table}[htbp]
 \centering
@@ -532,7 +470,7 @@ Age group & $\chi^2$ & d.f.\ & $p$-value \\
 \paragraph{Interpreting pre-trend violations}
 For ages 41--49 and 50+, the pre-treatment event study coefficients trace an upward path (from negative toward zero), indicating that employment in high-AI occupations was already converging toward low-AI occupations before ChatGPT. If this positive trend continued into the post-treatment period, it biases the DiD coefficient upward. However, the pre-trend slope is modest (approximately 0.002--0.003 per half-year), far too small to mask a negative treatment effect comparable to the 22--25 group.
 
-For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path breaks sharply downward: coefficients fall to $-0.049$ by mid-2025, far exceeding any linear extrapolation of the pre-trend. The average DiD coefficient ($+0.000$) masks the late-period effect because it pools the mildly positive early post-treatment (late 2022 through late 2023) with the sharp late decline (early 2024 through mid-2025). By the most recent period, the 26--30 effect size approaches that of the 22--25 group, suggesting that AI-related employment displacement is diffusing up the age distribution as adoption deepens. By the qualitative \citet{rambachan2023more} argument used for the posting event study (Section~\ref{sec:rr_posting}), the average post-treatment 26--30 coefficient is fragile to trend violations, but this fragility reflects the dilution of late-period effects by early null periods rather than implausibility of the accelerating pattern itself.
+For ages 26--30, the pre-trend is likewise upward, yet the post-treatment path breaks sharply downward: coefficients fall to $-0.049$ by mid-2025, far exceeding any linear extrapolation of the pre-trend. The average DiD coefficient ($+0.000$) masks the late-period effect because it pools the mildly positive early post-treatment (late 2022 through late 2023) with the sharp late decline (early 2024 through mid-2025). By the most recent period, the 26--30 effect size approaches that of the 22--25 group, suggesting that AI-related employment displacement is diffusing up the age distribution as adoption deepens. By the qualitative \citet{rambachan2023more} argument applied to employment in Section~\ref{sec:rr_employment}, the average post-treatment 26--30 coefficient is fragile to trend violations, but this fragility reflects the dilution of late-period effects by early null periods rather than implausibility of the accelerating pattern itself.
 
 \paragraph{Cumulative pre-trend bias}
 Table~\ref{tab:pretrend_bias} quantifies the scope for pre-trend contamination of the post-treatment estimates. For each age group, we fit a linear trend through the six pre-treatment event study coefficients spanning 2019 to 2021 and extrapolate over the six post-treatment half-years to compute cumulative bias. The pre-trend slope is \emph{positive} for all age groups, including the core 22--25 group ($+0.0007$/half-year, $R^2 = 0.02$) and the 26--30 group ($+0.0012$/half-year, $R^2 = 0.09$). Because the post-treatment effects for these groups are negative ($-0.055$ and $-0.049$ by mid-2025), linear extrapolation of pre-trends biases \emph{against} the canaries finding: the true effects may be larger than estimated. The near-zero $R^2$ values confirm that the pre-period coefficients for 22--25 and 26--30 are essentially noise rather than a systematic trend.
@@ -620,6 +558,8 @@ The 22--25 robustness picture has four useful properties. The estimator change (
 \paragraph{Reweighting to Finnish composition (Step 4)} Step 4 holds the Step 1 sample fixed and reweights workers so the Swedish employer-month panel matches Finland's 2022 ISCO 1-digit by NACE 2-digit marginal distribution (Eurostat LFS). The 22--25 coefficient moves from $-0.174$ (Step 1) to $-0.164$ (Step 4), a multiplicative effect of $-15.1$ per cent, well within the $[-18, -14]$ per cent band reported above. The age gradient is preserved: 26--30 remains negative ($-0.051$, $p<0.001$); 31--34 is null ($+0.010$, $p=0.12$); 35--40 and 41--49 are null; 50+ remains positive and significant ($+0.026$, $p<0.001$). The Sweden--Finland divergence reported by \citet{kauhanen2026youth} is therefore not a composition story: even when Swedish workers are reweighted to mimic the Finnish industrial and occupational mix, the 22--25 decline persists at near-full magnitude. The residual divergence is most plausibly attributable to features Step 4 cannot equalise: institutions, language, neighbouring labour markets, and AI-adoption rates.
 
 
+\subsection*{Sensitivity to violations of parallel trends --- employment margin}
+\label{sec:rr_employment}
 
 We apply the relative magnitudes framework of \citet{rambachan2023more}
 to the employment event study coefficients from the main specification
@@ -735,6 +675,71 @@ Figure~\ref{fig:placebo_jul2022} shows the results. For ages 22--25, the coeffic
 \caption{Event study with placebo treatment date: July 2022 (reference period: first half of 2022). Employer$\times$quartile and employer$\times$month fixed effects. Vertical dashed lines mark the Riksbank's first rate hike and the ChatGPT launch. The key finding is the flat trajectory through 2023 for ages 22--25, followed by a sharp acceleration in 2024--2025 that is absent at the placebo date.}
 \label{fig:placebo_jul2022}
 \end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────────────
+\section{Employment event study with Eloundou exposure}
+\label{sec:eloundou_es}
+% ──────────────────────────────────────────────────────────────────────────────
+
+To extend the Eloundou robustness (Section~\ref{sec:posting_eloundou}) to the employment margin, we re-estimate the half-year event study (Equation~\ref{eq:employer_es}) assigning AI exposure via the Eloundou $\beta$-measure rather than DAIOE, holding the employer$\times$quartile and employer$\times$month fixed-effects structure fixed. Figure~\ref{fig:es_eloundou} plots the resulting coefficients by age group.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{../figures/eloundou_es/eloundou_es_panel.png}
+\caption{Event study with Eloundou $\beta$ exposure instead of DAIOE: employer-level DiD coefficients by age group (reference period: first half of 2022). Shaded area shows 95\% confidence interval. Fixed-effects structure is identical to Figures~\ref{fig:es_young}--\ref{fig:es_50plus}.}
+\label{fig:es_eloundou}
+\end{figure}
+
+Three patterns emerge. First, the accelerating decline for workers aged 22--25 and 26--30 replicates: the mid-2025 coefficients are approximately $-0.035$ and $-0.030$ respectively, about two-thirds of the magnitudes obtained with DAIOE. The direction of the main result, that young workers in AI-exposed occupations bear a disproportionate employment adjustment, is therefore robust to the choice of exposure measure.
+
+Second, the older age groups diverge from the DAIOE results. With DAIOE, workers aged 50+ show a modest \emph{gain} ($+0.010$) and prime-age workers (35--49) are essentially flat; with Eloundou, all age groups except 50+ show negative mid-2025 coefficients in the range $-0.010$ to $-0.017$, and the 50+ coefficient is approximately zero. The within-employer \emph{reallocation} pattern that DAIOE reveals, with fewer young workers and more older workers in the same high-exposure occupations, is thus specific to the DAIOE ranking. Under Eloundou, the pattern is better described as a broader contraction concentrated on young workers but present across ages.
+
+Third, the joint pre-trend tests reject for every age group (Table~\ref{tab:eloundou_pretrend}), at levels consistent with the DAIOE-based tests reported earlier in this appendix. As in the DAIOE analysis, these rejections reflect the sample size rather than economically meaningful pre-trends: the pre-period coefficients fluctuate in a band of roughly $\pm 0.015$ relative to post-period magnitudes reaching $-0.035$.
+
+Table~\ref{tab:eloundou_did} reports the average post-treatment DiD coefficients, mirroring the DAIOE specification in the main text. The ChatGPT coefficient for workers aged 22--25 is $\hat\gamma_2 = -0.006$ ($p < 0.001$), approximately 60 per cent of the DAIOE estimate ($-0.010$), confirming that the headline result is robust to the choice of exposure measure. The 50+ coefficient is economically zero ($-0.000$, $p = 0.74$), consistent with the event study finding that the within-employer reallocation toward older workers is DAIOE-specific. One anomaly warrants note: the 41--49 group shows a larger negative coefficient ($\hat\gamma_2 = -0.007$, $p < 0.001$) than the 22--25 group, breaking the monotonic age gradient that DAIOE produces. This likely reflects the Eloundou ranking placing more mid-career cognitive occupations in the top exposure quartile, generating a broader contraction pattern rather than a clean young-to-old gradient.
+
+\begin{table}[htbp]
+\centering
+\caption{Employer-level DiD with Eloundou $\beta$ exposure instead of DAIOE. Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered by employer.}
+\label{tab:eloundou_did}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{$\hat\gamma_1$ (Riksbank $\times$ High)} & \multicolumn{3}{c}{$\hat\gamma_2$ (ChatGPT $\times$ High)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+Age group & Coef.\ & SE & $p$ & Coef.\ & SE & $p$ \\
+\midrule
+22--25 & $-$0.002 & 0.002 & 0.209 & $-$0.006 & 0.002 & 0.001 \\
+26--30 & $-$0.004 & 0.002 & 0.023 & $+$0.004 & 0.002 & 0.013 \\
+31--34 & $-$0.002 & 0.002 & 0.277 & $+$0.005 & 0.002 & 0.005 \\
+35--40 & $-$0.003 & 0.001 & 0.044 & $+$0.002 & 0.002 & 0.254 \\
+41--49 & $-$0.003 & 0.001 & 0.011 & $-$0.007 & 0.001 & $<$0.001 \\
+50+    & $+$0.009 & 0.001 & $<$0.001 & $-$0.000 & 0.001 & 0.738 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
+
+\begin{table}[htbp]
+\centering
+\caption{Joint pre-trend test for employer-level event study with Eloundou $\beta$ exposure. $H_0$: all pre-treatment coefficients $\hat\delta_s = 0$ for $s < 2022\text{H1}$.}
+\label{tab:eloundou_pretrend}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Age group & $\chi^2$ & d.f.\ & $p$-value \\
+\midrule
+22--25 & 329.31 & 6 & $<$0.001 \\
+26--30 & 331.49 & 6 & $<$0.001 \\
+31--34 & 114.72 & 6 & $<$0.001 \\
+35--40 & 116.58 & 6 & $<$0.001 \\
+41--49 &  24.44 & 6 & $<$0.001 \\
+50+    & 179.91 & 6 & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 % ──────────────────────────────────────────────────────────────────────────────
