@@ -1,5 +1,5 @@
 % Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring
-% Economics Letters — max 2,000 words (incl. tables, figures, references)
+% Economics Letters — body ≤2,000 words excl. references; abstract ≤100 words.
 % LaTeX template: elsarticle (Elsevier)
 
 \documentclass[preprint,12pt,authoryear]{elsarticle}
@@ -13,7 +13,6 @@
 \usepackage{natbib}
 \usepackage{setspace}
 \usepackage{xcolor}
-\usepackage{ulem}
 
 % Path to figures
 \graphicspath{{../figures/}}
@@ -25,7 +24,7 @@
 \begin{frontmatter}
 
 \title{Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring\tnoteref{version}}
-\tnotetext[version]{This version: 30 April 2026. Latest one at \url{https://www.ai-econlab.com/papers}.}
+\tnotetext[version]{This version: 4 May 2026. Latest version available at \url{https://www.ai-econlab.com/papers}.}
 
 \author[oru,ratio]{Magnus Lodefalk\corref{cor}}
 \ead{magnus.lodefalk@oru.se}
@@ -40,45 +39,44 @@
 \address[kiel]{Kiel Institut f\"ur Weltwirtschaft, Germany}
 
 \begin{abstract}
-Whether generative AI or monetary tightening explains the post-2022 divergence between stock prices and job postings is contested. We study both margins in Sweden using full-population register data (2019--2025) and 4.6 million job advertisements (2020--2026). Sweden's seven-month gap between the Riksbank's first rate hike (April 2022) and the November 2022 launch of ChatGPT separates the channels: the aggregate posting decline tracks the rate hike; within employers, employment of workers aged 22--25 in AI-exposed occupations falls 5.5 per cent relative to less-exposed occupations by mid-2025, while employment of workers over 50 rises modestly. The decline operates almost entirely through hiring rather than separations, and the age gradient accelerates only after ChatGPT.
-
+Whether generative AI or monetary tightening explains the post-2022 stock-price--job-postings divergence is debated. We study both margins in Sweden using full-population register data (2019--2025) and 4.6 million job advertisements (2020--2026). Using employer-level difference-in-differences and the seven-month gap between the Riksbank's first rate hike (April 2022) and the ChatGPT launch (November 2022), we find that the aggregate posting decline tracks monetary tightening; within employers, employment of workers aged 22--25 in AI-exposed occupations falls 5.5 per cent by mid-2025, concentrated among young women, mainly through reduced hiring and only after ChatGPT.
 \end{abstract}
+
 \begin{keyword}
-Generative artificial intelligence \sep Job postings \sep Labour demand \sep Employment composition \sep Monetary policy %\sep Sweden
+Generative artificial intelligence \sep Job postings \sep Labour demand \sep Employment composition \sep Monetary policy
 \JEL J23 \sep J24 \sep O33
 \end{keyword}
+
 \end{frontmatter}
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Introduction}
 % ══════════════════════════════════════════════════════════════════════════════
 
-A widely circulated chart shows US stock prices rising more than 70\% since November 2022 while job openings fell more than 30\%, suggesting ``two economies'' with AI as the suspected driver \citep{thompson2025scary}. Using ADP payroll data, \citet{brynjolfsson2025canaries} document a 16\% employment decline among young US workers in AI-exposed occupations, the ``canaries in the coal mine''; \citet{hosseini2025seniority} find a similar seniority gradient in US resume and job posting data. Whether this pattern reflects AI or coincident macroeconomic tightening, and whether it generalises beyond the US, remains open.
+Since late 2022, US stock prices rose more than 70 per cent while job openings fell more than 30 per cent, prompting debate over whether generative AI or monetary tightening explains the divergence \citep{thompson2025scary}. Using ADP payroll data, \citet{brynjolfsson2025canaries} document a 16 per cent employment decline among young US workers in AI-exposed occupations, the ``canaries in the coal mine''; \citet{hosseini2025seniority} find a similar seniority gradient in US CV and job-posting data. Whether the pattern reflects AI or coincident monetary tightening, and whether it generalises beyond the US, remains open. In Sweden, the broad fall in postings tracks monetary tightening, whereas within employers high-AI-exposure occupations shifted away from workers aged 22--25 after ChatGPT, mainly through lower hiring.
 
-We examine \textit{both} the posting and the employment margin in Sweden and exploit a natural timing test: the Riksbank began raising rates in April 2022, seven months before ChatGPT launched in November 2022. If AI drives the differential posting decline, it should emerge only after late 2022; if monetary tightening drives it, the decline should begin with the rate hike. Using 4.6 million job ads from Platsbanken (2020--2026), matched to the Dynamic AI Occupational Exposure (DAIOE) index \citep{engberg2024daioe}---an occupation-level index of task exposure to generative AI---we decompose the aggregate posting decline by AI exposure. Postings across all exposure quartiles peak in mid-2022 and decline together through 2024, with at most a small additional drop in high-exposure occupations after ChatGPT.
+We exploit a timing contrast that helps distinguish the channels: the Riksbank began raising rates in April 2022, seven months before ChatGPT launched in November 2022. If monetary tightening drives the differential posting decline, it should begin with the rate hike; if generative AI drives it, the decline should not appear before late 2022 and may emerge with adoption lags into 2023--2024. Using 4.6 million advertisements from Platsbanken (the Swedish Public Employment Service vacancy portal, 2020--2026), matched to the Dynamic AI Occupational Exposure (DAIOE) index \citep{engberg2024daioe}---an occupation-level index of task exposure to generative AI---we decompose the aggregate posting decline by AI exposure. Postings across all exposure quartiles peak in mid-2022 and decline together through 2024, with at most a small additional drop in high-exposure occupations after ChatGPT.
 
-We complement the posting evidence with population-register employment data and an employer-level difference-in-differences design following \citet{brynjolfsson2025canaries}, finding that employment of 22--25 year olds in high-AI-exposure occupations falls 5.5 per cent below less exposed occupations within the same employers by mid-2025.
-
-We make three contributions. First, by examining both the posting and the employment margin, we reconcile the aggregate posting decline with a compositional employment shift: the broad posting decline tracks macroeconomic tightening, while AI reshapes employment composition within employers. Second, Sweden's seven-month gap between the Riksbank's rate hike and ChatGPT provides a timing test separating monetary and AI channels, not employed in \citet{brynjolfsson2025canaries} or \citet{kauhanen2026youth}. Third, we provide population-register evidence of an accelerating age-gradient ``canaries'' effect outside the US, contrasting with the Finnish null, which persists even under the same employer-level design \citep{kauhanen2026youth}.
+We complement the posting evidence with population-register employment data and an employer-level difference-in-differences design \citep{brynjolfsson2025canaries}. Within the same employers, employment of workers aged 22--25 in high-AI-exposure occupations falls 5.5 per cent (95 per cent confidence interval (CI) [$-5.8$, $-4.9$] per cent) below less-exposed occupations by mid-2025. The gradient is concentrated below age 30; the adjustment loads on the hiring margin, not on separations. Beyond the timing contrast, the contribution is to provide population-register evidence of an age-gradient adjustment outside the US, contrasting with the Finnish null in \citet{kauhanen2026youth}, which persists even when Swedish workers are reweighted to the Finnish industry-occupation mix.
 
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Data and empirical strategy}\label{sec:data}
 % ══════════════════════════════════════════════════════════════════════════════
 
-\paragraph{Job-posting margin} We use the full population of job advertisements published on Platsbanken from January 2020 through February 2026.\footnote{Historical bulk data (2020--2025) from \url{https://data.jobtechdev.se/annonser/historiska/}; 2026 data from the real-time JobStream API.} Each ad contains a publication date, SSYK 2012 four-digit occupation code, number of vacancies, municipality, and employer. After removing ads without valid SSYK codes and deduplicating on ad identifiers, we retain 4.6 million ads across 400 occupations. We aggregate these to occupation-by-month cells (26,672 observations).\footnote{Platsbanken is the largest recruitment site in Sweden; until 2007, private and local-government employers were legally required to post vacancies there \citep{cronert2021regulatory}. Any gap from platform migration biases us \textit{toward} finding a negative AI effect on postings, making the null $\hat\beta_2$ conservative (see Online Appendix).}
+\paragraph{Job-posting margin} We use the full population of advertisements published on Platsbanken from January 2020 through February 2026. Each ad contains a publication date, a four-digit occupation code from the Swedish Standard Classification of Occupations (SSYK 2012), a vacancy count, a municipality, and an employer identifier. After removing ads without valid SSYK codes and deduplicating on ad identifiers, 4.6 million ads across 400 occupations remain, aggregated to occupation-by-month cells (26{,}672 observations).\footnote{Historical bulk data (2020--2025) from \url{https://data.jobtechdev.se/annonser/historiska/}; 2026 data from the real-time JobStream API. Until 2007, private and local-government employers were legally required to post vacancies on Platsbanken \citep{cronert2021regulatory}; remaining sample-coverage details are in Online Appendix~II.4.}
 
-We measure generative AI (GAI) exposure using the DAIOE index \citep{engberg2024daioe}, which maps AI benchmark capabilities to Swedish occupations at the SSYK 4-digit level. We use the 2023 cross-section of the percentile ranking for GAI and classify occupations into quartiles, where Q4 is the most exposed.
+We measure generative-AI exposure using the DAIOE index \citep{engberg2024daioe}, which maps AI benchmark capabilities to Swedish occupations at the SSYK 4-digit level. We use the 2023 cross-section of the percentile ranking for generative AI and classify occupations into quartiles, where Q4 is the most exposed.
 
-Our baseline specification is:
+The baseline specification is
 \begin{equation}\label{eq:did}
 \ln(\text{postings}_{it}) = \alpha_i + \gamma_t + \beta_1 \cdot \text{PostRB}_t \cdot \text{High}_i + \beta_2 \cdot \text{PostGPT}_t \cdot \text{High}_i + \varepsilon_{it},
 \end{equation}
-where $i$ indexes SSYK4 occupations, $t$ indexes months, and $\alpha_i$ and $\gamma_t$ are occupation and time fixed effects. $\text{PostRB}_t = 1$ if $t \geq$ April 2022 (the Riksbank's first rate hike); $\text{PostGPT}_t = 1$ if $t \geq$ December 2022 (the first full month after ChatGPT's November~30 launch); and $\text{High}_i = 1$ if occupation $i$ is in the top quartile of GAI exposure. Standard errors are clustered at the occupation level. The key test is whether the relative posting decline in high-exposure occupations begins with monetary tightening ($\hat\beta_1$) or with the advent of GAI ($\hat\beta_2$).
+where $i$ indexes SSYK4 occupations, $t$ months, and $\alpha_i$ and $\gamma_t$ are occupation and month fixed effects. $\text{PostRB}_t = 1$ for $t \geq$ April 2022 (the Riksbank's first rate hike); $\text{PostGPT}_t = 1$ for $t \geq$ December 2022 (the first full month after ChatGPT's 30 November launch); $\text{High}_i = 1$ if occupation $i$ is in the top quartile of generative-AI exposure. Standard errors are clustered at the occupation level. The key test is whether the relative posting decline in high-exposure occupations begins with monetary tightening ($\hat\beta_1$) or with the advent of generative AI ($\hat\beta_2$).
 
-\paragraph{Employment margin} For employment, we use monthly employer declaration (AGI) register data from Statistics Sweden (SCB), linked at the individual level to SSYK~4-digit occupation, age, and gender from the annual LISA register; together these cover the full population of employed individuals.\footnote{The AGI register has been stable since its 2019 introduction, and the SSYK~2012 classification used in LISA has likewise been unchanged through the study period. Growth in platform-based self-employment (F-skatt) among young workers may lower measured employment but should not differentially affect AI-exposed occupations.} AI exposure is assigned from the DAIOE quartile of the worker's most recent occupation.
+\paragraph{Employment margin} For employment, we use monthly individual-level employer-declaration data (\emph{Arbetsgivardeklaration på individnivå}) from Statistics Sweden (SCB), hereafter the employer-declaration register. We link each worker to SSYK 4-digit occupation, age, and gender from the annual LISA register (Longitudinal Integration Database for Health Insurance and Labour Market Studies); together they cover the full population of employed individuals.\footnote{Both registers have been stable through the study period: the employer-declaration register since its 2019 introduction, and the SSYK 2012 classification used in LISA throughout.} We assign AI exposure from the DAIOE quartile of each worker's most recent occupation. Swedish university completion typically extends into the late twenties, so workers aged 22--25 proxy very-early-career employment (Online Appendix~III.1).
 
-For each age group $a$, we estimate:
+For each age group $a$ we estimate
 \begin{equation}\label{eq:emp_did}
 \ln(n_{f,q,t}+1) = \alpha_{f,q} + \delta_{f,t} + \gamma_1 \cdot \text{PostRB}_t \cdot \text{High}_q + \gamma_2 \cdot \text{PostGPT}_t \cdot \text{High}_q + \varepsilon_{f,q,t},
 \end{equation}
@@ -88,32 +86,38 @@ where $f$ indexes employers, $q$ DAIOE quartiles, and $n_{f,q,t}$ counts age-gro
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Results}\label{sec:results}
 % ══════════════════════════════════════════════════════════════════════════════
-Figure~\ref{fig:scary} shows the Swedish version of the ``scary chart.''\footnote{Daily OMXS30 prices from Yahoo Finance are resampled to monthly averages and indexed to 100 at February 2020.} OMXS30 rose to over 175\% of its February 2020 level by early 2026, while job postings across all AI exposure quartiles declined following the Riksbank rate hike in April 2022. The decline is broad-based across exposure quartiles, though Q4 declines somewhat more. The divergence between stock prices and postings opens seven months before ChatGPT, coinciding with the start of monetary tightening. The pattern is identical when using the OMXSPI All-Share index instead of the OMXS30 (see Online Appendix).
+Figure~\ref{fig:scary} shows the Swedish stock-price--job-postings divergence. The OMXS30 (the Stockholm large-cap index) reached 175 per cent of its February 2020 level by early 2026, while job postings across all AI-exposure quartiles declined together from the Riksbank rate hike in April 2022. The divergence opens seven months before ChatGPT, coinciding with monetary tightening. The pattern is identical with the broader OMXSPI All-Share index (Online Appendix~II.2).
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=\textwidth]{fig1_scary_chart.png}
-\caption{Stock market vs job postings by AI exposure quartile, Sweden 2020--2026. OMXS30 index (left axis) and Platsbanken posting index by GAI exposure quartile (right axis), both indexed to 100 at February 2020. Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022).}
+\caption{Stock market vs job postings by AI-exposure quartile, Sweden 2020--2026. Daily OMXS30 closing prices (Yahoo Finance) are resampled to monthly averages and indexed to 100 at February 2020 (left axis); Platsbanken posting index by generative-AI exposure quartile is shown on the right axis. Vertical lines mark the Riksbank's first rate hike (April 2022) and the ChatGPT launch (November 2022).}
 \label{fig:scary}
 \end{figure}
 
-The difference-in-differences estimation of Equation~\eqref{eq:did} yields at most a small additional posting decline in high-AI-exposure occupations after ChatGPT ($\hat\beta_2 = -0.062$, $p = 0.11$), while the Riksbank rate-hike interaction is precisely estimated ($\hat\beta_1 = -0.127$, $p < 0.01$). AI exposure is uncorrelated with revealed monetary policy sensitivity ($r = 0.04$, $p = 0.51$; Online Appendix), supporting distinct channels. $\hat\beta_2$ is negative in seven of eight robustness specifications but statistically insignificant in six, and is directionally similar using the \citet{eloundou2024gpts} GPT exposure score (Online Appendix).\footnote{A teleworkability split (Online Appendix) shows the ChatGPT coefficient is zero in teleworkable occupations ($\hat\beta_2 = -0.005$, $p = 0.92$) and significant in non-teleworkable ones ($\hat\beta_2 = -0.233$, $p < 0.01$); AI posting displacement concentrates where remote work cannot cushion the impact.}
+Estimating Equation~\eqref{eq:did}, we estimate the rate-hike interaction precisely at $\hat\beta_1 = -0.127$ (95 per cent CI [$-0.203$, $-0.051$]; $p < 0.01$), while the post-ChatGPT interaction is small and statistically indistinguishable from zero, $\hat\beta_2 = -0.062$ (95 per cent CI [$-0.137$, $+0.013$]; $p = 0.11$). Any additional posting effect after ChatGPT is small and sensitive to trend assumptions (Online Appendix~II.4, II.9). AI exposure is uncorrelated with revealed monetary-policy sensitivity ($r = 0.04$, $p = 0.51$; Online Appendix~II.7), consistent with the channels being distinct.
 
-The employment margin analysis reveals nuanced differences across age groups. Figure~\ref{fig:canaries} shows the raw employment pattern (3-month moving average; the unsmoothed series appears in the Online Appendix). Young workers (22--25) in high-AI-exposure occupations diverge sharply from older workers after the ChatGPT launch, widening through 2025, while older workers (26+) are stable regardless of exposure. 
+The employment margin shows a different pattern. Figure~\ref{fig:canaries} plots the raw monthly employment series by age group and AI-exposure quartile (3-month moving average; the unsmoothed series is in Online Appendix~III.1). Employment of workers aged 22--25 in high-AI-exposure occupations diverges from the comparison groups during 2024 and the gap widens through mid-2025; the aggregated 26+ series is comparatively stable, masking heterogeneity within older bins.
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=\textwidth]{fig2_mona_canaries_ma3.png}
-\caption{Monthly employment by age group and AI exposure, Sweden 2019--2025 (3-month moving average). AGI register data indexed to October 2022 = 100. Young (22--25) vs older (26+) workers, split by AI exposure quartile (DAIOE). Vertical lines mark the Riksbank's first rate hike (April 2022) and ChatGPT launch (November 2022).}
+\caption{Monthly employment by age group and AI exposure, Sweden 2019--2025 (3-month moving average). Employer-declaration register data indexed to October 2022 = 100. Young (22--25) versus older (26+) workers, split by AI-exposure quartile (DAIOE). Vertical lines mark the Riksbank's first rate hike (April 2022) and the ChatGPT launch (November 2022).}
 \label{fig:canaries}
 \end{figure}
 
-Figure~\ref{fig:age_gradient} presents the event study. By the first half of 2025, employment of 22--25-year-olds in top-quartile AI-exposed occupations is 5.5 per cent below less-exposed occupations within the same employers (95 per cent CI $[-5.8, -4.9]$ per cent); the average post-ChatGPT DiD coefficient is $\hat\gamma_2 = -0.010$ ($p < 0.001$). Pre-trend tests reject strict parallel trends; estimated pre-period deviations for the 22--25 and 26--30 groups are positive, and the event-study path is flat through 2023 before diverging from early 2024 (Online Appendix). Poisson PML \citep{chen2024logs} yields a multiplicative effect of $-16$ per cent for 22--25 (95 per cent CI $[-18, -14]$ per cent), with similar estimates across four robustness specifications; Brynjolfsson et al.\ (2025) document a 16 per cent decline in the United States by their September 2025 endpoint (Online Appendix~III.3). The 22--25 result strengthens in the long-tenured subsample (Online Appendix~III.7). The employment decline is driven primarily by reduced hiring: the hires coefficient for 22--25 is $\hat\gamma_2 = -0.005$ ($p < 0.001$), while separations also decline but by a smaller amount ($\hat\gamma_2 = -0.0012$, $p = 0.006$; Online Appendix~III.6). The age profile is concentrated below age 30: OLS estimates show declines of 5.5 per cent for 22--25 and 4.9 per cent for 26--30, while the 31--49 groups are essentially flat and employment of workers aged 50 and above rises by 1.3 per cent, although positive pre-period slopes make the 50+ estimate less conclusive (Online Appendix~II.5).\footnote{We do not directly observe employers' AI adoption, so unobservable organisational changes correlated with exposure cannot be ruled out.} Population-level employment remains broadly stable, pointing to occupational reallocation rather than net job destruction. The effect is larger for young women ($\hat\gamma_2 = -0.016$ versus $-0.007$ for men; interaction $p = 0.002$, Online Appendix), and reweighting women's occupational distribution to match men's narrows the gap by two-fifths, leaving a residual within-occupation component. Using Eloundou et al.\ (2024) exposure scores yields smaller under-30 declines of the same sign and eliminates the 50+ gain (Online Appendix~II.5).
+Figure~\ref{fig:age_gradient} shows the half-year event study. Our headline estimand is the 22--25 event-study endpoint at mid-2025; the average DiD and Poisson PML coefficients reported below are supporting checks. By the first half of 2025, employment of 22--25 year olds in top-quartile AI-exposed occupations is 5.5 per cent below less-exposed occupations within the same employers (95 per cent CI [$-5.8$, $-4.9$] per cent). Averaged across all post-ChatGPT periods (a supporting check that pools the flat 2023 with the late-period decline), the difference-in-differences coefficient is $\hat\gamma_2 = -0.010$ (95 per cent CI [$-0.014$, $-0.006$]; $p < 0.001$). Pre-trend tests reject strict parallel trends, but the estimated pre-period deviations for the 22--25 and 26--30 groups are positive, biasing the post-ChatGPT estimate \emph{toward zero}: the $-5.5$ per cent endpoint is, if anything, conservative; the modest 50+ rise should be read with the opposite sign of caution. Poisson pseudo-maximum likelihood (PML) yields a multiplicative effect of $-16$ per cent for 22--25 (95 per cent CI [$-18$, $-14$] per cent) across four specifications. The estimators agree on the headline 22--25 finding; the magnitude gap reflects the $\ln(y+1)$-versus-multiplicative scaling discussed by \citet{chen2024logs}, which widens in panels with many small cells, as here (Online Appendix~III.3).
+
+The decline operates almost entirely through the hiring margin. The hires coefficient for ages 22--25 is $\hat\gamma_2^H = -0.0051$ (95 per cent CI [$-0.0061$, $-0.0041$]; $p < 0.001$), while the separations coefficient is one quarter as large in absolute terms ($\hat\gamma_2^S = -0.0012$, 95 per cent CI [$-0.0020$, $-0.0004$]; $p < 0.01$). Under Sweden's last-in-first-out employment-protection legislation (LAS), separations of incumbent workers are constrained, so adjustment loads on the hiring margin: high-exposure employers reduce entry hiring rather than dismissing incumbents (Online Appendix~III.6). This pattern is consistent with generative AI compressing codified, routine entry-level tasks rather than displacing established workers.
+
+The age profile is sharply concentrated below age 30. The gradient extends to ages 26--30 with a lag: the half-year event-study endpoint reaches $-0.049$ by mid-2025, although the average DiD coefficient pools this late effect with a flat 2022--2023 and is null on average (Online Appendix~III.2). Effects for ages 31--49 are essentially zero. The 50+ point estimate is positive but small ($\hat\gamma_2 = +0.010$, 95 per cent CI [$+0.008$, $+0.012$]) and is sensitive both to pre-trend slopes and to the choice of exposure measure: it disappears entirely under the \citet{eloundou2024gpts} score (Online Appendix~II.5, III.10). Population-level employment remains broadly stable, consistent with occupational reallocation rather than net job destruction. The 22--25 result strengthens in the long-tenured subsample, ruling out staleness in occupational coding as a driver (Online Appendix~III.7).
+
+The decline is concentrated among young women: $\hat\gamma_2 = -0.016$ (95 per cent CI [$-0.020$, $-0.012$]) for women aged 22--25, versus $-0.007$ (95 per cent CI [$-0.013$, $-0.001$]) for men, with a triple-difference $p < 0.01$ (Online Appendix~III.8). Reweighting women's occupational distribution to match men's narrows the gap by about two-fifths, leaving a residual within-occupation component.
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=\textwidth]{fig3_event_study_main.pdf}
-\caption{Event study of employment effects by age group and AI exposure, ages 22--25 and 50+. Coefficients from employer-level regressions with employer$\times$quartile and employer$\times$month fixed effects, half-year periods, reference period: first half of 2022. Shaded areas show 95\% confidence intervals. Dashed line marks ChatGPT launch (November 2022). Coefficients from the log specification are interpreted as approximate percentage changes. All six age groups are shown in the Online Appendix.}
+\caption{Event study of employment effects by age group and AI exposure, ages 22--25 and 50+. Coefficients from employer-level regressions with employer$\times$quartile and employer$\times$month fixed effects, half-year periods, reference: first half of 2022. Shaded areas show 95 per cent confidence intervals. The dashed line marks the ChatGPT launch (November 2022). Coefficients from the log specification approximate percentage changes. All six age groups appear in Online Appendix~III.2.}
 \label{fig:age_gradient}
 \end{figure}
 
@@ -122,19 +126,26 @@ Figure~\ref{fig:age_gradient} presents the event study. By the first half of 202
 \section{Conclusion}\label{sec:conc}
 % ══════════════════════════════════════════════════════════════════════════════
 
-The age gradient maps onto the task-based framework \citep{acemoglu2019automation,acemoglu2026proworker}, in which AI substitutes for codified entry-level tasks while complementing experienced judgement, and is consistent with Swedish last-in-first-out employment protection (LAS), which concentrates adjustment on the most recently hired. Policymakers should prioritise transition pathways for entry-level workers in AI-exposed occupations and support employers in redesigning junior roles to preserve opportunities for skill formation.
+The age gradient is consistent with generative AI substituting for codified, routine entry-level tasks while complementing the tacit, experiential expertise of senior workers \citep{acemoglu2019automation,acemoglu2026proworker,iscenko2026ladder}. Adjustment loads on the hiring margin, consistent with Sweden's incumbent-protection legislation. We do not directly observe employers' AI adoption, so unobserved organisational changes correlated with exposure cannot be ruled out. If the pattern persists, the displacement of entry-level cohorts raises a longer-term skill-formation concern; transition pathways and junior-role redesign deserve attention.
+
 % ══════════════════════════════════════════════════════════════════════════════
-% AI disclosure (required by Economics Letters / Elsevier)
+% Elsevier-required declarations
 % ══════════════════════════════════════════════════════════════════════════════
+
+\section*{Declaration of competing interest}
+The authors declare no competing interests.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
-During the preparation of this work the authors used Claude (Anthropic) in order to assist with code development, data processing, and editorial suggestions. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+During the preparation of this work the authors used Claude (Anthropic) to assist with code development, data processing, and editorial suggestions. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+
+\section*{Funding}
+This work was supported by the Torsten S\"oderberg Foundation (grants E46/21, ET3/23) to Lodefalk, and by WASP-HS (grant 805) to Lodefalk, L\"othman and Engberg. The funders had no role in study design, data analysis, manuscript preparation, or the decision to submit for publication.
 
 \section*{Data availability}
-Platsbanken job advertisements are publicly available (CC0 licence). The employment analysis uses confidential administrative microdata from Statistics Sweden (SCB), accessed via the secure MONA platform; details on data access are in the Online Appendix. All replication code is available at \url{https://github.com/Magnus-L/canaries-sweden}.
+Platsbanken job advertisements are publicly available under a CC0 licence (\url{https://data.jobtechdev.se/annonser/historiska/}; \url{https://jobstream.api.jobtechdev.se}). The employment analysis uses confidential individual-level administrative microdata from Statistics Sweden (SCB), accessed via the secure MONA platform under ethical approvals listed below; access procedures are documented in Online Appendix~IV.1. All replication code is publicly available at \url{https://github.com/Magnus-L/canaries-sweden}; an archived release is referenced in the Online Appendix.
 
 \section*{Acknowledgements}
-We thank Lars Hultkrantz, Sune Karlsson, and participants at workshops \slash seminars at AISCAF and the Public Employment Service for helpful comments. Lodefalk acknowledges financial support from the Torsten Söderberg Foundation (grants E46/21, ET3/23), and Lodefalk, Löthman and Engberg from WASP-HS (grant 805). Ethical approvals: 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02.
+We thank Lars Hultkrantz, Sune Karlsson, and participants at workshops and seminars at AISCAF and the Swedish Public Employment Service for helpful comments. Ethical approvals from the Swedish Ethical Review Authority (Etikpr\"ovningsmyndigheten): Dnr 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \bibliographystyle{elsarticle-harv}
