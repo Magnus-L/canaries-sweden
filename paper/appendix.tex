@@ -64,10 +64,13 @@
 
 \apppart{Data and measurement}
 
+This part documents the AI exposure measure used throughout the paper and the occupational distribution it produces. Our analysis uses the Detailed AI Occupational Exposure (DAIOE) index of \citet{engberg2024daioe}, which scores Swedish SSYK 4-digit occupations by mapping O*NET ability descriptors to AI capability benchmarks. DAIOE differs from task-based exposure measures such as \citet{eloundou2024gpts} in that it anchors exposure in the cognitive abilities an occupation requires rather than in the susceptibility of individual tasks to a particular AI system, and is therefore comparatively stable across model generations. We use the generative-AI (genAI) variant throughout, which weighs capabilities relevant to large language models and image-generation systems; Section~\ref{sec:posting_eloundou} (postings) and Section~\ref{sec:eloundou_es} (employment) report robustness to substituting the \citet{eloundou2024gpts} task-based GPT-exposure measure. The remainder of Part~I lists the most and least exposed occupations under DAIOE-genAI (Section~\ref{sec:topbottom}) and reports summary statistics for the regression sample (Section~\ref{sec:summary}).
+
 % DELETED — DAIOE exposure distribution (tautological: percentile ranking is uniform by construction)
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Top and bottom occupations}
+\label{sec:topbottom}
 % ──────────────────────────────────────────────────────────────────────────────
 
 Table~\ref{tab:topbottom} lists the ten most and ten least generative AI (GAI)-exposed occupations according to the DAIOE index.
@@ -77,6 +80,7 @@ Table~\ref{tab:topbottom} lists the ten most and ten least generative AI (GAI)-e
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Summary statistics}
+\label{sec:summary}
 % ──────────────────────────────────────────────────────────────────────────────
 
 Table~\ref{tab:sumstats_postings} presents summary statistics for the posting sample by AI exposure quartile. Table~\ref{tab:sumstats_employment} presents corresponding statistics for the employer-level employment sample.
@@ -223,7 +227,7 @@ Table~\ref{tab:robustness} reports results from alternative specifications: (i)~
 
 \input{../tables/robustness_results.tex}
 
-\paragraph{Software replication} The posting DiD is estimated in Python (\texttt{statsmodels}) and independently replicated in Stata~18.5 using \texttt{reghdfe}; point estimates match to three decimal places across all specifications. As a further check, a co-author independently replicated the main posting result using a separately constructed dataset of Platsbanken advertisements, generated with different code and downloaded at a different time. The two datasets correlate at $R^2 = 0.998$ at the occupation--month level, and the regression coefficients are robust across all approaches. For the employer-level employment DiD, the primary \texttt{PanelOLS} estimates (Approach~A: absorbed fixed effects) are verified against a manual within-transformation (Approach~B: sequential demeaning by employer$\times$quartile and employer$\times$month), with point estimates matching. Standard errors differ slightly between approaches due to different clustering levels (employer$\times$quartile in Approach~A; employer in Approach~B).
+\paragraph{Software replication} The posting DiD is estimated in Python (\texttt{statsmodels}) and independently replicated in Stata~18.5 using \texttt{reghdfe}; point estimates match to three decimal places across all specifications. As a further check, a co-author independently replicated the main posting result using a separately constructed dataset of Platsbanken advertisements, generated with different code and downloaded at a different time. The two datasets correlate at $R^2 = 0.998$ at the occupation--month level, and the regression coefficients are robust across all approaches. For the employer-level employment DiD, the primary \texttt{PanelOLS} estimates (Approach~A: absorbed fixed effects via \texttt{linearmodels}) are reported throughout. A manual within-transformation (Approach~B: sequential demeaning by employer$\times$quartile and employer$\times$month) and an occupation-level aggregation (Approach~C) are implemented as memory-constrained fallbacks; they were not triggered in our analysis.
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -342,7 +346,7 @@ We use monthly employer declarations (AGI) to the Swedish tax authority, availab
 \label{fig:canaries_raw}
 \end{figure}
 
-\paragraph{Military conscription} Sweden reactivated military conscription (\emph{värnplikt}) in 2017, with annual intake expanding from approximately 5,000 in 2019 to 7,000 in 2024 and a target of 8,000 by 2025 \citep[see][]{pliktverket2025}. Roughly three-quarters of conscripts are male, and service lasts approximately 11~months at ages 18--19. Since military occupations carry no DAIOE score, expanding conscription mechanically reduces the civilian labour force participation of young men in our data, potentially confounding the canaries effect. Two observations mitigate this concern. First, the conscription expansion is gradual and affects both high- and low-AI-exposure occupations equally, since conscripts are drawn from across the occupational distribution. Second, our preferred specification following \citet{brynjolfsson2025canaries} restricts the young-worker sample to ages 22--25, above the conscription age, effectively eliminating this channel.
+\paragraph{Military conscription} Sweden reactivated military conscription (\emph{värnplikt}) in 2017, with annual intake expanding from approximately 5,000 in 2019 to 7,000 in 2024 and a target of 8,000 by 2025 \citep[see][]{pliktverket2025}. Roughly three-quarters of conscripts are male, and service lasts approximately 11~months at ages 18--19. Since military occupations carry no DAIOE score, expanding conscription mechanically reduces the civilian labour force participation of young men in our data, potentially confounding the canaries effect. Two observations mitigate this concern. First, the conscription expansion is gradual and affects both high- and low-AI-exposure occupations equally, since conscripts are drawn from across the occupational distribution. Second, our preferred specification following \citet{brynjolfsson2025canaries} restricts the young-worker sample to ages 22--25, above the conscription age of 19. This attenuates but does not fully eliminate the channel: military service typically delays university entry or graduation, and Swedish median graduation age is 27--28, so conscripted cohorts re-enter the labour market in their early-to-mid twenties and overlap with our 22--25 (and partially 26--30) age groups. The conscription channel is therefore not mechanically removed by the age restriction; we rely on the absence of differential expansion across high- and low-AI-exposure occupations as the substantive identifying argument.
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -501,7 +505,7 @@ Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint &
 \label{sec:poisson_kauhanen}
 % ──────────────────────────────────────────────────────────────────────────────
 
-The main employer-level analysis (Section~\ref{sec:employer_did}) follows \citet{brynjolfsson2025canaries} in estimating $\ln(\text{emp}_{fqt}+1)$ by OLS. \citet{chen2024logs} note that the $+1$ shift attenuates the implied multiplicative effect when cell counts are small, biasing OLS toward zero. The contrast with \citet{kauhanen2026youth}, who report a Finnish null using Poisson QMLE on a more restricted sample, raises the question of whether the Sweden--Finland gap is method-dependent or economy-dependent. We test this directly by re-estimating Equation~\ref{eq:employer_did} as a Poisson PML in a staged sequence that varies one feature of the specification at a time.
+The main employer-level analysis (Section~\ref{sec:employer_did}) follows \citet{brynjolfsson2025canaries} in estimating $\ln(\text{emp}_{fqt}+1)$ by OLS. \citet{chen2024logs} note that the $+1$ shift attenuates the implied multiplicative effect when cell counts are small, biasing OLS toward zero. The contrast with \citet{kauhanen2026youth}, who report a Finnish null using Poisson PML with firm$\times$quintile and firm$\times$month fixed effects under the \citet{brynjolfsson2025canaries} firm-size restriction ($\geq 10$ employees per age group per month, $\geq 100$ cumulative), raises the question of whether the Sweden--Finland gap is method-dependent or economy-dependent. We test this directly by re-estimating Equation~\ref{eq:employer_did} as a Poisson PML in a staged sequence that varies one feature of the specification at a time.
 
 \paragraph{Specifications}
 \begin{itemize}
@@ -561,62 +565,13 @@ The 22--25 robustness picture has four useful properties. The estimator change (
 \subsection*{Sensitivity to violations of parallel trends --- employment margin}
 \label{sec:rr_employment}
 
-We apply the relative magnitudes framework of \citet{rambachan2023more}
-to the employment event study coefficients from the main specification
-(employer$\times$quartile and employer$\times$half-year fixed effects,
-reference period: first half of 2022). For each age group, the procedure constructs
-honest confidence intervals for the average post-treatment effect under
-the restriction that post-period violations of parallel trends between
-consecutive half-years are at most $\bar{M}$ times the maximum
-pre-period violation.
+We apply the relative magnitudes framework of \citet{rambachan2023more} as a stress test of how plausibly the \emph{average} post-treatment employment effect could be overturned by violations of parallel trends. Two contextual observations should frame the results. First, with population-level register data --- tens of millions of cell-month observations per age group --- sampling variance is negligible relative to identification uncertainty. As \citet{roth2023trending} observe, with sufficient precision ``we will nearly always reject that the parallel trends assumption holds exactly in the pre-treatment period'' (p.~2233); the relevant question is whether the implied violations are economically meaningful in absolute magnitude, not whether they are statistically detectable. Second, the framework tests a scalar average, not the dynamic trajectory of effects. Our event study reveals an accelerating pattern --- coefficients for ages 22--25 are near zero from late 2022 through late 2023 and reach $-0.055$ only by mid-2025 --- so averaging over six post-treatment half-years dilutes the late, large signal with the early null. R-R cannot speak to this trajectory; it summarises it as a scalar.
 
-Figure~\ref{fig:rr_employment} and Table~\ref{tab:rr_employment}
-report the results. Under exact parallel trends ($\bar{M} = 0$), the
-average post-treatment effect is significantly negative for ages 26--30
-($[-0.014, -0.011]$), 35--40, and 41--49, and significantly positive
-for ages 50+ ($[0.006, 0.008]$). For ages 22--25, the average
-post-treatment effect is not significant even under exact parallel
-trends, reflecting the near-zero early coefficients that the average
-pools with the large late-period effects. For all age groups, the
-honest confidence interval includes zero at $\bar{M} = 0.5$.
+For each age group, the procedure constructs honest confidence intervals for the average post-treatment effect under the restriction that post-period violations of parallel trends between consecutive half-years are at most $\bar{M}$ times the maximum pre-period violation. Figure~\ref{fig:rr_employment} and Table~\ref{tab:rr_employment} report the results. Under exact parallel trends ($\bar{M} = 0$), the average post-treatment effect is significantly negative for ages 26--30 ($[-0.014, -0.011]$), 35--40, and 41--49, and significantly positive for ages 50+ ($[0.006, 0.008]$). For ages 22--25, the average is not significant even under exact parallel trends, reflecting the near-zero early coefficients that the average pools with the large late-period effects. For all age groups, the honest confidence interval includes zero at $\bar{M} = 0.5$.
 
-Three observations qualify these results.
+The fragility of the scalar average should be interpreted in absolute magnitudes. The maximum pre-treatment violation between consecutive half-years for the 22--25 group is approximately 0.003, so $\bar{M} = 0.5$ permits post-treatment violations of 0.0015 per half-year, cumulating to 0.009 over six half-years --- an order of magnitude smaller than the observed $-0.055$ endpoint effect for that group. The formal breakdown value therefore reflects the averaging arithmetic and the size of the population-level standard errors, not the plausibility of the late-period findings. The reported breakdown values are also lower bounds on the true breakdown values, since the analysis uses a diagonal covariance matrix that ignores the positive correlation between adjacent event-study coefficients (which share a common reference period); accounting for this correlation would tighten the honest confidence intervals.
 
-First, the analysis uses a diagonal covariance matrix (no cross-period
-covariance), which is conservative: because adjacent event study
-coefficients share a common reference period, they are positively
-correlated, and ignoring this correlation widens the honest confidence
-intervals. The reported breakdown values are therefore \emph{lower
-bounds} on the true breakdown values. With population-level register
-data, however, sampling uncertainty is small relative to identification
-uncertainty, so this conservative approximation is unlikely to change
-the qualitative conclusions substantially.
-
-Second, the formal fragility of the average treatment effect is partly
-mechanical. Our event study shows an accelerating pattern: coefficients
-for ages 22--25 are near zero from late 2022 through late 2023 and reach $-0.055$ only
-by mid-2025. Averaging over six post-treatment half-years dilutes the
-late-period signal with the early-period null. The Rambachan-Roth
-framework tests a scalar average, not the dynamic trajectory that
-constitutes the paper's primary evidence. The accelerating pattern
-itself is informative about the timing and nature of the effect,
-regardless of whether the average passes a particular sensitivity
-threshold.
-
-Third, the pre-treatment coefficients are an order of magnitude smaller
-than the post-treatment effects (Table~\ref{tab:pretrend_bias}). As
-\citet{roth2023trending} note, with sufficient precision ``we will nearly
-always reject that the parallel trends assumption holds exactly in the
-pre-treatment period'' (p.~2233); the relevant question is whether
-the violations are economically meaningful. A calibration exercise
-illustrates the point: the maximum pre-treatment violation between
-consecutive half-years for the 22--25 group is approximately 0.003.
-At $\bar{M} = 0.5$, this permits post-treatment violations of 0.0015
-per half-year, which cumulates to 0.009 over six half-years --- far
-smaller than the observed $-0.055$ endpoint effect. The fragility of the
-\emph{average} effect thus reflects the dilution of a late, large signal
-by early null periods, not the implausibility of the late-period
-findings.
+We therefore read the R-R analysis as consistent with --- rather than a challenge to --- our headline. The paper's primary evidence is the dynamic trajectory documented by the half-year event study, not the scalar average that R-R summarises; the trajectory is robust to plausible pre-trend deviations in absolute magnitude.
 
 \begin{figure}[htbp]
 \centering
@@ -766,7 +721,7 @@ Figure~\ref{fig:zero_cells} plots the zero-cell share separately for Q4 (high AI
 
 The headline employer-level employment effect (Table~\ref{tab:employer_did}) is the net of two flow margins: hires into an employer$\times$quartile$\times$age cell and separations from it. To distinguish whether AI-exposed employers are dismissing young workers or simply not hiring them, we re-estimate Equation~\eqref{eq:employer_did} with monthly hires and separations as alternative dependent variables. A hire is recorded when a worker appears in an employer$\times$quartile$\times$age cell in month $t$ and was absent in each of the previous three months; a separation when the worker is absent in each of the next three months. The 3-month gap window treats short payroll interruptions (parental leave, unpaid sick leave, employer payroll-timing differences) as continuous employment rather than as genuine flows. Boundary months at the panel edges are not counted as flows. Table~\ref{tab:hires_separations} reports the results.
 
-The young-worker employment decline operates almost entirely through the hiring margin. The ChatGPT-period coefficient on hires for ages 22--25 is $\hat\gamma_2 = -0.0051$ ($p < 0.001$), while the corresponding coefficient on separations is one-quarter as large in absolute terms ($-0.0012$, $p < 0.01$). Q4 employers reduce entry hiring rather than dismissing young incumbents. For workers over 50, by contrast, both flow margins move upward and the hires effect ($+0.0032$, $p < 0.001$) exceeds the separations effect ($+0.0019$, $p < 0.001$), accounting for the net employment gain in Table~\ref{tab:employer_did}; the 50+ Q4 labour market is more dynamic on both sides rather than purely stickier. Middle age groups (26--49) show null effects on hires and modestly negative effects on separations, mechanically generating mild employment increases in the headline DiD.
+The young-worker employment decline operates almost entirely through the hiring margin. The ChatGPT-period coefficient on hires for ages 22--25 is $\hat\gamma_2 = -0.0051$ ($p < 0.001$), while the corresponding coefficient on separations is one-quarter as large in absolute terms ($-0.0012$, $p < 0.01$). Q4 employers reduce entry hiring rather than dismissing young incumbents. For workers over 50, by contrast, both flow margins move upward and the hires effect ($+0.0032$, $p < 0.001$) exceeds the separations effect ($+0.0019$, $p < 0.001$), accounting for the net employment gain in Table~\ref{tab:employer_did}; the 50+ Q4 labour market is more dynamic on both sides rather than purely stickier. Middle age groups (26--49) show approximately null effects on hires and modestly negative effects on separations. Their net headline coefficient is specification-dependent: in the OLS$+1$ DiD (Table~\ref{tab:employer_did}), 26--30 is null ($+0.000$), 31--34 and 35--40 are modestly positive ($+0.008$***, $+0.003$**), and 41--49 is null; under the Poisson PML specification (Section~\ref{sec:poisson_kauhanen}, Step~1), 26--30 is significantly negative ($-0.053$***), consistent with the accelerating late-period decline visible in the event study (Figure~\ref{fig:es_26to30}). The OLS$+1$ null for 26--30 reflects the small-cell attenuation that \citet{chen2024logs} document rather than absence of an effect.
 
 \begin{table}[htbp]
 \centering
@@ -1018,7 +973,7 @@ Table~\ref{tab:literature} compares our study with the emerging literature testi
 
 Three patterns emerge. First, Anglo-Saxon studies using job posting or payroll data consistently find negative effects on entry-level or junior workers \citep{brynjolfsson2025canaries,hosseini2025seniority,liu2025labor,kleinteeselink2025}. Second, Nordic register-based studies show mixed results: our Swedish evidence finds a significant age gradient at the employer level, while Finnish analyses report null effects both at the occupation level \citep{kauhanen2025canaries} and -- notably -- under the same firm-level Poisson design used by \citet{brynjolfsson2025canaries} \citep{kauhanen2026youth}, and the Danish intensive-margin analysis finds precise nulls on earnings and hours \citep{humlum2025llm}. Third, sceptical contributions challenge the emerging consensus: \citet{eckhardt2025aijobs} find that unemployment rose \emph{less} in AI-exposed occupations using CPS data, and \citet{iscenko2026ladder} argue the US pattern reflects monetary policy rather than AI. Our Riksbank timing test directly addresses the latter hypothesis: the posting decline aligns with the rate hike, but the within-employer age gradient in employment emerges only after ChatGPT.
 
-Among these comparisons, the most direct contrast is with the Finnish evidence in \citet{kauhanen2026youth}, which we now discuss in greater detail. They replicate the Brynjolfsson firm-level Poisson design with firm~$\times$~quintile and firm~$\times$~month fixed effects, estimated separately by age group, and still find no displacement among young Finnish workers: if anything, employment in more exposed quintiles \emph{increased} slightly for early-career groups. The Finnish null therefore cannot be attributed to a weaker identification strategy; it persists under the same within-employer design that reveals a canaries effect in the US and Sweden. Two design choices distinguish our analysis from theirs. First, they impose Brynjolfsson's sample restriction (at least ten employees per age group per month and one hundred cumulatively across exposure quantiles), while our threshold of five workers cumulatively retains substantially more small and newly-formed firms. Second, they use a task-based exposure measure \citep{eloundou2024gpts}, while DAIOE is abilities-based, scoring O*NET cognitive demands against AI capability benchmarks. In Denmark, \citet{humlum2025llm} find precise nulls on incumbents' earnings and hours (the intensive margin), complementing our extensive-margin (composition) finding. Whether the residual Sweden--Finland divergence reflects differences in AI adoption intensity, labour market institutions, or industrial structure remains an open question.
+Among these comparisons, the most direct contrast is with the Finnish evidence in \citet{kauhanen2026youth}. They replicate the Brynjolfsson firm-level Poisson design with firm~$\times$~quintile and firm~$\times$~month fixed effects, estimated separately by age group, and find no displacement among young Finnish workers: if anything, employment in more exposed quintiles \emph{increased} slightly for early-career groups. The Finnish null cannot be attributed to a weaker identification strategy; it persists under the same within-employer design that reveals a canaries effect in the US and Sweden. Three candidate explanations for the divergence --- different estimator, different sample restriction, and different exposure measure --- are tested directly in Section~\ref{sec:poisson_kauhanen}. Re-estimating our specification under Poisson PML (Step~1), the \citet{brynjolfsson2025canaries} sample threshold ($\geq 10$/age-group-month, $\geq 100$ cumulative; Step~2), the \citet{eloundou2024gpts} $\beta$-quintile (Step~3), a reweighting to Finnish ISCO~$\times$~NACE composition (Step~4), and an exclusion of ICT specialists (Step~5) leaves the 22--25 coefficient in a tight $[-18, -14]$ per cent band, with $p < 0.001$ throughout. Switching the exposure measure from DAIOE to Eloundou attenuates the boundary-age groups (26--30 and 50+) but not the 22--25 result, and the employer-level Eloundou robustness (Section~\ref{sec:eloundou_es}) confirms that the accelerating decline for ages 22--25 and 26--30 replicates with two-thirds the DAIOE magnitude. The Sweden--Finland divergence is therefore not method-, sample-, measure-, or composition-driven; the residual gap most plausibly reflects features Step~4 cannot equalise --- institutions, language, neighbouring labour markets, and AI-adoption rates. In Denmark, \citet{humlum2025llm} find precise nulls on incumbents' earnings and hours (the intensive margin), complementing our extensive-margin (composition) finding.
 
 Our analysis combines both margins (postings and employment) with a within-Sweden timing test that helps distinguish macroeconomic and AI channels, using population-register data with employer-level identification. For broader surveys of this emerging literature, see \citet{chandar2025aiknow} and \citet{kolko2026firstinning}.
 
@@ -1120,7 +1075,7 @@ SSYK~2012 four-digit occupation codes are employer-reported and recorded in a se
 The AGI data source has been stable since its introduction in January 2019, with no changes to the reporting requirements during the study period (2019--2025); the SSYK~2012 classification used in Yrkesregistret has likewise been unchanged throughout. This contrasts with the annual employment registers (RAMS/BAS), where SCB replaced the RAMS methodology with BAS from reference year 2022, introducing a methodological break at our treatment timing. Because we use AGI for monthly employment status and Yrkesregistret for occupation, we avoid this break entirely.
 
 \paragraph{Non-match rates and sample attrition}
-Matching individuals to SSYK~4-digit occupations yields non-match rates of 11~per cent for ages 22--25 and 7~per cent for ages 26 and above. The higher non-match rate among younger workers likely reflects short-term contracts and recent hires for which employer declarations have not yet been updated with occupation codes. Unmatched individuals are excluded from the analysis. We find no evidence that the non-match rate changes differentially across high- and low-AI-exposure occupations after the treatment date.
+Matching individuals to SSYK~4-digit occupations yields non-match rates of 11~per cent for ages 22--25 and 7~per cent for ages 26 and above, averaged across the 2019--2025 panel period (the time profile is reported in the following paragraph). The higher non-match rate among younger workers likely reflects short-term contracts and recent hires for which employer declarations have not yet been updated with occupation codes. Unmatched individuals are excluded from the analysis. We find no evidence that the non-match rate changes differentially across high- and low-AI-exposure occupations after the treatment date.
 
 The overall SSYK non-match rate is approximately 10~per cent through 2023, rising to 15~per cent in 2024 and 20~per cent in 2025. The increase reflects the end of LISA coverage at 2023: new labour market entrants from 2024 onward lack a SSYK code unless their employer has already reported one. Importantly, our core results are strongest in 2023, when occupation coverage is most complete. Among matched young entrants first observed in 2023, 26~per cent appear in top-quartile (Q4) occupations, close to the working-population share of 28~per cent, indicating that the regression sample is not differentially under-represented in high-exposure occupations and that the within-employer Q4 decline is therefore not driven by differential entrant sorting. Missing individuals have slightly better average labour market outcomes than matched individuals, but this pattern is stable over time, suggesting no differential selection correlated with the treatment.
 
