@@ -13,6 +13,17 @@
 \usepackage{natbib}
 \usepackage{setspace}
 \usepackage{xcolor}
+\usepackage{microtype}
+
+% Set PDF metadata explicitly to avoid elsarticle frontmatter leaking
+% internal tokens (\@corref, \cnotenum, \<def>) into the PDF string.
+\hypersetup{
+  pdftitle={Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring},
+  pdfauthor={Magnus Lodefalk and Lydia L\"othman and Michael Koch and Erik Engberg},
+  pdfsubject={Generative AI and labour markets},
+  pdfkeywords={Generative AI; Job postings; Labour demand; Employment composition; Monetary policy},
+  hidelinks
+}
 
 % Path to figures
 \graphicspath{{../figures/}}
@@ -70,11 +81,14 @@ We measure generative-AI exposure using the DAIOE index \citep{engberg2024daioe}
 
 The baseline specification is
 \begin{equation}\label{eq:did}
-\ln(\text{postings}_{it}) = \alpha_i + \gamma_t + \beta_1 \cdot \text{PostRB}_t \cdot \text{High}_i + \beta_2 \cdot \text{PostGPT}_t \cdot \text{High}_i + \varepsilon_{it},
+\begin{split}
+\ln(\text{postings}_{it}) = \alpha_i + \gamma_t &+ \beta_1 \cdot \text{PostRB}_t \cdot \text{High}_i \\
+&+ \beta_2 \cdot \text{PostGPT}_t \cdot \text{High}_i + \varepsilon_{it},
+\end{split}
 \end{equation}
 where $i$ indexes SSYK4 occupations, $t$ months, and $\alpha_i$ and $\gamma_t$ are occupation and month fixed effects. $\text{PostRB}_t = 1$ for $t \geq$ April 2022 (the Riksbank's first rate hike); $\text{PostGPT}_t = 1$ for $t \geq$ December 2022 (the first full month after ChatGPT's 30 November launch); $\text{High}_i = 1$ if occupation $i$ is in the top quartile of generative-AI exposure. Standard errors are clustered at the occupation level. The key test is whether the relative posting decline in high-exposure occupations begins with monetary tightening ($\hat\beta_1$) or with the advent of generative AI ($\hat\beta_2$).
 
-\paragraph{Employment margin} For employment, we use monthly individual-level employer-declaration data (\emph{Arbetsgivardeklaration på individnivå}) from Statistics Sweden (SCB), hereafter the employer-declaration register. We link each worker to SSYK 4-digit occupation, age, and gender from the annual LISA register (Longitudinal Integration Database for Health Insurance and Labour Market Studies); together they cover the full population of employed individuals.\footnote{Both registers have been stable through the study period: the employer-declaration register since its 2019 introduction, and the SSYK 2012 classification used in LISA throughout.} We assign AI exposure from the DAIOE quartile of each worker's most recent occupation. Swedish university completion typically extends into the late twenties, so workers aged 22--25 proxy very-early-career employment (Online Appendix~III.1).
+\paragraph{Employment margin} {\sloppy For employment, we use monthly individual-level employer-declaration data (\emph{Arbetsgivardeklaration på individnivå}) from Statistics Sweden (SCB), hereafter the employer-declaration register. We link each worker to SSYK 4-digit occupation, age, and gender from the annual LISA register (Longitudinal Integration Database for Health Insurance and Labour Market Studies); together they cover the full population of employed individuals.\footnote{Both registers have been stable through the study period: the employer-declaration register since its 2019 introduction, and the SSYK 2012 classification used in LISA throughout.} We assign AI exposure from the DAIOE quartile of each worker's most recent occupation. Swedish university completion typically extends into the late twenties, so workers aged 22--25 proxy very-early-career employment (Online Appendix~III.1).\par}
 
 For each age group $a$ we estimate
 \begin{equation}\label{eq:emp_did}
@@ -142,7 +156,8 @@ During the preparation of this work the authors used Claude (Anthropic) to assis
 This work was supported by the Torsten S\"oderberg Foundation (grants E46/21, ET3/23) to Lodefalk, and by WASP-HS (grant 805) to Lodefalk, L\"othman and Engberg. The funders had no role in study design, data analysis, manuscript preparation, or the decision to submit for publication.
 
 \section*{Data availability}
-Platsbanken job advertisements are publicly available under a CC0 licence (\url{https://data.jobtechdev.se/annonser/historiska/}; \url{https://jobstream.api.jobtechdev.se}). The employment analysis uses confidential individual-level administrative microdata from Statistics Sweden (SCB), accessed via the secure MONA platform under ethical approvals listed below; access procedures are documented in Online Appendix~IV.1. All replication code is publicly available at \url{https://github.com/Magnus-L/canaries-sweden}; an archived release is referenced in the Online Appendix.
+{\sloppy
+Platsbanken job advertisements are publicly available under a CC0 licence (\url{https://data.jobtechdev.se/annonser/historiska/}; \url{https://jobstream.api.jobtechdev.se}). The employment analysis uses confidential individual-level administrative microdata from Statistics Sweden (SCB), accessed via the secure MONA platform under ethical approvals listed below; access procedures are documented in Online Appendix~IV.1. All replication code is publicly available at \url{https://github.com/Magnus-L/canaries-sweden}; an archived release is referenced in the Online Appendix.\par}
 
 \section*{Acknowledgements}
 We thank Lars Hultkrantz, Sune Karlsson, and participants at workshops and seminars at AISCAF and the Swedish Public Employment Service for helpful comments. Ethical approvals from the Swedish Ethical Review Authority (Etikpr\"ovningsmyndigheten): Dnr 2021-05040, 2022-03330-02, 2024-01714-0, 2025-04205-02.
