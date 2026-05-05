@@ -13,6 +13,13 @@
 \usepackage{pdflscape}
 \usepackage{xcolor}
 \usepackage{longtable}
+\usepackage[section]{placeins}  % \FloatBarrier auto-inserted at each \section{}
+
+% Allow floats to occupy more of the page so they sit closer to their text reference
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.7}
 
 \graphicspath{{../figures/}}
 
