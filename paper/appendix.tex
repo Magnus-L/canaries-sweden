@@ -397,6 +397,25 @@ The augmentation--automation spectrum in these spotlight occupations connects to
 \label{fig:spotlight_receptionists}
 \end{figure}
 
+\paragraph{Percentage change presentation}
+The indexed employment series in Figure~2 of the main paper shows levels relative to October 2022 (= 100). To make the magnitude of the divergence immediately transparent, Figures~\ref{fig:pctchange_headline}--\ref{fig:pctchange_comparison} recast the same data as percentage changes from October 2022, following the presentation in \citet{brynjolfsson2025canaries}.
+
+Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds in top-quartile AI-exposed occupations: employment fell 44 per cent from October 2022 to early 2025. The strong seasonal pattern visible in the pre-period (summer employment dips) is dwarfed by the post-ChatGPT trend. Figure~\ref{fig:pctchange_comparison} adds the three comparison groups. Older workers (26+) in both high and low AI exposure remain near zero throughout; young workers (22--25) in low-exposure occupations decline modestly ($-11\%$). The four-way comparison makes both the age gradient and the exposure gradient visible in a single figure.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_pctchange_headline.png}
+\caption{Employment change for 22--25 year olds in top-quartile AI-exposed occupations. Percentage change from October 2022, 3-month centred moving average. AGI register data.}
+\label{fig:pctchange_headline}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figA_pctchange_comparison.png}
+\caption{Employment change by age group and AI exposure. Percentage change from October 2022, 3-month centred moving average. AGI register data. Young = 22--25; Older = 26+. High AI = top quartile of DAIOE GAI exposure; Low AI = bottom three quartiles.}
+\label{fig:pctchange_comparison}
+\end{figure}
+
 
 % ──────────────────────────────────────────────────────────────────────────────
 \section{Employer-level difference-in-differences}
@@ -436,7 +455,7 @@ Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each a
 
 \begin{table}[htbp]
 \centering
-\caption{Employer-level difference-in-differences: employment effect of AI exposure by age group. Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors clustered by employer$\times$quartile.}
+\caption{Employer-level difference-in-differences: employment effect of AI exposure by age group.}
 \label{tab:employer_did}
 \footnotesize
 \begin{tabular}{@{}lcccccc@{}}
@@ -452,8 +471,9 @@ $N$ & 11,970,426 & 16,498,560 & 14,773,590 & 17,511,078 & 21,810,984 & 29,895,76
 Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
-\multicolumn{7}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. Standard errors in parentheses.}
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
 \end{table}
 
 \paragraph{Event study}
@@ -532,7 +552,7 @@ For the 50+ group, the picture is different: the pre-trend slope ($+0.003$/half-
 
 \begin{table}[htbp]
 \centering
-\caption{Cumulative pre-trend bias analysis. Pre-trend slope fitted through the six pre-treatment event study coefficients spanning 2019 to 2021 via OLS. Cumulative bias = slope $\times$ 6 post-treatment half-years. ``Bias/endpoint'' gives the ratio of cumulative bias to the mid-2025 coefficient; negative ratios indicate that the pre-trend works \emph{against} the finding.}
+\caption{Cumulative pre-trend bias analysis.}
 \label{tab:pretrend_bias}
 \footnotesize
 \begin{tabular}{@{}lrrrrrr@{}}
@@ -547,6 +567,8 @@ Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint &
 50+ & $+0.0032$ & 0.88 & $\times 6$ & $+0.019$ & $+0.013$ & $+149\%$ \\
 \bottomrule
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Pre-trend slope is fitted by OLS through the six pre-treatment event-study coefficients spanning 2019 to 2021. Cumulative bias = slope $\times$ 6 post-treatment half-years. ``Bias/endpoint'' is the ratio of cumulative bias to the mid-2025 coefficient; negative ratios indicate that the pre-trend works \emph{against} the finding.}
 \end{table}
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -560,7 +582,7 @@ The young-worker employment decline operates almost entirely through the hiring 
 
 \begin{table}[htbp]
 \centering
-\caption{Flow decomposition: difference-in-differences for monthly hires and separations by age group. Dependent variable: $\ln(\text{flow}+1)$ where flow is the cell-month count of hires (Panel A) or separations (Panel B). A hire is recorded when a worker is present in an employer$\times$quartile$\times$age cell in month $t$ and absent in each of the previous three months; a separation symmetrically. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors clustered by employer$\times$quartile.}
+\caption{Flow decomposition: difference-in-differences for monthly hires and separations by age group.}
 \label{tab:hires_separations}
 \footnotesize
 \begin{tabular}{@{}lcccccc@{}}
@@ -584,8 +606,9 @@ $N$ (cell-months, both panels) & 11{,}970{,}426 & 16{,}498{,}560 & 14{,}773{,}59
 Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
-\multicolumn{7}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. Standard errors in parentheses.}
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{flow}+1)$, where flow is the cell-month count of hires (Panel~A) or separations (Panel~B). A hire is recorded when a worker is present in an employer$\times$quartile$\times$age cell in month $t$ and absent in each of the previous three months; a separation symmetrically. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
 \end{table}
 
 
@@ -619,7 +642,7 @@ One interpretive note: in raw descriptive plots (Figure~\ref{fig:gender_panel}),
 
 \begin{table}[htbp]
 \centering
-\caption{Employer-level DiD by gender and age group. Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors clustered by employer$\times$quartile.}
+\caption{Employer-level DiD by gender and age group.}
 \label{tab:gender_did}
 \footnotesize
 \begin{tabular}{@{}lcccccc@{}}
@@ -642,8 +665,9 @@ $N$ & 7,412,574 & 9,506,640 & 7,746,258 & 8,826,948 & 10,863,138 & 14,592,396 \\
 Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
-\multicolumn{7}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. Standard errors in parentheses.}
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
 \end{table}
 
 \begin{figure}[htbp]
@@ -662,7 +686,7 @@ The composition channel is more consequential at older ages. For women aged 41--
 
 \begin{table}[htbp]
 \centering
-\caption{Decomposing the gender gap: women's DiD coefficients, unweighted vs IPW-reweighted to men's occupational distribution within Q4. All specifications include employer$\times$quartile and employer$\times$month fixed effects.}
+\caption{Decomposing the gender gap: women's DiD coefficients, unweighted vs IPW-reweighted.}
 \label{tab:gender_reweighted}
 \footnotesize
 \begin{tabular}{@{}lccc@{}}
@@ -682,8 +706,9 @@ The composition channel is more consequential at older ages. For women aged 41--
 50+ & $+0.016$*** & $+0.001$ & $+0.011$*** \\
  & $(0.001)$ & $(0.002)$ & $(0.002)$ \\
 \bottomrule
-\multicolumn{4}{l}{\scriptsize *** $p<0.01$, ** $p<0.05$, * $p<0.10$. $\hat\gamma_2$ (PostGPT $\times$ Q4) shown. Standard errors in parentheses.}
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Coefficient shown is $\hat\gamma_2$ (PostGPT $\times$ Q4). Women (reweighted) uses inverse probability weights to match women's occupational distribution within Q4 to men's. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
 \end{table}
 
 
@@ -710,7 +735,7 @@ Table~\ref{tab:poisson_kauhanen} reports $\hat\gamma_2$ across the five specific
 
 \begin{table}[htbp]
 \centering
-\caption{Poisson PML staged robustness, $\hat\gamma_2$ (PostGPT $\times$ HighQ4) by age group. Each row reports the Poisson coefficient and clustered standard error. Specifications: Step 1, current sample, DAIOE Q4, $\geq 5$ cumulative; Step 2, DAIOE Q4, Brynjolfsson restriction ($\geq 10$ mean / $\geq 100$ cumulative, also imposed by Kauhanen); Step 3, Eloundou Q5 with Brynjolfsson restriction; Step 4, current sample, DAIOE Q4, reweighted to Finnish ISCO-1 $\times$ NACE-2 composition (winsorised weights); Step 5, current sample, DAIOE Q4, ICT (SSYK 25xx) excluded. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level.}
+\caption{Poisson PML staged robustness, $\hat\gamma_2$ (PostGPT $\times$ HighQ4) by age group.}
 \label{tab:poisson_kauhanen}
 \footnotesize
 \begin{tabular}{@{}lccccc@{}}
@@ -735,8 +760,9 @@ Table~\ref{tab:poisson_kauhanen} reports $\hat\gamma_2$ across the five specific
 $N$ (cells, 22--25) & 11.7M & 1.13M & 1.22M & 11.7M & 11.4M \\
 $N$ employers       & 46{,}496 & 3{,}641 & 3{,}181 & 46{,}402 & 44{,}988 \\
 \bottomrule
-\multicolumn{6}{l}{\scriptsize *** $p<0.001$. Standard errors clustered at the employer$\times$quartile level.}
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Each cell reports the Poisson PML coefficient and clustered standard error. Specifications: Step~1, current sample, DAIOE Q4, $\geq 5$ cumulative; Step~2, DAIOE Q4, \citet{brynjolfsson2025canaries} restriction ($\geq 10$ mean / $\geq 100$ cumulative, also imposed by \citet{kauhanen2026youth}); Step~3, Eloundou Q5 with the same restriction; Step~4, current sample, DAIOE Q4, reweighted to Finnish ISCO-1 $\times$ NACE-2 composition (winsorised weights); Step~5, current sample, DAIOE Q4, ICT (SSYK 25xx) excluded. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. Significance: *** $p<0.001$.}
 \end{table}
 
 \paragraph{Interpretation across the four method-varying specifications}
@@ -744,7 +770,7 @@ The 22--25 robustness picture has four useful properties. The estimator change (
 
 \paragraph{Boundary-age groups under Eloundou} The 26--30 and 50+ coefficients track each other across the four specifications: both are sharply significant in Steps 1, 2, and 5 and both attenuate to near-zero in Step 3 when exposure is measured by the Eloundou $\beta$-quintile rather than the DAIOE quartile. This is mechanical. The Eloundou Q5 (top 20 per cent, 78 SSYK4 codes) is a stricter cut than the DAIOE Q4 (top 25 per cent, 99 codes), and the boundary-age groups (26--30 just above the canaries cohort, 50+ at the older end) are most sensitive to which occupations enter the top exposure bin. The 22--25 group is far enough inside the under-30 effect that it survives the change of measure.
 
-\paragraph{Reconciliation with the main-text estimate} The main-text OLS$+1$ coefficient for 22--25 is $\hat\gamma_2 = -0.010$, which in OLS$+1$ units approximates a 1 per cent effect. The Poisson PML coefficient $\hat\gamma_2 = -0.174$ corresponds to a $-16$ per cent multiplicative effect. The order-of-magnitude difference reflects the identification problem of the $\ln(y+1)$ specification that \citet{chen2024logs} formalise: this transformation does not recover a percentage change, and the gap relative to Poisson is largest in small-cell panels like ours. Both estimators agree on sign and on the rejection of the null; the Poisson coefficient is the appropriate input for any quantitative comparison with US estimates reported in multiplicative magnitudes, while the OLS coefficient remains a conservative summary of the within-employer differential.
+\paragraph{Reconciliation with the main-text estimate} The main-text OLS$+1$ coefficient for 22--25 is $\hat\gamma_2 = -0.010$; the Poisson PML coefficient $\hat\gamma_2 = -0.174$ corresponds to a $-16$ per cent multiplicative effect. The two estimators agree on sign and on the rejection of the null. The size of the gap is consistent with the discussion in \citet{chen2024logs}: in panels with many small cells, the $\ln(y+1)$ transformation can attenuate the implied multiplicative magnitude. The Poisson coefficient is therefore better suited for comparisons in multiplicative terms, while the OLS coefficient remains a conservative summary of the within-employer differential.
 
 \paragraph{Reweighting to Finnish composition (Step 4)} Step 4 holds the Step 1 sample fixed and reweights workers so the Swedish employer-month panel matches Finland's 2022 ISCO 1-digit by NACE 2-digit marginal distribution (Eurostat LFS). The 22--25 coefficient moves from $-0.174$ (Step 1) to $-0.164$ (Step 4), a multiplicative effect of $-15.1$ per cent, well within the $[-18, -14]$ per cent band reported above. The age gradient is preserved: 26--30 remains negative ($-0.051$, $p<0.001$); 31--34 is null ($+0.010$, $p=0.12$); 35--40 and 41--49 are null; 50+ remains positive and significant ($+0.026$, $p<0.001$). The Sweden--Finland divergence reported by \citet{kauhanen2026youth} is therefore not a composition story: even when Swedish workers are reweighted to mimic the Finnish industrial and occupational mix, the 22--25 decline persists at near-full magnitude. The residual divergence is most plausibly attributable to features Step 4 cannot equalise: institutions, language, neighbouring labour markets, and AI-adoption rates.
 
@@ -826,7 +852,7 @@ Table~\ref{tab:eloundou_did} reports the average post-treatment DiD coefficients
 
 \begin{table}[htbp]
 \centering
-\caption{Employer-level DiD with Eloundou $\beta$ exposure instead of DAIOE. Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered by employer.}
+\caption{Employer-level DiD with Eloundou $\beta$ exposure instead of DAIOE.}
 \label{tab:eloundou_did}
 \footnotesize
 \begin{tabular}{@{}lcccccc@{}}
@@ -843,6 +869,8 @@ Age group & Coef.\ & SE & $p$ & Coef.\ & SE & $p$ \\
 50+    & $+$0.009 & 0.001 & $<$0.001 & $-$0.000 & 0.001 & 0.738 \\
 \bottomrule
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered at the employer level.}
 \end{table}
 
 The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
@@ -882,7 +910,7 @@ We therefore rely on the long-tenured specification for the LISA-staleness defen
 
 \begin{table}[htbp]
 \centering
-\caption{LISA-staleness robustness: $\hat\gamma_2$ (PostGPT $\times$ HighQ4) by age group, sub-sample, and estimator. Panel~A: Poisson PML on $n_{\text{emp}}$ (matches Section~\ref{sec:poisson_kauhanen}). Panel~B: OLS on $\ln(n_{\text{emp}}+1)$ (matches Section~\ref{sec:employer_did}). Column~1: full Step~1 sample. Column~2: workers with $\geq 24$ months observed at the same employer. Column~3: workers with identical LISA SSYK4 in 2021, 2022, and 2023. All specifications include employer$\times$quartile and employer$\times$month fixed effects with standard errors clustered at the employer$\times$quartile level.}
+\caption{LISA-staleness robustness: $\hat\gamma_2$ (PostGPT $\times$ HighQ4) by age group, sub-sample, and estimator.}
 \label{tab:lisa_staleness_robust}
 \footnotesize
 \begin{tabular}{@{}lccc@{}}
@@ -919,13 +947,9 @@ We therefore rely on the long-tenured specification for the LISA-staleness defen
 \midrule
 $N$ employers, 22--25 & 46{,}496 & 10{,}692 & 22{,}805 \\
 \bottomrule
-\multicolumn{4}{l}{\scriptsize *** $p<0.001$, ** $p<0.01$, * $p<0.05$. SE in parentheses.}\\
-\multicolumn{4}{l}{\scriptsize $^{a}$ Stayer sub-sample at younger ages exhibits a large negative pre-period}\\
-\multicolumn{4}{l}{\scriptsize Poisson coefficient $\hat\gamma_1$ ($-0.327$ at 22--25, $-0.081$ at 26--30; both $p<0.001$);}\\
-\multicolumn{4}{l}{\scriptsize see prose for selection discussion.}\\
-\multicolumn{4}{l}{\scriptsize $^{b}$ Same selection signature in OLS$+1$: stayer $\hat\gamma_1 = -0.054$ at 22--25,}\\
-\multicolumn{4}{l}{\scriptsize $-0.024$ at 26--30 (both $p<0.001$).}\\
 \end{tabular}
+\par\smallskip
+{\scriptsize \emph{Notes:} Panel~A reports Poisson PML on $n_{\text{emp}}$ (matches Section~\ref{sec:poisson_kauhanen}); Panel~B reports OLS on $\ln(n_{\text{emp}}+1)$ (matches Section~\ref{sec:employer_did}). Column~1: full Step~1 sample; Column~2: workers with $\geq 24$ months observed at the same employer; Column~3: workers with identical LISA SSYK4 in 2021, 2022, and 2023. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. $^{a}$ The stayer sub-sample at younger ages exhibits a large negative pre-period Poisson coefficient $\hat\gamma_1$ ($-0.327$ at 22--25, $-0.081$ at 26--30; both $p<0.001$); see prose for selection discussion. $^{b}$ Same selection signature in OLS$+1$: stayer $\hat\gamma_1 = -0.054$ at 22--25, $-0.024$ at 26--30 (both $p<0.001$). Significance: *** $p<0.001$, ** $p<0.01$, * $p<0.05$. Standard errors in parentheses.}
 \end{table}
 
 
@@ -957,29 +981,6 @@ Two features of the design address this concern. The conscription expansion is g
 
 
 % ──────────────────────────────────────────────────────────────────────────────
-\section{Percentage change in employment}
-% ──────────────────────────────────────────────────────────────────────────────
-
-The indexed employment series in Figure~2 of the main paper shows levels relative to October 2022 (= 100). To make the magnitude of the divergence immediately transparent, Figures~\ref{fig:pctchange_headline}--\ref{fig:pctchange_comparison} recast the same data as percentage changes from October 2022, following the presentation in \citet{brynjolfsson2025canaries}.
-
-Figure~\ref{fig:pctchange_headline} isolates the trajectory of 22--25 year olds in top-quartile AI-exposed occupations: employment fell 44 per cent from October 2022 to early 2025. The strong seasonal pattern visible in the pre-period (summer employment dips) is dwarfed by the post-ChatGPT trend. Figure~\ref{fig:pctchange_comparison} adds the three comparison groups. Older workers (26+) in both high and low AI exposure remain near zero throughout; young workers (22--25) in low-exposure occupations decline modestly ($-11\%$). The four-way comparison makes both the age gradient and the exposure gradient visible in a single figure.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA_pctchange_headline.png}
-\caption{Employment change for 22--25 year olds in top-quartile AI-exposed occupations. Percentage change from October 2022, 3-month centred moving average. AGI register data.}
-\label{fig:pctchange_headline}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figA_pctchange_comparison.png}
-\caption{Employment change by age group and AI exposure. Percentage change from October 2022, 3-month centred moving average. AGI register data. Young = 22--25; Older = 26+. High AI = top quartile of DAIOE GAI exposure; Low AI = bottom three quartiles.}
-\label{fig:pctchange_comparison}
-\end{figure}
-
-
-% ──────────────────────────────────────────────────────────────────────────────
 \section{Comparison with related studies}
 \label{sec:literature_comparison}
 % ──────────────────────────────────────────────────────────────────────────────
@@ -988,7 +989,7 @@ Table~\ref{tab:literature} compares our study with the emerging literature testi
 
 Three patterns emerge. First, Anglo-Saxon studies using job posting or payroll data consistently find negative effects on entry-level or junior workers \citep{brynjolfsson2025canaries,hosseini2025seniority,liu2025labor,kleinteeselink2025}. Second, Nordic register-based studies show mixed results: our Swedish evidence finds a significant age gradient at the employer level, while Finnish analyses report null effects both at the occupation level \citep{kauhanen2025canaries} and -- notably -- under the same firm-level Poisson design used by \citet{brynjolfsson2025canaries} \citep{kauhanen2026youth}, and the Danish intensive-margin analysis finds precise nulls on earnings and hours \citep{humlum2025llm}. Third, sceptical contributions challenge the emerging consensus: \citet{eckhardt2025aijobs} find that unemployment rose \emph{less} in AI-exposed occupations using CPS data, and \citet{iscenko2026ladder} argue the US pattern reflects monetary policy rather than AI. Our Riksbank timing test directly addresses the latter hypothesis: the posting decline aligns with the rate hike, but the within-employer age gradient in employment emerges only after ChatGPT.
 
-Among these comparisons, the most direct contrast is with the Finnish evidence in \citet{kauhanen2026youth}. They replicate the Brynjolfsson firm-level Poisson design with firm~$\times$~quintile and firm~$\times$~month fixed effects, estimated separately by age group, and find no displacement among young Finnish workers: if anything, employment in more exposed quintiles \emph{increased} slightly for early-career groups. The Finnish null cannot be attributed to a weaker identification strategy; it persists under the same within-employer design that reveals a canaries effect in the US and Sweden. Three candidate explanations for the divergence --- different estimator, different sample restriction, and different exposure measure --- are tested directly in Section~\ref{sec:poisson_kauhanen}. Re-estimating our specification under Poisson PML (Step~1), the \citet{brynjolfsson2025canaries} sample threshold ($\geq 10$/age-group-month, $\geq 100$ cumulative; Step~2), the \citet{eloundou2024gpts} $\beta$-quintile (Step~3), a reweighting to Finnish ISCO~$\times$~NACE composition (Step~4), and an exclusion of ICT specialists (Step~5) leaves the 22--25 coefficient in a tight $[-18, -14]$ per cent band, with $p < 0.001$ throughout. Switching the exposure measure from DAIOE to Eloundou attenuates the boundary-age groups (26--30 and 50+) but not the 22--25 result, and the employer-level Eloundou robustness (Section~\ref{sec:eloundou_es}) confirms that the accelerating decline for ages 22--25 and 26--30 replicates with two-thirds the DAIOE magnitude. The Sweden--Finland divergence is therefore not method-, sample-, measure-, or composition-driven; the residual gap most plausibly reflects features Step~4 cannot equalise --- institutions, language, neighbouring labour markets, and AI-adoption rates. In Denmark, \citet{humlum2025llm} find precise nulls on incumbents' earnings and hours (the intensive margin), complementing our extensive-margin (composition) finding.
+Among these comparisons, the most direct contrast is with the Finnish evidence in \citet{kauhanen2026youth}. They replicate the Brynjolfsson firm-level Poisson design with firm~$\times$~quintile and firm~$\times$~month fixed effects, estimated separately by age group, and find no displacement among young Finnish workers: if anything, employment in more exposed quintiles \emph{increased} slightly for early-career groups. The Finnish null cannot be attributed to a weaker identification strategy; it persists under the same within-employer design that reveals a canaries effect in the US and Sweden. Three candidate explanations for the divergence --- different estimator, different sample restriction, and different exposure measure --- are tested directly in Section~\ref{sec:poisson_kauhanen}. Re-estimating our specification under Poisson PML (Step~1), the \citet{brynjolfsson2025canaries} sample threshold ($\geq 10$/age-group-month, $\geq 100$ cumulative; Step~2), the \citet{eloundou2024gpts} $\beta$-quintile (Step~3), a reweighting to Finnish ISCO~$\times$~NACE composition (Step~4), and an exclusion of ICT specialists (Step~5) leaves the 22--25 coefficient in a tight $[-18, -14]$ per cent band, with $p < 0.001$ throughout. Switching the exposure measure from DAIOE to Eloundou attenuates the boundary-age groups (26--30 and 50+) but not the 22--25 result, and the employer-level Eloundou robustness (Section~\ref{sec:eloundou_es}) confirms that the accelerating decline for ages 22--25 and 26--30 replicates with two-thirds the DAIOE magnitude. The Sweden--Finland divergence is therefore not method-, sample-, measure-, or composition-driven; the residual gap most plausibly reflects features Step~4 cannot equalise, such as institutions and AI-adoption patterns. In Denmark, \citet{humlum2025llm} find precise nulls on incumbents' earnings and hours (the intensive margin), complementing our extensive-margin (composition) finding.
 
 Our analysis combines both margins (postings and employment) with a within-Sweden timing test that helps distinguish macroeconomic and AI channels, using population-register data with employer-level identification. For broader surveys of this emerging literature, see \citet{chandar2025aiknow} and \citet{kolko2026firstinning}.
 
