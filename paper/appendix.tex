@@ -448,7 +448,7 @@ where $s$ indexes half-year periods and the reference period $s_0$ is the first 
 We use the same monthly AGI register data as the descriptive analysis, restricting to employers with at least five employee-month observations over the sample period and at least one worker observed in both high (Q4) and low (Q1--Q3) exposure occupations. This restriction ensures that identification comes from within-employer comparisons; single-quartile employers contribute no variation. Each employer-quartile-month cell records the count of workers in the relevant age group. The panel is balanced: cells with zero employment are included (via $\ln(0+1)=0$) to capture extensive-margin adjustment, ensuring that employers shedding all workers of a given age group in high-exposure occupations contribute to identification rather than being dropped.
 
 \paragraph{Estimation}
-The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; we report equivalent Poisson PML estimates as a robustness exercise in Section~\ref{sec:poisson_kauhanen}. The two estimators agree on sign and significance for the headline 22--25 finding, but the multiplicative Poisson effect is roughly an order of magnitude larger than the OLS coefficient on $\ln(\text{employment}+1)$. \citet{chen2024logs} show that the $\ln(y+1)$ specification does not identify a percentage change; the resulting bias is largest in panels dominated by small or zero cells, as in our employer$\times$age-group panel. The OLS estimate on $\ln(\text{employment}+1)$ is therefore conservative, and the Poisson coefficient is the appropriate input for any quantitative comparison with US estimates that report multiplicative magnitudes. The $+1$ transformation nonetheless retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether an employer retains \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains 3.5 to 5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
+The two-way high-dimensional fixed effects are absorbed using the method of alternating projections (\texttt{PanelOLS} in Python; \texttt{fixest} in R). \citet{brynjolfsson2025canaries} use Poisson QMLE following \citet{chen2024logs}; we report equivalent Poisson PML estimates as a robustness exercise in Section~\ref{sec:poisson_kauhanen}. The two estimators agree on sign and significance for the headline 22--25 finding, but the multiplicative Poisson effect is roughly an order of magnitude larger than the OLS coefficient on $\ln(\text{employment}+1)$. \citet{chen2024logs} show that the $\ln(y+1)$ specification does not identify a percentage change; the resulting bias is largest in panels dominated by small or zero cells, as in our employer$\times$age-group panel. The OLS estimate on $\ln(\text{employment}+1)$ is therefore conservative, while the Poisson coefficient is better suited for comparisons reported in multiplicative terms. The $+1$ transformation nonetheless retains employer$\times$quartile$\times$month cells with zero employment, which is informative for the extensive margin (whether an employer retains \emph{any} workers of a given age group in high-exposure occupations). The posting specification uses $\ln(\text{postings})$ without the $+1$ adjustment, since zero-posting cells represent genuinely absent demand and the log transformation naturally drops them. Unlike the ADP payroll data in \citet{brynjolfsson2025canaries}, which retains 3.5 to 5 million US workers per month after excluding part-time workers and those without job titles, our AGI register data cover the full population of Swedish employees, eliminating sample selection concerns.
 
 \paragraph{Results}
 Table~\ref{tab:employer_did} reports the employer-level DiD estimates for each age group. The average post-ChatGPT coefficient $\hat\gamma_2$ is significantly negative only for the youngest workers ($-0.010$ for ages 22--25, $p < 0.01$), null for ages 26--30 ($+0.000$, $p = 0.90$), and positive for workers over 50 ($+0.010$, $p < 0.01$). The modest average for 22--25 year olds reflects the accelerating trajectory visible in the event study (below): the effect is near zero in the first year after ChatGPT and widens sharply from early 2024 onward. The Riksbank coefficient $\hat\gamma_1$ is significantly negative for the youngest group ($-0.012$, $p < 0.01$), indicating some differential monetary policy sensitivity for young workers in AI-exposed occupations. Since the employer$\times$month fixed effects already absorb aggregate monetary effects, $\hat\gamma_1$ captures only the \emph{differential} sensitivity of high-AI occupations to tightening. The presence of a significant $\hat\gamma_1$ makes $\hat\gamma_2$ conservative: it measures the additional AI-related shift beyond any monetary vulnerability channel. Moreover, the event study shows a qualitative acceleration from early 2024 onward, inconsistent with a smooth continuation of the pre-ChatGPT trend.
@@ -472,8 +472,9 @@ Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+
 \end{table}
 
 \paragraph{Event study}
@@ -567,8 +568,9 @@ Age group & Pre-trend slope & $R^2$ & $\times$ periods & Cum.\ bias & Endpoint &
 50+ & $+0.0032$ & 0.88 & $\times 6$ & $+0.019$ & $+0.013$ & $+149\%$ \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Pre-trend slope is fitted by OLS through the six pre-treatment event-study coefficients spanning 2019 to 2021. Cumulative bias = slope $\times$ 6 post-treatment half-years. ``Bias/endpoint'' is the ratio of cumulative bias to the mid-2025 coefficient; negative ratios indicate that the pre-trend works \emph{against} the finding.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Pre-trend slope is fitted by OLS through the six pre-treatment event-study coefficients spanning 2019 to 2021. Cumulative bias = slope $\times$ 6 post-treatment half-years. ``Bias/endpoint'' is the ratio of cumulative bias to the mid-2025 coefficient; negative ratios indicate that the pre-trend works \emph{against} the finding.}
+
 \end{table}
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -580,6 +582,7 @@ The headline employer-level employment effect (Table~\ref{tab:employer_did}) is 
 
 The young-worker employment decline operates almost entirely through the hiring margin. The ChatGPT-period coefficient on hires for ages 22--25 is $\hat\gamma_2 = -0.0051$ ($p < 0.001$), while the corresponding coefficient on separations is one-quarter as large in absolute terms ($-0.0012$, $p < 0.01$). Q4 employers reduce entry hiring rather than dismissing young incumbents. For workers over 50, by contrast, both flow margins move upward and the hires effect ($+0.0032$, $p < 0.001$) exceeds the separations effect ($+0.0019$, $p < 0.001$), accounting for the net employment gain in Table~\ref{tab:employer_did}; the 50+ Q4 labour market is more dynamic on both sides rather than purely stickier. Middle age groups (26--49) show approximately null effects on hires and modestly negative effects on separations. The 26--30 group is a boundary case where the headline coefficient depends on estimator choice: the OLS$+1$ DiD (Table~\ref{tab:employer_did}) is null ($+0.000$), but the Poisson PML specification (Section~\ref{sec:poisson_kauhanen}, Step~1) is significantly negative ($-0.053$***), consistent with the accelerating late-period decline visible in the event study (Figure~\ref{fig:es_26to30}); the OLS$+1$ null reflects the small-cell attenuation that \citet{chen2024logs} document rather than absence of an effect. Ages 31--34 and 35--40 are modestly positive in OLS$+1$ ($+0.008$***, $+0.003$**), and 41--49 is null.
 
+\begin{landscape}
 \begin{table}[htbp]
 \centering
 \caption{Flow decomposition: difference-in-differences for monthly hires and separations by age group.}
@@ -607,9 +610,11 @@ Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{flow}+1)$, where flow is the cell-month count of hires (Panel~A) or separations (Panel~B). A hire is recorded when a worker is present in an employer$\times$quartile$\times$age cell in month $t$ and absent in each of the previous three months; a separation symmetrically. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{flow}+1)$, where flow is the cell-month count of hires (Panel~A) or separations (Panel~B). A hire is recorded when a worker is present in an employer$\times$quartile$\times$age cell in month $t$ and absent in each of the previous three months; a separation symmetrically. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+
 \end{table}
+\end{landscape}
 
 
 % ──────────────────────────────────────────────────────────────────────────────
@@ -666,8 +671,9 @@ Emp.\ $\times$ quartile FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 Emp.\ $\times$ month FE & Yes & Yes & Yes & Yes & Yes & Yes \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+
 \end{table}
 
 \begin{figure}[htbp]
@@ -707,8 +713,8 @@ The composition channel is more consequential at older ages. For women aged 41--
  & $(0.001)$ & $(0.002)$ & $(0.002)$ \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Coefficient shown is $\hat\gamma_2$ (PostGPT $\times$ Q4). Women (reweighted) uses inverse probability weights to match women's occupational distribution within Q4 to men's. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Coefficient shown is $\hat\gamma_2$ (PostGPT $\times$ Q4). Women (reweighted) uses inverse probability weights to match women's occupational distribution within Q4 to men's. All specifications include employer$\times$quartile and employer$\times$month fixed effects. Standard errors in parentheses, clustered at the employer$\times$quartile level. Significance: *** $p<0.01$, ** $p<0.05$, * $p<0.10$.}
 \end{table}
 
 
@@ -761,8 +767,9 @@ $N$ (cells, 22--25) & 11.7M & 1.13M & 1.22M & 11.7M & 11.4M \\
 $N$ employers       & 46{,}496 & 3{,}641 & 3{,}181 & 46{,}402 & 44{,}988 \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Each cell reports the Poisson PML coefficient and clustered standard error. Specifications: Step~1, current sample, DAIOE Q4, $\geq 5$ cumulative; Step~2, DAIOE Q4, \citet{brynjolfsson2025canaries} restriction ($\geq 10$ mean / $\geq 100$ cumulative, also imposed by \citet{kauhanen2026youth}); Step~3, Eloundou Q5 with the same restriction; Step~4, current sample, DAIOE Q4, reweighted to Finnish ISCO-1 $\times$ NACE-2 composition (winsorised weights); Step~5, current sample, DAIOE Q4, ICT (SSYK 25xx) excluded. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. Significance: *** $p<0.001$.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Each cell reports the Poisson PML coefficient and clustered standard error. Specifications: Step~1, current sample, DAIOE Q4, $\geq 5$ cumulative; Step~2, DAIOE Q4, \citet{brynjolfsson2025canaries} restriction ($\geq 10$ mean / $\geq 100$ cumulative, also imposed by \citet{kauhanen2026youth}); Step~3, Eloundou Q5 with the same restriction; Step~4, current sample, DAIOE Q4, reweighted to Finnish ISCO-1 $\times$ NACE-2 composition (winsorised weights); Step~5, current sample, DAIOE Q4, ICT (SSYK 25xx) excluded. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. Significance: *** $p<0.001$.}
+
 \end{table}
 
 \paragraph{Interpretation across the four method-varying specifications}
@@ -869,8 +876,9 @@ Age group & Coef.\ & SE & $p$ & Coef.\ & SE & $p$ \\
 50+    & $+$0.009 & 0.001 & $<$0.001 & $-$0.000 & 0.001 & 0.738 \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered at the employer level.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Dependent variable: $\ln(\text{employment} + 1)$. Fixed effects: employer$\times$quartile, employer$\times$month. Standard errors clustered at the employer level.}
+
 \end{table}
 
 The divergence between the two exposure measures likely reflects their different units of analysis. DAIOE uses O*NET ability descriptors scored against AI capability benchmarks and aggregated to the occupation level. The Eloundou $\beta$-measure uses O*NET task statements scored against GPT-style language model capabilities. Both are derived from US O*NET data and crosswalked to SSYK via SOC and ISCO. Quartile assignments agree for 85\% of occupations, and the remaining 15\% is sufficient to shift which occupations, and therefore which workers by age, enter the top exposure quartile. The DAIOE ranking loads the age gradient more sharply on entry-level positions at cognitively demanding occupations (for example, payroll administrators, customer service, junior software roles), while the Eloundou ranking distributes exposure more evenly across mid-career cognitive work.
@@ -948,8 +956,9 @@ We therefore rely on the long-tenured specification for the LISA-staleness defen
 $N$ employers, 22--25 & 46{,}496 & 10{,}692 & 22{,}805 \\
 \bottomrule
 \end{tabular}
-\par\smallskip
-{\scriptsize \emph{Notes:} Panel~A reports Poisson PML on $n_{\text{emp}}$ (matches Section~\ref{sec:poisson_kauhanen}); Panel~B reports OLS on $\ln(n_{\text{emp}}+1)$ (matches Section~\ref{sec:employer_did}). Column~1: full Step~1 sample; Column~2: workers with $\geq 24$ months observed at the same employer; Column~3: workers with identical LISA SSYK4 in 2021, 2022, and 2023. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. $^{a}$ The stayer sub-sample at younger ages exhibits a large negative pre-period Poisson coefficient $\hat\gamma_1$ ($-0.327$ at 22--25, $-0.081$ at 26--30; both $p<0.001$); see prose for selection discussion. $^{b}$ Same selection signature in OLS$+1$: stayer $\hat\gamma_1 = -0.054$ at 22--25, $-0.024$ at 26--30 (both $p<0.001$). Significance: *** $p<0.001$, ** $p<0.01$, * $p<0.05$. Standard errors in parentheses.}
+\par\medskip
+\noindent\parbox{\linewidth}{\raggedright\scriptsize \emph{Notes:} Panel~A reports Poisson PML on $n_{\text{emp}}$ (matches Section~\ref{sec:poisson_kauhanen}); Panel~B reports OLS on $\ln(n_{\text{emp}}+1)$ (matches Section~\ref{sec:employer_did}). Column~1: full Step~1 sample; Column~2: workers with $\geq 24$ months observed at the same employer; Column~3: workers with identical LISA SSYK4 in 2021, 2022, and 2023. All specifications include employer$\times$quartile and employer$\times$month fixed effects, with standard errors clustered at the employer$\times$quartile level. $^{a}$ The stayer sub-sample at younger ages exhibits a large negative pre-period Poisson coefficient $\hat\gamma_1$ ($-0.327$ at 22--25, $-0.081$ at 26--30; both $p<0.001$); see prose for selection discussion. $^{b}$ Same selection signature in OLS$+1$: stayer $\hat\gamma_1 = -0.054$ at 22--25, $-0.024$ at 26--30 (both $p<0.001$). Significance: *** $p<0.001$, ** $p<0.01$, * $p<0.05$. Standard errors in parentheses.}
+
 \end{table}
 
 
