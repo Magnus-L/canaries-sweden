@@ -2,6 +2,8 @@
 
 Replication package for Lodefalk, Löthman, Koch, and Engberg (2026), "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring."
 
+**[Working paper (PDF)](paper/main.pdf)** · **[Online appendix (PDF)](paper/appendix.pdf)** · Örebro University WP 2026:2 / Ratio WP 388
+
 ## Overview
 
 We examine whether the widely discussed divergence between stock prices and job postings (the "scary chart") reflects AI displacement of labour demand, or macroeconomic tightening. Using 4.6 million job ads from Sweden's Platsbanken (2020–2026) matched to the DAIOE generative AI exposure index, we find that the posting decline aligns with the Riksbank's rate hike rather than AI. However, an employer-level difference-in-differences using full-population register data reveals an accelerating age gradient: employment of 22–25 year olds in AI-exposed occupations declined progressively after ChatGPT, reaching 5.5% by early 2025 relative to less exposed occupations, while employment of workers over 50 rose by 1.3%.
