@@ -37,6 +37,8 @@ venv/
 *.pdf
 !figures/*.pdf
 !onepager/*.pdf
+!paper/main.pdf
+!paper/appendix.pdf
 
 # Presentations (local only, not public by default)
 presentation/
