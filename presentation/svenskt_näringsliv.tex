@@ -43,13 +43,32 @@
   \vskip0pt%
 }
 
+
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.4\paperwidth,ht=2.5ex,dp=1ex,left]{footline}%
+      \hspace*{2mm}\footnotesize 
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.5ex,dp=1ex,center]{footline}%
+      \footnotesize 
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3\paperwidth,ht=2.5ex,dp=1ex,right]{footline}%
+      \footnotesize\insertframenumber{}/\inserttotalframenumber\hspace*{2mm}
+    \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
 % Figure path
 \graphicspath{{../figures/}{./}}
 
 % Meta
-\title{Vad säger forskningen om AI och arbetsmarknaden i Sverige?}
-\author{Lydia Löthman}
-\date{19 maj 2026}
+\title[Canaries in the Coal Mine]{Same Storm, Different Boats:\\Generative AI and the Age Gradient in Hiring}
+\author[Lodefalk]{Magnus Lodefalk\inst{1,2} \and Lydia Löthman\inst{1} \and Michael Koch\inst{3,4} \and Erik Engberg\inst{1,2}}
+\institute[ORU]{\inst{1}Örebro University \inst{2}RATIO Institute \inst{3}Aarhus University \inst{4}Kiel Institute}
+\date{28 Maj 2026}
+
+
 
 \begin{document}
 
@@ -58,80 +77,42 @@
 % ============================================================
 \begin{frame}[plain]
 \titlepage
-\end{frame}
-
-% ============================================================
-% CONTEXT: AI-ECON LAB AND AISCAF
-% ============================================================
-\begin{frame}{}
-\begin{columns}[T]
-\begin{column}{0.55\textwidth}
-\textbf{Lydia Löthman} (Örebro University)
-\begin{itemize}
-    \item Doktorand i nationalekonomi
-    \item Knuten till AI-econ lab och WASP-HS
-    \item Forskar på hur AI påverkar arbetsmarknaden i Sverige och globalt  
-\end{itemize}
-
-\end{column}
-\begin{column}{0.42\textwidth}
-\begin{block}{Idag}
-\footnotesize
-\begin{itemize}
-    \item Forskningsläget i korthet
-    \item Vad säger de senaste rönen?
-    \item Vilka yrken är mest utsatta? 
-    \item Internationella mönster och Sveriges position
-\end{itemize}
-\end{block}
-\end{column}
-\end{columns}
-\end{frame}
-
-
-% THE SCARY CHART
-% ============================================================
-\begin{frame}{Under en tid präglades forskningsläget huvudsakligen av optimism}
-\begin{itemize}
-    \item Experimentella studier visade betydande produktivitetseffekter (Noy \& Zhang, 2023)
-    \item Företag som tidigt implementerade AI-lösningar tenderade att expandera sin arbetsstyrka (Hellsten et al., 2025)
-    \item Produktivitetsvinster skulle öka efterfrågan på arbetskraft och samtidigt skapa nya arbetsuppgifter och yrkesroller
-    \item Mot slutet av 2025 började dock bilden bli mer nyanserad...
-\end{itemize}
-\end{frame}
-\vspace{2mm}
-
-% ============================================================
-% MOTIVATION: WHAT WE KNOW
-% 
-\begin{frame}{I november 2025 publicerade en forskningsgrupp vid Stanford sina resultat}
-
-\textbf{”Canaries in the Coal Mine” (Brynjolfsson et al., 2025)}
-
-\begin{itemize}
-    \item Studien analyserar amerikansk sysselsättningsstatistik efter genombrottet för generativ AI och ChatGPT
-    \item Fokus ligger på så kallade AI-exponerade yrken, det vill säga yrken där arbetsuppgifterna i hög grad kan utföras eller stödjas av AI-verktyg
-    \item Deras analys visar en cirka 13-procentig relativ nedgång i sysselsättning för unga i AI-exponerade yrken
-    \item För äldre inom samma yrkeskategorier syns ingen motsvarande nedgång, utan snarare en positiv utveckling
-\end{itemize}
-
-\end{frame}
-
-% ============================================================
-% MOTIVATION: WHAT WE KNOW
-% ============================================================
-\begin{frame}
-
+\vspace{-6mm}
 \begin{center}
-\includegraphics[width=0.8\textwidth]{presentation/Brynjolfsson_2.png}
-
-\includegraphics[width=0.8\textwidth]{presentation/Brynjolfsson_1.png}
+\raisebox{-0.5\height}{\includegraphics[height=0.7cm]{orebro_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.55cm]{ratio_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.6cm]{ai_econ_lab_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.55cm]{aiscaf_logo.png}}\hspace{6mm}%
+\raisebox{-0.5\height}{\includegraphics[height=0.45cm]{wasphs_logo.png}}
 \end{center}
 \end{frame}
 
 
+\begin{frame}{Från optimism till oro kring generativ AI}
 
-\section{Data and Identification}
+\textbf{Tidiga studier präglades huvudsakligen av optimism}
+\begin{itemize}
+    \item Experimentella studier visade betydande produktivitetseffekter (Noy \& Zhang, 2023)
+    \item Företag som tidigt implementerade AI-lösningar tenderade att expandera sin arbetsstyrka (Hellsten et al., 2025)
+    \item Produktivitetsvinster förväntades öka efterfrågan på arbetskraft och samtidigt skapa nya arbetsuppgifter och yrkesroller
+\end{itemize}
+
+\vspace{3mm}
+
+\textbf{Mot slutet av 2025 började dock bilden bli mer nyanserad}
+
+\vspace{2mm}
+
+\textbf{”Canaries in the Coal Mine” (Brynjolfsson et al., 2025)}
+\begin{itemize}
+    \item Analys av amerikansk sysselsättningsstatistik efter genombrottet för generativ AI och ChatGPT
+    \item Fokus på AI-exponerade yrken där arbetsuppgifter i hög grad kan utföras eller stödjas av AI-verktyg
+    \item Cirka 13-procentig relativ nedgång i sysselsättning för unga i AI-exponerade yrken
+    \item Ingen motsvarande nedgång för äldre inom samma yrkeskategorier
+\end{itemize}
+
+\end{frame}
+
 
 % ============================================================
 % DATA
@@ -220,24 +201,42 @@ Byggarbetare, städare, sjukvårdspersonal, kockar, förskolelärare
 
 
 \begin{frame}{Internationell jämförelse}
-\vspace{3mm}
-\textbf{I linje med de amerikanska resultaten:}
-\begin{itemize}
-    \item USA: 13\% nedgång, Sverige: 5.5\% 
-    \item Samma metodologi, samma riktning
-\end{itemize}
-\textbf{Avviker från våra nordiska grannländer:}
-\begin{itemize}
-    \item Danmark: inga tydliga effekter på löner (Humlum \& Vestergaard, 2025)
-    \item Finland: inga tydliga effekter på sysselsättning (Kauhanen \& Rouvinen, 2026)
-    \begin{itemize}
-        \item Metodmässigt lik vår egen, och resultatskillnaden kvarstår även när analysen anpassas för att efterlikna deras ansats
-        
-        \item Institutionella faktorer och skillnader i AI-adoption kvarstår som möjliga förklaringar
-    \end{itemize}
-\end{itemize}
-     
+
+\small
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{2.3cm} p{3.3cm} p{4.8cm}}
+\hline
+\textbf{Studie} & \textbf{Huvudresultat} & \textbf{Tolkning} \\
+\hline
+
+USA &
+13\,\% nedgång i sysselsättning &
+Liknande metod och samma övergripande mönster som i Sverige \\[2mm]
+
+Sverige &
+5.5\,\% nedgång i sysselsättning &
+Negativa sysselsättningseffekter för unga i AI-exponerade yrken \\[2mm]
+
+Danmark &
+Inga tydliga löneeffekter &
+Begränsad jämförbarhet på grund av skillnader i data och metod
+ \\[2mm]
+
+Finland &
+Inga tydliga sysselsättningseffekter &
+Skillnaden kvarstår trots metodologiska anpassningar mot deras ansats \\
+
+\hline
+\end{tabular}
+\end{table}
+
 \vspace{2mm}
+
+\footnotesize
+Möjliga förklaringar: institutionella skillnader och variation i AI-adoption.
+
 \end{frame}
 
 
@@ -271,45 +270,6 @@ Byggarbetare, städare, sjukvårdspersonal, kockar, förskolelärare
 \end{frame}
 
 
-%% SPOTLIGHT OCCUPATIONS%%%%%
-
-\begin{frame}{Spotlight: fyra AI-exponerade yrken}
-\hypertarget{backup:spotlight}{}
-
-\centering
-\begin{columns}[c]
-\begin{column}{0.47\textwidth}
-\includegraphics[width=0.7\textwidth]{figA8a_mona_canaries_softwaredevelopers.png}
-
-\vspace{-2mm}
-{\scriptsize Mjukvaruutvecklare}
-
-\vspace{1mm}
-
-\includegraphics[width=0.7\textwidth]{figA8b_mona_canaries_customerservice.png}
-
-\vspace{-2mm}
-{\scriptsize Kundtjänstpersonal}
-\end{column}
-
-\begin{column}{0.47\textwidth}
-\includegraphics[width=0.7\textwidth]{figA8c_mona_canaries_payrolladmin.png}
-
-\vspace{-2mm}
-{\scriptsize Löneadministratörer}
-
-\vspace{1mm}
-
-\includegraphics[width=0.7\textwidth]{figA8d_mona_canaries_receptionists.png}
-
-\vspace{-2mm}
-{\scriptsize Receptionister}
-\end{column}
-\end{columns}
-
-
-\end{frame}
-
 
 \section{Conclusion}
 
@@ -331,11 +291,9 @@ Byggarbetare, städare, sjukvårdspersonal, kockar, förskolelärare
 
 \begin{column}{0.48\textwidth}
 \begin{itemize}
-    \item Det återstår att se om utvecklingen förblir koncentrerad till yngre åldersgrupper eller sprider sig uppåt
     
     \item Mer forskning krävs för att identifiera mekanismerna bakom resultaten och skillnader mellan länder
     
-    \item Förändringstakten är hög och bilden kan snabbt förändras igen
 \end{itemize}
 \end{column}
 
