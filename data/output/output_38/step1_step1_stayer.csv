@@ -1,0 +1,4 @@
+spec,age_group,gamma1,se1,p1,gamma2,se2,p2,n_obs,n_emp_total,n_employers,estimator,fe,vcov,elapsed_s
+STEP1_stayer,22-25,-0.327238870136064,0.0160735744783323,3.87879998100827e-92,-0.525540630398687,0.0277991283115862,1.0387338081111999e-79,5449704,8893504,22805,Poisson PML (R fixest::fepois via subprocess),employer x bin + employer x month,CRV1 by employer,43.4
+STEP1_stayer,26-30,-0.0810758308972004,0.008646328468135,6.7935416044942e-21,-0.325403782539898,0.0088987877072396,9.502457145883231e-293,8699262,19140178,37666,Poisson PML (R fixest::fepois via subprocess),employer x bin + employer x month,CRV1 by employer,76.1
+STEP1_stayer,31-34,-0.0141131401000298,0.0073361223241688,0.0543812304525492,-0.0876404078435063,0.0061417486024026,3.38426180249759e-46,8141718,18754882,36657,Poisson PML (R fixest::fepois via subprocess),employer x bin + employer x month,CRV1 by employer,69.1

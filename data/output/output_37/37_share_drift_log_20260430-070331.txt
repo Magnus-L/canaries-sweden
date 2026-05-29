@@ -1,0 +1,82 @@
+============================================================
+37_predquartile_share_drift.py v3 -- run
+============================================================
+Run tag : 20260430-070331
+Reading : \\micro.intra\projekt\P1207$\p1207_gem\lydia p1207\output_35\panel_with_predicted_q.parquet
+
+  rows: 75,621,459
+  age_group values: ['22-25', '26-30', '31-34', '35-40', '41-49', '50+']
+  final_quartile values: [np.int64(1), np.int64(2), np.int64(3), np.int64(4)]
+  year_month range: 2019-01 -> 2025-06
+  total n_emp: 381,734,662
+
+Aggregating n_emp by (year_month, age_group, final_quartile) ...
+  aggregated rows: 1,872
+  min cell n_emp_sum: 11,631
+  max cell n_emp_sum: 669,687
+
+Wrote \\micro.intra\projekt\P1207$\p1207_gem\lydia p1207\output_37\share_drift_long.csv
+Wrote \\micro.intra\projekt\P1207$\p1207_gem\lydia p1207\output_37\share_drift_wide.csv
+
+============================================================
+PREDICTED-Q4 SHARE BY HALF-YEAR x AGE_GROUP
+============================================================
+(Share = sum n_emp at predicted_quartile=4 / total n_emp,
+ aggregated over all employers.)
+(Sums per cell range from 73,325 to 3,588,275; export-safe.)
+
+age_group  22-25  26-30  31-34  35-40  41-49    50+
+halfyear                                           
+2019H1    0.1310 0.2415 0.2790 0.3013 0.3101 0.2629
+2019H2    0.1359 0.2421 0.2772 0.2999 0.3087 0.2622
+2020H1    0.1305 0.2469 0.2848 0.3054 0.3172 0.2716
+2020H2    0.1339 0.2461 0.2835 0.3044 0.3170 0.2725
+2021H1    0.1307 0.2521 0.2898 0.3076 0.3208 0.2783
+2021H2    0.1334 0.2500 0.2853 0.3029 0.3170 0.2763
+2022H1    0.1318 0.2593 0.2935 0.3065 0.3203 0.2809
+2022H2    0.1367 0.2590 0.2917 0.3041 0.3183 0.2805
+2023H1    0.1349 0.2696 0.3038 0.3111 0.3213 0.2841
+2023H2    0.1385 0.2686 0.3015 0.3094 0.3197 0.2834
+2024H1    0.0866 0.2391 0.2820 0.2815 0.2730 0.2114
+2024H2    0.0914 0.2417 0.2829 0.2819 0.2736 0.2114
+2025H1    0.0839 0.2350 0.2898 0.2883 0.2772 0.2177
+
+============================================================
+Q4 SHARE DRIFT: 2022H1 reference vs post-shock half-years
+============================================================
+
+Post = 2024H1
+  age   q4_2022H1    q4_post   diff_pp   diff_rel
+  22-25   0.1318      0.0866    -4.52 pp  -34.3 %
+  26-30   0.2593      0.2391    -2.02 pp  -7.8 %
+  31-34   0.2935      0.2820    -1.15 pp  -3.9 %
+  35-40   0.3065      0.2815    -2.50 pp  -8.1 %
+  41-49   0.3203      0.2730    -4.74 pp  -14.8 %
+  50+     0.2809      0.2114    -6.95 pp  -24.7 %
+
+Post = 2024H2
+  age   q4_2022H1    q4_post   diff_pp   diff_rel
+  22-25   0.1318      0.0914    -4.04 pp  -30.7 %
+  26-30   0.2593      0.2417    -1.76 pp  -6.8 %
+  31-34   0.2935      0.2829    -1.06 pp  -3.6 %
+  35-40   0.3065      0.2819    -2.45 pp  -8.0 %
+  41-49   0.3203      0.2736    -4.67 pp  -14.6 %
+  50+     0.2809      0.2114    -6.95 pp  -24.7 %
+
+Post = 2025H1
+  age   q4_2022H1    q4_post   diff_pp   diff_rel
+  22-25   0.1318      0.0839    -4.79 pp  -36.3 %
+  26-30   0.2593      0.2350    -2.44 pp  -9.4 %
+  31-34   0.2935      0.2898    -0.37 pp  -1.2 %
+  35-40   0.3065      0.2883    -1.82 pp  -5.9 %
+  41-49   0.3203      0.2772    -4.31 pp  -13.5 %
+  50+     0.2809      0.2177    -6.32 pp  -22.5 %
+
+Interpretation guide:
+  diff_rel within +/- 5 % across all ages -> drift small;
+    PredQuartile event-study effects are real signal.
+  diff_rel of -10 % or more at older ages -> classifier drift
+    contributes mechanically to the older-age effect.
+============================================================
+
+DONE. elapsed = 47.9 s

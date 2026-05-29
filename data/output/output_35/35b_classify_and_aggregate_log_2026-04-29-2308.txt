@@ -1,0 +1,76 @@
+======================================================================
+35b_classify_and_aggregate.py
+======================================================================
+
+=== STAGE 2: train classifier ===
+    Reading enriched_train.parquet (filters=[('is_current_year', '==', True), ('panel_year', 'in', [2019, 2020, 2021, 2022])], cols=22)
+      -> 220,500,960 rows in 67s
+  Full training rows: 220,500,960
+  Subsampled training to 10,000,000 rows (~2,500,000/class)
+    Reading enriched_train.parquet (filters=[('is_current_year', '==', True), ('panel_year', 'in', [2023])], cols=22)
+      -> 56,802,662 rows in 26s
+
+  Training classifier
+    Using HistGradientBoostingClassifier
+    Trained in 324s
+    Validation accuracy (overall): 0.569
+    Validation accuracy (22-25): 0.630
+    Validation accuracy (26-30): 0.592
+    Validation accuracy (31-34): 0.579
+    Validation accuracy (35-40): 0.568
+    Validation accuracy (41-49): 0.560
+    Validation accuracy (50+): 0.554
+    Q4 recall: 0.547; Q4 precision: 0.689
+
+=== STAGE 3a: gt cells (is_current_year=True from train) ===
+    Reading enriched_train.parquet (filters=[('is_current_year', '==', True)], cols=5)
+      -> 277,303,622 rows in 47s
+    gt cells: 55,846,313
+
+=== STAGE 3b: cascade cells (is_current_year=False from train) ===
+    Reading enriched_train.parquet (filters=[('is_current_year', '==', False)], cols=22)
+      -> 15,399,842 rows in 38s
+    cas cells: 8,534,958
+
+=== STAGE 3c: predict cells (2024-2025) ===
+    Reading enriched_predict.parquet (filters=None, cols=22)
+      -> 89,373,261 rows in 22s
+    pred cells: 15,035,711
+
+=== STAGE 3d: combine cells ===
+    Loaded cells_gt.parquet: 55,846,313 rows
+    Loaded cells_cas.parquet: 8,534,958 rows
+    Loaded cells_pred.parquet: 15,035,711 rows
+    Final cell count: 75,621,459
+
+=== STAGE 4: Poisson DiD by age group ===
+
+  Age group: 22-25
+    [PRED_QUARTILE / 22-25] N obs = 11,475,594, N employers = 46,501, total person-months = 22,302,947
+      [R] fixest version: 0.13.2
+      [R] rows: 11475594, sum(n_emp): 22302947
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_PRED_QUARTILE_22-25_1777498626161.csv (elapsed 20.2s)
+      g1 (PostRB  x High) = -0.0226 (SE=0.0116, p=0.0515)
+      g2 (PostGPT x High) = -0.3961 (SE=0.0253, p=0.0000)
+      [87s, converged=True]
+
+  Age group: 26-30
+    [PRED_QUARTILE / 26-30] N obs = 16,595,202, N employers = 68,521, total person-months = 37,382,551
+      [R] fixest version: 0.13.2
+      [R] rows: 16595202, sum(n_emp): 37382551
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_PRED_QUARTILE_26-30_1777498808364.csv (elapsed 30.1s)
+      g1 (PostRB  x High) = +0.0068 (SE=0.0095, p=0.4763)
+      g2 (PostGPT x High) = -0.1114 (SE=0.0276, p=0.0001)
+      [128s, converged=True]
+
+  Age group: 31-34
+    [PRED_QUARTILE / 31-34] N obs = 15,408,744, N employers = 66,456, total person-months = 32,610,887
+      [R] fixest version: 0.13.2
+      [R] rows: 15408744, sum(n_emp): 32610887
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_PRED_QUARTILE_31-34_1777499059214.csv (elapsed 31.5s)
+      g1 (PostRB  x High) = +0.0233 (SE=0.0106, p=0.0282)
+      g2 (PostGPT x High) = -0.0698 (SE=0.0326, p=0.0321)
+      [121s, converged=True]
+
+  Age group: 35-40
+    [PRED_QUARTILE / 35-40] N obs = 18,885,672, N employers = 82,383, total person-months = 46,585,296

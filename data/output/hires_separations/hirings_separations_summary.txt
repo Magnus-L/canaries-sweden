@@ -1,0 +1,36 @@
+HIRINGS AND SEPARATIONS ANALYSIS SUMMARY
+============================================================
+
+Nonzero panel cells: 75,180,417
+Employers: 510,213
+Months: 2019-01 to 2025-06
+Total employment person-months: 377,717,069
+Total hires: 17,747,583
+Total separations: 17,456,685
+
+Flow definition:
+  Gap threshold: 3 months
+  Hire = present in employer-quartile cell in month t,
+         absent in any of the previous 3 months.
+  Separation = present in employer-quartile cell in month t,
+               absent in any of the next 3 months.
+  Boundary months are not counted as true hires/separations.
+
+Regression design:
+  outcome = employer x quartile FE + employer x month FE
+            + PostRB x Q4 + PostGPT x Q4
+
+Regression results:
+age_group       outcome               method    n_obs  mean_outcome  gamma1_rb_high      se1        pval1  gamma2_gpt_high      se2        pval2
+    22-25       n_hires PanelOLS_ln_y_plus_1 11970426      0.199677       -0.001553 0.000449 5.368551e-04        -0.005089 0.000471 0.000000e+00
+    22-25 n_separations PanelOLS_ln_y_plus_1 11970426      0.168152       -0.000208 0.000423 6.218883e-01        -0.001150 0.000418 5.969062e-03
+    26-30       n_hires PanelOLS_ln_y_plus_1 16498560      0.144038       -0.002852 0.000360 2.220446e-15        -0.000402 0.000381 2.919494e-01
+    26-30 n_separations PanelOLS_ln_y_plus_1 16498560      0.138570        0.002515 0.000349 5.944134e-13        -0.003049 0.000341 0.000000e+00
+    31-34       n_hires PanelOLS_ln_y_plus_1 14773590      0.110231       -0.001367 0.000340 5.824856e-05         0.000190 0.000353 5.915478e-01
+    31-34 n_separations PanelOLS_ln_y_plus_1 14773590      0.106324        0.001637 0.000335 1.050824e-06        -0.001674 0.000331 4.335697e-07
+    35-40       n_hires PanelOLS_ln_y_plus_1 17511078      0.111306       -0.001535 0.000305 4.925943e-07         0.000389 0.000313 2.138848e-01
+    35-40 n_separations PanelOLS_ln_y_plus_1 17511078      0.107629        0.000738 0.000297 1.289969e-02        -0.000990 0.000294 7.684262e-04
+    41-49       n_hires PanelOLS_ln_y_plus_1 21810984      0.115309       -0.000516 0.000266 5.265846e-02         0.000209 0.000272 4.435045e-01
+    41-49 n_separations PanelOLS_ln_y_plus_1 21810984      0.113390        0.000895 0.000266 7.518223e-04        -0.000918 0.000263 4.920022e-04
+      50+       n_hires PanelOLS_ln_y_plus_1 29895762      0.149001       -0.001121 0.000224 5.632155e-07         0.003249 0.000230 0.000000e+00
+      50+ n_separations PanelOLS_ln_y_plus_1 29895762      0.163154       -0.000310 0.000231 1.800820e-01         0.001876 0.000229 2.220446e-16

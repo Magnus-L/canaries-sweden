@@ -1,0 +1,141 @@
+======================================================================
+38: tenure + stayer robustness
+======================================================================
+Started: 2026-04-30 13:32:26
+Log: \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_38\38_log.txt
+
+Importing kauhanen (32_mona_kauhanen_robustness.py) ...
+Log: \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\32_mona_kauhanen_robustness_log.txt
+Started: 2026-04-30 13:32:26
+sys.argv: ['\\\\micro.intra\\Projekt\\P1207$\\P1207_Gem\\Lydia P1207\\38_mona_tenure_stayer_robustness.py']
+Rscript: E:\Programs\R-4.5.3\bin\x64\Rscript.exe
+R + fixest version: 0.13.2
+kauh imported. sys.stdout restored to 38's log.
+
+Cache found: step0_panel_filtered_cache.parquet
+Loading filtered cell panel from cache ...
+Loaded 139,802,418 cells in 19s
+
+Cell panel summary:
+                          count unique      top      freq            mean             std   min        25%        50%        75%        max
+employer_id         139802418.0    NaN      NaN       NaN  1992702.284094  1208479.590335  72.0  1037597.0  1774800.0  2981158.0  5861810.0
+year_month            139802418     78  2025-06   1998167             NaN             NaN   NaN        NaN        NaN        NaN        NaN
+ssyk4                 139802418    431     ****   6371007             NaN             NaN   NaN        NaN        NaN        NaN        NaN
+age_group             139802418      6      50+  43483656             NaN             NaN   NaN        NaN        NaN        NaN        NaN
+n_emp_long_tenured  139802418.0    NaN      NaN       NaN         1.44242        19.25936   0.0        0.0        0.0        1.0    23910.0
+n_emp_stayer        139802418.0    NaN      NaN       NaN        1.861936       17.576473   0.0        0.0        1.0        1.0    11471.0
+
+Loading DAIOE quartiles ...
+  Loading DAIOE quartiles from \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\daioe_quartiles.csv
+  DAIOE: 423 SSYK4 codes
+  DAIOE rows: 423
+
+======================================================================
+STEP 1 (STEP1_long_tenured): n_emp = n_emp_long_tenured
+======================================================================
+  cells with n_emp > 0: 65,245,622
+  cells after DAIOE merge + re-aggregate: 37,719,674
+
+  Age group: 22-25
+    [STEP1_long_tenured / 22-25] N obs = 1,678,820, N employers = 10,692, total person-months = 3,101,974
+      [R] fixest version: 0.13.2
+      [R] rows: 1678820, sum(n_emp): 3101974
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_22-25_1777548890914.csv (elapsed 3.7s)
+      g1 (PostRB  x High) = +0.0474 (SE=0.0147, p=0.0013)
+      g2 (PostGPT x High) = -0.2280 (SE=0.0190, p=0.0000)
+      [18s, converged=True]
+
+  Age group: 26-30
+    [STEP1_long_tenured / 26-30] N obs = 4,237,090, N employers = 27,028, total person-months = 12,918,951
+      [R] fixest version: 0.13.2
+      [R] rows: 4237090, sum(n_emp): 12918951
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_26-30_1777548941318.csv (elapsed 9.9s)
+      g1 (PostRB  x High) = +0.0141 (SE=0.0061, p=0.0200)
+      g2 (PostGPT x High) = -0.0366 (SE=0.0084, p=0.0000)
+      [39s, converged=True]
+
+  Age group: 31-34
+    [STEP1_long_tenured / 31-34] N obs = 4,327,785, N employers = 28,333, total person-months = 14,200,259
+      [R] fixest version: 0.13.2
+      [R] rows: 4327785, sum(n_emp): 14200259
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_31-34_1777549047069.csv (elapsed 11.5s)
+      g1 (PostRB  x High) = +0.0061 (SE=0.0049, p=0.2133)
+      g2 (PostGPT x High) = +0.0166 (SE=0.0069, p=0.0164)
+      [43s, converged=True]
+
+  Age group: 35-40
+    [STEP1_long_tenured / 35-40] N obs = 5,608,625, N employers = 37,116, total person-months = 22,188,086
+      [R] fixest version: 0.13.2
+      [R] rows: 5608625, sum(n_emp): 22188086
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_35-40_1777549136565.csv (elapsed 14.2s)
+      g1 (PostRB  x High) = -0.0040 (SE=0.0042, p=0.3450)
+      g2 (PostGPT x High) = +0.0019 (SE=0.0060, p=0.7487)
+      [52s, converged=True]
+
+  Age group: 41-49
+    [STEP1_long_tenured / 41-49] N obs = 7,774,690, N employers = 51,656, total person-months = 35,889,620
+      [R] fixest version: 0.13.2
+      [R] rows: 7774690, sum(n_emp): 35889620
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_41-49_1777549251588.csv (elapsed 21.3s)
+      g1 (PostRB  x High) = +0.0003 (SE=0.0026, p=0.9180)
+      g2 (PostGPT x High) = -0.0025 (SE=0.0038, p=0.5011)
+      [72s, converged=True]
+
+  Age group: 50+
+    [STEP1_long_tenured / 50+] N obs = 12,675,905, N employers = 82,825, total person-months = 74,148,853
+      [R] fixest version: 0.13.2
+      [R] rows: 12675905, sum(n_emp): 74148853
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_long_tenured_50+_1777549444540.csv (elapsed 30.9s)
+      g1 (PostRB  x High) = +0.0083 (SE=0.0028, p=0.0026)
+      g2 (PostGPT x High) = +0.0250 (SE=0.0030, p=0.0000)
+      [115s, converged=True]
+
+  -> wrote step1_step1_long_tenured.csv (6 rows)
+
+======================================================================
+STEP 1 (STEP1_stayer): n_emp = n_emp_stayer
+======================================================================
+  cells with n_emp > 0: 89,607,754
+  cells after DAIOE merge + re-aggregate: 54,327,877
+
+  Age group: 22-25
+    [STEP1_stayer / 22-25] N obs = 5,449,704, N employers = 22,805, total person-months = 8,893,504
+      [R] fixest version: 0.13.2
+      [R] rows: 5449704, sum(n_emp): 8893504
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_stayer_22-25_1777549795833.csv (elapsed 9.7s)
+      g1 (PostRB  x High) = -0.3272 (SE=0.0161, p=0.0000)
+      g2 (PostGPT x High) = -0.5255 (SE=0.0278, p=0.0000)
+      [43s, converged=True]
+
+  Age group: 26-30
+    [STEP1_stayer / 26-30] N obs = 8,699,262, N employers = 37,666, total person-months = 19,140,178
+      [R] fixest version: 0.13.2
+      [R] rows: 8699262, sum(n_emp): 19140178
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_stayer_26-30_1777549901317.csv (elapsed 19.0s)
+      g1 (PostRB  x High) = -0.0811 (SE=0.0086, p=0.0000)
+      g2 (PostGPT x High) = -0.3254 (SE=0.0089, p=0.0000)
+      [76s, converged=True]
+
+  Age group: 31-34
+    [STEP1_stayer / 31-34] N obs = 8,141,718, N employers = 36,657, total person-months = 18,754,882
+      [R] fixest version: 0.13.2
+      [R] rows: 8141718, sum(n_emp): 18754882
+      [R] OK: wrote \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\output_32\_rfepois_out_STEP1_stayer_31-34_1777550062983.csv (elapsed 17.6s)
+      g1 (PostRB  x High) = -0.0141 (SE=0.0073, p=0.0544)
+      g2 (PostGPT x High) = -0.0876 (SE=0.0061, p=0.0000)
+      [69s, converged=True]
+
+  Age group: 35-40
+    [STEP1_stayer / 35-40] N obs = 10,111,998, N employers = 46,191, total person-months = 28,692,079
+      [R] fixest version: 0.13.2
+      [R] rows: 10111998, sum(n_emp): 28692079
+      [R] non-zero exit 3221225477
+      [R-stderr] +----------------------------------------------------------+
+      [R-stderr] |                        __              __                |
+      [R-stderr] |       /\ |_  _    |_  |__)  . _   |\/|/  \|\ | /\        |
+      [R-stderr] |      /--\|_)(_)|_||_  | \   || )  |  |\__/| \|/--\       |
+      [R-stderr] |                                                          |
+      [R-stderr] |   MONA has a local CRAN-mirror that is used by default.  |
+      [R-stderr] |    You can install packages with install.packages();     |
+      [R-stderr] |  Packages you install remain installed for your account  |
+      [R-stderr] |        across R sessions (batch or interactive).         |
