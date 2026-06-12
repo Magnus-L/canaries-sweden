@@ -2,11 +2,11 @@
 % Lodefalk, Löthman, Koch, Engberg (2026)
 % For Overleaf editing; submit to ProMarket as plain text/Word.
 % American English throughout (ProMarket, Chicago Booth).
-% References appear as [Author YEAR] in text — replace with hyperlinks on submission.
-% Target: 1,000–1,500 words (current ~1,260).
-% Status: DRAFT — requires author rewriting before submission.
-%         ProMarket AI policy prohibits substantially AI-written work.
-%         This draft is a skeleton for Magnus and Michael Koch to rewrite.
+% References appear as hyperlinks in text.
+% Target: 1,000–1,500 words.
+% Status: post-editor round (Eli Orbach + Andrew Shi edits, June 2026) merged.
+%   Decisions applied: (1) title = Andrew's option; (2) "x" example = software development;
+%   (3) gender section holds the line — composition split given, no hard within-occupation residual.
 
 \documentclass[12pt]{article}
 
@@ -31,14 +31,7 @@
 % TITLE BLOCK
 % ─────────────────────────────────────────────────────────────────
 
-% TITLE OPTIONS — submit 2–3 to ProMarket; editors decide.
-% (1) Generative AI Is Changing Who Gets Hired, Not How Many
-% (2) The Stock Market Divergence Is Not an AI Story. The Hiring Freeze Is.
-% (3) AI Has a Quiet Labor Market Effect. It Is Showing Up in Entry-Level Hiring.
-
-\title{\textbf{Generative AI Is Changing Who Gets Hired, Not How Many}
-\\[4pt]
-\normalsize\textit{[Working title — ProMarket editors will finalise]}}
+\title{\textbf{AI Is Not Reducing Employment but Rather Who Gets Hired}}
 
 \author{
   Magnus Lodefalk\thanks{Örebro University and RATIO Institute.
@@ -60,73 +53,182 @@
 \bigskip
 
 % ─────────────────────────────────────────────────────────────────
+% STANDFIRST (editor-supplied summary)
+% ─────────────────────────────────────────────────────────────────
+
+\noindent\textit{In a new working paper, Magnus Lodefalk, Lydia Löthman, Michael Koch, and Erik Engberg
+examine how generative AI is reshaping the labor market. They find little evidence that AI has cut
+the total number of jobs, but show that it has slowed hiring for the youngest workers, especially in
+the AI-exposed occupations where young women are concentrated. Over time, AI's effect on entry-level
+roles risks thinning the next generation's ability to build the skills and networks that careers are
+made of.}
+
+\bigskip
+\noindent\rule{\textwidth}{0.4pt}
+\bigskip
+
+% ─────────────────────────────────────────────────────────────────
 % ARTICLE BODY
 % ─────────────────────────────────────────────────────────────────
 
 Since late 2022, stock prices have risen sharply while job openings have fallen almost as steeply.
-The divergence has become one of the most cited charts in discussions of artificial intelligence and the labor market, and for many observers the interpretation is straightforward: generative AI is
-substituting for workers, depressing labor demand while lifting corporate profits. Our research,
-using full-population register data for Sweden and 4.6 million job advertisements, finds that this
-reading of the aggregate picture is not supported by the evidence. The underlying concern, however,
-is well founded. The effect of generative AI operates below the surface of standard statistics,
-through a selective recomposition of who gets hired.
+In the United States, equity prices have risen by more than 70 percent while job openings have fallen
+by over 30 percent. The divergence has become one of the most-cited statistics in discussions of
+artificial intelligence and the labor market, and for many observers the interpretation is
+straightforward: generative AI is replacing workers, depressing labor demand while lifting corporate
+profits. Our research, using full-population register data for Sweden and 4.6 million job
+advertisements, finds that the evidence does not support this reading of the aggregate picture. The
+underlying concern, however, is well founded. Generative AI is not reducing employment, but it is
+changing who gets hired.
 
 \section*{The aggregate decline is a monetary policy story}
 
-In many economies, stock markets and job openings have moved in opposite directions. In the United States, for example, equity prices have risen by more than 70 percent since late 2022, while job openings have fallen by over 30 percent. Some commentators attribute this divergence to the rapid adoption of generative AI, whereas others emphasize macroeconomic forces -- particularly the tightening of monetary policy. We examine these competing explanations using Swedish data and a useful timing distinction. Sweden’s central bank, the Riksbank, began raising interest rates in April 2022, seven months before the launch of ChatGPT in November 2022. This sequence allows us to separate the effects: if monetary tightening is the primary driver of declining job postings, the downturn should coincide with the rate hike. If generative AI is responsible, the effect should only emerge after late 2022 and be concentrated in occupations with high exposure to the technology.
+Some commentators attribute the divergence between stock prices and job openings to the rapid
+adoption of generative AI, while others emphasize macroeconomic forces, particularly the tightening
+of monetary policy. We examine these competing explanations using Swedish data and a useful timing
+gap. Sweden's central bank, the Riksbank, began raising interest rates in April 2022, seven months
+before the launch of ChatGPT in November 2022. This sequence lets us separate the effects: if
+monetary tightening is the primary driver of declining job postings, the initial downturn should
+coincide with the rate hike. If generative AI is responsible, the effect should emerge only after
+late 2022 and be concentrated in occupations with high exposure to the technology.
 
-Using the full population of advertisements published on Platsbanken, Sweden's public employment service vacancy portal, and matching these data to an occupation-level measure of generative-AI exposure (the \href{https://docs.iza.org/dp16717.pdf}{DAIOE index}, Engberg et al.\ 2024), we find little evidence that ChatGPT triggered the broad decline in vacancies. Postings began falling across AI-exposure groups from April 2022 onward, immediately after the Riksbank's first rate hike. Among high-AI-exposure occupations, the relative decline after the rate hike was sizable -- around 12 percent -- while the additional post-ChatGPT decline was smaller, statistically imprecise, and not robustly different from zero. AI-exposed occupations are also uncorrelated with interest-rate
-sensitivity, suggesting that monetary tightening and generative AI represent distinct channels. This interpretation echoes \href{https://www.derekthompson.org/p/is-this-the-new-scariest-chart-in}{Thompson (2025)}, who makes a similar point for the United States: the decline in job postings appears to track the Federal Reserve's tightening cycle more closely than the launch of ChatGPT.
+Using the full population of advertisements published on Platsbanken, Sweden's public employment
+service vacancy portal, and matching these data to an occupation-level measure of generative-AI
+exposure (the \href{https://docs.iza.org/dp16717.pdf}{DAIOE index}, Engberg et al.\ 2024), we find
+little evidence that ChatGPT triggered the broad decline in vacancies. Postings began falling across
+AI-exposure groups from April 2022 onward, immediately after the Riksbank's first rate hike. Among
+high-AI-exposure occupations, the relative decline after the rate hike was sizable, around 12
+percent, while the additional decline after the November release of ChatGPT was statistically
+imprecise and not robustly different from zero. An occupation's exposure to AI is also uncorrelated
+with its sensitivity to interest rates, which suggests that monetary tightening and generative AI
+represent distinct channels. This echoes a point
+\href{https://www.derekthompson.org/p/is-this-the-new-scariest-chart-in}{Derek Thompson (2025)} has
+made for the United States: the decline in job postings appears to track the Federal Reserve's
+tightening cycle more closely than the launch of ChatGPT.
 
 \section*{Within employers, the age gradient is large and accelerating}
 
-The aggregate posting data conceal a different pattern within individual employers.
-Using monthly employer-declaration register data, which cover the full Swedish working population, and linking workers to four-digit occupation codes and age, we estimate an employer-level difference-in-differences design following \href{https://digitaleconomy.stanford.edu/wp-content/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf}{Brynjolfsson et al.\ 2025}. Employer-by-quartile and employer-by-month fixed effects absorb, respectively, time-invariant
-differences in firms' occupational composition and all firm-level shocks that vary over time. The remaining variation used for identification therefore comes from within-employer changes in employment across AI-exposure quartiles.
+The aggregate posting data conceal a different pattern inside individual employers. We draw on monthly
+employer declarations to the tax authority, which list everyone on each employer's payroll, month by
+month, across the entire Swedish workforce; linked population registers supply each worker's age, sex,
+and occupation. Because we follow the same people from month to month, we can see not just how many
+workers an employer has but who joins and who leaves: someone newly on a payroll is a hire, and someone
+who stops appearing is a departure, whether a layoff, a quit, or a move elsewhere. We then compare how employment in the
+most AI-exposed occupations, such as software development, payroll and human-resources work, and
+customer service, evolved against less-exposed roles within the same employer, before and after
+ChatGPT. Holding the employer fixed nets out company-wide hiring freezes or expansions, so what remains
+is the shift across occupations of differing AI exposure.
 
-The results point to a pronounced age gradient. By the first half of 2025, employment of workers aged 22 to 25 in the most AI-exposed occupations had fallen by 5.5~percent relative to less-exposed occupations within the same employers. The confidence interval is tight, ranging from 4.9 to 5.8~percent, and this event-study estimate is our headline result. Estimates from a Poisson pseudo-maximum-likelihood specification, which is better suited to the many employer-occupation cells with zero employment, imply a larger decline of about 16~percent across four consistent specifications. The difference in magnitude reflects the different scaling of the log-linear and Poisson models, not a different economic interpretation: both point to a sizable relative decline for the youngest workers in high-AI-exposure jobs. By contrast, workers aged 31 to 49 are essentially unaffected. Workers over 50 show a small positive gain, although this result is more sensitive to the
-choice of AI-exposure measure.
+By the first half of 2025, employment of workers aged 22 to 25 in the most AI-exposed occupations had
+fallen by 5.5 percent relative to less-exposed occupations within the same employers, with a tight
+confidence interval running from 4.9 to 5.8 percent. By contrast, workers aged 31 to 49 were
+essentially unaffected. Workers over 50 showed a small positive gain, although that result is more
+sensitive to how a role's exposure to AI is measured.
 
-The adjustment occurs almost entirely through reduced hiring. For workers aged 22 to 25, the decline in hires is large and precisely estimated, while the corresponding change in separations is only about one-quarter as large. This distinction matters in the Swedish context. Employment protection is organized around a last-in-first-out principle, which makes dismissals of incumbent workers relatively constrained. High-AI-exposure employers therefore do not appear to be laying off junior workers in large numbers. Rather, they are slowing entry into these jobs: not replacing departing workers and not bringing in new cohorts at the same rate as before. A similar pattern appears in recent U.S.\ evidence.
-\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5425555}{Hosseini and Lichtinger (2025)} use r\'esum\'e and job-posting data covering roughly 62~million workers across 285{,}000 firms and find that junior employment falls sharply in generative-AI-adopting firms, while senior employment is largely unchanged. As in Sweden, the decline is concentrated in AI-exposed jobs and operates primarily through slower hiring rather than increased separations. The hiring-freeze pattern thus appears to be emerging across institutional settings.
+The adjustment occurs almost entirely through reduced hiring. For workers aged 22 to 25, the decline
+in hires is large and precisely estimated, while the corresponding change in separations (layoffs and
+quits) is only about one-quarter as large. This distinction matters in the Swedish context.
+Employment protection is organized around a last-in-first-out principle, which constrains dismissals
+of incumbent workers. High-AI-exposure employers therefore do not appear to be laying off junior
+workers in large numbers. Rather, they are slowing entry into these jobs: not replacing departing
+workers and not bringing in new cohorts at the same rate as before. A similar pattern appears in
+recent U.S.\ evidence.
+\href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5425555}{Hosseini and Lichtinger (2025)}
+use résumé and job-posting data covering roughly 62 million workers across 285{,}000 firms and find
+that junior employment falls sharply in generative-AI-adopting firms, while senior employment is
+largely unchanged. As in Sweden, the decline is concentrated in AI-exposed jobs and operates mainly
+through slower hiring rather than increased separations. The hiring-freeze pattern thus appears to be
+emerging across institutional settings.
 
 \section*{Young women face a larger adjustment}
 
-The most under-examined finding concerns young women. Women are disproportionately concentrated in the administrative, payroll, and customer-service roles that sit near the top of the AI-exposure distribution, and they are also overrepresented among young workers in those roles, precisely the group where the employment decline is largest. Payroll administrators are 82~percent female and among the most AI-exposed occupations in Sweden; customer-service agents and receptionists are 66~percent female. 
+The most under-examined finding concerns young women. They are disproportionately concentrated in the
+administrative, payroll, and customer-service roles that sit near the top of the AI-exposure
+distribution, and they are overrepresented among the young workers in those roles, precisely the
+group where the employment decline is largest. Payroll administrators are 82 percent female and among
+the most AI-exposed occupations in Sweden; customer-service agents and receptionists are 66 percent
+female. The most exposed male-dominated occupation, software development, is about 80 percent male.
 
-Beyond this composition effect, young women aged 22 to 25 show a relative employment decline roughly twice as large as young men's in high-AI occupations. Part of this gap reflects the occupational sorting described above, but a gap remains even after accounting for where men and women work within the quartiles. Whether this residual reflects genuinely different treatment within the same occupations is harder to establish: the comparison group for young men, those working in less AI-exposed roles, was itself declining over this period, so the smaller male coefficient may reflect a less stable baseline rather than a smaller effect of AI. The composition channel is therefore the more secure finding.
+The numbers track this concentration. Among workers aged 22 to 25, employment in high-exposure
+occupations fell about 1.6 percent for women, roughly twice the 0.7 percent decline for young men.
+About two-fifths of that gap reflects occupational sorting: young women are simply more concentrated
+in the most exposed jobs. The remaining gap is harder to interpret, and we are deliberately cautious
+about it. Young men's comparison group, those in less-exposed roles, was itself shrinking over this
+period, so the smaller decline measured for men may rest on an unstable benchmark rather than reflect
+genuinely gentler treatment. We therefore treat the occupational-concentration channel as the firmer
+of the two findings: the clearest reason young women are more affected is that they are more often in
+the jobs AI reaches first.
 
-This is consistent with simulation evidence for Sweden from \href{https://www.ifn.se/en/publications/working-papers/2025/1534/}{Gardberg, Heyman, Olsson and T\aa{}g (IFN~2025)}, who show that pre-existing occupational sorting by gender can widen the post-AI wage gap. The \href{https://www.ilo.org/resource/news/new-ilo-data-confirm-women-face-higher-workplace-risks-generative-ai-men}{International Labour Organization (2026)} similarly estimates that female-dominated occupations globally face almost twice the generative AI exposure of male-dominated ones. Our results suggest these risks are already visible in Swedish employer hiring decisions.
+This is consistent with simulation evidence for Sweden from
+\href{https://www.ifn.se/en/publications/working-papers/2025/1534/}{Gardberg, Heyman, Olsson and
+T\aa{}g (IFN~2025)}, who show that pre-existing occupational sorting by gender can widen the post-AI
+wage gap. The
+\href{https://www.ilo.org/resource/news/new-ilo-data-confirm-women-face-higher-workplace-risks-generative-ai-men}{International
+Labour Organization (2026)} similarly estimates that female-dominated occupations globally face almost
+twice the generative-AI exposure of male-dominated ones. Our results suggest these risks are already
+visible in Swedish employer hiring decisions.
 
 \section*{Why outcomes differ across countries}
 
-The emerging evidence points to substantial cross-country heterogeneity. Three studies, covering three countries, reach three different conclusions. For the United States,
-\href{https://digitaleconomy.stanford.edu/wp-content/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf}{Brynjolfsson et al.\ 2025} estimate a 16~percent employment decline for young workers in AI-exposed occupations. Our Swedish Poisson estimates are in a similar range. By contrast,
-\href{https://www.etla.fi/en/publications/working-papers-en/ai-has-not-impacted-the-youth-labor-market-in-finland/}{Kauhanen and Rouvinen (ETLA~2026)} find no comparable effect in Finland using population-level data and a closely related research design.
+The emerging evidence points to substantial cross-country heterogeneity. For the United States,
+\href{https://digitaleconomy.stanford.edu/wp-content/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf}{Brynjolfsson
+et al.\ 2025} document a sizable employment decline for young workers in AI-exposed occupations, and
+we find a similarly sizable decline in Sweden. By contrast,
+\href{https://www.etla.fi/en/publications/working-papers-en/ai-has-not-impacted-the-youth-labor-market-in-finland/}{Antti
+Kauhanen and Petri Rouvinen (ETLA~2026)} find no comparable effect in Finland, using population-level
+data and a closely related research design. The Swedish result is not an artifact of method: when we
+reweight our sample to match Finland's industry and occupation mix and apply Finland's preferred
+exposure measure, the decline barely moves.
 
-We test directly whether the Sweden-Finland divergence is driven by methodology. It is not.
-Reweighting the Swedish sample to match Finland's industry-occupation composition and applying Finland's preferred exposure measure leaves the estimated decline at roughly 15~percent, nearly unchanged. Our Swedish result therefore does not appear to be an artifact of occupational mix, exposure measurement, or estimator choice.
-
-What explains the divergence remains uncertain. Plausible candidates include differences in the intensity of AI adoption, the occupational structure of youth employment, employer hiring practices, and vocational-training pathways that may channel young Finns into less-exposed entry-level jobs. The cross-country heterogeneity is therefore not a nuisance result; it is part of the substantive finding. Institutional context appears to shape how the same underlying technology is translated into labor-market outcomes.
+What explains the divergence remains uncertain. Plausible candidates include differences in the
+intensity of AI adoption, the occupational structure of youth employment, employer hiring practices,
+and vocational-training pathways that may channel young Finns into less-exposed entry-level jobs. The
+cross-country heterogeneity is therefore not a nuisance result; it is part of the substantive finding.
+Institutions, practices, and norms appear to shape how the same underlying technology is translated
+into labor-market outcomes.
 
 \section*{A skill-formation concern}
 
-Job counts alone understate what is at stake. Entry-level positions in AI-exposed occupations are not just jobs; they are training grounds. They are where young workers accumulate applied skills, professional networks, institutional knowledge, and the tacit know-how that later becomes mid-career capability. When employers stop bringing in new cohorts, they are not only reducing near-term labor costs. They are also weakening the pipeline of experienced workers they will need in the future.
+Job counts alone understate what is at stake. Entry-level positions in AI-exposed occupations are not
+just jobs; they are training grounds. They are where young workers accumulate applied skills,
+professional networks, institutional knowledge, and the tacit know-how that later becomes mid-career
+capability. When employers stop bringing in new cohorts, they are not only reducing near-term labor
+costs. They are also weakening the pipeline of experienced workers they will need in the future.
 
-\href{https://digitaleconomy.stanford.edu/wp-content/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf}{Brynjolfsson et al.\ 2025} describe young workers as the ``canaries in the coal mine,'' early signals of a broader labor-market adjustment. If the entry-level hiring slowdown persists, the result will be more than a temporary employment dip. It risks becoming a generational skill-formation gap: fewer workers learning by doing, fewer junior employees moving into senior roles, and a thinner future stock of occupational expertise. Such a gap may show up first in career trajectories, firm
-capabilities, and productivity growth, long before it appears in headline unemployment figures.
+\href{https://digitaleconomy.stanford.edu/wp-content/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf}{Brynjolfsson
+et al.\ 2025} describe young workers as the ``canaries in the coal mine,'' early signals of a broader
+labor-market adjustment. If the entry-level hiring slowdown persists, the result will be more than a
+temporary employment dip. It risks becoming a generational skill-formation gap: fewer workers learning
+by doing, fewer junior employees moving into senior roles, and a thinner future stock of occupational
+expertise. Such a gap may show up first in career trajectories, firm capabilities, and productivity
+growth, long before it appears in headline unemployment figures.
 
 \section*{Implications}
 
-Three practical implications follow. First, monitoring needs to become more granular. Aggregate unemployment rates and headline job-posting indices are unlikely to detect this adjustment early. What makes it visible is high-frequency employer-level data that track hiring composition by age, occupation, and exposure to new technologies. Countries with employer-declaration registers of the kind Sweden maintains therefore have a significant informational advantage. Second, education and training systems need to adapt. If entry-level positions in AI-exposed fields contract, universities and vocational programs cannot assume that firms will continue to provide the same amount of early-career learning by doing. Applied learning, work-integrated training, and structured transition pathways will need to play a larger role in supplying the experiential component that employment has historically provided. Third, policymakers should watch for coverage gaps. Recent graduates who cannot find work, and who have not yet accrued eligibility for unemployment-insurance benefits, may be largely invisible to the social-insurance system. Monitoring whether this group is growing disproportionately in AI-exposed fields should be a priority. The policy challenge is not only to measure job loss after it occurs, but to detect blocked entry before it hardens into a persistent career disadvantage.
+Three practical implications follow. First, monitoring needs to become more granular. Aggregate
+unemployment rates and headline job-posting indices are unlikely to detect this adjustment early. What
+makes it visible is high-frequency, employer-level data that track hiring composition by age,
+occupation, and exposure to new technologies. Countries with employer-declaration registers of the
+kind Sweden maintains therefore have a significant informational advantage; the United States, lacking
+a comparable register, must rely on private payroll and résumé data. Second, education and training
+systems need to adapt. If entry-level positions in AI-exposed fields contract, universities and
+vocational programs cannot assume that firms will keep providing the same amount of early-career
+learning by doing. Applied learning, work-integrated training, and structured transition pathways will
+need to play a larger role in supplying the experiential component that employment has historically
+provided. Third, policymakers should watch for coverage gaps. Recent graduates who cannot find work,
+and who have not yet accrued eligibility for unemployment-insurance benefits, may be largely invisible
+to the social-insurance system. Monitoring whether this group is growing disproportionately in
+AI-exposed fields should be a priority. The policy challenge is not only to measure job loss after it
+occurs, but to detect blocked entry before it hardens into a persistent career disadvantage.
 
 \bigskip
 \noindent\rule{\textwidth}{0.4pt}
 
 \noindent\textbf{Disclosure.} Funded by the Torsten S\"oderberg Foundation (grants E46/21, ET3/23)
 and WASP-HS (grant 805). Employment data from Statistics Sweden via the MONA platform under ethical
-approvals detailed in the \href{https://github.com/Magnus-L/canaries-sweden/blob/main/paper/main.pdf}{working paper}. No conflicts of
-interest.
+approvals detailed in the
+\href{https://github.com/Magnus-L/canaries-sweden/blob/main/paper/main.pdf}{working paper}. No
+conflicts of interest.
 
 % ─────────────────────────────────────────────────────────────────
 % FIGURES (send as separate image files to ProMarket)
