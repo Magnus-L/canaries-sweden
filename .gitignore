@@ -75,3 +75,10 @@ src/*.py.zip
 .env
 *.env
 *_log.txt
+
+# Submission bundles: reproducible from the flat directories beside them
+paper/em-submission.zip
+paper/em-main-only.zip
+
+# Interview brief holds a reporter's mobile number: local + iCloud only
+SR_intervjuunderlag_*.md

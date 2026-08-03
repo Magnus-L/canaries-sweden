@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\caption{Robustness: DAIOE vs.\ Eloundou et al.\ (2024) GPT exposure}
+\label{tab:eloundou_robust}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccccc}
+\hline\hline
+ & \multicolumn{3}{c}{DAIOE} & \multicolumn{3}{c}{Eloundou $\beta$} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+  & (1) & (2) & (3) & (4) & (5) & (6) \\
+\hline
+Post-RB $\times$ High & $-$0.127*** & $-$0.068 & $-$0.039 & $-$0.022 & 0.029 & 0.037 \\
+ & (0.039) & (0.050) & (0.049) & (0.043) & (0.057) & (0.051) \\[3pt]
+Post-GPT $\times$ High & $-$0.062 & 0.018 & $-$0.032 & $-$0.096** & $-$0.028 & $-$0.066 \\
+ & (0.038) & (0.040) & (0.048) & (0.043) & (0.049) & (0.049) \\
+\hline
+Occ.\ trends & & Yes & & & Yes & \\
+Occ.\ group $\times$ month FE & & & Yes & & & Yes \\
+Occupations & \multicolumn{3}{c}{369} & \multicolumn{3}{c}{341} \\
+Observations & \multicolumn{3}{c}{26,672} & \multicolumn{3}{c}{24,640} \\
+\hline\hline
+\multicolumn{7}{p{0.93\textwidth}}{\scriptsize \textit{Notes:} Dependent variable: $\ln(\text{postings}_{it})$. All specifications include occupation and month FE (cols.\ 3 and 6 replace common month FE with occupation group $\times$ month FE). ``High'' = top quartile. Post-RB = April 2022+; Post-GPT = December 2022+. Eloundou $\beta$: GPT exposure from Eloundou et al.\ (2024), crosswalked via SOC$\to$ISCO$\to$SSYK. Clustered SEs. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.} \\
+\end{tabular}
+\end{table}
