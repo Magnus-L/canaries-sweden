@@ -81,5 +81,6 @@ src/*.py.zip
 paper/em-submission.zip
 paper/em-main-only.zip
 
-# Interview brief holds a reporter's mobile number: local + iCloud only
+# Interview briefs are local + iCloud only (one version held a reporter's mobile number)
 SR_intervjuunderlag_*.md
+SR_interview_brief_*.md
