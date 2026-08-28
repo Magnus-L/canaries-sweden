@@ -1,0 +1,33 @@
+PUBLIC YREG CHECK (SCB-coded; immune to our cascade)
+========================================================
+years: [np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023), np.int64(2024)]
+
+Q4-vs-rest log employment gap, change from 2022, by band:
+     16-24 years 2023: +0.0175
+     16-24 years 2024: -0.0060
+     25-29 years 2023: +0.0704
+     25-29 years 2024: +0.0207
+     30-34 years 2023: +0.0444
+     30-34 years 2024: +0.0537
+     35-39 years 2023: +0.0230
+     35-39 years 2024: +0.0320
+     40-44 years 2023: +0.0003
+     40-44 years 2024: -0.0015
+     45-49 years 2023: -0.0024
+     45-49 years 2024: -0.0016
+     50-54 years 2023: +0.0270
+     50-54 years 2024: +0.0506
+     55-59 years 2023: +0.0263
+     55-59 years 2024: +0.0392
+     60-64 years 2023: +0.0260
+     60-64 years 2024: +0.0450
+     65-69 years 2023: +nan
+     65-69 years 2024: +nan
+
+Caveats (state in the OA):
+ - RAMS->BAS register switch at reference year 2022 sits on
+   the treatment boundary; SCB flags it as a series break.
+ - Publication lag: the newest published year lags AGI; the
+   2025 occupation register will not exist before ~2027, so
+   this check covers the first problem year (2024), not 2025.
+ - Annual frequency and published age bands (not 22-25).

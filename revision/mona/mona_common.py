@@ -104,7 +104,7 @@ def _year_suffix(year: int):
     return ("_def", 12) if year < 2025 else ("_prel", 6)
 
 
-def pull_year_vintage(year: int, conn) -> pd.DataFrame:
+def pull_year_vintage(year: int, conn, force_cascade: bool = False) -> pd.DataFrame:
     """
     One year of AGI, aggregated to employer x ssyk4 x age_group x month x
     SSYK VINTAGE. The vintage column records which Individ table supplied
@@ -118,9 +118,15 @@ def pull_year_vintage(year: int, conn) -> pd.DataFrame:
     Rows with vintage 'none' carry ssyk4 = '____' and are NOT usable for
     exposure assignment; they exist so the coverage denominators are right.
     Summing n_emp over vintage reproduces the v1 COALESCE pull exactly.
+
+    force_cascade=True applies the 2023/2022/2021 cascade to EVERY year,
+    including years that have their own Individ table. This is the frozen-
+    cohort assignment (script 42): membership and exposure are fixed by the
+    2021-2023 registers for the whole window, so post-2023 coverage
+    deterioration cannot enter either the numerator or the composition.
     """
     suffix, max_month = _year_suffix(year)
-    individ_year = min(year, 2023)
+    individ_year = 2023 if force_cascade else min(year, 2023)
     monthly = []
     for month in range(1, max_month + 1):
         ym = f"{year}{month:02d}"
@@ -193,11 +199,13 @@ def pull_year_vintage(year: int, conn) -> pd.DataFrame:
     return pd.read_sql(query, conn)
 
 
-def pull_panel(years, conn, cache_path: Path, vintage: bool = True):
+def pull_panel(years, conn, cache_path: Path, vintage: bool = True,
+               force_cascade: bool = False):
     """
     Pull all years to one panel, cached as parquet. With vintage=True the
     panel carries the vintage column; collapse_vintage() reproduces the v1
     view. Cache-first: if cache_path exists it is loaded, not re-pulled.
+    force_cascade is passed through to pull_year_vintage (frozen cohort).
     """
     if cache_path.exists():
         print(f"  Loading cached panel {cache_path.name}")
@@ -205,7 +213,7 @@ def pull_panel(years, conn, cache_path: Path, vintage: bool = True):
     frames = []
     for y in years:
         t0 = time.time()
-        f = pull_year_vintage(y, conn)
+        f = pull_year_vintage(y, conn, force_cascade=force_cascade)
         print(f"  {y}: {len(f):,} cells in {time.time()-t0:.0f}s")
         frames.append(f)
     panel = pd.concat(frames, ignore_index=True)
@@ -264,10 +272,14 @@ def balance_panel(sub: pd.DataFrame, all_months) -> pd.DataFrame:
     lo = set(emp_q.loc[emp_q["exposure_quartile"] < 4, "employer_id"])
     emp_q = emp_q[emp_q["employer_id"].isin(q4 & lo)]
     months_df = pd.DataFrame({"year_month": sorted(all_months)})
+    # One row per cell guaranteed before the merge (defensive; upstream
+    # aggregation already ensures it, but a duplicate would silently
+    # double-count under a plain left-merge).
+    cell = (sub.groupby(["employer_id", "exposure_quartile", "year_month"],
+                        observed=True)["n_emp"].sum().reset_index())
     balanced = (emp_q.assign(_k=1)
                 .merge(months_df.assign(_k=1), on="_k").drop(columns="_k")
-                .merge(sub[["employer_id", "exposure_quartile",
-                            "year_month", "n_emp"]],
+                .merge(cell,
                        on=["employer_id", "exposure_quartile", "year_month"],
                        how="left"))
     balanced["n_emp"] = balanced["n_emp"].fillna(0).astype(int)
@@ -334,6 +346,26 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         print(f"  fepois_es FAILED ({tag}): {r.stderr[-500:]}")
+    res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
+    inp.unlink(missing_ok=True)
+    return res
+
+
+def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
+                     terms: list, cluster: str = "employer_id",
+                     fes: tuple = ("fe_emp_bin", "fe_emp_t")) -> pd.DataFrame:
+    """Poisson with an arbitrary term list via r_fepois_multi.R."""
+    inp = workdir / f"_rin_multi_{tag}.csv"
+    outp = workdir / f"_rout_multi_{tag}.csv"
+    cols = ["n_emp"] + list(terms) + list(fes) + [cluster]
+    panel[cols].to_csv(inp, index=False)
+    cmd = [_rscript(), str(_THIS_DIR / "r_fepois_multi.R"),
+           "--input", str(inp), "--output", str(outp),
+           "--terms", ",".join(terms), "--cluster", cluster,
+           "--fe", ",".join(fes)]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"  fepois_multi FAILED ({tag}): {r.stderr[-500:]}")
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
     inp.unlink(missing_ok=True)
     return res
