@@ -13,9 +13,11 @@ thesis uses the top decile where the paper uses the top quartile. This
 script assigns each occupation its UNWEIGHTED DAIOE decile (the same
 convention as the quartiles: each SSYK4 counts once; deciles computed
 from pctl_rank_genai in the shared daioe_quartiles.csv) and estimates
-ONE Poisson model per age group with eighteen interactions:
+ONE Poisson model per age group with eighteen interactions
+(REFERENCE = MEDIAN DECILE 5; decile 1 is construction-heavy and its
+own rate-cycle crash would contaminate every contrast against it):
 
-    d in 2..10:  PostRB x 1[decile=d],  PostGPT x 1[decile=d]
+    d in {1..10}\{5}:  PostRB x 1[decile=d],  PostGPT x 1[decile=d]
 
 via r_fepois_multi.R, with employer x decile and employer x month FE.
 Identification restriction: employers observed in decile 10 AND some
@@ -100,7 +102,8 @@ def main():
                        observed=True)["n_emp"].sum().reset_index())
     all_months = sorted(agg["year_month"].unique())
 
-    terms = [f"{p}_d{d}" for d in range(2, 11) for p in ("rb", "gpt")]
+    DECS = [d for d in range(1, 11) if d != 5]   # median decile = reference
+    terms = [f"{p}_d{d}" for d in DECS for p in ("rb", "gpt")]
     all_rows = []
     for age in AGES:
         print(f"\n--- {age} ---")
@@ -111,7 +114,7 @@ def main():
         bal = balance_panel_decile(sub, all_months)
         bal["post_rb"] = (bal["year_month"] >= mc.RIKSBANK_YM).astype(int)
         bal["post_gpt"] = (bal["year_month"] >= mc.CHATGPT_YM).astype(int)
-        for d in range(2, 11):
+        for d in DECS:
             isd = (bal["decile"] == d).astype(int)
             bal[f"rb_d{d}"] = bal["post_rb"] * isd
             bal[f"gpt_d{d}"] = bal["post_gpt"] * isd

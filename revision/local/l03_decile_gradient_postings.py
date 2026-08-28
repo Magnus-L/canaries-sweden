@@ -49,12 +49,18 @@ def main():
     df = df[df["n_ads"] > 0].copy()
     df["ln_ads"] = np.log(df["n_ads"])
 
-    # Interactions: decile d x post period, decile 1 omitted
-    for d in range(2, 11):
+    # Interactions: decile d x post period. REFERENCE = MEDIAN DECILE (5):
+    # decile 1 is construction/manual-heavy and carries its own rate-cycle
+    # crash, so contrasts against it read as the reference's collapse, in
+    # opposite directions under occupation- vs employment-weighting. The
+    # median occupation is the benchmark the referee's question needs
+    # (top-vs-typical), and the profile is plotted in full.
+    DECS = [d for d in range(1, 11) if d != 5]
+    for d in DECS:
         df[f"rb_d{d}"] = df["post_rb"] * (df["decile"] == d).astype(int)
         df[f"gpt_d{d}"] = df["post_gpt"] * (df["decile"] == d).astype(int)
-    rb_cols = [f"rb_d{d}" for d in range(2, 11)]
-    gpt_cols = [f"gpt_d{d}" for d in range(2, 11)]
+    rb_cols = [f"rb_d{d}" for d in DECS]
+    gpt_cols = [f"gpt_d{d}" for d in DECS]
 
     from linearmodels.panel import PanelOLS
     panel = df.set_index(["ssyk4", "date"])
@@ -63,7 +69,7 @@ def main():
                    ).fit(cov_type="clustered", cluster_entity=True)
 
     rows = []
-    for d in range(2, 11):
+    for d in DECS:
         for period, col in (("post_riksbank", f"rb_d{d}"),
                             ("post_chatgpt", f"gpt_d{d}")):
             rows.append({"decile": d, "period": period,
@@ -83,8 +89,9 @@ def main():
         ax.errorbar(x, sub["coef"], yerr=1.96 * sub["se"], fmt="o",
                     color=color, capsize=3, markersize=5, label=label)
     ax.axhline(0, color=GRAY, lw=0.8)
-    ax.set_xticks(range(2, 11))
-    ax.set_xlabel("DAIOE genAI exposure decile (decile 1 = reference)")
+    ax.set_xticks(range(1, 11))
+    ax.axvline(5, color=GRAY, lw=0.6, ls=":", alpha=0.6)
+    ax.set_xlabel("DAIOE genAI exposure decile (median decile 5 = reference)")
     ax.set_ylabel("Coefficient, ln(postings)")
     ax.legend(fontsize=9)
     ax.spines[["top", "right"]].set_visible(False)
@@ -96,8 +103,8 @@ def main():
     # Monotonicity read (pre-committed in the plan): is the top decile the
     # most negative post-ChatGPT?
     gpt = out[out["period"] == "post_chatgpt"].set_index("decile")["coef"]
-    print(f"  post-ChatGPT gradient: d10 = {gpt.loc[10]:+.3f}, "
-          f"d9 = {gpt.loc[9]:+.3f}, min at decile {gpt.idxmin()}")
+    print("  post-ChatGPT profile vs median decile: "
+          + ", ".join(f"d{d}={gpt.loc[d]:+.3f}" for d in DECS))
 
 
 if __name__ == "__main__":

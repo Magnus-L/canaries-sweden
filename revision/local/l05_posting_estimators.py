@@ -95,7 +95,8 @@ def main():
     occ["decile"] = pd.qcut(occ["pctl_rank_genai"], 10, labels=False) + 1
     full = full.merge(occ[["ssyk4", "decile"]], on="ssyk4")
     terms = []
-    for d in range(2, 11):
+    DECS = [d for d in range(1, 11) if d != 5]   # median decile = reference
+    for d in DECS:
         isd = (full["decile"] == d).astype(int)
         full[f"rb_d{d}"] = full["post_rb"] * isd
         full[f"gpt_d{d}"] = full["post_gpt"] * isd
