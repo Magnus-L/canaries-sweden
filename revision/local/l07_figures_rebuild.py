@@ -48,9 +48,17 @@ def fig1_two_panel():
     print("  Figure 1: two-panel rebuild")
     omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv",
                        index_col=0, parse_dates=True)
-    q = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
-    q["date"] = pd.to_datetime(q["date"])
-    cut = pd.Timestamp(POSTINGS_DESCRIPTIVE_END + "-01")
+    # Prefer the extended series (l08: official 2026-Q1/Q2 files) when built
+    ext = REV / "output" / "postings_quartile_indexed_extended.csv"
+    if ext.exists():
+        q = pd.read_csv(ext)
+        q["date"] = pd.to_datetime(q["year_month"] + "-01")
+        cut = pd.Timestamp("2026-06-01")
+        print("    using extended series to June 2026")
+    else:
+        q = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
+        q["date"] = pd.to_datetime(q["date"])
+        cut = pd.Timestamp(POSTINGS_DESCRIPTIVE_END + "-01")
     lo = pd.Timestamp("2020-01-01")
     omxs = omxs[(omxs.index >= lo) & (omxs.index <= cut)]
     q = q[(q["date"] >= lo) & (q["date"] <= cut)]
@@ -151,10 +159,53 @@ def fig2_poisson_es():
     print("    saved fig2_poisson_es.pdf/.png")
 
 
+def fig3_firm_entry_es():
+    """The T17 exhibit: within-employer event study on public postings,
+    entry-level ads, through June 2026 (l09 output)."""
+    src = REV / "tables" / "firm_within_es.csv"
+    if not src.exists():
+        print("  Figure 3: waiting for l09 output")
+        return
+    print("  Figure 3: firm-level entry ES")
+    es = pd.read_csv(src)
+    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    for variant, color, label in (
+            ("a_all_firms", GRAY, "All ads"),
+            ("c_entry_level_ads", ORANGE, "Entry-level ads")):
+        sub = es[es["variant"] == variant].sort_values("period").copy()
+        order = sorted(sub["period"].unique())
+        sub["x"] = sub["period"].map({p_: i for i, p_ in enumerate(order)})
+        sub["lo"] = sub["coef"] - 1.96 * sub["se"]
+        sub["hi"] = sub["coef"] + 1.96 * sub["se"]
+        ax.fill_between(sub["x"], sub["lo"], sub["hi"], alpha=0.15,
+                        color=color)
+        ax.plot(sub["x"], sub["coef"], "o-", color=color, lw=1.8, ms=4.5,
+                label=label)
+    ax.axhline(0, color=DARK_TEXT, lw=0.7)
+    ref_x = order.index("2022H1")
+    ax.axvline(ref_x, color=GRAY, ls="--", lw=0.9)
+    gpt_x = order.index("2022H2") - 0.5
+    ax.axvline(gpt_x, color=TEAL, ls=":", lw=1.1)
+    ax.text(gpt_x, ax.get_ylim()[0], "  ChatGPT\n  Nov 2022", fontsize=8,
+            color=TEAL, va="bottom")
+    ax.set_xticks(range(len(order)))
+    ax.set_xticklabels(order, rotation=45, ha="right", fontsize=9)
+    ax.set_ylabel("Poisson coefficient, high-exposure x half-year\n"
+                  "(log points; ref. 2022H1)", fontsize=10)
+    ax.legend(fontsize=9, loc="lower left")
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.savefig(V2_FIG / "fig3_firm_entry_es.pdf", bbox_inches="tight")
+    fig.savefig(V2_FIG / "fig3_firm_entry_es.png", dpi=300,
+                bbox_inches="tight")
+    plt.close(fig)
+    print("    saved fig3_firm_entry_es.pdf/.png")
+
+
 def main():
     print("L7: figures rebuild (E8)")
     fig1_two_panel()
     fig2_poisson_es()
+    fig3_firm_entry_es()
 
 
 if __name__ == "__main__":
