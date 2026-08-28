@@ -105,7 +105,10 @@ def build_panel(cube, daioe, outcome="ads", drop_staffing_public=False,
     m = cube.merge(daioe, on="ssyk4", how="inner")
     if drop_staffing_public:
         m = m[~m["orgnr"].str.startswith("2")]
-        m = m[~m["orgnr"].map(staffing).fillna(False)]
+        # .map() yields an object series with NaN for unmatched orgnr;
+        # cast to bool BEFORE negating, or ~ does bitwise-int nonsense
+        staff_mask = m["orgnr"].map(staffing).fillna(False).astype(bool)
+        m = m[~staff_mask]
     firm = (m.groupby(["orgnr", "month", "exposure_quartile"],
                       observed=True)[outcome].sum().reset_index()
             .rename(columns={outcome: "n_ads", "month": "year_month"}))
