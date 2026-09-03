@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""
+run_all_mona.py -- master runner for the EL67898 revision, MONA side.
+
+FLAT LAYOUT. Every script, every .R helper and this runner sit in the same
+folder on the Lydia P1207 share; each script writes its own output_NN/.
+
+    python run_all_mona.py                # lane A, the default single-console run
+    python run_all_mona.py --lane b       # only 45, for a second console
+    python run_all_mona.py --lane all     # everything in one console, strictly sequential
+    python run_all_mona.py --from 43      # resume at a stage
+    python run_all_mona.py --only 45      # one stage
+    python run_all_mona.py --dry-run      # print the plan, run nothing
+
+ORDER IS DELIBERATE. It is NOT the file-number order.
+  39 gates: it pulls 2019-2025 once and writes the shared panel cache. A FAIL
+     aborts everything, because every later number would be wrong in the same way.
+  43 and 45 come next because the response letter cannot be written without them:
+     43 is the Poisson headline, 45 is the coverage defence. Learning that either
+     breaks is worth more on hour two than on hour six.
+  40, 41, 42 are the Tier-1 diagnostics; 44 and 46 are Tier 2 and may be dropped
+     if the trip runs short.
+
+MEMORY. Each stage is a separate process on purpose: Python does not return
+freed memory to the OS, so a single long-lived process accumulates (the 35b
+lesson). The node ceiling is 100 GB and over-runs are killed without warning.
+Do not run lane A stages concurrently with each other.
+
+47 (education exposure) is deliberately absent. It waits on Erik Engberg's
+measure and must not hold this trip; see notes/erik-delivery-vs-T12_2026-09-03.md.
+"""
+
+import argparse
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+
+# (script, lane, tier, what it delivers)
+STAGES = [
+    ("39_canary_gate.py",           "gate", "gate", "Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet"),
+    ("43_poisson_primary.py",       "a", "T4/E6",  "Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM"),
+    ("42_frozen_cohort.py",         "a", "T3/E5",  "Coverage-immune cohort: coded by Dec 2023, followed forward"),
+    ("45_asof_backtest.py",         "b", "T3/E5",  "CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant"),
+    ("40_coverage_diagnostics.py",  "a", "T1/E3",  "Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares"),
+    ("41_vintage_event_studies.py", "a", "T2/E4",  "ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported"),
+    ("44_decile_gradient.py",       "a", "T11",    "Employment deciles, pre-committed monotonicity read"),
+    ("46_wfh_horserace.py",         "a", "T10",    "Telework x period interactions, both margins"),
+]
+
+REQUIRED_INPUTS = [
+    ("daioe_quartiles.csv",     "already on the share"),
+    ("dingel_neiman_ssyk4.csv", "upload as .txt, RENAME to .csv -- 46 dies without it"),
+    ("r_fepois.R",              "upload as .txt, RENAME to .R"),
+    ("r_fepois_es.R",           "upload as .txt, RENAME to .R"),
+    ("r_fepois_multi.R",        "upload as .txt, RENAME to .R"),
+]
+
+
+def preflight() -> bool:
+    """Check the inputs that are not .py, because those are the ones that get
+    renamed by hand and therefore the ones that get forgotten."""
+    import mona_common as mc
+    ok = True
+    print("PRE-FLIGHT")
+    for name, note in REQUIRED_INPUTS:
+        path = Path(mc.SHARE) / name if name.endswith(".csv") else HERE / name
+        mark = "ok " if path.exists() else "MISSING"
+        if not path.exists():
+            ok = False
+        print(f"  [{mark:>7}] {name:<26} {note}")
+    print()
+    return ok
+
+
+def done_marker(script: str) -> Path:
+    return HERE / f"output_{script[:2]}" / "_DONE"
+
+
+def run(script: str, dry: bool) -> int:
+    if dry:
+        print(f"  would run {script}")
+        return 0
+    t0 = time.time()
+    r = subprocess.run([sys.executable, str(HERE / script)])
+    mins = (time.time() - t0) / 60
+    print(f"  {script}: exit {r.returncode} ({mins:.1f} min)")
+    if r.returncode == 0:
+        m = done_marker(script)
+        m.parent.mkdir(exist_ok=True)
+        m.write_text(f"{datetime.now():%Y-%m-%d %H:%M}  {mins:.1f} min\n")
+    return r.returncode
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--lane", default="a", choices=["a", "b", "all"])
+    ap.add_argument("--from", dest="start", default=None, help="stage number to resume at, e.g. 43")
+    ap.add_argument("--only", default=None, help="run exactly one stage number")
+    ap.add_argument("--skip-done", action="store_true", help="skip stages whose output_NN/_DONE exists")
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args()
+
+    if a.only:
+        plan = [s for s in STAGES if s[0].startswith(a.only)]
+    else:
+        plan = [s for s in STAGES if a.lane == "all" or s[1] in ("gate", a.lane)]
+        if a.lane == "b":
+            plan = [s for s in STAGES if s[1] == "b"]     # lane B never re-runs the gate
+        if a.start:
+            idx = next((i for i, s in enumerate(plan) if s[0].startswith(a.start)), 0)
+            plan = plan[idx:]
+    if a.skip_done:
+        plan = [s for s in plan if not done_marker(s[0]).exists()]
+
+    print("=" * 74)
+    print(f"EL67898 revision -- MONA run  |  lane {a.lane}  |  {datetime.now():%Y-%m-%d %H:%M}")
+    print("=" * 74)
+    for i, (script, lane, tier, what) in enumerate(plan, 1):
+        print(f"  {i}. {script:<28} [{tier:<6}] {what}")
+    print()
+
+    if not preflight() and not a.dry_run:
+        print("Pre-flight failed. Fix the missing inputs before running.")
+        sys.exit(1)
+    if a.dry_run:
+        return
+
+    t_all = time.time()
+    for script, lane, tier, _ in plan:
+        print(f"\n{'=' * 74}\n{script}  [{tier}]\n{'=' * 74}")
+        rc = run(script, a.dry_run)
+        if lane == "gate" and rc != 0:
+            print("\nCANARY GATE FAILED. Nothing downstream is trustworthy. Aborting.")
+            sys.exit(1)
+        if rc != 0:
+            print(f"\n{script} failed. Continuing -- later stages do not depend on it. "
+                  f"Re-run alone with:  python run_all_mona.py --only {script[:2]}")
+    print(f"\n{'=' * 74}\nTOTAL {(time.time() - t_all) / 60:.1f} min\n{'=' * 74}")
+
+
+if __name__ == "__main__":
+    main()
