@@ -1,11 +1,35 @@
 # MONA trip — EL67898 revision, round 1
 
-Staged 3 Sep 2026. Everything here is ready to upload as-is. Total 132 KB across 14 files;
-the portal cap is 10 MB per file, so size is not a constraint this trip.
+Staged 3 Sep 2026, destination revised 4 Sep. **14 uploadable files**; `UPLOAD.md` and
+`MANIFEST.sha256` stay local, because `.md` and `.sha256` are not allowed portal formats. The
+portal cap is 10 MB per file and the largest here is 17 KB, so size is not a constraint.
 
-Destination is the **flat** canaries root:
-`\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\`
-Outputs land in `output_NN\` beside the scripts. Do not create subfolders.
+**Destination: a `revision\` subfolder, with the two shared data files at the root.**
+
+    \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\
+      daioe_quartiles.csv          <- already there, v1 and v2 both read it
+      dingel_neiman_ssyk4.csv      <- NEW, item 14, goes at the ROOT
+      revision\                    <- NEW, everything else
+        mona_common.py, 39..46, run_all_mona.py, r_fepois*.R
+        output_39\ .. output_46\   <- created automatically beside the scripts
+
+**Why a subfolder, when the project's rule says flat.** That rule
+(`feedback_canaries_mona_flat_layout`) came from one incident on 28 April 2026 where a *data*
+file was uploaded to the root and a script broke looking for it in `empirical_data\`. Its real
+content is "do not invent a data subfolder", and that still holds: both shared inputs stay at the
+root. It is not evidence that a flat root was ever designed. The note records ML's own words at the
+time: *"I have not instructed Lydia on how to organise stuff for the canaries project and now it's
+a little late."*
+
+**Why it is free.** Every v2 write is `Path(__file__).parent / "output_NN"` — nothing writes to the
+share root. The only three references to `mc.SHARE` are reads of the two data files above. So the
+scripts and all eight output folders run from a subfolder with **zero code changes**, and the round
+becomes one directory to inventory and retire at close, which the 17 August storage warning makes
+worth having.
+
+**Check before uploading:** confirm there is no existing `revision` (or similarly named) folder at
+the root, and glance at what `Code\` and `Input\` hold. If `revision` is taken, use
+`revision_EL67898\` and nothing else changes.
 
 ## 1. Upload list — from, to, and what to do on arrival
 
@@ -15,20 +39,20 @@ the same route `eloundou_ssyk4.txt` already took.
 
 | # | Upload this file | From (local) | To (MONA) | Rename after upload |
 |---|---|---|---|---|
-| 1 | `mona_common.py` | `revision/upload/` | share root | — |
-| 2 | `run_all_mona.py` | `revision/upload/` | share root | — |
-| 3 | `39_canary_gate.py` | `revision/upload/` | share root | — |
-| 4 | `40_coverage_diagnostics.py` | `revision/upload/` | share root | — |
-| 5 | `41_vintage_event_studies.py` | `revision/upload/` | share root | — |
-| 6 | `42_frozen_cohort.py` | `revision/upload/` | share root | — |
-| 7 | `43_poisson_primary.py` | `revision/upload/` | share root | — |
-| 8 | `44_decile_gradient.py` | `revision/upload/` | share root | — |
-| 9 | `45_asof_backtest.py` | `revision/upload/` | share root | — |
-| 10 | `46_wfh_horserace.py` | `revision/upload/` | share root | — |
-| 11 | `r_fepois.txt` | `revision/upload/` | share root | **→ `r_fepois.R`** |
-| 12 | `r_fepois_es.txt` | `revision/upload/` | share root | **→ `r_fepois_es.R`** |
-| 13 | `r_fepois_multi.txt` | `revision/upload/` | share root | **→ `r_fepois_multi.R`** |
-| 14 | `dingel_neiman_ssyk4.txt` | `revision/upload/` | share root | **→ `dingel_neiman_ssyk4.csv`** |
+| 1 | `mona_common.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 2 | `run_all_mona.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 3 | `39_canary_gate.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 4 | `40_coverage_diagnostics.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 5 | `41_vintage_event_studies.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 6 | `42_frozen_cohort.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 7 | `43_poisson_primary.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 8 | `44_decile_gradient.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 9 | `45_asof_backtest.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 10 | `46_wfh_horserace.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
+| 11 | `r_fepois.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois.R`** |
+| 12 | `r_fepois_es.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois_es.R`** |
+| 13 | `r_fepois_multi.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois_multi.R`** |
+| 14 | `dingel_neiman_ssyk4.txt` | `revision/upload/` | **`Lydia P1207\` (root)** | **→ `dingel_neiman_ssyk4.csv`** |
 
 **Already on the share, do not re-upload:** `daioe_quartiles.csv`.
 
@@ -38,7 +62,8 @@ the four hand-renamed files, because those are the ones that get forgotten:
 
     python run_all_mona.py --dry-run
 
-`MANIFEST.sha256` is here for verification; hashes are of the files as uploaded, before renaming.
+`MANIFEST.sha256` and this file stay on the laptop; neither is an allowed upload format. The
+hashes are of the files as uploaded, before renaming.
 
 ## 2. What runs, in what order, and what may run at the same time
 
