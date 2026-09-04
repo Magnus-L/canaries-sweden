@@ -82,5 +82,5 @@ paper/em-submission.zip
 paper/em-main-only.zip
 
 # Interview briefs are local + iCloud only (one version held a reporter's mobile number)
-SR_intervjuunderlag_*.md
-SR_interview_brief_*.md
+*_intervjuunderlag_*.md
+*_interview_brief_*.md
