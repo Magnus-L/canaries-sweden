@@ -198,7 +198,11 @@ def run(script: str, dry: bool) -> int:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--lane", default="a", choices=["a", "b", "all"])
+    # Default is "all", not "a": batch cannot pass arguments, so the default IS
+    # the batch behaviour -- and a lane-a default would silently leave 45, the
+    # as-of backtest and centrepiece of the coverage defence, out of every
+    # batch run. Two-console interactive use can still pick a lane explicitly.
+    ap.add_argument("--lane", default="all", choices=["a", "b", "all"])
     ap.add_argument("--from", dest="start", default=None, help="stage number to resume at, e.g. 43")
     ap.add_argument("--only", default=None, help="run exactly one stage number")
     ap.add_argument("--force", action="store_true",
