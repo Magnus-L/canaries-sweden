@@ -48,10 +48,19 @@ SQL_CONN_STRING = (
     "Trusted_Connection=yes;"
 )
 
-# CANARIES_SHARE lets the local dry-run test point the share elsewhere.
-# In MONA the variable is unset and the default below is used.
-SHARE = os.environ.get(
-    "CANARIES_SHARE", r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207")
+# The project root on the MONA share. NOTE: everything lives under CANARIES\,
+# not directly under "Lydia P1207\" -- the folder was reorganised on
+# 2026-07-07 into Code\Python, Code\R, Input\ (empty) and All_output\.
+CANARIES = (r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207"
+            r"\CANARIES")
+
+# The shared input files (daioe_quartiles.csv, eloundou_ssyk4.csv,
+# finland_marginals_2022.txt) sit in All_output\ beside the v1 result folders.
+# That is a poor name for them, but it is where they are, and moving them
+# would break the v1 scripts the canary gate reproduces against. Read in place.
+# CANARIES_SHARE lets the local dry-run test point this elsewhere; in MONA the
+# variable is unset and the default is used.
+SHARE = os.environ.get("CANARIES_SHARE", CANARIES + r"\All_output")
 DAIOE_PATH = SHARE + r"\daioe_quartiles.csv"
 
 RIKSBANK_YM = "2022-04"

@@ -1,35 +1,52 @@
 # MONA trip — EL67898 revision, round 1
 
-Staged 3 Sep 2026, destination revised 4 Sep. **14 uploadable files**; `UPLOAD.md` and
-`MANIFEST.sha256` stay local, because `.md` and `.sha256` are not allowed portal formats. The
-portal cap is 10 MB per file and the largest here is 17 KB, so size is not a constraint.
+Staged 3 Sep, destination corrected 4 Sep against screenshots of the actual share. **14
+uploadable files**; `UPLOAD.md` and `MANIFEST.sha256` stay local, because `.md` and `.sha256` are
+not allowed portal formats. Largest file is 17 KB against a 10 MB cap.
 
-**Destination: a `revision\` subfolder, with the two shared data files at the root.**
+## 0. The share is not flat, and the old path was wrong
 
-    \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\
-      daioe_quartiles.csv          <- already there, v1 and v2 both read it
-      dingel_neiman_ssyk4.csv      <- NEW, item 14, goes at the ROOT
-      revision\                    <- NEW, everything else
+The project note said scripts and data sat directly under `Lydia P1207\`. They do not. The folder
+was reorganised on **2026-07-07** and now looks like this:
+
+    \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\CANARIES\
+      Code\Python\      44 v1 scripts, 09_mona.py .. 38c_olsplus1_robustness.py
+      Code\R\           23_mona_rambachan_roth.r, r_feols(.es).R, r_fepois(_es).R
+      Input\            EMPTY
+      All_output\       output\, output_16..38, output_hires_separations\,
+                        the .std/.txt logs, AND the shared data files:
+                        daioe_quartiles.csv, eloundou_ssyk4.csv,
+                        finland_marginals_2022.txt, plus the v1 caches
+                        raw_panel.parquet (1.04 GB), flows_nonzero_cells.csv
+                        (2.2 GB), agg_panel_filtered.parquet (60 MB)
+      __pycache__\
+
+**This would have killed the trip on the first script.** `mona_common.DAIOE_PATH` resolved to
+`Lydia P1207\daioe_quartiles.csv`, which does not exist; the file is in `CANARIES\All_output\`.
+Every script that calls `load_daioe()` — that is, all of them — would have died at the first merge.
+Fixed: `CANARIES` and `SHARE` are now separate constants and `SHARE` points at `All_output\`.
+
+Reading the data in place rather than copying it is deliberate: one `daioe_quartiles.csv` exists,
+the canary gate reproduces against it, and a second copy could silently drift. `All_output\` is a
+poor name for input files, but moving them would break the v1 scripts the gate reproduces against.
+
+## Destination for this round
+
+    CANARIES\
+      All_output\
+        dingel_neiman_ssyk4.csv      <- NEW, item 14, beside daioe_quartiles.csv
+      revision_EL67898\              <- NEW, everything else
         mona_common.py, 39..46, run_all_mona.py, r_fepois*.R
-        output_39\ .. output_46\   <- created automatically beside the scripts
+        output_39\ .. output_46\     <- created automatically beside the scripts
 
-**Why a subfolder, when the project's rule says flat.** That rule
-(`feedback_canaries_mona_flat_layout`) came from one incident on 28 April 2026 where a *data*
-file was uploaded to the root and a script broke looking for it in `empirical_data\`. Its real
-content is "do not invent a data subfolder", and that still holds: both shared inputs stay at the
-root. It is not evidence that a flat root was ever designed. The note records ML's own words at the
-time: *"I have not instructed Lydia on how to organise stuff for the canaries project and now it's
-a little late."*
+A self-contained round folder rather than `Code\Python\` + `Code\R\` + `All_output\`, for three
+reasons: `R_FEPOIS = _THIS_DIR / "r_fepois.R"` already expects the R helpers beside the scripts, so
+splitting them would mean editing tested code for no gain; `Code\R\` already holds `r_fepois.R`
+and `r_fepois_es.R` from April, and uploading same-named files there invites the silent
+date-suffix rename; and one directory per round is what makes the caches identifiable and
+retirable at close, which the 17 August storage warning wants.
 
-**Why it is free.** Every v2 write is `Path(__file__).parent / "output_NN"` — nothing writes to the
-share root. The only three references to `mc.SHARE` are reads of the two data files above. So the
-scripts and all eight output folders run from a subfolder with **zero code changes**, and the round
-becomes one directory to inventory and retire at close, which the 17 August storage warning makes
-worth having.
-
-**Check before uploading:** confirm there is no existing `revision` (or similarly named) folder at
-the root, and glance at what `Code\` and `Input\` hold. If `revision` is taken, use
-`revision_EL67898\` and nothing else changes.
+Nothing v1 is moved, renamed or overwritten.
 
 ## 1. Upload list — from, to, and what to do on arrival
 
@@ -39,22 +56,22 @@ the same route `eloundou_ssyk4.txt` already took.
 
 | # | Upload this file | From (local) | To (MONA) | Rename after upload |
 |---|---|---|---|---|
-| 1 | `mona_common.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 2 | `run_all_mona.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 3 | `39_canary_gate.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 4 | `40_coverage_diagnostics.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 5 | `41_vintage_event_studies.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 6 | `42_frozen_cohort.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 7 | `43_poisson_primary.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 8 | `44_decile_gradient.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 9 | `45_asof_backtest.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 10 | `46_wfh_horserace.py` | `revision/upload/` | `Lydia P1207\revision\` | — |
-| 11 | `r_fepois.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois.R`** |
-| 12 | `r_fepois_es.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois_es.R`** |
-| 13 | `r_fepois_multi.txt` | `revision/upload/` | `Lydia P1207\revision\` | **→ `r_fepois_multi.R`** |
-| 14 | `dingel_neiman_ssyk4.txt` | `revision/upload/` | **`Lydia P1207\` (root)** | **→ `dingel_neiman_ssyk4.csv`** |
+| 1 | `mona_common.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 2 | `run_all_mona.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 3 | `39_canary_gate.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 4 | `40_coverage_diagnostics.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 5 | `41_vintage_event_studies.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 6 | `42_frozen_cohort.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 7 | `43_poisson_primary.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 8 | `44_decile_gradient.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 9 | `45_asof_backtest.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 10 | `46_wfh_horserace.py` | `revision/upload/` | `CANARIES\revision_EL67898\` | — |
+| 11 | `r_fepois.txt` | `revision/upload/` | `CANARIES\revision_EL67898\` | **→ `r_fepois.R`** |
+| 12 | `r_fepois_es.txt` | `revision/upload/` | `CANARIES\revision_EL67898\` | **→ `r_fepois_es.R`** |
+| 13 | `r_fepois_multi.txt` | `revision/upload/` | `CANARIES\revision_EL67898\` | **→ `r_fepois_multi.R`** |
+| 14 | `dingel_neiman_ssyk4.txt` | `revision/upload/` | **`CANARIES\All_output\`** | **→ `dingel_neiman_ssyk4.csv`** |
 
-**Already on the share, do not re-upload:** `daioe_quartiles.csv`.
+**Already on the share, do not re-upload:** `daioe_quartiles.csv`, in `CANARIES\All_output\`.
 
 **Two things to check on arrival.** Uploads can silently get a date suffix when a name already
 exists — glance at the folder and rename any back. Then run the pre-flight, which checks exactly
