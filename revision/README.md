@@ -10,10 +10,12 @@ below). Code-read defect list: `../notes/code-read-digest_2026-08-28.md` (D1–D
 ```
 revision/
   run_local.py       master runner, local side (postings + public data + figures)
-  run_mona.py        master runner, MONA side (prints stage plan; each script also runs alone)
+  mona/run_all_mona.py  master runner, MONA side: gate-first order, hash pre-flight,
+                     RUNLOG stamping, storage report, --retire-caches
   config.py          single config for the local side — self-contained paths (fixes D1, D2)
-  local/             l01..l07  local scripts (Platsbanken, SCB public data, figures)
-  mona/              39..46    MONA scripts (numbering continues after 38c) + shared module
+  local/             l01..l09b local scripts (Platsbanken, SCB public data, figures, firm lane)
+  mona/              39..46    MONA scripts + shared module + test_dryrun.py (35 local checks)
+  upload/            the staged, hash-manifested trip set -- see upload/UPLOAD.md
   output/, tables/, figures/   v2 outputs, kept apart from v1's
 ```
 
