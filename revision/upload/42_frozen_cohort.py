@@ -43,7 +43,8 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_42"
 OUT.mkdir(exist_ok=True)
-CACHE = OUT / "panel_frozen.parquet"
+mc.CACHE_DIR.mkdir(exist_ok=True)
+CACHE = mc.CACHE_DIR / "panel_frozen.parquet"
 
 AGES = list(mc.AGE_GROUPS)
 STEP1_MIN_CUMULATIVE = 5

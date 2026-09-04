@@ -28,10 +28,11 @@ battery are `daioe_quartiles.csv`, the new `dingel_neiman_ssyk4.csv`, and the SQ
 canary gate pulls 2019–2025 fresh from `monasql.micro.intra` and touches no v1 output. The cost of
 starting clean is therefore one 14 KB file, and that file is hash-verified on arrival.
 
-Destination, project-named and beside `proworker-gov`, because a shared area should not have work
-filed under a person's name:
+Destination, under the **group convention decided 4 Sep 2026** — every researcher one folder at
+`P1207_Gem` root, every project one main owner, the project living in its owner's folder. Magnus
+owns canaries (he runs all revision empirics), so it sits beside `proworker-gov`:
 
-    \\micro.intra\Projekt\P1207$\P1207_Gem\canaries-sweden\
+    \\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\
       input\                    daioe_quartiles.csv, dingel_neiman_ssyk4.csv
       round1_EL67898\           mona_common.py, 39..46, run_all_mona.py,
                                 r_fepois*.R, MANIFEST.txt
@@ -40,10 +41,20 @@ filed under a person's name:
 `Lydia P1207\CANARIES\` is left untouched as the v1 archive; `mona_common.V1_ARCHIVE` records the
 path so provenance stays traceable.
 
-**Create two folders before uploading:** `canaries-sweden\input\` and
-`canaries-sweden\round1_EL67898\`. If `canaries-sweden` cannot be created at the `P1207_Gem`
-level, put the same two folders under your own area and change one line, `PROJECT` in
-`mona_common.py`.
+Three mechanics new on 4 Sep, all tested:
+
+- **Provenance stamps.** Every log opens `run by <MONA account> at <time> | <script>`, and every
+  stage appends one line to `canaries-sweden\RUNLOG.txt` (when, who, what, exit, minutes). That is
+  the who-touched-my-project convention, implemented rather than hoped for.
+- **Storage discipline, implemented for the first time.** All expensive pulls cache under ONE
+  disposable `cache\` (the panel, the frozen panel, both dual panels) — never in a results folder.
+  Every run ends with a storage report. At close of round, after exports are out and verified:
+  `python run_all_mona.py --retire-caches` (measures, lists, deletes). Never mid-round.
+- **Hash integrity.** Pre-flight verifies `daioe_quartiles.csv` against the repo copy's sha256 and
+  every `.py` against `MANIFEST.txt`.
+
+**Create three folders before uploading:** `Magnus_P1207\canaries-sweden\`, and inside it
+`input\` and `round1_EL67898\`.
 
 ## 1. Upload list — from, to, and what to do on arrival
 

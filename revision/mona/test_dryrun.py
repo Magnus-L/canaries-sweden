@@ -242,14 +242,13 @@ def main():
 
     print("\n0. SYNTHETIC DATA")
     panel = make_panel(daioe)
-    (work / "output_39").mkdir()
-    panel.to_parquet(work / "output_39" / "panel_vintage.parquet", index=False)
+    (work / "cache").mkdir()
+    panel.to_parquet(work / "cache" / "panel_vintage.parquet", index=False)
     record("data", "panel_vintage.parquet",
            len(panel) > 100_000, f"{len(panel):,} rows, {panel.employer_id.nunique()} employers")
-    (work / "output_45").mkdir()
     for trunc in (2021, 2022):
         d = make_dual(panel, daioe, trunc)
-        d.to_parquet(work / "output_45" / f"panel_dual_T{trunc}.parquet", index=False)
+        d.to_parquet(work / "cache" / f"panel_dual_T{trunc}.parquet", index=False)
         record("data", f"panel_dual_T{trunc}.parquet", len(d) > 10_000, f"{len(d):,} rows")
 
     env = dict(os.environ, CANARIES_DRYRUN="1", CANARIES_SHARE=str(share),

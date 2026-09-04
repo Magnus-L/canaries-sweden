@@ -122,6 +122,8 @@ def run(script: str, dry: bool) -> int:
     r = subprocess.run([sys.executable, str(HERE / script)])
     mins = (time.time() - t0) / 60
     print(f"  {script}: exit {r.returncode} ({mins:.1f} min)")
+    import mona_common as mc
+    mc.runlog(script, r.returncode, mins)   # who-ran-what, at the project root
     if r.returncode == 0:
         m = done_marker(script)
         m.parent.mkdir(exist_ok=True)
@@ -136,7 +138,21 @@ def main():
     ap.add_argument("--only", default=None, help="run exactly one stage number")
     ap.add_argument("--skip-done", action="store_true", help="skip stages whose output_NN/_DONE exists")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--retire-caches", action="store_true",
+                    help="delete cache/ (measured and listed first). Only at close "
+                         "of round, after exports are out and verified -- never mid-round.")
     a = ap.parse_args()
+
+    if a.retire_caches:
+        import mona_common as mc
+        files = sorted(mc.CACHE_DIR.glob("*")) if mc.CACHE_DIR.exists() else []
+        total = sum(f.stat().st_size for f in files if f.is_file())
+        print(f"RETIRING cache/ -- {len(files)} files, {total/1e6:.1f} MB")
+        for f in files:
+            print(f"  {f.stat().st_size/1e6:8.1f} MB  {f.name}")
+            f.unlink()
+        mc.runlog("--retire-caches", 0, 0.0)
+        return
 
     if a.only:
         plan = [s for s in STAGES if s[0].startswith(a.only)]
@@ -174,6 +190,8 @@ def main():
             print(f"\n{script} failed. Continuing -- later stages do not depend on it. "
                   f"Re-run alone with:  python run_all_mona.py --only {script[:2]}")
     print(f"\n{'=' * 74}\nTOTAL {(time.time() - t_all) / 60:.1f} min\n{'=' * 74}")
+    import mona_common as mc
+    mc.storage_report()
 
 
 if __name__ == "__main__":

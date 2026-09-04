@@ -5,7 +5,7 @@ exposure DECILE.
 
 ======================================================================
   RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires output_39/panel_vintage.parquet.
+  Requires cache/panel_vintage.parquet (script 39 writes it).
 ======================================================================
 
 R1 asks why the exposure measure is so discrete; Kallberg's public-data
@@ -43,7 +43,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_44"
 OUT.mkdir(exist_ok=True)
-CACHE = HERE / "output_39" / "panel_vintage.parquet"
+CACHE = mc.PANEL_CACHE
 
 AGES = ["22-25", "26-30", "50+"]     # headline + neighbours; extend if fast
 STEP1_MIN_CUMULATIVE = 5

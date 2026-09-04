@@ -5,7 +5,7 @@ accounting the editor's letter itemises.
 
 ======================================================================
   RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires output_39/panel_vintage.parquet (script 39 writes it).
+  Requires cache/panel_vintage.parquet (script 39 writes it).
 ======================================================================
 
 From the vintage-tagged panel (employer x ssyk4 x age x month x vintage):
@@ -47,7 +47,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_40"
 OUT.mkdir(exist_ok=True)
-CACHE = HERE / "output_39" / "panel_vintage.parquet"
+CACHE = mc.PANEL_CACHE
 
 RUN_ENTRANT_SPLIT = True
 

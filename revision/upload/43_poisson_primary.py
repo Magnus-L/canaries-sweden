@@ -4,7 +4,7 @@
 
 ======================================================================
   RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires output_39/panel_vintage.parquet (script 39).
+  Requires cache/panel_vintage.parquet (script 39 writes it) (script 39).
 ======================================================================
 
 Poisson PML becomes the paper's main estimator (decided with Koch,
@@ -45,7 +45,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_43"
 OUT.mkdir(exist_ok=True)
-CACHE = HERE / "output_39" / "panel_vintage.parquet"
+CACHE = mc.PANEL_CACHE
 
 STEP1_MIN_CUMULATIVE = 5
 

@@ -1,0 +1,77 @@
+MONA robustness pipeline — started 2026-03-15 22:23
+===================================================
+
+
+[23] 23_mona_rambachan_roth.R — Rambachan-Roth sensitivity (GATEKEEPER)
+  Started: 22:23:19
+  FAILED in 0.0 min
+  Error:
+[WinError 2] The system cannot find the file specified
+  *** GATEKEEPER FAILED — check output before proceeding ***
+
+[24] 24_mona_summary_stats.py — Employment summary stats + zero-cell diagnostics
+  Started: 22:23:19
+  PASSED in 38.1 min
+
+[25] 25_mona_placebo_dates.py — Placebo treatment dates (Nov 2021, Jul 2022)
+  Started: 23:01:27
+  PASSED in 110.2 min
+
+[26] 26_mona_telework_split.py — Teleworkability split (Dingel-Neiman)
+  Started: 00:51:42
+  FAILED in 24.2 min
+  Error:
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\26_mona_telework_split.py", line 158, in load_telework_mapping
+    return build_telework_mapping()
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\26_mona_telework_split.py", line 203, in build_telework_mapping
+    raise FileNotFoundError(
+    ...<12 lines>...
+    )
+FileNotFoundError: Cannot build telework mapping -- missing files: ['dingel_neiman_telework.csv', 'isco_soc_crosswalk2.xls', 'ssyk2012_isco08.xlsx']
+
+INSTRUCTIONS FOR LYDIA:
+  Option A (recommended): Upload the pre-built file to:
+    \\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207\dingel_neiman_ssyk4.csv
+  The file should have columns: ssyk4, teleworkable
+  where teleworkable is 0 or 1 (median-split of Dingel-Neiman scores).
+  Magnus has this file locally at:
+    tables/telework_ssyk_mapping.csv
+
+  Option B: Upload these three raw files to the network share:
+    1. dingel_neiman_telework.csv (from GitHub: jdingel/DingelNeiman-workathome)
+    2. isco_soc_crosswalk2.xls    (from BLS)
+    3. ssyk2012_isco08.xlsx        (from SCB)
+
+[27] 27_mona_alt_se_clustering.py — Alternative SE clustering
+  Started: 01:15:55
+  PASSED in 86.7 min
+
+[28] 28_mona_ssyk_attrition.py — SSYK attrition robustness (2019-2023 only)
+  Started: 02:42:36
+  PASSED in 59.3 min
+
+[29] 29_mona_eloundou_measure.py — Eloundou GPT exposure measure
+  Started: 03:41:52
+  FAILED in 18.8 min
+  Error:
+mkdir -p failed for path C:\Users\Default\.matplotlib: [WinError 5] Access is denied: 'C:\\Users\\Default\\.matplotlib'
+Matplotlib created a temporary cache directory at C:\Windows\TEMP\matplotlib-v7krcp4l because there was an issue with the default path (C:\Users\Default\.matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+
+[30] 30_mona_entrant_composition.py — Entrant composition (Q4 share over time)
+  Started: 04:00:38
+  PASSED in 5.5 min
+
+
+==================================================
+SUMMARY — finished 2026-03-16 04:06
+
+  Script 23: FAILED  (0.0 min)
+  Script 24: PASSED  (38.1 min)
+  Script 25: PASSED  (110.2 min)
+  Script 26: FAILED  (24.2 min)
+  Script 27: PASSED  (86.7 min)
+  Script 28: PASSED  (59.3 min)
+  Script 29: FAILED  (18.8 min)
+  Script 30: PASSED  (5.5 min)
+
+  5 passed, 3 failed, 0 skipped. Total: 343 min.

@@ -37,7 +37,8 @@ import mona_common as mc
 
 OUT = Path(__file__).resolve().parent / "output_39"
 OUT.mkdir(exist_ok=True)
-CACHE = OUT / "panel_vintage.parquet"
+mc.CACHE_DIR.mkdir(exist_ok=True)
+CACHE = mc.PANEL_CACHE  # disposable; see mona_common storage discipline
 
 ANCHORS = {
     "ols_gamma2": -0.010,

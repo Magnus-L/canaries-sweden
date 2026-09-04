@@ -4,7 +4,7 @@
 
 ======================================================================
   RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires output_39/panel_vintage.parquet and the teleworkability file
+  Requires cache/panel_vintage.parquet (script 39 writes it) and the teleworkability file
   dingel_neiman_ssyk4.csv on the Lydia P1207 share (v1 script 26 used
   the same file; if absent, build locally from data/raw and upload).
 ======================================================================
@@ -46,7 +46,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_46"
 OUT.mkdir(exist_ok=True)
-CACHE = HERE / "output_39" / "panel_vintage.parquet"
+CACHE = mc.PANEL_CACHE
 WFH_PATH = mc.SHARE + r"\dingel_neiman_ssyk4.csv"
 
 AGES = list(mc.AGE_GROUPS)

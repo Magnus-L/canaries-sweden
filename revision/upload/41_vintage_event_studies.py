@@ -5,7 +5,7 @@ occupation-code vintage and by hiring margin.
 
 ======================================================================
   RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires output_39/panel_vintage.parquet.
+  Requires cache/panel_vintage.parquet (script 39 writes it).
 ======================================================================
 
 The editor: "report separate event studies for workers classified using
@@ -48,7 +48,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_41"
 OUT.mkdir(exist_ok=True)
-CACHE = HERE / "output_39" / "panel_vintage.parquet"
+CACHE = mc.PANEL_CACHE
 
 AGES = ["22-25"]          # extend if runtime allows
 RUN_MARGIN_SPLIT = True   # the person-level SQL stage

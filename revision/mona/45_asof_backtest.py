@@ -71,6 +71,7 @@ import mona_common as mc
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_45"
 OUT.mkdir(exist_ok=True)
+mc.CACHE_DIR.mkdir(exist_ok=True)
 
 TRUNCATIONS = (2021, 2022)
 AGE = "22-25"
@@ -151,7 +152,7 @@ def pull_year_dual(year, conn, trunc):
 
 
 def get_dual_panel(conn, trunc):
-    cache = OUT / f"panel_dual_T{trunc}.parquet"
+    cache = mc.CACHE_DIR / f"panel_dual_T{trunc}.parquet"
     if cache.exists():
         print(f"  cached panel_dual_T{trunc}")
         return pd.read_parquet(cache)
@@ -320,7 +321,7 @@ def main():
     # Connect only if a dual panel still has to be pulled. Both panels are
     # cached in output_45/, so a re-run after a mid-script failure (or after
     # a fix to the estimation stage) costs no SQL and needs no connection.
-    need_pull = any(not (OUT / f"panel_dual_T{t}.parquet").exists()
+    need_pull = any(not (mc.CACHE_DIR / f"panel_dual_T{t}.parquet").exists()
                     for t in TRUNCATIONS)
     conn = mc.connect() if need_pull else None
     daioe = mc.load_daioe()

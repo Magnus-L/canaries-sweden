@@ -48,11 +48,12 @@ SQL_CONN_STRING = (
     "Trusted_Connection=yes;"
 )
 
-# Project root on the MONA share. Project-named, beside proworker-gov, NOT under
-# a person's folder: the v1 work lived in "Lydia P1207\CANARIES\", which grew by
-# survival rather than design (inputs filed in All_output\, an empty Input\, 44
-# scripts of mixed vintage, 3.3 GB of stale cache). v2 reads nothing from it.
-PROJECT = r"\\micro.intra\Projekt\P1207$\P1207_Gem\canaries-sweden"
+# Project root on the MONA share, under the GROUP CONVENTION (ML, 4 Sep 2026):
+# every researcher has one folder at P1207_Gem root; every project has ONE main
+# owner and lives in that owner's folder. Magnus owns canaries (he runs all the
+# revision empirics), so the round lives beside proworker-gov in Magnus_P1207.
+# The v1 work stays untouched in "Lydia P1207\CANARIES\" as the archive.
+PROJECT = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden"
 
 # Inputs live in input\ and are named for what they are. CANARIES_SHARE lets the
 # local dry-run test point this elsewhere; in MONA the variable is unset.
@@ -83,6 +84,53 @@ AGE_GROUPS = {
 MIN_EMPLOYER_SIZE = 5
 
 _THIS_DIR = Path(__file__).resolve().parent
+
+# ----------------------------------------------------------------------
+# Storage discipline (handbook standard, mona-register-rounds point 7,
+# implemented here for the first time 4 Sep 2026)
+# ----------------------------------------------------------------------
+# Every expensive pull is cached under ONE disposable directory, never in a
+# results folder. Cache during the round so a downstream failure does not
+# cost the SQL time; retire the whole directory at close of round with
+# `run_all_mona.py --retire-caches` once the exports are out and verified.
+CACHE_DIR = _THIS_DIR / "cache"
+PANEL_CACHE = CACHE_DIR / "panel_vintage.parquet"
+
+
+def runlog(script: str, rc: int, minutes: float):
+    """
+    Append one provenance line to the project root RUNLOG.txt: when, WHO
+    (MONA accounts are personal), what, exit code, runtime. The group
+    convention: a shared project folder must show who has touched it.
+    No-op outside MONA (the UNC root does not resolve locally).
+    """
+    import getpass
+    try:
+        root = Path(PROJECT)
+        line = "%s | %-12s | %-34s | exit %d | %5.1f min\n" % (
+            time.strftime("%Y-%m-%d %H:%M"), getpass.getuser(), script,
+            rc, minutes)
+        with open(root / "RUNLOG.txt", "a", encoding="utf-8") as f:
+            f.write(line)
+    except OSError:
+        pass
+
+
+def storage_report():
+    """Bytes by top-level entry under the round folder, cache/ separated,
+    so every run ends with the footprint known (the 17 Aug lesson)."""
+    rows = []
+    for d in sorted(_THIS_DIR.iterdir()):
+        if d.name.startswith((".", "__")):
+            continue
+        n = sum(f.stat().st_size for f in d.rglob("*") if f.is_file()) \
+            if d.is_dir() else d.stat().st_size
+        rows.append((n, d.name + ("/" if d.is_dir() else "")))
+    print("\nSTORAGE (round folder)")
+    for n, name in sorted(rows, reverse=True):
+        tag = "  <- disposable, --retire-caches" if name == "cache/" else ""
+        print("  %8.1f MB  %s%s" % (n / 1e6, name, tag))
+    print("  %8.1f MB  TOTAL" % (sum(n for n, _ in rows) / 1e6))
 R_FEPOIS = _THIS_DIR / "r_fepois.R"
 R_FEPOIS_ES = _THIS_DIR / "r_fepois_es.R"
 
@@ -92,12 +140,24 @@ R_FEPOIS_ES = _THIS_DIR / "r_fepois_es.R"
 # ----------------------------------------------------------------------
 
 class Tee:
-    """Mirror stdout to a log file. ASCII-safe for MONA terminals."""
+    """
+    Mirror stdout to a log file. ASCII-safe for MONA terminals.
+
+    Every log now opens with a provenance header: MONA account, timestamp,
+    script. This is the per-file half of the group convention that any output
+    in a shared project folder must say who produced it -- accounts in MONA
+    are personal, so getpass.getuser() is the runner's identity.
+    """
 
     def __init__(self, path: Path):
+        import getpass
+        self._header = ("run by %s at %s | %s\n" % (
+            getpass.getuser(), time.strftime("%Y-%m-%d %H:%M"),
+            Path(sys.argv[0]).name))
         self._f = open(path, "a", encoding="utf-8", errors="replace")
         self._stdout = sys.stdout
         sys.stdout = self
+        print("=" * 70 + "\n" + self._header + "=" * 70)
 
     def write(self, s):
         self._stdout.write(s)
