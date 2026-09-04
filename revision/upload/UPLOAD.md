@@ -131,9 +131,14 @@ Order there puts 45 fourth, so the centrepiece is known good by mid-trip rather 
 `47_edu_exposure.py` no longer waits on anyone: Erik confirmed no do-files exist, supplied the
 recipe, and the script implements it with 2019 composition weights (first SUN2020 vintage, zero
 nulls, last military/police year, pre-COVID, pre-ChatGPT; 2021 produced alongside as robustness).
-Employment-weighted group quartiles; most-recent education per worker with match rates reported per
+Employment-weighted group quartiles; most-recent education per worker — own-year through 2023 and
+the 2023→22→21 cascade after, i.e. the latest record that exists, with match rates reported per
 age × year; headline = the event-study shape and the single-break post-ChatGPT effect, never the
-RB/GPT split (the script-34 lesson). Eight dedicated tests in the suite, including a synthetic
+RB/GPT split (the script-34 lesson). **Three weights tables** ship in the output: all-worker 2019
+(primary), all-worker 2021 (temporal robustness), and **young-worker 2019 (ages 22–35)** — the
+mapping that reflects where an education's recent holders actually go, with a 22–25 single-break
+re-estimate under those weights (ML's point, 4 Sep; Uppsala's graduate-destination logic). DAIOE
+vintage is 2023 (`DAIOE_REF_YEAR`), the paper's existing convention, unchanged. Eight dedicated tests in the suite, including a synthetic
 end-to-end that recovers an injected −20 % effect at 22–25 only.
 
 **To run it (after round 1 finishes, never beside it):**

@@ -112,7 +112,7 @@ def load_key() -> pd.DataFrame:
 
 
 def build_weights(counts: pd.DataFrame, key: pd.DataFrame,
-                  daioe_scores: pd.DataFrame) -> tuple:
+                  daioe_scores: pd.DataFrame, weight_col: str = "n_all") -> tuple:
     """
     counts: person counts per (niva, inr, ssyk4) from one Individ year,
     occupation-coded people only. Returns (group table, diagnostics dict).
@@ -120,6 +120,9 @@ def build_weights(counts: pd.DataFrame, key: pd.DataFrame,
     Economic content: a group's exposure is the exposure of the jobs its
     holders actually do, weighted by how many of them do each job.
     """
+    counts = counts.rename(columns={weight_col: "n"}) \
+        if weight_col != "n" else counts
+    counts = counts[counts["n"] > 0]
     n0 = counts["n"].sum()
     m = counts.merge(key, on=["niva", "inr"], how="left")
     matched = m["grp"].notna()
@@ -169,12 +172,22 @@ def map_and_collapse(raw: pd.DataFrame, grp_q: pd.DataFrame) -> tuple:
 # ----------------------------------------------------------------------
 
 def pull_weight_counts(year: int, conn) -> pd.DataFrame:
-    """Person counts per (niva, inr, ssyk4) for one Individ year -- the
-    composition the measure is built from. Aggregated in SQL: tiny result."""
+    """
+    Person counts per (niva, inr, ssyk4) for one Individ year -- the
+    composition the measure is built from. Aggregated in SQL: tiny result.
+
+    Two counts per cell: everyone (n_all) and the young (n_young, 22-35 in
+    the weight year). The all-ages stock says where anyone with education g
+    works, which is dominated by older cohorts; the young count says where
+    its RECENT holders go, which is the mapping the 22-25 margin actually
+    turns on (ML's point, 4 Sep; Uppsala's graduate-destination logic).
+    """
     q = f"""
     SELECT Sun2020Niva AS niva, Sun2020Inr AS inr,
            RIGHT('0000' + CAST(Ssyk4_2012_J16 AS VARCHAR(4)), 4) AS ssyk4,
-           COUNT(*) AS n
+           COUNT(*) AS n_all,
+           SUM(CASE WHEN {year} - FodelseAr BETWEEN 22 AND 35
+                    THEN 1 ELSE 0 END) AS n_young
     FROM dbo.Individ_{year}
     WHERE Sun2020Niva IS NOT NULL AND LTRIM(Sun2020Niva) <> ''
       AND Sun2020Inr  IS NOT NULL AND LTRIM(Sun2020Inr)  <> ''
@@ -271,17 +284,27 @@ def main():
         counts["niva"] = norm_code(counts["niva"])
         counts["inr"] = norm_code(counts["inr"])
         counts["ssyk4"] = counts["ssyk4"].astype(str).str.zfill(4)
-        grp, diag = build_weights(counts, key, scores)
+        grp, diag = build_weights(counts, key, scores, weight_col="n_all")
         grp.to_csv(OUT / f"edu_exposure_groups_{wy}.csv", index=False)
         weights[wy] = grp
         print(f"  {wy}: {diag['n_groups']} groups, key match "
               f"{diag['key_match_share']:.1%} of coded workers")
+        if wy == 2019:
+            gy, dy = build_weights(counts, key, scores, weight_col="n_young")
+            gy.to_csv(OUT / "edu_exposure_groups_2019_young.csv", index=False)
+            weights["2019_young"] = gy
+            print(f"  2019 young (22-35): {dy['n_groups']} groups, key match "
+                  f"{dy['key_match_share']:.1%}")
 
     grp_q = weights[2019][["grp", "edu_quartile"]].rename(columns={"grp": "grp"})
     # Pre-committed cross-check, printed not asserted: quartile agreement
     both = weights[2019].merge(weights[2021], on="grp", suffixes=("_19", "_21"))
     agree = (both["edu_quartile_19"] == both["edu_quartile_21"]).mean()
     print(f"  2019 vs 2021 quartile agreement: {agree:.1%} of groups")
+    yng = weights[2019].merge(weights["2019_young"], on="grp",
+                              suffixes=("_all", "_yng"))
+    agree_y = (yng["edu_quartile_all"] == yng["edu_quartile_yng"]).mean()
+    print(f"  all-worker vs young-worker quartile agreement: {agree_y:.1%}")
 
     # ---- Stage B: the panel, streamed one year at a time (memory rule) ----
     frames, rate_rows = [], []
@@ -335,6 +358,32 @@ def main():
         if not eres.empty:
             eres["age_group"] = age
             es_frames.append(eres)
+
+    # Young-weights robustness, 22-25 only: re-map the cached years under
+    # the young quartile assignment and re-run the single-break spec on the
+    # one margin the variant exists for. Cheap: the raw pulls are cached.
+    grp_q_y = weights["2019_young"][["grp", "edu_quartile"]]
+    yframes = []
+    for y in PANEL_YEARS:
+        raw = pd.read_parquet(mc.CACHE_DIR / f"edu_year_{y}.parquet")
+        coll, _ = map_and_collapse(raw, grp_q_y)
+        yframes.append(coll)
+        del raw
+    ypanel = (pd.concat(yframes, ignore_index=True)
+              .rename(columns={"edu_quartile": "exposure_quartile"}))
+    del yframes
+    sub = ypanel[ypanel["age_group"] == "22-25"]
+    cum = sub.groupby("employer_id")["n_emp"].sum()
+    sub = sub[sub["employer_id"].isin(cum[cum >= STEP1_MIN_CUMULATIVE].index)]
+    bal = mc.add_treatment(mc.balance_panel(sub, all_months))
+    bal["halfyear"] = mc.assign_halfyear(bal["year_month"])
+    yres = mc.run_fepois_multi(bal, OUT, tag="edu_single_2225_young",
+                               terms=["post_gpt_x_high"])
+    if not yres.empty:
+        yres["age_group"] = "22-25"
+        yres["weights"] = "2019_young_22_35"
+        yres.to_csv(OUT / "edu_poisson_singlebreak_youngweights.csv", index=False)
+    del ypanel
 
     for rows, name in ((pooled_rows, "edu_poisson_pooled.csv"),
                        (single_rows, "edu_poisson_singlebreak.csv"),
