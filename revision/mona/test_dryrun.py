@@ -170,6 +170,36 @@ def stage_run(work: Path, env: dict):
         record("run", f, ok, detail)
 
 
+def stage_preflight(work: Path, env: dict):
+    """The pre-flight is what stands between an upload and a wasted batch
+    submission; it gets tested like everything else (lesson of 4 Sep, when
+    it demanded .csv while the shipped files were .dta and the suite was
+    silent because nothing exercised it)."""
+    print("\n3b. PRE-FLIGHT against the synthetic share")
+    def run_pf():
+        return subprocess.run([sys.executable, str(work / "run_all_mona.py"),
+                               "--dry-run"], capture_output=True, text=True,
+                              cwd=work, env=env)
+    r = run_pf()
+    ok = "Pre-flight failed" not in r.stdout and "MISSING" not in r.stdout \
+         and "BAD HASH" not in r.stdout
+    record("preflight", "all inputs green", ok,
+           "" if ok else "\n        " + "\n        ".join(
+               l for l in r.stdout.splitlines() if "MISSING" in l or "BAD" in l))
+    share = Path(env["CANARIES_SHARE"])
+    daioe = share / "daioe_quartiles.dta"
+    orig = daioe.read_bytes()
+    daioe.write_bytes(orig + b"x")
+    r = run_pf()
+    record("preflight", "tampered daioe is refused", "BAD HASH" in r.stdout)
+    daioe.write_bytes(orig)
+    dn = share / "dingel_neiman_ssyk4.dta"
+    dn_bytes = dn.read_bytes(); dn.unlink()
+    r = run_pf()
+    record("preflight", "missing input is refused", "MISSING" in r.stdout)
+    dn.write_bytes(dn_bytes)
+
+
 def stage_r(work: Path, env: dict):
     print("\n4. R WRAPPERS against a known DGP")
     sys.path.insert(0, str(work))
@@ -236,9 +266,17 @@ def main():
     # SHARE is concatenated with r"\name.csv", so on POSIX the file lives
     # beside the share directory with a backslash in its name. That is the
     # point: it exercises the real path expression, unmodified.
-    daioe.to_stata(f"{share}\\daioe_quartiles.dta", write_index=False)
-    pd.read_csv(REPO / "mona_package/dingel_neiman_ssyk4.txt").to_stata(
-        f"{share}\\dingel_neiman_ssyk4.dta", write_index=False)
+    # On Windows/MONA, SHARE + r"\x.dta" (the loaders) and Path(SHARE)/"x.dta"
+    # (the pre-flight) are the same file; on macOS they are not, so the fixture
+    # provides both forms. Same bytes, so the hash check sees the same content.
+    from datetime import datetime as _dt
+    _ts = _dt(2026, 9, 4, 12, 0)
+    daioe.to_stata(f"{share}\\daioe_quartiles.dta", write_index=False, time_stamp=_ts)
+    dn = pd.read_csv(REPO / "mona_package/dingel_neiman_ssyk4.txt")
+    dn.to_stata(f"{share}\\dingel_neiman_ssyk4.dta", write_index=False, time_stamp=_ts)
+    import shutil as _sh
+    _sh.copy(REPO / "revision/upload/daioe_quartiles.dta", share / "daioe_quartiles.dta")
+    dn.to_stata(share / "dingel_neiman_ssyk4.dta", write_index=False, time_stamp=_ts)
 
     print("\n0. SYNTHETIC DATA")
     panel = make_panel(daioe)
@@ -256,6 +294,7 @@ def main():
 
     stage_import(work, env)
     stage_run(work, env)
+    stage_preflight(work, env)
     stage_r(work, env)
 
     print("\n" + "=" * 74)

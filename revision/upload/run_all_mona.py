@@ -97,8 +97,8 @@ STAGES = [
 ]
 
 REQUIRED_INPUTS = [
-    ("daioe_quartiles.csv",     "in input\\; hash-checked against the repo copy"),
-    ("dingel_neiman_ssyk4.csv", "in input\\; 46 dies without it"),
+    ("daioe_quartiles.dta",     "in input/, uploads directly; hash-checked"),
+    ("dingel_neiman_ssyk4.dta", "in input/, uploads directly; 46 dies without it"),
     ("r_fepois.R",              "beside the scripts; upload as .txt, RENAME to .R"),
     ("r_fepois_es.R",           "beside the scripts; upload as .txt, RENAME to .R"),
     ("r_fepois_multi.R",        "beside the scripts; upload as .txt, RENAME to .R"),
