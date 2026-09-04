@@ -63,6 +63,7 @@ script 32's architecture (panel cache, staged outputs, `_Tee` logging, crash rec
   44 (deciles), 45 (as-of backtest + frontier), 46 (WFH horse race);
   `r_fepois_multi.R` e2e-tested against a known DGP with local fixest 0.14.
 - **Waiting:** 47 (Erik's education-exposure do-files).
-- Upload set for the MONA trip: everything in `mona/` (scripts as .txt), plus
-  `data/processed/daioe_quartiles.csv` (already on the share) and
-  `dingel_neiman_ssyk4.csv` for 46.
+- Upload set for the MONA trip: **`upload/` is the staged set — see `upload/UPLOAD.md`**.
+  `.py` uploads directly (the .txt dance has been obsolete for Python since 12 Aug 2026);
+  only `.R` and `.csv` still travel as `.txt` and are renamed on arrival, since neither is
+  an allowed portal format. Destination: `P1207_Gem\Magnus_P1207\canaries-sweden\`.
