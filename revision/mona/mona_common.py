@@ -69,8 +69,8 @@ V1_ARCHIVE = (r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207"
 # tree, so this round does not depend on a folder nobody designed. The copy is
 # verified by hash at pre-flight, which makes "the same file" provable rather
 # than assumed -- the objection to copying, answered.
-DAIOE_SHA256 = "0cae790c086a93a63d681c8307eecace456123d62e322d75ec121176c535d2d8"
-DAIOE_PATH = SHARE + r"\daioe_quartiles.csv"
+DAIOE_SHA256 = "e217df0d3cf03f3e4020fec565c280b9990a90736377e3c9e95091b874341bbb"
+DAIOE_PATH = SHARE + r"\daioe_quartiles.dta"
 
 RIKSBANK_YM = "2022-04"
 CHATGPT_YM = "2022-12"
@@ -315,7 +315,9 @@ def collapse_vintage(panel: pd.DataFrame) -> pd.DataFrame:
 # ----------------------------------------------------------------------
 
 def load_daioe(path: str = DAIOE_PATH) -> pd.DataFrame:
-    daioe = pd.read_csv(path)
+    # .dta, not .csv: dta is an allowed upload format so the file arrives
+    # under its own name with no rename step (house convention, 9 Aug 2026).
+    daioe = pd.read_stata(path) if str(path).endswith(".dta") else pd.read_csv(path)
     daioe["ssyk4"] = daioe["ssyk4"].astype(str).str.zfill(4)
     # The delivered file stores the quartile as "Q3". Test on numeric-ness,
     # not on `dtype == object`: pandas 3 gives string columns a `str` dtype,

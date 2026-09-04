@@ -236,9 +236,9 @@ def main():
     # SHARE is concatenated with r"\name.csv", so on POSIX the file lives
     # beside the share directory with a backslash in its name. That is the
     # point: it exercises the real path expression, unmodified.
-    daioe.to_csv(f"{share}\\daioe_quartiles.csv", index=False)
-    shutil.copy(REPO / "mona_package/dingel_neiman_ssyk4.txt",
-                f"{share}\\dingel_neiman_ssyk4.csv")
+    daioe.to_stata(f"{share}\\daioe_quartiles.dta", write_index=False)
+    pd.read_csv(REPO / "mona_package/dingel_neiman_ssyk4.txt").to_stata(
+        f"{share}\\dingel_neiman_ssyk4.dta", write_index=False)
 
     print("\n0. SYNTHETIC DATA")
     panel = make_panel(daioe)

@@ -50,7 +50,8 @@ STEP1_MIN_CUMULATIVE = 5
 
 
 def load_daioe_deciles():
-    daioe = pd.read_csv(mc.DAIOE_PATH)
+    daioe = (pd.read_stata(mc.DAIOE_PATH) if mc.DAIOE_PATH.endswith('.dta')
+             else pd.read_csv(mc.DAIOE_PATH))  # needs the continuous ranks, not just quartiles
     daioe["ssyk4"] = daioe["ssyk4"].astype(str).str.zfill(4)
     if "pctl_rank_genai" not in daioe.columns:
         raise RuntimeError("daioe_quartiles.csv lacks pctl_rank_genai; "

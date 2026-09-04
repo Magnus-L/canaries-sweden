@@ -47,7 +47,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "output_46"
 OUT.mkdir(exist_ok=True)
 CACHE = mc.PANEL_CACHE
-WFH_PATH = mc.SHARE + r"\dingel_neiman_ssyk4.csv"
+WFH_PATH = mc.SHARE + r"\dingel_neiman_ssyk4.dta"
 
 AGES = list(mc.AGE_GROUPS)
 STEP1_MIN_CUMULATIVE = 5
@@ -56,7 +56,7 @@ TERMS = ["post_rb_x_high", "post_gpt_x_high",
 
 
 def load_wfh():
-    wfh = pd.read_csv(WFH_PATH)
+    wfh = pd.read_stata(WFH_PATH) if WFH_PATH.endswith(".dta") else pd.read_csv(WFH_PATH)
     # accept either (ssyk4, teleworkable) or (ssyk4, telework_share)
     col = "teleworkable" if "teleworkable" in wfh.columns else "telework_share"
     wfh = wfh.rename(columns={col: "wfh"})[["ssyk4", "wfh"]]

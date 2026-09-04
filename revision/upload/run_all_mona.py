@@ -75,11 +75,11 @@ def preflight() -> bool:
     ok = True
     print("PRE-FLIGHT")
     for name, note in REQUIRED_INPUTS:
-        path = Path(mc.SHARE) / name if name.endswith(".csv") else HERE / name
+        path = Path(mc.SHARE) / name if name.endswith((".csv", ".dta")) else HERE / name
         exists = path.exists()
         mark = "ok " if exists else "MISSING"
         extra = ""
-        if exists and name == "daioe_quartiles.csv":
+        if exists and name == "daioe_quartiles.dta":
             got = hashlib.sha256(path.read_bytes()).hexdigest()
             if got == mc.DAIOE_SHA256:
                 extra = "  sha256 matches the repo copy"

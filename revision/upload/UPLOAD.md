@@ -33,7 +33,7 @@ Destination, under the **group convention decided 4 Sep 2026** — every researc
 owns canaries (he runs all revision empirics), so it sits beside `proworker-gov`:
 
     \\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\
-      input\                    daioe_quartiles.csv, dingel_neiman_ssyk4.csv
+      input\                    daioe_quartiles.dta, dingel_neiman_ssyk4.dta
       round1_EL67898\           mona_common.py, 39..46, run_all_mona.py,
                                 r_fepois*.R, MANIFEST.txt
                                 output_39\ .. output_46\  (created on the run)
@@ -58,9 +58,10 @@ Three mechanics new on 4 Sep, all tested:
 
 ## 1. Upload list — from, to, and what to do on arrival
 
-`.py` uploads directly (the txt-rename dance has been obsolete for Python since 12 Aug 2026).
-`.R` and `.csv` are **not** allowed formats, so they travel as `.txt` and are renamed in MONA —
-the same route `eloundou_ssyk4.txt` already took.
+`.py` uploads directly (since 12 Aug 2026) and so does `.dta`, which is why the two data files
+now ship as Stata files per the house convention (9 Aug 2026) instead of doing the txt-rename
+dance — the scripts read either extension. **Only the three R files still need a rename**, because
+`.R` is not an allowed portal format.
 
 | # | Upload this file | From (local) | To (MONA) | Rename after upload |
 |---|---|---|---|---|
@@ -77,20 +78,15 @@ the same route `eloundou_ssyk4.txt` already took.
 | 11 | `r_fepois.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois.R`** |
 | 12 | `r_fepois_es.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois_es.R`** |
 | 13 | `r_fepois_multi.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois_multi.R`** |
-| 14 | `dingel_neiman_ssyk4.txt` | `revision/upload/` | **`input\`** | **→ `dingel_neiman_ssyk4.csv`** |
+| 14 | `dingel_neiman_ssyk4.dta` | `revision/upload/` | **`input\`** | — |
+| 15 | `daioe_quartiles.dta` | `revision/upload/` | **`input\`** | — |
+| 16 | `MANIFEST.txt` | `revision/upload/` | `round1_EL67898\` | — |
 
-**Item 15, `daioe_quartiles.txt` → `input\daioe_quartiles.csv`.** This is the one file carried
-across from the v1 tree. It is checked at pre-flight against the sha256 of the repo copy
-(`0cae790c...`), so "the same file the v1 results were produced with" is provable rather than
-assumed — which is a stronger guarantee than reading it in place would have given.
 
-**Item 16, `MANIFEST.txt`** → beside the scripts. The pre-flight hashes every uploaded `.py`
-against it, closing the chain from "this is the code we tested" to "this is the code that ran".
-Named `.txt` because `.sha256` is not an allowed portal format.
 
 **Two things to check on arrival.** Uploads can silently get a date suffix when a name already
 exists — glance at the folder and rename any back. Then run the pre-flight, which checks exactly
-the four hand-renamed files, because those are the ones that get forgotten:
+the three hand-renamed files, because those are the ones that get forgotten:
 
     python run_all_mona.py --dry-run
 
