@@ -31,6 +31,7 @@ measure and must not hold this trip; see notes/erik-delivery-vs-T12_2026-09-03.m
 """
 
 import argparse
+import hashlib
 import subprocess
 import sys
 import time
@@ -52,26 +53,59 @@ STAGES = [
 ]
 
 REQUIRED_INPUTS = [
-    ("daioe_quartiles.csv",     "already on the share"),
-    ("dingel_neiman_ssyk4.csv", "upload as .txt, RENAME to .csv -- 46 dies without it"),
-    ("r_fepois.R",              "upload as .txt, RENAME to .R"),
-    ("r_fepois_es.R",           "upload as .txt, RENAME to .R"),
-    ("r_fepois_multi.R",        "upload as .txt, RENAME to .R"),
+    ("daioe_quartiles.csv",     "in input\\; hash-checked against the repo copy"),
+    ("dingel_neiman_ssyk4.csv", "in input\\; 46 dies without it"),
+    ("r_fepois.R",              "beside the scripts; upload as .txt, RENAME to .R"),
+    ("r_fepois_es.R",           "beside the scripts; upload as .txt, RENAME to .R"),
+    ("r_fepois_multi.R",        "beside the scripts; upload as .txt, RENAME to .R"),
 ]
 
 
 def preflight() -> bool:
-    """Check the inputs that are not .py, because those are the ones that get
-    renamed by hand and therefore the ones that get forgotten."""
+    """
+    Check the inputs that are not .py, because those are the ones renamed by hand
+    and therefore the ones that get forgotten, and hash the one input that came
+    across from the v1 tree so that "the same file" is provable, not assumed.
+
+    Also hashes the scripts against MANIFEST.sha256 when it is present, which
+    closes the chain from "this is the code we tested" to "this is the code that
+    ran". Shell escapes are banned in MONA; this is ordinary Python.
+    """
     import mona_common as mc
     ok = True
     print("PRE-FLIGHT")
     for name, note in REQUIRED_INPUTS:
         path = Path(mc.SHARE) / name if name.endswith(".csv") else HERE / name
-        mark = "ok " if path.exists() else "MISSING"
-        if not path.exists():
+        exists = path.exists()
+        mark = "ok " if exists else "MISSING"
+        extra = ""
+        if exists and name == "daioe_quartiles.csv":
+            got = hashlib.sha256(path.read_bytes()).hexdigest()
+            if got == mc.DAIOE_SHA256:
+                extra = "  sha256 matches the repo copy"
+            else:
+                mark, ok, extra = "BAD HASH", False, f"  got {got[:16]}..., expected {mc.DAIOE_SHA256[:16]}..."
+        if not exists:
             ok = False
-        print(f"  [{mark:>7}] {name:<26} {note}")
+        print(f"  [{mark:>8}] {name:<26} {note}{extra}")
+
+    # MANIFEST.txt, not .sha256: the portal only accepts a fixed format list and
+    # .sha256 is not on it, so a manifest named that way could never be uploaded.
+    man = HERE / "MANIFEST.txt"
+    if man.exists():
+        bad = []
+        for line in man.read_text().splitlines():
+            want, _, fname = line.partition("  ")
+            f = HERE / fname.strip()
+            if f.exists() and hashlib.sha256(f.read_bytes()).hexdigest() != want:
+                bad.append(fname.strip())
+        if bad:
+            ok = False
+            print(f"  [BAD HASH] scripts differ from the tested versions: {', '.join(bad)}")
+        else:
+            print("  [      ok] MANIFEST.txt             every uploaded script matches what was tested")
+    else:
+        print("  [    note] MANIFEST.txt             absent; script integrity not verified")
     print()
     return ok
 
