@@ -1,0 +1,84 @@
+
+==========================================================================
+run_all_mona started 2026-09-04 12:48 | user lodema | python 3.13.7
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane a  |  2026-09-04 12:48
+==========================================================================
+  1. 39_canary_gate.py            [gate  ] Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet
+  2. 43_poisson_primary.py        [T4/E6 ] Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM
+  3. 42_frozen_cohort.py          [T3/E5 ] Coverage-immune cohort: coded by Dec 2023, followed forward
+  4. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  5. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  6. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
+  7. 46_wfh_horserace.py          [T10   ] Telework x period interactions, both margins
+
+PRE-FLIGHT
+  [ MISSING] daioe_quartiles.csv        in input\; hash-checked against the repo copy
+  [ MISSING] dingel_neiman_ssyk4.csv    in input\; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+Pre-flight failed. Fix the missing inputs before running.
+
+==========================================================================
+run_all_mona started 2026-09-04 13:05 | user lodema | python 3.13.7
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane a  |  2026-09-04 13:05
+==========================================================================
+  1. 39_canary_gate.py            [gate  ] Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet
+  2. 43_poisson_primary.py        [T4/E6 ] Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM
+  3. 42_frozen_cohort.py          [T3/E5 ] Coverage-immune cohort: coded by Dec 2023, followed forward
+  4. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  5. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  6. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
+  7. 46_wfh_horserace.py          [T10   ] Telework x period interactions, both margins
+
+PRE-FLIGHT
+  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
+  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+
+==========================================================================
+39_canary_gate.py  [gate]
+==========================================================================
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py:283: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(query, conn)
+======================================================================
+run by lodema at 2026-09-04 13:05 | 39_canary_gate.py
+======================================================================
+======================================================================
+39: CANARY GATE -- reproduce v1 anchors through the v2 module
+======================================================================
+  2019: 21,158,148 cells in 156s
+  2020: 20,557,960 cells in 150s
+  2021: 21,022,378 cells in 164s
+  2022: 22,265,793 cells in 167s
+  2023: 22,304,502 cells in 200s
+  2024: 22,608,169 cells in 214s
+  2025: 11,553,266 cells in 116s
+  Cached -> panel_vintage.parquet
+  22-25 balanced panel: 11,682,918 cells, 46,496 employers
+  OLS+1 gamma2 = -0.0100 (1858s)
+Traceback (most recent call last):
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\39_canary_gate.py", line 127, in <module>
+    main()
+    ~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\39_canary_gate.py", line 95, in main
+    pres = mc.run_fepois(bal, OUT, tag="gate")
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 420, in run_fepois
+    cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
+           ~~~~~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 409, in _rscript
+    raise RuntimeError("Rscript not found")
+RuntimeError: Rscript not found
+  39_canary_gate.py: exit 1 (65.2 min)
+
+CANARY GATE FAILED. Nothing downstream is trustworthy. Aborting.

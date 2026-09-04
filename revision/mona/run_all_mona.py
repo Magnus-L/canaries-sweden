@@ -135,6 +135,19 @@ def preflight() -> bool:
 
     # MANIFEST.txt, not .sha256: the portal only accepts a fixed format list and
     # .sha256 is not on it, so a manifest named that way could never be uploaded.
+    # The 4 Sep lesson, 65 minutes of it: every ENVIRONMENT dependency is a
+    # pre-flight row. The gate crashed at the R step half an hour after the
+    # SQL was already spent; this check would have failed in one second.
+    try:
+        rpath = mc._rscript()
+        rv = subprocess.run([rpath, "--version"], capture_output=True,
+                            text=True, timeout=60)
+        ver = (rv.stdout + rv.stderr).strip().splitlines()[0][:40]
+        print(f"  [      ok] Rscript                  {rpath}  ({ver})")
+    except Exception as ex:
+        ok = False
+        print(f"  [ MISSING] Rscript                  {ex}")
+
     man = HERE / "MANIFEST.txt"
     if man.exists():
         bad = []

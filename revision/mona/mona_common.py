@@ -402,11 +402,56 @@ def assign_halfyear(ym: pd.Series) -> pd.Series:
 # ----------------------------------------------------------------------
 
 def _rscript() -> str:
+    """
+    Find Rscript the way v1's find_rscript.py proved works on MONA: PATH,
+    then the Windows registry (R-core InstallPath, both hives and WOW6432),
+    then a version glob over Program Files. The 4 Sep batch failure showed
+    the old two-candidate check (PATH + a hardcoded R-4.3.1 path) does not
+    survive the batch node, where R is neither on PATH nor at 4.3.1.
+    Cached after the first hit; raises with the full search record so a
+    failure names every place that was tried.
+    """
+    global _RSCRIPT_CACHED
+    if _RSCRIPT_CACHED:
+        return _RSCRIPT_CACHED
     from shutil import which
-    for cand in ("Rscript", r"C:\Program Files\R\R-4.3.1\bin\Rscript.exe"):
-        if which(cand) or Path(cand).exists():
-            return cand
-    raise RuntimeError("Rscript not found")
+    tried = []
+    cand = which("Rscript")
+    if cand:
+        _RSCRIPT_CACHED = cand
+        return cand
+    tried.append("PATH")
+    try:
+        import winreg
+        for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+            for subkey in (r"SOFTWARE\R-core\R", r"SOFTWARE\WOW6432Node\R-core\R",
+                           r"SOFTWARE\R-core\R64", r"SOFTWARE\WOW6432Node\R-core\R64"):
+                try:
+                    with winreg.OpenKey(hive, subkey) as key_:
+                        base = winreg.QueryValueEx(key_, "InstallPath")[0]
+                    for sub in (r"bin\x64\Rscript.exe", r"bin\Rscript.exe"):
+                        exe = Path(base) / sub
+                        if exe.exists():
+                            _RSCRIPT_CACHED = str(exe)
+                            return _RSCRIPT_CACHED
+                    tried.append(f"registry {subkey} -> {base}")
+                except OSError:
+                    pass
+    except ImportError:
+        tried.append("winreg unavailable (not Windows)")
+    import glob as _glob
+    for pattern in (r"C:\Program Files\R\R-*\bin\x64\Rscript.exe",
+                    r"C:\Program Files\R\R-*\bin\Rscript.exe",
+                    r"C:\Program Files (x86)\R\R-*\bin\Rscript.exe"):
+        hits = sorted(_glob.glob(pattern))
+        if hits:
+            _RSCRIPT_CACHED = hits[-1]      # highest version wins
+            return _RSCRIPT_CACHED
+        tried.append(f"glob {pattern}")
+    raise RuntimeError("Rscript not found; searched " + "; ".join(tried))
+
+
+_RSCRIPT_CACHED = None
 
 
 def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
