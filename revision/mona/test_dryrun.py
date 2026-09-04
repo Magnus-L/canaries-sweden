@@ -200,6 +200,121 @@ def stage_preflight(work: Path, env: dict):
     dn.write_bytes(dn_bytes)
 
 
+def stage_47(work: Path, env: dict, daioe: pd.DataFrame):
+    """
+    Script 47 (education exposure) -- unit tests of the measure logic, then
+    a full synthetic end-to-end run. The REAL key file is placed in the
+    fixture share, so the hash pin, the uniqueness assert and the join
+    normalisation are exercised against the artefact that will be uploaded.
+    """
+    print("\n3c. SCRIPT 47 (education exposure)")
+    import importlib.util
+    os.environ.update(env)
+    spec = importlib.util.spec_from_file_location("s47", work / "47_edu_exposure.py")
+    s47 = importlib.util.module_from_spec(spec)
+    sys.modules["s47"] = s47
+    spec.loader.exec_module(s47)
+
+    # -- norm_code: the two vintage encodings collapse to one
+    raw = pd.Series([" 340A", "340a", "", None, "  "])
+    out = s47.norm_code(raw)
+    record("47", "norm_code unifies encodings",
+           out[0] == "340a" and out[1] == "340a"
+           and out[2] is pd.NA and out[3] is pd.NA and out[4] is pd.NA)
+
+    # -- the real key loads, hash-verified, unique
+    try:
+        key = s47.load_key()
+        record("47", "real key loads under hash pin",
+               len(key) == 10241 and key["grp"].nunique() == 105)
+    except Exception as ex:
+        record("47", "real key loads under hash pin", False, str(ex)[:120])
+        return
+
+    # -- build_weights on a fixture with known answers: 40 groups, one
+    #    (niva, inr, ssyk4) each, equal employment -> employment-weighted
+    #    quartiles must be 10 groups per bin, ordered by the ssyk4 score
+    scored = (pd.read_csv(REPO / "data/processed/daioe_quartiles.csv")
+              .assign(ssyk4=lambda d: d.ssyk4.astype(str).str.zfill(4))
+              [["ssyk4", "pctl_rank_genai"]])
+    ssyk_sorted = scored.sort_values("pctl_rank_genai")["ssyk4"].tolist()
+    groups = key.drop_duplicates("grp").head(40).reset_index(drop=True)
+    picks = [ssyk_sorted[int(i * (len(ssyk_sorted) - 1) / 39)] for i in range(40)]
+    counts = pd.DataFrame({"niva": groups["niva"], "inr": groups["inr"],
+                           "ssyk4": picks, "n": 1000})
+    scores = scored[["ssyk4", "pctl_rank_genai"]]
+    grp, diag = s47.build_weights(counts, key, scores)
+    per_bin = grp.groupby("edu_quartile").size()
+    record("47", "weights: employment-weighted quartiles balance",
+           len(grp) == 40 and diag["key_match_share"] == 1.0
+           and per_bin.min() >= 9 and per_bin.max() <= 11,
+           f"bins {per_bin.to_dict()}")
+    lowest = grp.sort_values("mean_daioe").iloc[0]
+    truth = float(scores.set_index("ssyk4").loc[picks[0], "pctl_rank_genai"])
+    record("47", "weights: weighted mean exact on fixture",
+           abs(lowest.mean_daioe - truth) < 1e-9)
+    # min-cell floor: a 3-worker group must be dropped
+    small = counts.copy(); small.loc[0, "n"] = 3
+    g2, _ = s47.build_weights(small, key, scores)
+    record("47", "weights: n<5 group dropped", len(g2) == 39)
+
+    # -- end-to-end: seed the caches with a synthetic world carrying a
+    #    -20% post-ChatGPT effect at 22-25 in Q4 education groups only
+    rng = np.random.default_rng(4711)
+    grp_map = grp[["grp", "edu_quartile"]].merge(groups, on="grp")
+    q4 = grp_map[grp_map.edu_quartile == 4].reset_index(drop=True)
+    lo = grp_map[grp_map.edu_quartile < 4].reset_index(drop=True)
+    cache = work / "cache"
+    counts.to_parquet(cache / "edu_weights_2019.parquet", index=False)
+    counts.to_parquet(cache / "edu_weights_2021.parquet", index=False)
+    for y in range(2019, 2026):
+        rows = []
+        months = [m for m in MONTHS if m.startswith(str(y))]
+        for e in range(120):
+            for src, is_q4 in ((q4.iloc[e % len(q4)], True),
+                               (lo.iloc[e % len(lo)], False)):
+                for age in AGES:
+                    base = 18.0
+                    for ym in months:
+                        eff = 1.0
+                        if is_q4 and age == "22-25" and ym >= "2022-12":
+                            yy, mm = int(ym[:4]), int(ym[5:])
+                            eff = 1.0 - 0.20 * min(1.0, (yy*12+mm - 24276) / 24)
+                        n = rng.poisson(base * eff)
+                        if n:
+                            rows.append((f"E{e:05d}", ym, src["niva"],
+                                         src["inr"], age, int(n)))
+        pd.DataFrame(rows, columns=["employer_id", "year_month", "niva",
+                                    "inr", "age_group", "n_emp"]
+                     ).to_parquet(cache / f"edu_year_{y}.parquet", index=False)
+    t0 = time.time()
+    r = subprocess.run([sys.executable, str(work / "47_edu_exposure.py")],
+                       capture_output=True, text=True, cwd=work, env=env,
+                       timeout=1800)
+    out47 = work / "output_47"
+    files = {f.name for f in out47.glob("*.csv")} if out47.exists() else set()
+    need = {"edu_exposure_groups_2019.csv", "edu_match_rates.csv",
+            "edu_poisson_pooled.csv", "edu_poisson_singlebreak.csv",
+            "edu_poisson_es.csv"}
+    ok = r.returncode == 0 and need <= files
+    detail = f"{time.time()-t0:5.1f}s, {len(files)} csv"
+    if not ok:
+        detail += "\n        " + "\n        ".join(
+            (r.stdout + r.stderr).strip().splitlines()[-5:])
+    record("47", "end-to-end run", ok, detail)
+    if ok:
+        sb = pd.read_csv(out47 / "edu_poisson_singlebreak.csv")
+        b2225 = float(sb.loc[sb.age_group == "22-25", "coef"].iloc[0])
+        others = sb.loc[sb.age_group != "22-25", "coef"].abs().max()
+        record("47", "recovers the injected effect at 22-25 only",
+               b2225 < -0.08 and others < 0.05,
+               f"22-25 {b2225:+.3f}, max|other| {others:.3f}")
+        es = pd.read_csv(out47 / "edu_poisson_es.csv")
+        last = es[es.age_group == "22-25"].iloc[-1]
+        record("47", "ES deepens for 22-25", float(last.coef) < -0.10,
+               f"endpoint {float(last.coef):+.3f}")
+
+
 def stage_r(work: Path, env: dict):
     print("\n4. R WRAPPERS against a known DGP")
     sys.path.insert(0, str(work))
@@ -276,6 +391,10 @@ def main():
     dn.to_stata(f"{share}\\dingel_neiman_ssyk4.dta", write_index=False, time_stamp=_ts)
     import shutil as _sh
     _sh.copy(REPO / "revision/upload/daioe_quartiles.dta", share / "daioe_quartiles.dta")
+    _key = (REPO.parent.parent / "lab-infrastructure/data-notes/codelists"
+            / "utbildningsgrupp-sun2020/Data/3_data_jewelry"
+            / "utb_grupp2_sun2020_niva3_inr4_nyckel.dta")
+    _sh.copy(_key, f"{share}\\utb_grupp2_sun2020_niva3_inr4_nyckel.dta")
     dn.to_stata(share / "dingel_neiman_ssyk4.dta", write_index=False, time_stamp=_ts)
 
     print("\n0. SYNTHETIC DATA")
@@ -294,6 +413,7 @@ def main():
 
     stage_import(work, env)
     stage_run(work, env)
+    stage_47(work, env, daioe)
     stage_preflight(work, env)
     stage_r(work, env)
 

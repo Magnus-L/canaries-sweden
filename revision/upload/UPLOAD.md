@@ -126,11 +126,24 @@ if the node shows headroom. If in doubt, run everything in one console:
 
 Order there puts 45 fourth, so the centrepiece is known good by mid-trip rather than at the end.
 
-### Not in this trip
+### Round 2: script 47 (education exposure) — built and tested 4 Sep, runs STANDALONE
 
-`47_edu_exposure.py` waits on Erik Engberg's education-exposure measure and **must not hold the
-trip**. It is Tier 2, and T13 (public YREG, local, already half-run) does its rhetorical job with
-SCB's own occupation coding. See `notes/erik-delivery-vs-T12_2026-09-03.md`.
+`47_edu_exposure.py` no longer waits on anyone: Erik confirmed no do-files exist, supplied the
+recipe, and the script implements it with 2019 composition weights (first SUN2020 vintage, zero
+nulls, last military/police year, pre-COVID, pre-ChatGPT; 2021 produced alongside as robustness).
+Employment-weighted group quartiles; most-recent education per worker with match rates reported per
+age × year; headline = the event-study shape and the single-break post-ChatGPT effect, never the
+RB/GPT split (the script-34 lesson). Eight dedicated tests in the suite, including a synthetic
+end-to-end that recovers an injected −20 % effect at 22–25 only.
+
+**To run it (after round 1 finishes, never beside it):**
+1. Upload `utb_grupp2_sun2020_niva3_inr4_nyckel.dta` → `input\` (a `.dta`, uploads directly;
+   the script refuses any file whose sha256 differs from Erik's delivered key).
+2. Upload the new `47_edu_exposure.py` → `round1_EL67898\` (replace the stub), plus the
+   refreshed `MANIFEST.txt`.
+3. Submit **`47_edu_exposure.py` itself** to BatchClient — it is standalone, logs to
+   `output_47\47_log.txt`, caches under `cache\`, and stamps `RUNLOG.txt` is not touched (the
+   runner does that); its own Tee header carries the who-ran-what stamp.
 
 ## 3. What was tested before the trip, and what was found
 
