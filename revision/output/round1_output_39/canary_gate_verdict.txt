@@ -1,0 +1,4 @@
+CANARY GATE: FAIL
+  ols_gamma2: ok
+  poisson_gamma2: ok
+  poisson_n_obs: MISMATCH

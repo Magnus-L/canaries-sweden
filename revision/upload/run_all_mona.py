@@ -87,6 +87,7 @@ except Exception:
 # (script, lane, tier, what it delivers)
 STAGES = [
     ("39_canary_gate.py",           "gate", "gate", "Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet"),
+    ("39b_panel_diff.py",           "a", "diag", "Localise any N drift: v2 pull vs v1 archive cache, by year/quartile/pair"),
     ("43_poisson_primary.py",       "a", "T4/E6",  "Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM"),
     ("42_frozen_cohort.py",         "a", "T3/E5",  "Coverage-immune cohort: coded by Dec 2023, followed forward"),
     ("45_asof_backtest.py",         "b", "T3/E5",  "CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant"),
@@ -168,7 +169,9 @@ def preflight() -> bool:
 
 
 def done_marker(script: str) -> Path:
-    return HERE / f"output_{script[:2]}" / "_DONE"
+    # key on the full stage id ("39b", not "39") so 39b and 39 do not share
+    # a marker; the stage id is everything before the first underscore
+    return HERE / f"output_{script.split('_')[0]}" / "_DONE"
 
 
 def run(script: str, dry: bool) -> int:

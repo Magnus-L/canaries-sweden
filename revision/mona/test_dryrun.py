@@ -35,7 +35,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 
 PY_FILES = ["mona_common.py", "run_all_mona.py"] + sorted(
-    f.name for f in HERE.glob("[0-9][0-9]_*.py"))
+    f.name for f in HERE.glob("[0-9][0-9]*_*.py"))  # includes 39b
 R_FILES = ["r_fepois.R", "r_fepois_es.R", "r_fepois_multi.R"]
 # 39 pulls SQL and 47 is a stub; both are excluded from the run stage.
 RUNNABLE = ["43_poisson_primary.py", "42_frozen_cohort.py", "45_asof_backtest.py",
@@ -168,6 +168,42 @@ def stage_run(work: Path, env: dict):
                    [l for l in r.stderr.strip().splitlines()[-4:]]
             detail += "\n        " + "\n        ".join(tail)
         record("run", f, ok, detail)
+
+
+def stage_39b(work: Path, env: dict):
+    """39b must localise a planted composition gap between the v2 cache and
+    a synthetic 'v1' panel: drop the 2024 mass of three employers from v1's
+    side and expect the year table to show 2024-concentrated drift."""
+    print("\n3d. 39b PANEL DIFF against a planted gap")
+    import mona_common as mc_local
+    panel = pd.read_parquet(work / "cache" / "panel_vintage.parquet")
+    sys.path.insert(0, str(work))
+    os.environ.update(env)
+    import importlib
+    mc2 = importlib.import_module("mona_common")
+    v1 = mc2.aggregate_to_quartile(
+        mc2.merge_daioe_and_filter(mc2.collapse_vintage(panel),
+                                   mc2.load_daioe()))
+    drop = (v1["year_month"].str.startswith("2024")
+            & v1["employer_id"].isin(["E00001", "E00002", "E00003"]))
+    v1[~drop].to_parquet(work / "v1_panel_fixture.parquet", index=False)
+    env39 = dict(env, CANARIES_V1_PANEL=str(work / "v1_panel_fixture.parquet"))
+    r = subprocess.run([sys.executable, str(work / "39b_panel_diff.py")],
+                       capture_output=True, text=True, cwd=work, env=env39,
+                       timeout=600)
+    dy_path = work / "output_39b" / "panel_diff_by_year.csv"
+    ok = r.returncode == 0 and dy_path.exists()
+    record("39b", "runs and reports", ok,
+           "" if ok else (r.stdout + r.stderr).strip().splitlines()[-1][:150])
+    if ok:
+        dy = pd.read_csv(dy_path)
+        d24 = int(dy.loc[dy.year == 2024, "demp"].iloc[0])
+        rest = dy.loc[dy.year != 2024, "demp"].abs().max()
+        record("39b", "localises the planted 2024 gap",
+               d24 > 0 and rest == 0, f"2024 {d24:+,}, max|other| {int(rest)}")
+        pr = work / "output_39b" / "pair_diff_22_25.csv"
+        record("39b", "pair diff exported as counts only",
+               pr.exists() and "employer" not in pd.read_csv(pr).columns.str.lower().str.cat())
 
 
 def stage_preflight(work: Path, env: dict):
@@ -419,6 +455,7 @@ def main():
     stage_import(work, env)
     stage_run(work, env)
     stage_47(work, env, daioe)
+    stage_39b(work, env)
     stage_preflight(work, env)
     stage_r(work, env)
 
