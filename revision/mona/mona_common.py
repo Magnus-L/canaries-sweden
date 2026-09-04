@@ -173,7 +173,11 @@ def connect():
     if LOCAL_DRYRUN:
         raise RuntimeError("SQL access is not available in LOCAL_DRYRUN")
     import pyodbc
-    return pyodbc.connect(SQL_CONN_STRING)
+    conn = pyodbc.connect(SQL_CONN_STRING)
+    # pyodbc waits forever by default; one stalled query would hold a
+    # multi-hour batch job indefinitely (runtime conventions, section 5).
+    conn.timeout = 3600
+    return conn
 
 
 # ----------------------------------------------------------------------

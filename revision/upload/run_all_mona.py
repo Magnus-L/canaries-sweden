@@ -35,10 +35,54 @@ import hashlib
 import subprocess
 import sys
 import time
+import traceback
 from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+
+# ----------------------------------------------------------------------
+# BATCH REALITY (data-notes/mona-runtime-conventions.md, learned 4 Sep the
+# hard way): BatchClient DISCARDS stderr and keeps no stdout for Python, and
+# it cannot pass command-line arguments. So: open our own log before doing
+# anything else -- including before importing mona_common, whose import can
+# itself fail (pyodbc, pandas) -- mirror both streams into it, and write any
+# uncaught traceback there. A crash must never again be invisible.
+# ----------------------------------------------------------------------
+_LOG = open(HERE / "run_all_mona_log.txt", "a", encoding="utf-8", errors="replace")
+
+
+class _Mirror:
+    def __init__(self, stream):
+        self._s = stream
+    def write(self, s):
+        try:
+            self._s.write(s)
+        except Exception:
+            pass
+        _LOG.write(s)
+        _LOG.flush()
+    def flush(self):
+        try:
+            self._s.flush()
+        except Exception:
+            pass
+        _LOG.flush()
+
+
+sys.stdout = _Mirror(sys.stdout)
+sys.stderr = _Mirror(sys.stderr)
+sys.excepthook = lambda et, ev, tb: (
+    print("\nUNCAUGHT EXCEPTION\n" + "".join(traceback.format_exception(et, ev, tb))))
+try:
+    import getpass
+    print("\n" + "=" * 74)
+    print("run_all_mona started %s | user %s | python %s"
+          % (datetime.now().strftime("%Y-%m-%d %H:%M"), getpass.getuser(),
+             sys.version.split()[0]))
+    print("=" * 74)
+except Exception:
+    pass
 
 # (script, lane, tier, what it delivers)
 STAGES = [
@@ -119,7 +163,15 @@ def run(script: str, dry: bool) -> int:
         print(f"  would run {script}")
         return 0
     t0 = time.time()
-    r = subprocess.run([sys.executable, str(HERE / script)])
+    # Stream the stage's stdout AND stderr through our mirrored log: a
+    # stage's own uncaught crash otherwise dies to discarded stderr too.
+    proc = subprocess.Popen([sys.executable, str(HERE / script)],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, errors="replace", cwd=HERE)
+    for line in proc.stdout:
+        print(line, end="")
+    r = proc
+    proc.wait()
     mins = (time.time() - t0) / 60
     print(f"  {script}: exit {r.returncode} ({mins:.1f} min)")
     import mona_common as mc
@@ -136,7 +188,9 @@ def main():
     ap.add_argument("--lane", default="a", choices=["a", "b", "all"])
     ap.add_argument("--from", dest="start", default=None, help="stage number to resume at, e.g. 43")
     ap.add_argument("--only", default=None, help="run exactly one stage number")
-    ap.add_argument("--skip-done", action="store_true", help="skip stages whose output_NN/_DONE exists")
+    ap.add_argument("--force", action="store_true",
+                    help="rerun stages even when output_NN/_DONE exists (interactive only; "
+                         "batch cannot pass arguments, so batch ALWAYS resumes)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--retire-caches", action="store_true",
                     help="delete cache/ (measured and listed first). Only at close "
@@ -163,8 +217,15 @@ def main():
         if a.start:
             idx = next((i for i, s in enumerate(plan) if s[0].startswith(a.start)), 0)
             plan = plan[idx:]
-    if a.skip_done:
-        plan = [s for s in plan if not done_marker(s[0]).exists()]
+    # Batch cannot pass arguments (runtime conventions, section 2), so
+    # resubmit-after-crash must work with none: a stage with a _DONE marker is
+    # skipped unless --force. The gate is the exception -- it always re-runs,
+    # because reproducing the pinned numbers is the point of it.
+    if not a.force:
+        skipped = [s[0] for s in plan if s[1] != "gate" and done_marker(s[0]).exists()]
+        if skipped:
+            print("resuming: skipping stages already _DONE:", ", ".join(skipped))
+        plan = [s for s in plan if s[1] == "gate" or not done_marker(s[0]).exists()]
 
     print("=" * 74)
     print(f"EL67898 revision -- MONA run  |  lane {a.lane}  |  {datetime.now():%Y-%m-%d %H:%M}")
