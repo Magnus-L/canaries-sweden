@@ -257,9 +257,9 @@ def main():
     print("=" * 70)
 
     need_sql = (
-        any(not (mc.CACHE_DIR / f"edu_weights_{y}.parquet").exists()
+        any(not mc.cache_ok(mc.CACHE_DIR / f"edu_weights_{y}.parquet")
             for y in WEIGHT_YEARS)
-        or any(not (mc.CACHE_DIR / f"edu_year_{y}.parquet").exists()
+        or any(not mc.cache_ok(mc.CACHE_DIR / f"edu_year_{y}.parquet")
                for y in PANEL_YEARS))
     conn = mc.connect() if need_sql else None
 
@@ -274,9 +274,8 @@ def main():
     weights = {}
     for wy in WEIGHT_YEARS:
         cachef = mc.CACHE_DIR / f"edu_weights_{wy}.parquet"
-        if cachef.exists():
-            counts = pd.read_parquet(cachef)
-        else:
+        counts = mc.read_cache(cachef)
+        if counts is None:
             t0 = time.time()
             counts = pull_weight_counts(wy, conn)
             counts.to_parquet(cachef, index=False)
@@ -310,8 +309,8 @@ def main():
     frames, rate_rows = [], []
     for y in PANEL_YEARS:
         cachef = mc.CACHE_DIR / f"edu_year_{y}.parquet"
-        if cachef.exists():
-            raw = pd.read_parquet(cachef)
+        raw = mc.read_cache(cachef)
+        if raw is not None:
             print(f"  {y}: cached ({len(raw):,} cells)")
         else:
             t0 = time.time()

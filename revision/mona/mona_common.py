@@ -97,6 +97,45 @@ CACHE_DIR = _THIS_DIR / "cache"
 PANEL_CACHE = CACHE_DIR / "panel_vintage.parquet"
 
 
+def cache_ok(path) -> bool:
+    """Cheap integrity check (parquet footer via pyarrow metadata, no data
+    read): used by need-SQL decisions, so a truncated cache counts as absent
+    and the connection is opened for the rebuild."""
+    path = Path(path)
+    if not path.exists():
+        return False
+    try:
+        import pyarrow.parquet as pq
+        pq.ParquetFile(path)
+        return True
+    except Exception:
+        print(f"  cache {path.name} failed the footer check; deleting")
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        return False
+
+
+def read_cache(path) -> "pd.DataFrame | None":
+    """
+    Read a cache parquet, or return None if it is missing OR UNREADABLE.
+    A batch job killed mid-write (the 48-hour limit, a memory kill) leaves a
+    truncated parquet; cache-first logic must treat that as absent and
+    rebuild, never crash the restart on a corrupt read.
+    """
+    path = Path(path)
+    if not path.exists():
+        return None
+    try:
+        return pd.read_parquet(path)
+    except Exception as ex:
+        print(f"  cache {path.name} unreadable ({type(ex).__name__}); "
+              f"deleting and rebuilding")
+        path.unlink(missing_ok=True)
+        return None
+
+
 def runlog(script: str, rc: int, minutes: float):
     """
     Append one provenance line to the project root RUNLOG.txt: when, WHO
@@ -291,9 +330,10 @@ def pull_panel(years, conn, cache_path: Path, vintage: bool = True,
     view. Cache-first: if cache_path exists it is loaded, not re-pulled.
     force_cascade is passed through to pull_year_vintage (frozen cohort).
     """
-    if cache_path.exists():
+    cached = read_cache(cache_path)
+    if cached is not None:
         print(f"  Loading cached panel {cache_path.name}")
-        return pd.read_parquet(cache_path)
+        return cached
     frames = []
     for y in years:
         t0 = time.time()
@@ -454,9 +494,27 @@ def _rscript() -> str:
 _RSCRIPT_CACHED = None
 
 
+def _r_workdir(workdir: Path) -> Path:
+    """
+    The R exchange files (multi-million-row CSVs) go to LOCAL disk, not the
+    share: SMB writes dominated 43's 667-minute runtime, and a stalled SMB
+    handle blocks forever (runtime conventions, section 4). The batch
+    servers' temp directory is local. Falls back to the share if temp is
+    unavailable.
+    """
+    import tempfile
+    try:
+        d = Path(tempfile.gettempdir()) / "canaries_rwork"
+        d.mkdir(exist_ok=True)
+        return d
+    except OSError:
+        return workdir
+
+
 def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
                cluster: str = "employer_id") -> pd.DataFrame:
     """Pooled Poisson DiD via r_fepois.R. Returns the coefficient table."""
+    workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_{tag}.csv"
     outp = workdir / f"_rout_{tag}.csv"
     cols = ["n_emp", "post_rb_x_high", "post_gpt_x_high",
@@ -476,6 +534,7 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
                   ref: str = REF_HALFYEAR,
                   cluster: str = "employer_id") -> pd.DataFrame:
     """Half-year Poisson event study via r_fepois_es.R."""
+    workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_es_{tag}.csv"
     outp = workdir / f"_rout_es_{tag}.csv"
     cols = ["n_emp", "high", "halfyear", "fe_emp_bin", "fe_emp_t", cluster]
@@ -494,6 +553,7 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
                      terms: list, cluster: str = "employer_id",
                      fes: tuple = ("fe_emp_bin", "fe_emp_t")) -> pd.DataFrame:
     """Poisson with an arbitrary term list via r_fepois_multi.R."""
+    workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_multi_{tag}.csv"
     outp = workdir / f"_rout_multi_{tag}.csv"
     cols = ["n_emp"] + list(terms) + list(fes) + [cluster]

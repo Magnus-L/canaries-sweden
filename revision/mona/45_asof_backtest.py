@@ -153,9 +153,10 @@ def pull_year_dual(year, conn, trunc):
 
 def get_dual_panel(conn, trunc):
     cache = mc.CACHE_DIR / f"panel_dual_T{trunc}.parquet"
-    if cache.exists():
+    cached = mc.read_cache(cache)
+    if cached is not None:
         print(f"  cached panel_dual_T{trunc}")
-        return pd.read_parquet(cache)
+        return cached
     frames = []
     for y in WINDOW_YEARS:
         t0 = time.time()
@@ -321,7 +322,7 @@ def main():
     # Connect only if a dual panel still has to be pulled. Both panels are
     # cached in output_45/, so a re-run after a mid-script failure (or after
     # a fix to the estimation stage) costs no SQL and needs no connection.
-    need_pull = any(not (mc.CACHE_DIR / f"panel_dual_T{t}.parquet").exists()
+    need_pull = any(not mc.cache_ok(mc.CACHE_DIR / f"panel_dual_T{t}.parquet")
                     for t in TRUNCATIONS)
     conn = mc.connect() if need_pull else None
     daioe = mc.load_daioe()
