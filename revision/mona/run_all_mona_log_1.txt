@@ -1,0 +1,53 @@
+
+==========================================================================
+run_all_mona started 2026-09-18 15:31 | user mslk | python 3.12.9
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:31
+==========================================================================
+  1. 45_asof_backtest.py          [T3/E5 ] CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant
+
+Exception in thread Thread-1 (_heartbeat):
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/mslk/Documents/Workspace/projects/canaries-sweden/revision/mona/run_all_mona.py", line 197, in _heartbeat
+    import mona_common as mc
+  File "/Users/mslk/Documents/Workspace/projects/canaries-sweden/revision/mona/mona_common.py", line 38, in <module>
+    import pyodbc  # noqa: F401
+    ^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'pyodbc'
+UNCAUGHT EXCEPTION
+Traceback (most recent call last):
+  File "<string>", line 5, in <module>
+  File "/Users/mslk/Documents/Workspace/projects/canaries-sweden/revision/mona/run_all_mona.py", line 322, in main
+    if not preflight() and not a.dry_run:
+           ^^^^^^^^^^^
+  File "/Users/mslk/Documents/Workspace/projects/canaries-sweden/revision/mona/run_all_mona.py", line 136, in preflight
+    import mona_common as mc
+  File "/Users/mslk/Documents/Workspace/projects/canaries-sweden/revision/mona/mona_common.py", line 38, in <module>
+    import pyodbc  # noqa: F401
+    ^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'pyodbc'
+
+
+
+==========================================================================
+run_all_mona started 2026-09-18 15:31 | user mslk | python 3.12.9
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:31
+==========================================================================
+  1. 45_asof_backtest.py          [T3/E5 ] CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant
+
+PRE-FLIGHT
+  [ MISSING] daioe_quartiles.dta        in input/, uploads directly; hash-checked
+  [ MISSING] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  /opt/homebrew/bin/Rscript  (Rscript (R) version 4.6.0 (2026-04-24))
+  [    note] MANIFEST.txt             absent; script integrity not verified
+

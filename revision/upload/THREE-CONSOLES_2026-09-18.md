@@ -58,31 +58,22 @@ Python console:
 
     open(r"\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\output_42\_DONE", "w").write("manual 2026-09-18")
 
-## 4. The three lanes
+## 4. The three lanes: submit three files to BatchClient
 
-Paired heavy-with-light, so the node is never carrying three big panels at once. Each console runs
-one stage at a time, in this order:
+BatchClient cannot pass command-line arguments, so there is nothing to type. Each lane is a file
+you submit, exactly the way you submit any script:
 
-| Console | Stages, in order | Weight |
+| Submit this file | It runs | Why in this order |
 |---|---|---|
-| **1** | `--only 45`, then `--only 46` | Heavy. 45 is the coverage defence; 46 is Tier 2 and the first thing to cut |
-| **2** | `--only 40`, then `--only 41` | SQL-heavy, memory-moderate. Both are named in the editor's letter |
-| **3** | `--only 44`, then `--only 48`, then `47_edu_exposure.py` | 44 carries 50+, the biggest single panel; 48 pulls its own gender panel; 47 is standalone and light |
+| `run_console1.py` | 45, then 46 | 45 is the coverage defence and the heaviest job; 46 is Tier 2 and the first thing to cut |
+| `run_console2.py` | 40, then 41 | Both are named in the editor's letter |
+| `run_console3.py` | 44, then 48, then 47 | 44 carries the 50+ panel; 48 pulls its own gender panel; 47 is standalone |
 
-**Why 48 is new.** Poisson is now the paper's primary estimator, but the gender split in the
-abstract is still an ln(n+1) estimate. 48 re-runs it in Poisson, after gating on whether the
-gender pull, summed over gender, reproduces the headline coefficient. If that gate fails, stop and
-tell me: it means the gender pull is not the pull the rest of the paper rests on.
+Submit all three. Each prints to its own log (`run_all_mona_log_1.txt` and so on) and writes its
+own heartbeat (`_ALIVE_1.txt`). If MONA queues them instead of running them side by side, that is
+the scheduler's choice and they will simply run one after another; tell me if that happens.
 
-    python run_all_mona.py --console 1 --only 45
-    python run_all_mona.py --console 2 --only 40
-    python run_all_mona.py --console 3 --only 44
-
-`--only` skips the gate, which would otherwise cost 46 minutes per console for a number we already
-have. 47 does not go through the runner at all: `python 47_edu_exposure.py`.
-
-If a console refuses to start a stage on the memory floor, that is the patch working. Wait for the
-neighbouring stage to finish rather than lowering the floor.
+**If a job is killed, submit the same file again.** Finished stages are skipped, so it resumes.
 
 ## 5. While they run
 

@@ -194,14 +194,21 @@ _STATE = {"stage": "starting"}
 
 
 def _heartbeat():
-    import mona_common as mc
+    # Nothing in here may raise. A heartbeat thread that dies takes the only
+    # signal that this console is alive with it, which is the failure it exists
+    # to prevent.
     hb = HERE / (f"_ALIVE_{CONSOLE}.txt" if CONSOLE else "_ALIVE.txt")
     while True:
         try:
+            import mona_common as mc
+            mem = mc.mem_line() or "memory unknown"
+        except Exception:
+            mem = "memory unknown"
+        try:
             hb.write_text("%s | %s | %s\n" % (
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                _STATE["stage"], mc.mem_line() or "memory unknown"))
-        except OSError:
+                _STATE["stage"], mem))
+        except Exception:
             pass
         time.sleep(60)
 
