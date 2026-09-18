@@ -161,6 +161,13 @@ def build(panel: pd.DataFrame, age: str, gender=None) -> pd.DataFrame:
 
 def main():
     mc.Tee(OUT / "48_log.txt")
+    # BatchClient keeps no stderr and run_all_mona's console log was cut
+    # mid-traceback on 18 Sep, so 48's own crash was unreadable. Same hook
+    # as 47b: the traceback goes through the Tee into this script's log.
+    import sys as _sys
+    import traceback as _tb
+    _sys.excepthook = lambda et, ev, tb: print(
+        "\nUNCAUGHT EXCEPTION\n" + "".join(_tb.format_exception(et, ev, tb)))
     print("=" * 70)
     print("48: GENDER SPLIT IN POISSON (the primary estimator)")
     print("=" * 70)
