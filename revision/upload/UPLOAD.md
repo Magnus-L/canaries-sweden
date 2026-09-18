@@ -204,3 +204,39 @@ reports it and carries on, and prints the exact `--only` command to retry.
 Aggregates and coefficients only, cell counts ≥ 5, no raw rows. Export budget is a rolling 7-day
 50 MB / 1,000 files, max 5 MB per file. Keep `_Tee` echo capped so the master log stays under the
 per-file cap.
+
+## 6. 47h, the education-exposure horse race (added 18 Sep 2026, 23:30)
+
+Standalone, like 47b: submit the file itself, not a console wrapper. Two files go up.
+
+| File on this machine | Destination on MONA (full path) | Note |
+|---|---|---|
+| `revision/upload/47h_edu_horserace.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47h_edu_horserace.py` | upload as `.txt`, rename to `.py` beside the other scripts |
+| `revision/upload/eloundou_ssyk4.dta` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\input\eloundou_ssyk4.dta` | `.dta` uploads directly, no rename; next to `daioe_quartiles.dta` |
+
+No new folder anywhere. `MANIFEST.txt` carries 47h's hash; re-upload it only if you want the
+manifest row (47h checks its own three inputs by hash regardless).
+
+**What it runs.** Eight education-exposure designs (two replicate Nordström Skans and Sokolow
+Romin's mapping, with Eloundou and with DAIOE; the DAIOE one is script 47b's design and is the
+gate), each put through the as-of backtest at T=2021 and T=2022 on 2019-2023, ages 22-25 first,
+then 26-30 and 50+ for the two reference designs and for any design that clears "usable", then a
+gradient tier (31-34, 35-40, 41-49) for the reference designs at T=2022. Winner = smallest 22-25
+artefact with a near-zero 50+ artefact. The rule is in the docstring and was written before the run.
+
+**Runtime.** Roughly 5.5 to 6.5 hours: weights 3 x ~1 min, year pulls 5 x 10-15 min, collapses
+5 x ~5 min, Tier A 32 fits x ~6 min, Tier B and C ~1.5 h. Every pull is cached under `cache\`;
+a resubmit after a failure skips all of them.
+
+**Gate playbook.** The gate compares OL_daioe at T=2021, 22-25, to 47b (-0.3695 as-of,
+-0.0099 true). A difference under 0.005 is PASS; under 0.05 is PASS with documented drift (47h
+lets '' fall through the cascade with NULLIF, which 47b did not); above 0.05 the run stops
+before Tier A and the log names both numbers. If it stops, export `output_47h\47h_log.txt` and
+`horserace_estimates.csv` and read them before changing anything.
+
+**Exports to bring out** (all aggregates, cells floored at 5):
+`output_47h\47h_summary.txt`, `horserace_estimates.csv`, `score_<design>.csv` (eight files),
+`score_diagnostics.csv`, `anchoring_rates.csv`, `47h_log.txt`.
+
+**Tested locally** end to end on synthetic frames with the real key, DAIOE and Eloundou inputs
+and real R + fixest: `revision/local/test_47h_synthetic.py` (five cases, all pass, ~5 min).
