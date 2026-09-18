@@ -33,7 +33,17 @@ MOMENTS
   M5  employer size bands (AGI 2019-11) and, from 47h caches if present,
       the balanced-panel retention share for 22-25 by size band
   M6  the (group x experience band x ssyk4) matrix per year 2019-2023,
-      one file per year (export cap 5 MB per file)
+      one file per year (export cap 5 MB per file); M6b the same at the
+      field (inr) level for tertiary rows, which the enrolment-anchored
+      designs score from
+  M7  PREDICTIVE VALIDATION TABLE (ML, 19 Sep): for t in 2021-2023 and lag
+      k in {0, 2}, persons FRESHLY coded at t, counted by (age band,
+      education group as recorded k years earlier, experience band then,
+      tertiary then, enrolment field then if not tertiary, occupation at
+      t). From this table every design's predicted quartile can be
+      compared LOCALLY with the DAIOE quartile of the occupation actually
+      held, by age and lag, with no further MONA run:
+      revision/local/l13_validate_edu_designs.py.
 
 EXPORT SAFETY: every table passes floor5() before writing; no identifiers;
 no raw rows. Cells 1-4 are suppressed (NaN), zeros stay.
@@ -307,6 +317,50 @@ def q_matrix(y: int, conn) -> pd.DataFrame:
     return pd.read_sql(q, conn)
 
 
+def q_validation(t: int, k: int, conn) -> pd.DataFrame:
+    """M7: persons freshly coded at t, with their education record as of
+    t-k (niva, inr, ExamAr), tertiary status then, and the field of the
+    latest registration within three academic years before t-k when the
+    record then was not tertiary. Aggregated in SQL at niva x inr level;
+    collapsed to group level in pandas before export."""
+    lag = t - k
+    age = AGE_CASE.format(y=t).replace("FodelseAr", "a.FodelseAr")
+    q = f"""
+    WITH reg AS (
+        SELECT person_id, enr_inr FROM (
+            SELECT P1207_Lopnr_Personnr AS person_id,
+                   NULLIF(LTRIM(RTRIM(SUN2020INR)),'') AS enr_inr,
+                   ROW_NUMBER() OVER (PARTITION BY P1207_Lopnr_Personnr
+                       ORDER BY ARTERMIN DESC, ISNULL(AKTPROC, 0) DESC) AS rn
+            FROM dbo.HREG_AKTIVITET_1971_2021
+            WHERE SUN2020INR IS NOT NULL AND LTRIM(SUN2020INR) <> ''
+              AND TRY_CAST(LEFT(ARTERMIN, 4) AS INT)
+                  BETWEEN {min(lag, 2021) - 3} AND {min(lag, 2021)}) x
+        WHERE rn = 1)
+    SELECT {age} AS age_group,
+           NULLIF(LTRIM(RTRIM(e.Sun2020Niva)),'') AS niva_lag,
+           NULLIF(LTRIM(RTRIM(e.Sun2020Inr)),'')  AS inr_lag,
+           {EXP_CASE.format(a='e', y=t)} AS expband_lag,
+           CASE WHEN LEFT(LTRIM(e.Sun2020Niva), 1) IN ('4','5','6') THEN 1 ELSE 0 END AS tertiary_lag,
+           CASE WHEN LEFT(LTRIM(e.Sun2020Niva), 1) IN ('4','5','6') THEN NULL
+                ELSE r.enr_inr END AS enr_inr,
+           {SSYK4.format(a='a')} AS ssyk4_t,
+           COUNT(*) AS n
+    FROM dbo.Individ_{t} a
+    LEFT JOIN dbo.Individ_{lag} e ON a.P1207_LopNr_PersonNr = e.P1207_LopNr_PersonNr
+    LEFT JOIN reg r ON a.P1207_LopNr_PersonNr = r.person_id
+    WHERE {CODED.format(a='a')} AND TRY_CAST(a.SsykAr_J16 AS INT) = {t}
+      AND {t} - TRY_CAST(a.FodelseAr AS INT) BETWEEN 22 AND 69
+    GROUP BY {age}, NULLIF(LTRIM(RTRIM(e.Sun2020Niva)),''), NULLIF(LTRIM(RTRIM(e.Sun2020Inr)),''),
+             {EXP_CASE.format(a='e', y=t)},
+             CASE WHEN LEFT(LTRIM(e.Sun2020Niva), 1) IN ('4','5','6') THEN 1 ELSE 0 END,
+             CASE WHEN LEFT(LTRIM(e.Sun2020Niva), 1) IN ('4','5','6') THEN NULL
+                  ELSE r.enr_inr END,
+             {SSYK4.format(a='a')}
+    """
+    return pd.read_sql(q, conn)
+
+
 # ----------------------------------------------------------------------
 # Moment builders (pure pandas; tested locally)
 # ----------------------------------------------------------------------
@@ -330,6 +384,30 @@ def m6_collapse(raw: pd.DataFrame, key: pd.DataFrame) -> pd.DataFrame:
     d["grp"] = d["grp"].astype("string").fillna("unmatched")
     return (d.groupby(["grp", "expband", "fresh", "ssyk4"], observed=True)["n"]
             .sum().reset_index())
+
+
+def m6b_collapse(raw: pd.DataFrame) -> pd.DataFrame:
+    """Field-level (inr) matrix over TERTIARY rows only: what the
+    enrolment-anchored designs score an enrolled-not-completed worker from."""
+    d = raw.copy()
+    d["niva"], d["inr"] = norm_code(d["niva"]), norm_code(d["inr"])
+    d = d[d["niva"].astype("string").str[:1].isin(["4", "5", "6"]).fillna(False)]
+    return (d.groupby(["inr", "expband", "fresh", "ssyk4"], observed=True)["n"]
+            .sum().reset_index())
+
+
+def m7_collapse(raw: pd.DataFrame, key: pd.DataFrame) -> pd.DataFrame:
+    """Lagged education (group level) x current occupation, with the
+    enrolment field kept for the non-tertiary rows."""
+    d = raw.copy()
+    d["niva_lag"], d["inr_lag"] = norm_code(d["niva_lag"]), norm_code(d["inr_lag"])
+    d = d.merge(key.rename(columns={"niva": "niva_lag", "inr": "inr_lag"}),
+                on=["niva_lag", "inr_lag"], how="left")
+    d["grp_lag"] = d["grp"].astype("string").fillna("unmatched")
+    d["enr_inr"] = norm_code(d["enr_inr"]).astype("string").fillna("none")
+    d["expband_lag"] = d["expband_lag"].astype("string").fillna("na")
+    return (d.groupby(["age_group", "grp_lag", "expband_lag", "tertiary_lag", "enr_inr", "ssyk4_t"],
+                      observed=True)["n"].sum().reset_index())
 
 
 def m5_retention_from_cache() -> "pd.DataFrame | None":
@@ -424,8 +502,18 @@ def main():
         raw = stage(f"M6 {y}", lambda y=y: q_matrix(y, conn))
         if raw is not None:
             export(m6_collapse(raw, key), f"m6_matrix_{y}.csv")
+            export(m6b_collapse(raw), f"m6b_inr_tertiary_{y}.csv")
             del raw
             gc.collect()
+
+    print("\nM7 predictive validation: lagged education x current occupation")
+    for t in (2021, 2022, 2023):
+        for k in (0, 2):
+            raw = stage(f"M7 t={t} k={k}", lambda t=t, k=k: q_validation(t, k, conn))
+            if raw is not None:
+                export(m7_collapse(raw, key), f"m7_validation_t{t}_k{k}.csv")
+                del raw
+                gc.collect()
 
     lines = [f"50 done in {(time.time()-t0)/60:.1f} min. " + mc.mem_line(),
              "Files: " + ", ".join(sorted(p.name for p in OUT.glob("*.csv")))]

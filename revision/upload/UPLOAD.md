@@ -256,8 +256,12 @@ Inputs already on the share: `input\daioe_quartiles.dta`, `input\utb_grupp2_sun2
 **Exports to bring out** (`output_50\`, all aggregates, every count 0 or >= 5): `m1a_completion_age.csv`,
 `m1b_level_change.csv`, `m2_occ_change.csv`, `m3_staleness.csv`, `m4a_enrolment_prevalence.csv`,
 `m4b_field_switch.csv`, `m5a_employer_size.csv`, `m5b_retention_22_25.csv` (only if 47h has run),
-`m6_matrix_2019.csv` ... `m6_matrix_2023.csv` (one per year; each under the 5 MB file cap),
-`50_summary.txt`, `50_log.txt`. A moment whose query fails is skipped and named in the log; the
+`m6_matrix_2019.csv` ... `m6_matrix_2023.csv` and `m6b_inr_tertiary_2019.csv` ... `_2023.csv` (one per
+year; each under the 5 MB file cap), `m7_validation_t2021_k0.csv` ... `m7_validation_t2023_k2.csv`
+(six files: lagged education x current occupation, the predictive-validation table),
+`50_summary.txt`, `50_log.txt`. Once out, run `python3 revision/local/l13_validate_edu_designs.py
+<export dir>` locally: it scores every design from m6/m6b, predicts each m7 row and reports
+agreement, Q4 precision and recall and percentile error by age, t and lag; no further MONA run. A moment whose query fails is skipped and named in the log; the
 rest are still written.
 
 Tested locally end to end: `revision/local/test_50_synthetic.py` (three cases, all pass).

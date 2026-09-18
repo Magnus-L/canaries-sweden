@@ -89,6 +89,17 @@ def f_matrix(y, conn):
                          "expband": RNG.choice(BANDS, n), "n": counts(n)})
 
 
+def f_validation(t, k, conn):
+    n = 5000
+    c = CELLS.sample(n, replace=True, random_state=t * 10 + k)
+    ter = c["niva"].str[:1].isin(["4", "5", "6"]).to_numpy()
+    enr = np.where(ter, None, RNG.choice(list(CELLS["inr"].unique()) + [None], n))
+    return pd.DataFrame({"age_group": RNG.choice(AGES, n), "niva_lag": c["niva"].to_numpy(),
+                         "inr_lag": c["inr"].to_numpy(), "expband_lag": RNG.choice(BANDS, n),
+                         "tertiary_lag": ter.astype(int), "enr_inr": enr,
+                         "ssyk4_t": RNG.choice(SSYK, n), "n": counts(n)})
+
+
 def wire(tmp, fail=None):
     sys.stdout = sys.__stdout__
     out = tmp / "output_50"; out.mkdir(); mod.OUT = out
@@ -97,6 +108,7 @@ def wire(tmp, fail=None):
     mod.q_completion_age, mod.q_level_change, mod.q_occ_change = f_completion, f_level_change, f_occ_change
     mod.q_staleness, mod.q_enrolment, mod.q_field_switch = f_stale, f_enrol, f_switch
     mod.q_employer_size, mod.q_matrix = f_size, f_matrix
+    mod.q_validation = f_validation
     if fail:
         def boom(*a, **k):
             raise RuntimeError("synthetic query failure")
@@ -118,7 +130,17 @@ def test_collapses():
                          "ssyk4": ["2512", "2512"], "fresh": [1, 1], "expband": ["0-2", "0-2"], "n": [9, 8]})
     m6 = mod.m6_collapse(raw6, KEY)
     assert set(m6["grp"]) == {k["grp"], "unmatched"}, m6
-    print("PASS collapses: m2 flags and m6 key join (case/space-normalised, unmatched kept)")
+    m6b = mod.m6b_collapse(pd.DataFrame({"niva": ["536", "310"], "inr": ["3440", "3440"],
+                                         "ssyk4": ["2512", "2512"], "fresh": [1, 1],
+                                         "expband": ["0-2", "0-2"], "n": [5, 7]}))
+    assert m6b["n"].sum() == 5, m6b            # only the tertiary row survives
+    raw7 = pd.DataFrame({"age_group": ["22-25"] * 2, "niva_lag": [k["niva"], None],
+                         "inr_lag": [k["inr"], None], "expband_lag": ["0-2", None],
+                         "tertiary_lag": [1, 0], "enr_inr": [None, "3440"],
+                         "ssyk4_t": ["2512", "2512"], "n": [6, 9]})
+    m7 = mod.m7_collapse(raw7, KEY)
+    assert set(m7["grp_lag"]) == {k["grp"], "unmatched"} and set(m7["enr_inr"]) == {"none", "3440"}, m7
+    print("PASS collapses: m2 flags, m6 key join, m6b tertiary filter, m7 unmatched/none handling")
 
 
 def test_happy():
@@ -126,7 +148,9 @@ def test_happy():
     mod.main()
     expected = ["m1a_completion_age.csv", "m1b_level_change.csv", "m2_occ_change.csv",
                 "m3_staleness.csv", "m4a_enrolment_prevalence.csv", "m4b_field_switch.csv",
-                "m5a_employer_size.csv"] + [f"m6_matrix_{y}.csv" for y in mod.YEARS]
+                "m5a_employer_size.csv"] + [f"m6_matrix_{y}.csv" for y in mod.YEARS] \
+               + [f"m6b_inr_tertiary_{y}.csv" for y in mod.YEARS] \
+               + [f"m7_validation_t{t}_k{k}.csv" for t in (2021, 2022, 2023) for k in (0, 2)]
     for f in expected:
         assert (out / f).exists(), f
         df = pd.read_csv(out / f)
@@ -150,3 +174,4 @@ def test_one_failure_costs_one_moment():
 if __name__ == "__main__":
     test_collapses(); test_happy(); test_one_failure_costs_one_moment()
     print(f"\nALL PASS  (tmp: {TMP})")
+    print(f"HAPPY_OUT={TMP / 'happy' / 'output_50'}")
