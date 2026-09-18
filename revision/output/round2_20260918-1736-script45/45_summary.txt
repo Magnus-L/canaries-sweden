@@ -1,0 +1,4 @@
+FRONTIER
+========================================
+headline gamma2 (Poisson): -0.174
+combined differential loss needed to erase it: 16.0%
