@@ -23,6 +23,7 @@ overwriting:
     46_wfh_horserace.py
     45_asof_backtest.py
     47_edu_exposure.py
+    48_gender_poisson.py      (new today)
     MANIFEST.txt
 
 All seven upload as-is (`.py` and `.txt` are both allowed formats). Pre-flight hashes the scripts
@@ -66,7 +67,12 @@ one stage at a time, in this order:
 |---|---|---|
 | **1** | `--only 45`, then `--only 46` | Heavy. 45 is the coverage defence; 46 is Tier 2 and the first thing to cut |
 | **2** | `--only 40`, then `--only 41` | SQL-heavy, memory-moderate. Both are named in the editor's letter |
-| **3** | `--only 44`, then `47_edu_exposure.py` on its own | 44 carries 50+, the biggest single panel; 47 is standalone and light |
+| **3** | `--only 44`, then `--only 48`, then `47_edu_exposure.py` | 44 carries 50+, the biggest single panel; 48 pulls its own gender panel; 47 is standalone and light |
+
+**Why 48 is new.** Poisson is now the paper's primary estimator, but the gender split in the
+abstract is still an ln(n+1) estimate. 48 re-runs it in Poisson, after gating on whether the
+gender pull, summed over gender, reproduces the headline coefficient. If that gate fails, stop and
+tell me: it means the gender pull is not the pull the rest of the paper rests on.
 
     python run_all_mona.py --console 1 --only 45
     python run_all_mona.py --console 2 --only 40

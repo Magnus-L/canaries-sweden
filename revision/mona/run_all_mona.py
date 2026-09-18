@@ -111,6 +111,7 @@ STAGES = [
     ("41_vintage_event_studies.py", "a", "T2/E4",  "ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported"),
     ("44_decile_gradient.py",       "a", "T11",    "Employment deciles, pre-committed monotonicity read"),
     ("46_wfh_horserace.py",         "a", "T10",    "Telework x period interactions, both margins"),
+    ("48_gender_poisson.py",        "a", "R2/gen", "Gender split re-estimated in Poisson, so the paper does not mix estimators"),
 ]
 
 REQUIRED_INPUTS = [
