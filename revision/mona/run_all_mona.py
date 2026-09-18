@@ -101,6 +101,11 @@ except Exception:
     pass
 
 # (script, lane, tier, what it delivers)
+# Which stages call Rscript. 40 is pure pandas, so a node without R must not
+# stop it: that was the 18 September failure, where all four planned stages
+# were refused for a dependency only three of them use.
+NEEDS_R = {"41", "44", "45", "46", "47", "48", "39", "43", "42", "39b"}
+
 STAGES = [
     ("39_canary_gate.py",           "gate", "gate", "Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet"),
     ("39b_panel_diff.py",           "a", "diag", "Localise any N drift: v2 pull vs v1 archive cache, by year/quartile/pair"),
@@ -123,7 +128,7 @@ REQUIRED_INPUTS = [
 ]
 
 
-def preflight() -> bool:
+def preflight(need_r: bool = True) -> bool:
     """
     Check the inputs that are not .py, because those are the ones renamed by hand
     and therefore the ones that get forgotten, and hash the one input that came
@@ -163,8 +168,12 @@ def preflight() -> bool:
         ver = (rv.stdout + rv.stderr).strip().splitlines()[0][:40]
         print(f"  [      ok] Rscript                  {rpath}  ({ver})")
     except Exception as ex:
-        ok = False
-        print(f"  [ MISSING] Rscript                  {ex}")
+        if need_r:
+            ok = False
+            print(f"  [ MISSING] Rscript                  {ex}")
+        else:
+            print(f"  [   skip ] Rscript                  not needed by this "
+                  f"stage ({type(ex).__name__})")
 
     man = HERE / "MANIFEST.txt"
     if man.exists():
@@ -326,7 +335,8 @@ def main():
         print(f"  {i}. {script:<28} [{tier:<6}] {what}")
     print()
 
-    if not preflight() and not a.dry_run:
+    need_r = any(s[0].split("_")[0] in NEEDS_R for s in plan)
+    if not preflight(need_r=need_r) and not a.dry_run:
         print("Pre-flight failed. Fix the missing inputs before running.")
         sys.exit(1)
     if a.dry_run:

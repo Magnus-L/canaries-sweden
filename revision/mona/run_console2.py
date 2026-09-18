@@ -24,11 +24,13 @@ sys.path.insert(0, str(HERE))
 STAGES = ["40", "41"]
 CONSOLE = "2"
 
+# Import ONCE. Re-importing per stage re-wrapped sys.stdout in the log
+# mirror each time, so the 18 September logs printed every line twice.
+sys.argv = ["run_all_mona.py", "--console", CONSOLE]
+import run_all_mona
+
 for stage in STAGES:
     sys.argv = ["run_all_mona.py", "--console", CONSOLE, "--only", stage]
-    for mod in ("run_all_mona",):
-        sys.modules.pop(mod, None)
-    import run_all_mona
     try:
         run_all_mona.main()
     except SystemExit as ex:

@@ -502,6 +502,18 @@ def _rscript() -> str:
         return _RSCRIPT_CACHED
     from shutil import which
     tried = []
+    # A pin file beats every search. The batch nodes are not identical: the
+    # 4 September node had R at E:\Programs\R-4.5.0 through the registry, and
+    # the 18 September node has neither that registry key nor R under
+    # C:\Program Files. When the search fails again, upload one line of text
+    # rather than waiting for a code change.
+    pin = _THIS_DIR / "rscript_path.txt"
+    if pin.exists():
+        cand = pin.read_text().strip().strip('"')
+        if cand and Path(cand).exists():
+            _RSCRIPT_CACHED = cand
+            return _RSCRIPT_CACHED
+        tried.append(f"pin file {pin.name} -> {cand!r} (does not exist)")
     cand = which("Rscript")
     if cand:
         _RSCRIPT_CACHED = cand
@@ -526,15 +538,23 @@ def _rscript() -> str:
     except ImportError:
         tried.append("winreg unavailable (not Windows)")
     import glob as _glob
-    for pattern in (r"C:\Program Files\R\R-*\bin\x64\Rscript.exe",
-                    r"C:\Program Files\R\R-*\bin\Rscript.exe",
-                    r"C:\Program Files (x86)\R\R-*\bin\Rscript.exe"):
-        hits = sorted(_glob.glob(pattern))
-        if hits:
-            _RSCRIPT_CACHED = hits[-1]      # highest version wins
-            return _RSCRIPT_CACHED
-        tried.append(f"glob {pattern}")
-    raise RuntimeError("Rscript not found; searched " + "; ".join(tried))
+    roots = [r"{d}:\Program Files\R\R-*", r"{d}:\Program Files (x86)\R\R-*",
+             r"{d}:\Programs\R-*", r"{d}:\Program\R\R-*", r"{d}:\R\R-*",
+             r"{d}:\Apps\R\R-*", r"{d}:\Tools\R\R-*"]
+    for drive in "CDEFGH":
+        for root in roots:
+            for sub in (r"\bin\x64\Rscript.exe", r"\bin\Rscript.exe"):
+                pattern = root.format(d=drive) + sub
+                hits = sorted(_glob.glob(pattern))
+                if hits:
+                    _RSCRIPT_CACHED = hits[-1]      # highest version wins
+                    return _RSCRIPT_CACHED
+    tried.append("globs over drives C-H under Program Files, Programs, R, "
+                 "Apps and Tools")
+    raise RuntimeError(
+        "Rscript not found; searched " + "; ".join(tried)
+        + ". FIX: create rscript_path.txt beside these scripts holding the "
+          "full path to Rscript.exe, or run probe_rscript.py to locate it.")
 
 
 _RSCRIPT_CACHED = None
