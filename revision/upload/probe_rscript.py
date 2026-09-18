@@ -101,16 +101,44 @@ if not found:
     say("does not reach, or it may not be installed on this node at all.")
     sys.exit(1)
 
-for c in found:
+# What matters is not that Rscript starts but that it can load fixest, and
+# which fixest. The 18 September probe pinned R-4.1.1 because the candidate
+# list was sorted as strings; the numbers in the paper were produced on
+# 4.5.0 with fixest 0.13.2.
+def _version_key(path):
+    import re
+    m = re.search(r"R-(\d+)\.(\d+)\.(\d+)", path)
+    return tuple(int(g) for g in m.groups()) if m else (0, 0, 0)
+
+
+import tempfile
+workdir = tempfile.gettempdir()
+usable = []
+say("\nTesting each candidate for fixest (this is what the run needs):")
+for c in sorted(set(found), key=_version_key, reverse=True):
     try:
-        r = subprocess.run([c, "--version"], capture_output=True, text=True,
-                           timeout=60)
-        ver = (r.stdout + r.stderr).strip().splitlines()[0][:60]
-        say(f"WORKS  {c}   {ver}")
+        r = subprocess.run(
+            [c, "-e", 'cat(R.version.string, "|", '
+                      'as.character(packageVersion("fixest")))'],
+            capture_output=True, text=True, timeout=180, cwd=workdir)
+        out = " ".join((r.stdout + " " + r.stderr).split())
+        if "|" in out and r.returncode == 0:
+            say(f"  OK    {c}   {out[:80]}")
+            usable.append((c, out))
+        else:
+            say(f"  no fixest  {c}   {out[:80]}")
     except Exception as ex:
-        say(f"fails  {c}   {type(ex).__name__}")
-        continue
-    (HERE / "rscript_path.txt").write_text(c)
-    say(f"\nWROTE rscript_path.txt -> {c}")
-    say("Every later run reads that file first. Resubmit the console jobs.")
-    break
+        say(f"  fails {c}   {type(ex).__name__}")
+
+if not usable:
+    say("\nR is installed but no candidate can load fixest. Send this log back.")
+    sys.exit(1)
+
+# Prefer 4.5.0, the version the paper's existing numbers were produced on.
+pick = next((c for c, _ in usable if "R-4.5.0" in c), usable[0][0])
+x64 = pick.replace(r"\bin\Rscript.exe", r"\bin\x64\Rscript.exe")
+if Path(x64).exists():
+    pick = x64
+(HERE / "rscript_path.txt").write_text(pick)
+say(f"\nWROTE rscript_path.txt -> {pick}")
+say("Every later run reads that file first. Resubmit the console jobs.")

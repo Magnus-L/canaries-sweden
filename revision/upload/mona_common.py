@@ -538,6 +538,17 @@ def _rscript() -> str:
     except ImportError:
         tried.append("winreg unavailable (not Windows)")
     import glob as _glob
+    # The node carries fourteen R installations side by side. Version choice
+    # is not cosmetic: the canary gate, the Poisson headline and the frozen
+    # cohort were all produced on 4.5.0 with fixest 0.13.2, and an install
+    # without fixest, or with a different fixest, either fails or answers a
+    # slightly different question. Take 4.5.0 when it is there, then the
+    # newest, and prefer the x64 launcher.
+    for pref in (r"E:\Programs\R-4.5.0\bin\x64\Rscript.exe",
+                 r"E:\Programs\R-4.5.0\bin\Rscript.exe"):
+        if Path(pref).exists():
+            _RSCRIPT_CACHED = pref
+            return _RSCRIPT_CACHED
     roots = [r"{d}:\Program Files\R\R-*", r"{d}:\Program Files (x86)\R\R-*",
              r"{d}:\Programs\R-*", r"{d}:\Program\R\R-*", r"{d}:\R\R-*",
              r"{d}:\Apps\R\R-*", r"{d}:\Tools\R\R-*"]
@@ -545,9 +556,13 @@ def _rscript() -> str:
         for root in roots:
             for sub in (r"\bin\x64\Rscript.exe", r"\bin\Rscript.exe"):
                 pattern = root.format(d=drive) + sub
-                hits = sorted(_glob.glob(pattern))
+                hits = _glob.glob(pattern)
                 if hits:
-                    _RSCRIPT_CACHED = hits[-1]      # highest version wins
+                    def _ver(path):
+                        import re as _re
+                        m = _re.search(r"R-(\d+)\.(\d+)\.(\d+)", path)
+                        return tuple(int(g) for g in m.groups()) if m else (0, 0, 0)
+                    _RSCRIPT_CACHED = sorted(hits, key=_ver)[-1]
                     return _RSCRIPT_CACHED
     tried.append("globs over drives C-H under Program Files, Programs, R, "
                  "Apps and Tools")
@@ -596,7 +611,8 @@ def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
     panel[cols].to_csv(inp, index=False)
     cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       cwd=str(workdir))
     if r.returncode != 0:
         print(f"  fepois FAILED ({tag}): {r.stderr[-500:]}")
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -615,7 +631,8 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     panel[cols].to_csv(inp, index=False)
     cmd = [_rscript(), str(R_FEPOIS_ES), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster, "--ref", ref]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       cwd=str(workdir))
     if r.returncode != 0:
         print(f"  fepois_es FAILED ({tag}): {r.stderr[-500:]}")
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -636,7 +653,8 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
            "--input", str(inp), "--output", str(outp),
            "--terms", ",".join(terms), "--cluster", cluster,
            "--fe", ",".join(fes)]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       cwd=str(workdir))
     if r.returncode != 0:
         print(f"  fepois_multi FAILED ({tag}): {r.stderr[-500:]}")
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
