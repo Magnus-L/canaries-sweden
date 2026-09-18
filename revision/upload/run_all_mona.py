@@ -40,6 +40,7 @@ from datetime import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+MEM_FLOOR_GB = 15.0
 
 # ----------------------------------------------------------------------
 # BATCH REALITY (data-notes/mona-runtime-conventions.md, learned 4 Sep the
@@ -49,7 +50,22 @@ HERE = Path(__file__).resolve().parent
 # itself fail (pyodbc, pandas) -- mirror both streams into it, and write any
 # uncaught traceback there. A crash must never again be invisible.
 # ----------------------------------------------------------------------
-_LOG = open(HERE / "run_all_mona_log.txt", "a", encoding="utf-8", errors="replace")
+# THREE CONSOLES (18 Sep 2026). One master log for three processes gives
+# interleaved lines and SMB append contention, so each console names itself
+# and gets its own. Parsed from sys.argv by hand because the log must be open
+# before argparse, and indeed before mona_common is imported.
+def _console_name() -> str:
+    for i, a in enumerate(sys.argv):
+        if a == "--console" and i + 1 < len(sys.argv):
+            return "".join(c for c in sys.argv[i + 1] if c.isalnum() or c in "-_")
+        if a.startswith("--console="):
+            return "".join(c for c in a.split("=", 1)[1] if c.isalnum() or c in "-_")
+    return ""
+
+
+CONSOLE = _console_name()
+_LOGNAME = f"run_all_mona_log_{CONSOLE}.txt" if CONSOLE else "run_all_mona_log.txt"
+_LOG = open(HERE / _LOGNAME, "a", encoding="utf-8", errors="replace")
 
 
 class _Mirror:
@@ -168,6 +184,32 @@ def preflight() -> bool:
     return ok
 
 
+# ----------------------------------------------------------------------
+# Heartbeat. The 5 September batch was killed with no traceback and nobody
+# noticed for thirteen days. A file whose mtime stops moving says "this
+# console is dead" at a glance in Explorer, with no log to read.
+# ----------------------------------------------------------------------
+_STATE = {"stage": "starting"}
+
+
+def _heartbeat():
+    import mona_common as mc
+    hb = HERE / (f"_ALIVE_{CONSOLE}.txt" if CONSOLE else "_ALIVE.txt")
+    while True:
+        try:
+            hb.write_text("%s | %s | %s\n" % (
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                _STATE["stage"], mc.mem_line() or "memory unknown"))
+        except OSError:
+            pass
+        time.sleep(60)
+
+
+def start_heartbeat():
+    import threading
+    threading.Thread(target=_heartbeat, daemon=True).start()
+
+
 def done_marker(script: str) -> Path:
     # key on the full stage id ("39b", not "39") so 39b and 39 do not share
     # a marker; the stage id is everything before the first underscore
@@ -179,6 +221,16 @@ def run(script: str, dry: bool) -> int:
         print(f"  would run {script}")
         return 0
     t0 = time.time()
+    import mona_common as mc
+    _STATE["stage"] = script
+    before = mc.mem_available_gb()
+    if before is not None:
+        print(f"  {mc.mem_line()} before {script}")
+        if before < MEM_FLOOR_GB:
+            print(f"  REFUSING to start {script}: only {before:.1f} GB free, "
+                  f"floor is {MEM_FLOOR_GB:.0f} GB. Another console is heavy; "
+                  f"wait for it, or lower --mem-floor deliberately.")
+            return 99
     # Stream the stage's stdout AND stderr through our mirrored log: a
     # stage's own uncaught crash otherwise dies to discarded stderr too.
     proc = subprocess.Popen([sys.executable, str(HERE / script)],
@@ -190,7 +242,9 @@ def run(script: str, dry: bool) -> int:
     proc.wait()
     mins = (time.time() - t0) / 60
     print(f"  {script}: exit {r.returncode} ({mins:.1f} min)")
-    import mona_common as mc
+    _STATE["stage"] = f"{script} finished (exit {r.returncode})"
+    if mc.mem_available_gb() is not None:
+        print(f"  {mc.mem_line()} after {script}")
     mc.runlog(script, r.returncode, mins)   # who-ran-what, at the project root
     if r.returncode == 0:
         m = done_marker(script)
@@ -212,10 +266,20 @@ def main():
                     help="rerun stages even when output_NN/_DONE exists (interactive only; "
                          "batch cannot pass arguments, so batch ALWAYS resumes)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--console", default="",
+                    help="name this console (1, 2, 3). Gives it its own master "
+                         "log and heartbeat file, so three can run at once.")
+    ap.add_argument("--mem-floor", type=float, default=15.0,
+                    help="GB of free memory below which a new stage will not "
+                         "start (default 15). The node ceiling is 100 GB and "
+                         "over-runs are killed without warning.")
     ap.add_argument("--retire-caches", action="store_true",
                     help="delete cache/ (measured and listed first). Only at close "
                          "of round, after exports are out and verified -- never mid-round.")
     a = ap.parse_args()
+    global MEM_FLOOR_GB
+    MEM_FLOOR_GB = a.mem_floor
+    start_heartbeat()
 
     if a.retire_caches:
         import mona_common as mc

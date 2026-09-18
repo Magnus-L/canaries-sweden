@@ -34,6 +34,7 @@ the interaction form the referee literally asks for.
 Output (output_46/): wfh_horserace.csv, wfh_daioe_only.csv, 46_summary.txt
 """
 
+import gc
 import sys
 from pathlib import Path
 
@@ -75,6 +76,11 @@ def main():
 
     panel = pd.read_parquet(CACHE)
     agg_occ = mc.collapse_vintage(panel)
+    # Three consoles share a 100 GB node: drop the 140-million-row
+    # vintage panel the moment the collapse has consumed it. Same
+    # rows, same numbers, roughly half the peak.
+    del panel
+    gc.collect()
     agg_occ["ssyk4"] = agg_occ["ssyk4"].astype(str).str.zfill(4)
     daioe = mc.load_daioe()
     wfh = load_wfh()

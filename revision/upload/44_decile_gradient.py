@@ -31,6 +31,7 @@ Output (output_44/): decile_pooled.csv (age x decile x period),
 44_summary.txt.
 """
 
+import gc
 import sys
 from pathlib import Path
 
@@ -93,6 +94,11 @@ def main():
 
     panel = pd.read_parquet(CACHE)
     agg = mc.collapse_vintage(panel)
+    # Three consoles share a 100 GB node: drop the 140-million-row
+    # vintage panel the moment the collapse has consumed it. Same
+    # rows, same numbers, roughly half the peak.
+    del panel
+    gc.collect()
     dec = load_daioe_deciles()
     agg["ssyk4"] = agg["ssyk4"].astype(str).str.zfill(4)
     agg = agg.merge(dec, on="ssyk4", how="inner")

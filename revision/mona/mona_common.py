@@ -149,10 +149,56 @@ def runlog(script: str, rc: int, minutes: float):
         line = "%s | %-12s | %-34s | exit %d | %5.1f min\n" % (
             time.strftime("%Y-%m-%d %H:%M"), getpass.getuser(), script,
             rc, minutes)
-        with open(root / "RUNLOG.txt", "a", encoding="utf-8") as f:
-            f.write(line)
+        # Three consoles append to this one file. A single small append is
+        # atomic enough on SMB, but the handle can be briefly locked by
+        # another console; retry rather than silently lose the row.
+        for attempt in range(4):
+            try:
+                with open(root / "RUNLOG.txt", "a", encoding="utf-8") as f:
+                    f.write(line)
+                return
+            except OSError:
+                if attempt == 3:
+                    raise
+                time.sleep(2)
     except OSError:
         pass
+
+
+def mem_available_gb():
+    """
+    Physical memory still available, in GB, or None off Windows. Stdlib
+    only: psutil is not installed in MONA and shell escapes are banned.
+    The node ceiling is 100 GB and over-runs are killed WITHOUT WARNING,
+    which is how the 5 September batch died; with three consoles sharing
+    the node, every stage now prints this before and after it runs.
+    """
+    try:
+        import ctypes
+
+        class _MS(ctypes.Structure):
+            _fields_ = [("dwLength", ctypes.c_ulong),
+                        ("dwMemoryLoad", ctypes.c_ulong),
+                        ("ullTotalPhys", ctypes.c_ulonglong),
+                        ("ullAvailPhys", ctypes.c_ulonglong),
+                        ("ullTotalPageFile", ctypes.c_ulonglong),
+                        ("ullAvailPageFile", ctypes.c_ulonglong),
+                        ("ullTotalVirtual", ctypes.c_ulonglong),
+                        ("ullAvailVirtual", ctypes.c_ulonglong),
+                        ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+        st = _MS()
+        st.dwLength = ctypes.sizeof(_MS)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(st)):
+            return None
+        return st.ullAvailPhys / 1e9
+    except Exception:
+        return None
+
+
+def mem_line(prefix: str = "") -> str:
+    g = mem_available_gb()
+    return f"{prefix}memory available: {g:.1f} GB" if g is not None else ""
 
 
 def storage_report():
@@ -501,11 +547,19 @@ def _r_workdir(workdir: Path) -> Path:
     handle blocks forever (runtime conventions, section 4). The batch
     servers' temp directory is local. Falls back to the share if temp is
     unavailable.
+
+    THREE CONSOLES (18 Sep 2026): the exchange directory is now per SCRIPT,
+    not shared. Two stages running at once write `_rin_<tag>.csv` into the
+    same place, and while the tags happen to differ today, a re-run of the
+    same script in a second console would have one process deleting the
+    other's input between the write and R reading it. A subdirectory per
+    script removes the class, not just today's instance.
     """
     import tempfile
     try:
-        d = Path(tempfile.gettempdir()) / "canaries_rwork"
-        d.mkdir(exist_ok=True)
+        d = (Path(tempfile.gettempdir()) / "canaries_rwork"
+             / Path(sys.argv[0]).stem)
+        d.mkdir(parents=True, exist_ok=True)
         return d
     except OSError:
         return workdir
