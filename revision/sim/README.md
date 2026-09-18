@@ -46,9 +46,21 @@ stochastic rather than deterministic.
 
 ## Estimates of cost
 
-At 60,000 persons and 1,500 employers one draw is about 8 to 12 minutes
-(8 designs x 5 fits plus the oracle). The full grid is 3 scenarios x 3
-register settings x 5 seeds = 45 draws, so roughly 7 to 9 hours; `--resume`
-makes a killed run cheap, and `--quick` is one draw. Scale with
+Measured, not guessed: at 60,000 persons and 1,500 employers one draw is
+**3 minutes 47 seconds** (8 designs x 5 fits plus the oracle, on the Mac
+Studio). The full grid is 3 scenarios x 3 register settings x 5 seeds = 45
+draws, so about **2 hours 50 minutes**; `--resume` makes a killed run cheap,
+and `--quick` is one draw. Scale with
 `--n-persons`, and scale `--min-cell` with it, since the scoring floor is a
 count of people.
+
+## What a placeholder run already shows
+
+On the placeholder calibration, a full-size draw of the paper scenario puts
+six of the eight designs at an artefact under 0.05 -- a clean pass on the
+backtest -- while every one of them is biased against the oracle by about
+0.14. The false-pass column reads 1.00 for all six. That is not a finding
+about Sweden, since the calibration is guesses; it is the study working. The
+backtest asks whether a design is stable under lag, which a design can be
+while being wrong, and only a known truth separates the two. Whether real
+designs fall into that trap is what the calibrated run answers.
