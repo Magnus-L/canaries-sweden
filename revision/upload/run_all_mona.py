@@ -42,6 +42,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 MEM_FLOOR_GB = 15.0
 
+
+class _Skip(Exception):
+    """Control flow only: the Rscript probe was skipped."""
+
 # ----------------------------------------------------------------------
 # BATCH REALITY (data-notes/mona-runtime-conventions.md, learned 4 Sep the
 # hard way): BatchClient DISCARDS stderr and keeps no stdout for Python, and
@@ -163,10 +167,26 @@ def preflight(need_r: bool = True) -> bool:
     # SQL was already spent; this check would have failed in one second.
     try:
         rpath = mc._rscript()
+        # Console 2 sat here for eighty minutes on 18 September, between the
+        # input checks and this line, and never printed again. Two changes.
+        # The probe now runs from LOCAL disk: the batch working directory is
+        # the UNC share, and starting a Windows process from a UNC cwd is a
+        # known way to hang. And when rscript_path.txt has resolved, the
+        # probe is skipped outright: the pin file exists precisely because
+        # someone has already established that this is a working Rscript,
+        # and a liveness check that can hang forever is worse than no check.
+        import tempfile
+        if (HERE / "rscript_path.txt").exists():
+            print(f"  [      ok] Rscript                  {rpath}  (pinned; "
+                  f"version probe skipped)")
+            raise _Skip
         rv = subprocess.run([rpath, "--version"], capture_output=True,
-                            text=True, timeout=60)
+                            text=True, timeout=30,
+                            cwd=tempfile.gettempdir())
         ver = (rv.stdout + rv.stderr).strip().splitlines()[0][:40]
         print(f"  [      ok] Rscript                  {rpath}  ({ver})")
+    except _Skip:
+        pass
     except Exception as ex:
         if need_r:
             ok = False

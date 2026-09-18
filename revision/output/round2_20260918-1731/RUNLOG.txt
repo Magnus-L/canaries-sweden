@@ -1,0 +1,7 @@
+2026-09-04 14:10 | lodema       | 39_canary_gate.py                  | exit 1 |  65.2 min
+2026-09-04 15:38 | lodema       | 39_canary_gate.py                  | exit 1 |  45.9 min
+2026-09-04 16:53 | lodema       | 39_canary_gate.py                  | exit 0 |  45.5 min
+2026-09-04 17:02 | lodema       | 39b_panel_diff.py                  | exit 0 |   9.5 min
+2026-09-05 04:09 | lodema       | 43_poisson_primary.py              | exit 0 | 667.0 min
+2026-09-18 16:08 | lodema       | 40_coverage_diagnostics.py         | exit 0 |  13.6 min
+2026-09-18 17:29 | lodema       | 45_asof_backtest.py                | exit 0 |  94.7 min
