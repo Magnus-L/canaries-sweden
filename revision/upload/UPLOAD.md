@@ -240,3 +240,24 @@ before Tier A and the log names both numbers. If it stops, export `output_47h\47
 
 **Tested locally** end to end on synthetic frames with the real key, DAIOE and Eloundou inputs
 and real R + fixest: `revision/local/test_47h_synthetic.py` (five cases, all pass, ~5 min).
+
+## 7. 50, calibration moments for the simulation study (added 19 Sep 2026, 01:10)
+
+One file, standalone, about 15 minutes, no dependency on 47h (it reads 47h's caches only if
+they happen to exist). Runs in any free slot.
+
+| File on this machine | Destination on MONA (full path) |
+|---|---|
+| `revision/upload/50_sim_moments.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py` (upload as `.txt`, rename to `.py`) |
+
+Inputs already on the share: `input\daioe_quartiles.dta`, `input\utb_grupp2_sun2020_niva3_inr4_nyckel.dta`
+(both hash-checked). No new folder.
+
+**Exports to bring out** (`output_50\`, all aggregates, every count 0 or >= 5): `m1a_completion_age.csv`,
+`m1b_level_change.csv`, `m2_occ_change.csv`, `m3_staleness.csv`, `m4a_enrolment_prevalence.csv`,
+`m4b_field_switch.csv`, `m5a_employer_size.csv`, `m5b_retention_22_25.csv` (only if 47h has run),
+`m6_matrix_2019.csv` ... `m6_matrix_2023.csv` (one per year; each under the 5 MB file cap),
+`50_summary.txt`, `50_log.txt`. A moment whose query fails is skipped and named in the log; the
+rest are still written.
+
+Tested locally end to end: `revision/local/test_50_synthetic.py` (three cases, all pass).
