@@ -1,0 +1,13 @@
+FROZEN COHORT -- gamma2 by age (Poisson)
+========================================
+   22-25: -0.4653 (SE 0.0130, p 0.0000)
+   26-30: -0.2217 (SE 0.0073, p 0.0000)
+   31-34: -0.0809 (SE 0.0054, p 0.0000)
+   35-40: -0.0467 (SE 0.0050, p 0.0000)
+   41-49: -0.0187 (SE 0.0028, p 0.0000)
+     50+: +0.0214 (SE 0.0035, p 0.0000)
+
+Read: attenuation vs baseline is expected (the hiring
+margin is excluded by construction); a FLAT 22-25 path
+here with a steep baseline points at the hiring margin,
+not at coverage.

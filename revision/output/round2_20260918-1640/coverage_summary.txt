@@ -1,0 +1,8 @@
+COVERAGE SUMMARY
+========================================
+2023: overall match 1.000; 22-25 match 1.000
+2024: overall match 1.000; 22-25 match 1.000
+2025: overall match 1.000; 22-25 match 1.000
+2024-25 incumbent: match 0.998
+2024-25 recent_hire: match 0.998
+2024-25 entrant: match 0.977

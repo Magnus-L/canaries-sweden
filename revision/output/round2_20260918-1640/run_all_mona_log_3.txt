@@ -1,0 +1,66 @@
+
+==========================================================================
+run_all_mona started 2026-09-18 15:38 | user lodema | python 3.13.7
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:38
+==========================================================================
+  1. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
+
+PRE-FLIGHT
+  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
+  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [ MISSING] Rscript                  Rscript not found; searched PATH; glob C:\Program Files\R\R-*\bin\x64\Rscript.exe; glob C:\Program Files\R\R-*\bin\Rscript.exe; glob C:\Program Files (x86)\R\R-*\bin\Rscript.exe
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+Pre-flight failed. Fix the missing inputs before running.
+stage 44 exited 1; continuing to the next
+
+==========================================================================
+==========================================================================
+
+run_all_mona started 2026-09-18 15:38 | user lodema | python 3.13.7run_all_mona started 2026-09-18 15:38 | user lodema | python 3.13.7
+
+====================================================================================================================================================
+
+====================================================================================================================================================
+
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:38EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:38
+
+====================================================================================================================================================
+
+  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators
+
+
+
+PRE-FLIGHTPRE-FLIGHT
+
+  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
+
+  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+
+  [ MISSING] Rscript                  Rscript not found; searched PATH; glob C:\Program Files\R\R-*\bin\x64\Rscript.exe; glob C:\Program Files\R\R-*\bin\Rscript.exe; glob C:\Program Files (x86)\R\R-*\bin\Rscript.exe  [ MISSING] Rscript                  Rscript not found; searched PATH; glob C:\Program Files\R\R-*\bin\x64\Rscript.exe; glob C:\Program Files\R\R-*\bin\Rscript.exe; glob C:\Program Files (x86)\R\R-*\bin\Rscript.exe
+
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+
+
+Pre-flight failed. Fix the missing inputs before running.Pre-flight failed. Fix the missing inputs before running.
+
+stage 48 exited 1; continuing to the nextstage 48 exited 1; continuing to the next
+
+
+=== 47_edu_exposure.py (standalone) ===
+=== 47_edu_exposure.py (standalone) ===
+
+47_edu_exposure.py exited 147_edu_exposure.py exited 1
+
