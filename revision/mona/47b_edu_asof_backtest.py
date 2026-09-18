@@ -287,6 +287,11 @@ def main():
             raw = panel.rename(columns={f"niva_{which}": "niva",
                                         f"inr_{which}": "inr"})
             agg, mrate = map_and_collapse(raw, grp_q)
+            # balance_panel and add_treatment key on exposure_quartile. 47
+            # renames at its own collapse; 47b's copy of map_and_collapse
+            # dropped the rename, and that KeyError killed the 17:57 run
+            # after the five T=2021 pulls had already cost 32 minutes.
+            agg = agg.rename(columns={"edu_quartile": "exposure_quartile"})
             mrate["assignment"], mrate["trunc"] = which, trunc
             mrows.append(mrate)
             for age in AGES:

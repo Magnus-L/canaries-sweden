@@ -1,0 +1,54 @@
+======================================================================
+run by lodema at 2026-09-18 17:52 | 47b_edu_asof_backtest.py
+======================================================================
+======================================================================
+47b: AS-OF BACKTEST ON THE EDUCATION-BASED DESIGN
+======================================================================
+  memory available: 630.4 GB
+======================================================================
+run by lodema at 2026-09-18 17:57 | 47b_edu_asof_backtest.py
+======================================================================
+======================================================================
+47b: AS-OF BACKTEST ON THE EDUCATION-BASED DESIGN
+======================================================================
+  memory available: 362.1 GB
+  weights: 105 groups, key match 0.948, quartiles fixed at 2019
+
+=== truncation T = 2021 ===
+  2019: 34,320,324 cells (397s)
+  2020: 33,295,542 cells (379s)
+  2021: 33,116,425 cells (388s)
+  2022: 35,728,414 cells (388s)
+  2023: 36,839,045 cells (399s)
+
+UNCAUGHT EXCEPTION
+Traceback (most recent call last):
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47b_edu_asof_backtest.py", line 336, in <module>
+    main()
+    ~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47b_edu_asof_backtest.py", line 295, in main
+    bal = mc.add_treatment(mc.balance_panel(sub, months))
+                           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 449, in balance_panel
+    emp_q = (sub.groupby(["employer_id", "exposure_quartile"]).size()
+             ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\frame.py", line 9190, in groupby
+    return DataFrameGroupBy(
+        obj=self,
+    ...<7 lines>...
+        dropna=dropna,
+    )
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\groupby\groupby.py", line 1330, in __init__
+    grouper, exclusions, obj = get_grouper(
+                               ~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        dropna=self.dropna,
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\groupby\grouper.py", line 1043, in get_grouper
+    raise KeyError(gpr)
+KeyError: 'exposure_quartile'
+
