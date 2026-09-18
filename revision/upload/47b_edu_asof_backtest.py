@@ -68,6 +68,13 @@ OUT.mkdir(exist_ok=True)
 YEARS = range(2019, 2024)
 TRUNCATIONS = (2021, 2022)
 AGES = ["22-25", "26-30", "50+"]
+
+# Copied from 47 rather than imported. 47b's first attempt imported 47 with
+# importlib inside main(), before the log was open, and BatchClient discards
+# stderr: the job died instantly and left nothing to read. Standalone scripts
+# in this round stay standalone (48, 49 do the same).
+KEY_PATH = mc.SHARE + r"\utb_grupp2_sun2020_niva3_inr4_nyckel.dta"
+KEY_SHA256 = "c760361ba21554951a0744ee00de2f02f22f2e021b87f0863d9ece049e786637"
 AGE_CASE = """CASE
         WHEN age BETWEEN 22 AND 25 THEN '22-25'
         WHEN age BETWEEN 26 AND 30 THEN '26-30'
@@ -77,6 +84,111 @@ AGE_CASE = """CASE
         WHEN age BETWEEN 50 AND 69 THEN '50+'
         ELSE NULL END"""
 
+
+def norm_code(s: pd.Series) -> pd.Series:
+    """One normalisation for every SUN code join: trim + lowercase, and
+    both NULL and '' (the 2019 vs 2021+ encodings) become <NA>."""
+    out = s.astype("string").str.strip().str.lower()
+    return out.where(out.notna() & (out != ""), other=pd.NA)
+
+def load_key() -> pd.DataFrame:
+    import hashlib
+    got = hashlib.sha256(Path(KEY_PATH).read_bytes()).hexdigest()
+    if got != KEY_SHA256:
+        raise RuntimeError(f"key hash mismatch: {got[:16]}... is not the "
+                           f"delivered key {KEY_SHA256[:16]}...")
+    key = pd.read_stata(KEY_PATH)
+    key = key.rename(columns={"sun2020niva_3_kod": "niva",
+                              "sun2020inr_4_kod": "inr",
+                              "utb_grupp2": "grp"})
+    key["niva"] = norm_code(key["niva"])
+    key["inr"] = norm_code(key["inr"])
+    assert not key.duplicated(["niva", "inr"]).any(), "key not unique on niva x inr"
+    return key[["niva", "inr", "grp"]]
+
+def build_weights(counts: pd.DataFrame, key: pd.DataFrame,
+                  daioe_scores: pd.DataFrame, weight_col: str = "n_all") -> tuple:
+    """
+    counts: person counts per (niva, inr, ssyk4) from one Individ year,
+    occupation-coded people only. Returns (group table, diagnostics dict).
+
+    Economic content: a group's exposure is the exposure of the jobs its
+    holders actually do, weighted by how many of them do each job.
+    """
+    counts = counts.rename(columns={weight_col: "n"}) \
+        if weight_col != "n" else counts
+    counts = counts[counts["n"] > 0]
+    n0 = counts["n"].sum()
+    m = counts.merge(key, on=["niva", "inr"], how="left")
+    matched = m["grp"].notna()
+    m = m[matched]
+    m = m.merge(daioe_scores, on="ssyk4", how="inner")   # drops unscored SSYK
+    grp = (m.groupby("grp")
+             .apply(lambda g: pd.Series({
+                 "n_workers": g["n"].sum(),
+                 "mean_daioe": np.average(g["pctl_rank_genai"], weights=g["n"]),
+             }), include_groups=False)
+             .reset_index())
+    grp = grp[grp["n_workers"] >= 5].copy()              # export floor
+    # Employment-weighted quartiles: rank groups by exposure, cut the
+    # CUMULATIVE worker mass at 25/50/75 -- each bin is ~a quarter of
+    # workers, not a quarter of the 105 group codes.
+    grp = grp.sort_values("mean_daioe").reset_index(drop=True)
+    cum = grp["n_workers"].cumsum() / grp["n_workers"].sum()
+    grp["edu_quartile"] = np.searchsorted([0.25, 0.5, 0.75], cum, side="left") + 1
+    diag = {"n_total": int(n0),
+            "key_match_share": float(counts["n"][matched.values].sum() / n0),
+            "n_groups": int(len(grp))}
+    return grp, diag
+
+def map_and_collapse(raw: pd.DataFrame, grp_q: pd.DataFrame) -> tuple:
+    """
+    One year of employer x month x (niva, inr) x age cells -> employer x
+    month x edu_quartile x age, plus match accounting. grp_q maps
+    utbildningsgrupp -> edu_quartile (from the 2019 weights).
+    """
+    raw = raw.copy()
+    raw["niva"] = norm_code(raw["niva"])
+    raw["inr"] = norm_code(raw["inr"])
+    total = raw.groupby("age_group", observed=True)["n_emp"].sum()
+    m = raw.merge(load_key(), on=["niva", "inr"], how="left")
+    keyed = m[m["grp"].notna()].merge(grp_q, on="grp", how="inner")
+    kept = keyed.groupby("age_group", observed=True)["n_emp"].sum()
+    coll = (keyed.groupby(["employer_id", "year_month", "edu_quartile",
+                           "age_group"], observed=True)["n_emp"]
+            .sum().reset_index())
+    rates = pd.DataFrame({"n_total": total, "n_mapped": kept}).reset_index()
+    return coll, rates
+
+
+# ----------------------------------------------------------------------
+# SQL pulls
+# ----------------------------------------------------------------------
+
+def pull_weight_counts(year: int, conn) -> pd.DataFrame:
+    """
+    Person counts per (niva, inr, ssyk4) for one Individ year -- the
+    composition the measure is built from. Aggregated in SQL: tiny result.
+
+    Two counts per cell: everyone (n_all) and the young (n_young, 22-35 in
+    the weight year). The all-ages stock says where anyone with education g
+    works, which is dominated by older cohorts; the young count says where
+    its RECENT holders go, which is the mapping the 22-25 margin actually
+    turns on (ML's point, 4 Sep; Uppsala's graduate-destination logic).
+    """
+    q = f"""
+    SELECT Sun2020Niva AS niva, Sun2020Inr AS inr,
+           RIGHT('0000' + CAST(Ssyk4_2012_J16 AS VARCHAR(4)), 4) AS ssyk4,
+           COUNT(*) AS n_all,
+           SUM(CASE WHEN {year} - FodelseAr BETWEEN 22 AND 35
+                    THEN 1 ELSE 0 END) AS n_young
+    FROM dbo.Individ_{year}
+    WHERE Sun2020Niva IS NOT NULL AND LTRIM(Sun2020Niva) <> ''
+      AND Sun2020Inr  IS NOT NULL AND LTRIM(Sun2020Inr)  <> ''
+      AND Ssyk4_2012_J16 IS NOT NULL AND LTRIM(Ssyk4_2012_J16) <> ''
+    GROUP BY Sun2020Niva, Sun2020Inr, Ssyk4_2012_J16
+    """
+    return pd.read_sql(q, conn)
 
 def pull_dual(year: int, trunc: int, conn) -> pd.DataFrame:
     """One year with BOTH education assignments on the same rows: the
@@ -124,26 +236,34 @@ def pull_dual(year: int, trunc: int, conn) -> pd.DataFrame:
 
 
 def main():
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "s47", HERE / "47_edu_exposure.py")
-    s47 = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(s47)          # reuse 47's key, weights, binning
-
+    # The log opens before anything can fail, and uncaught exceptions are
+    # written into it: BatchClient keeps no stderr, so a crash before this
+    # point is invisible (runtime conventions, section 3).
     mc.Tee(OUT / "47b_log.txt")
+    import sys as _sys
+    import traceback as _tb
+    _sys.excepthook = lambda et, ev, tb: print(
+        "\nUNCAUGHT EXCEPTION\n" + "".join(_tb.format_exception(et, ev, tb)))
     print("=" * 70)
     print("47b: AS-OF BACKTEST ON THE EDUCATION-BASED DESIGN")
     print("=" * 70)
     print(mc.mem_line("  "))
 
-    key = s47.load_key()
+    key = load_key()
     wcache = mc.CACHE_DIR / "edu_weights_2019.parquet"
     counts = mc.read_cache(wcache)
     if counts is None:
-        counts = s47.pull_weight_counts(2019, mc.connect())
+        counts = pull_weight_counts(2019, mc.connect())
         counts.to_parquet(wcache, index=False)
-    grp_q = s47.build_weights(counts, key, 2019)
-    print(f"  weights: {len(grp_q)} groups, quartiles fixed at 2019")
+    daioe_full = (pd.read_stata(mc.DAIOE_PATH)
+                  if mc.DAIOE_PATH.endswith(".dta")
+                  else pd.read_csv(mc.DAIOE_PATH))
+    daioe_full["ssyk4"] = daioe_full["ssyk4"].astype(str).str.zfill(4)
+    scores = daioe_full[["ssyk4", "pctl_rank_genai"]]
+    grp_q, diag = build_weights(counts, key, scores)
+    grp_q = grp_q[["grp", "edu_quartile"]]
+    print(f"  weights: {diag['n_groups']} groups, key match "
+          f"{diag['key_match_share']:.3f}, quartiles fixed at 2019")
 
     conn = mc.connect()
     rows, mrows = [], []
@@ -166,7 +286,7 @@ def main():
         for which in ("true", "asof"):
             raw = panel.rename(columns={f"niva_{which}": "niva",
                                         f"inr_{which}": "inr"})
-            agg, mrate = s47.map_and_collapse(raw, grp_q)
+            agg, mrate = map_and_collapse(raw, grp_q)
             mrate["assignment"], mrate["trunc"] = which, trunc
             mrows.append(mrate)
             for age in AGES:
