@@ -27,15 +27,17 @@ import pandas as pd
 REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
 from config import (PROCESSED, V2_TAB, RIKSBANKEN_HIKE,  # noqa: E402
-                    CHATGPT_LAUNCH)
+                    CHATGPT_LAUNCH, POSTINGS_REGRESSION_END)
 
 
 def load_panel():
-    df = pd.read_csv(PROCESSED / "postings_daioe_merged.csv",
+    df = pd.read_csv(PROCESSED / ("postings_daioe_merged_extended.csv"
+                     if (PROCESSED / "postings_daioe_merged_extended.csv").exists()
+                     else "postings_daioe_merged.csv"),
                      dtype={"ssyk4": str})
     df["ssyk4"] = df["ssyk4"].str.zfill(4)
     df = df[(df["year_month"] >= "2020-01")
-            & (df["year_month"] <= "2025-12")].copy()
+            & (df["year_month"] <= POSTINGS_REGRESSION_END)].copy()
 
     # Balanced occupation x month panel with explicit zeros: Poisson wants
     # the zero cells the OLS-on-ln(n) spec had to drop.

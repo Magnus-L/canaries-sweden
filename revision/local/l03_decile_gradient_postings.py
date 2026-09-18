@@ -27,15 +27,17 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import (PROCESSED, V2_TAB, V2_FIG, RIKSBANKEN_HIKE,
-                    CHATGPT_LAUNCH, ORANGE, TEAL, GRAY, DARK_TEXT)
+                    CHATGPT_LAUNCH, ORANGE, TEAL, GRAY, DARK_TEXT, POSTINGS_REGRESSION_END)
 
 
 def main():
     print("L3: posting decile gradient (R1.4)")
-    df = pd.read_csv(PROCESSED / "postings_daioe_merged.csv",
+    df = pd.read_csv(PROCESSED / ("postings_daioe_merged_extended.csv"
+                     if (PROCESSED / "postings_daioe_merged_extended.csv").exists()
+                     else "postings_daioe_merged.csv"),
                      dtype={"ssyk4": str})
     df["ssyk4"] = df["ssyk4"].str.zfill(4)
-    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= "2025-12")]
+    df = df[(df["year_month"] >= "2020-01") & (df["year_month"] <= POSTINGS_REGRESSION_END)]
 
     # Unweighted deciles over occupations (same convention as the quartiles:
     # each SSYK4 counts once).

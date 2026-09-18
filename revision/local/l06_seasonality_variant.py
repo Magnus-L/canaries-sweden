@@ -28,17 +28,19 @@ import pandas as pd
 REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
 from config import (PROCESSED, V2_TAB, RIKSBANKEN_HIKE,  # noqa: E402
-                    CHATGPT_LAUNCH)
+                    CHATGPT_LAUNCH, POSTINGS_REGRESSION_END)
 
 
 def main():
     import pyfixest as pf
     print("L6: seasonality variants (R1.9)")
-    df = pd.read_csv(PROCESSED / "postings_daioe_merged.csv",
+    df = pd.read_csv(PROCESSED / ("postings_daioe_merged_extended.csv"
+                     if (PROCESSED / "postings_daioe_merged_extended.csv").exists()
+                     else "postings_daioe_merged.csv"),
                      dtype={"ssyk4": str})
     df["ssyk4"] = df["ssyk4"].str.zfill(4)
     df = df[(df["year_month"] >= "2020-01")
-            & (df["year_month"] <= "2025-12")].copy()
+            & (df["year_month"] <= POSTINGS_REGRESSION_END)].copy()
     df = df[df["n_ads"] > 0].copy()
     df["ln_ads"] = np.log(df["n_ads"])
     df["date"] = pd.to_datetime(df["year_month"] + "-01")

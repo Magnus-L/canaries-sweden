@@ -106,6 +106,22 @@ def main():
                     ignore_index=True)
     ext.to_csv(OUT / "postings_ssyk4_monthly_extended.csv", index=False)
 
+    # The merged, exposure-tagged panel on the FULL window, so that every
+    # posting regression can run on the same months rather than only this
+    # script's. The old postings_daioe_merged.csv stops at February 2026 and
+    # its last two months are the JobStream artefact, which is why l03, l05
+    # and l06 were cutting at December 2025.
+    _d = pd.read_csv(_cfg.PROCESSED / "daioe_quartiles.csv",
+                     dtype={"ssyk4": str})
+    _d["ssyk4"] = _d["ssyk4"].str.zfill(4)
+    _merged = ext.merge(_d, on="ssyk4", how="inner")
+    _merged["high_exposure"] = (_merged["exposure_quartile"].astype(str)
+                                .str.startswith("Q4").astype(int))
+    _mp = _cfg.PROCESSED / "postings_daioe_merged_extended.csv"
+    _merged.to_csv(_mp, index=False)
+    print(f"  wrote {_mp.name}: {_merged['year_month'].min()} to "
+          f"{_merged['year_month'].max()}, {len(_merged):,} occupation-months")
+
     # --- extended DiD: OLS (submitted spec) + Poisson, both windows ------
     import pyfixest as pf
     daioe = pd.read_csv(_cfg.PROCESSED / "daioe_quartiles.csv",

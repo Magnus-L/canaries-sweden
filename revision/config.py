@@ -47,6 +47,12 @@ CHATGPT_LAUNCH  = "2022-12-01"
 # harvesting artefacts (see reference_canaries_postings_tail_artefact).
 POSTINGS_DESCRIPTIVE_END = "2025-12"
 
+# The last month the posting REGRESSIONS use. JobTech publishes closed
+# quarters, so this is the end of the newest one; run l12 to check whether a
+# newer quarter exists. Kept separate from the descriptive cut, which exists
+# for a different reason (the JobStream tail artefact).
+POSTINGS_REGRESSION_END = "2026-06"
+
 # -- Colours (as v1) ---------------------------------------------------------
 DARK_BLUE = "#1B3A5C"; ORANGE = "#E8873A"; TEAL = "#2E7D6F"
 GRAY = "#8C8C8C"; LIGHT_GRAY = "#C8C8C8"; DARK_TEXT = "#2C2C2C"
