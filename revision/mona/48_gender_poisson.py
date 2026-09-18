@@ -52,7 +52,13 @@ OUT.mkdir(exist_ok=True)
 
 CACHE = mc.CACHE_DIR / "panel_gender.parquet"
 AGES = ["22-25", "26-30"]
-GENDERS = {1: "men", 2: "women"}
+# Kon is a CHAR column in Individ, so pandas reads the pulled gender as
+# the strings "1"/"2". Keying this dict on ints made every gendered subset
+# empty, which surfaced as "merge on float64 and object for 'year_month'"
+# inside balance_panel (an empty subset gives an empty month list, and an
+# empty month column is float64). Keys are strings; norm_gender() below
+# makes the panel match whatever the cache or a future pull supplies.
+GENDERS = {"1": "men", "2": "women"}
 
 # The same anchor the canary gate uses, for the summed-over-gender check.
 ANCHOR_POISSON_G2 = -0.1740
@@ -141,9 +147,31 @@ def pull_year_gender(year: int, conn) -> pd.DataFrame:
     return pd.read_sql(query, conn)
 
 
+def norm_gender(panel: pd.DataFrame) -> pd.DataFrame:
+    """Gender as a trimmed string, whatever the source dtype. Applied once
+    to the panel (including a cache written before this fix) so the split
+    cannot silently select nothing."""
+    p = panel.copy()
+    g = p["gender"]
+    if pd.api.types.is_numeric_dtype(g):
+        g = g.astype("Int64").astype("string")
+    p["gender"] = g.astype("string").str.strip()
+    counts = p.groupby("gender", observed=True)["n_emp"].sum()
+    print("  gender codes in the panel: "
+          + ", ".join(f"{k!r} {int(v):,}" for k, v in counts.items()))
+    missing = set(GENDERS) - set(counts.index.dropna())
+    if missing:
+        raise RuntimeError(f"gender codes {sorted(missing)} absent from the "
+                           f"panel; found {sorted(counts.index.dropna())}")
+    return p
+
+
 def build(panel: pd.DataFrame, age: str, gender=None) -> pd.DataFrame:
     """Collapse to the estimation cell and balance it, as 43 does."""
     sub = panel if gender is None else panel[panel["gender"] == gender]
+    if gender is not None and sub.empty:
+        raise RuntimeError(f"no rows for gender {gender!r}: the split would "
+                           f"estimate on an empty panel")
     agg = mc.collapse_vintage(sub)
     daioe = mc.load_daioe()
     agg["ssyk4"] = agg["ssyk4"].astype(str).str.zfill(4)
@@ -188,6 +216,8 @@ def main():
         print(f"  Cached -> {CACHE.name}")
         del frames
         gc.collect()
+
+    panel = norm_gender(panel)
 
     # GATE. Summing over gender must reproduce the headline panel. If it
     # does not, the gender pull differs from the pull every other number

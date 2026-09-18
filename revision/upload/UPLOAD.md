@@ -265,3 +265,22 @@ agreement, Q4 precision and recall and percentile error by age, t and lag; no fu
 rest are still written.
 
 Tested locally end to end: `revision/local/test_50_synthetic.py` (three cases, all pass).
+
+## 8. 48 re-run after the gender fix (added 19 Sep 2026, 01:55)
+
+`Kon` is a char column, so the pulled panel holds the strings "1"/"2" while the split filtered
+on integers: every gendered subset was empty, and that surfaced as
+`ValueError: You are trying to merge on float64 and object columns for key 'year_month'`
+inside `balance_panel`. 48 now normalises the gender column whatever its dtype, prints the codes
+and their counts, and raises with a readable message if a code is missing or a subset is empty.
+
+| File on this machine | Destination on MONA (full path) |
+|---|---|
+| `revision/upload/48_gender_poisson.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py` (upload as `.txt`, rename to `.py`) |
+
+Submit standalone, or `python run_all_mona.py --only 48`. **`panel_gender.parquet` is already
+cached**, so the seven year pulls (38 min) are skipped and the run is the gate plus twelve fits,
+roughly 30 to 40 minutes. Exports: `output_48\gender_poisson.csv`, `48_summary.txt`, `48_log.txt`.
+
+Tested locally: `revision/local/test_48_gender.py` (four cases: the 18 Sep bug reproduces and is
+now caught; the fix works on a string panel and an int panel; a panel missing a code raises).

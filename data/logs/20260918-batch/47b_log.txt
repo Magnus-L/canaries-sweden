@@ -52,3 +52,64 @@ Traceback (most recent call last):
     raise KeyError(gpr)
 KeyError: 'exposure_quartile'
 
+======================================================================
+run by lodema at 2026-09-18 20:06 | 47b_edu_asof_backtest.py
+======================================================================
+======================================================================
+47b: AS-OF BACKTEST ON THE EDUCATION-BASED DESIGN
+======================================================================
+  memory available: 502.9 GB
+  weights: 105 groups, key match 0.948, quartiles fixed at 2019
+
+=== truncation T = 2021 ===
+  2019: cached
+  2020: cached
+  2021: cached
+  2022: cached
+  2023: cached
+  [true T2021] 22-25: 8,961,480 cells
+  [true T2021] 26-30: 11,962,260 cells
+  [true T2021] 50+: 19,698,300 cells
+  [asof T2021] 22-25: 8,569,380 cells
+  [asof T2021] 26-30: 11,572,080 cells
+  [asof T2021] 50+: 19,598,520 cells
+
+=== truncation T = 2022 ===
+  2019: 34,903,446 cells (363s)
+  2020: 33,790,487 cells (360s)
+  2021: 34,000,394 cells (366s)
+  2022: 34,753,107 cells (394s)
+  2023: 36,084,222 cells (391s)
+  [true T2022] 22-25: 8,961,480 cells
+  [true T2022] 26-30: 11,962,260 cells
+  [true T2022] 50+: 19,698,300 cells
+  [asof T2022] 22-25: 9,196,680 cells
+  [asof T2022] 26-30: 11,914,680 cells
+  [asof T2022] 50+: 19,619,460 cells
+
+EDUCATION DESIGN: WHAT THE REGISTER LAG MANUFACTURES
+========================================================
+Occupation design, script 45, ages 22-25:
+  T=2021  true +0.0193  as-of -0.2875  ARTEFACT -0.3068
+  T=2022  true +0.0176  as-of -0.1452  ARTEFACT -0.1627
+
+Education design, ages 22-25:
+  T=2021  true -0.0099  as-of -0.3695  ARTEFACT -0.3596
+  T=2022  true -0.0099  as-of -0.3041  ARTEFACT -0.2941
+
+Education design, ages 26-30:
+  T=2021  true +0.0119  as-of -0.1778  ARTEFACT -0.1897
+  T=2022  true +0.0119  as-of -0.1245  ARTEFACT -0.1364
+
+Education design, ages 50+:
+  T=2021  true +0.0223  as-of +0.0195  ARTEFACT -0.0028
+  T=2022  true +0.0223  as-of +0.0201  ARTEFACT -0.0022
+
+READ RULE (pre-committed):
+  |artefact| < 0.05 at both truncations -> the education design
+    is the paper's register evidence.
+  0.05 to half of the occupation artefact -> usable only with
+    the artefact reported beside every estimate.
+  at or above half -> the register route is closed by lag.
+
+47b done. memory available: 433.9 GB

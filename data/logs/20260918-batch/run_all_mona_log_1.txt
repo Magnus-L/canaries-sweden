@@ -58,3 +58,167 @@ Pre-flight failed. Fix the missing inputs before running.Pre-flight failed. Fix 
 
 stage 46 exited 1; continuing to the nextstage 46 exited 1; continuing to the next
 
+
+==========================================================================
+run_all_mona started 2026-09-18 15:54 | user lodema | python 3.13.7
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:54
+==========================================================================
+  1. 45_asof_backtest.py          [T3/E5 ] CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant
+
+PRE-FLIGHT
+  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
+  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  E:\Programs\R-4.5.0\bin\x64\Rscript.exe  (Rscript (R) version 4.5.0 (2025-04-11))
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+
+==========================================================================
+45_asof_backtest.py  [T3/E5]
+==========================================================================
+  memory available: 602.6 GB before 45_asof_backtest.py
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\45_asof_backtest.py:151: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\45_asof_backtest.py:195: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda g: pd.Series({
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\45_asof_backtest.py:151: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\45_asof_backtest.py:195: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(lambda g: pd.Series({
+======================================================================
+run by lodema at 2026-09-18 15:54 | 45_asof_backtest.py
+======================================================================
+======================================================================
+45: AS-OF BACKTEST + FRONTIER (E5 centrepiece)
+======================================================================
+
+=== truncation T = 2021 ===
+  2019: 21,158,148 cells (183s)
+  2020: 20,557,960 cells (153s)
+  2021: 21,022,378 cells (180s)
+  2022: 27,284,001 cells (237s)
+  2023: 30,864,121 cells (230s)
+  T2021: confusion + match rates written
+  [true T2021] 7,944,780 cells
+  [asof T2021] 7,036,920 cells
+
+=== truncation T = 2022 ===
+  2019: 21,158,148 cells (176s)
+  2020: 20,557,960 cells (181s)
+  2021: 21,022,378 cells (169s)
+  2022: 22,265,793 cells (209s)
+  2023: 27,663,885 cells (236s)
+  T2022: confusion + match rates written
+  [true T2022] 7,944,780 cells
+  [asof T2022] 7,530,960 cells
+
+BACKTEST HEADLINE:
+  T=2021: true +0.0193, as-of -0.2875, ARTEFACT = -0.3068
+  T=2022: true +0.0176, as-of -0.1452, ARTEFACT = -0.1627
+FRONTIER
+========================================
+headline gamma2 (Poisson): -0.174
+combined differential loss needed to erase it: 16.0%
+  45_asof_backtest.py: exit 0 (94.7 min)
+  memory available: 569.7 GB after 45_asof_backtest.py
+
+==========================================================================
+TOTAL 94.7 min
+==========================================================================
+
+STORAGE (round folder)
+    5602.2 MB  cache/  <- disposable, --retire-caches
+       0.1 MB  output_40/
+       0.1 MB  output_45/
+       0.0 MB  mona_common.py
+       0.0 MB  output_43/
+       0.0 MB  output_42/
+       0.0 MB  47_edu_exposure.py
+       0.0 MB  run_all_mona_log.txt
+       0.0 MB  run_all_mona.py
+       0.0 MB  45_asof_backtest.py
+       0.0 MB  output_47/
+       0.0 MB  output_49/
+       0.0 MB  run_all_mona_log_2.txt
+       0.0 MB  48_gender_poisson.py
+       0.0 MB  run_all_mona_log_1.txt
+       0.0 MB  40_coverage_diagnostics.py
+       0.0 MB  49_coverage_reconcile.py
+       0.0 MB  r_fepois.R
+       0.0 MB  49b_staleness_by_quartile.py
+       0.0 MB  39b_panel_diff.py
+       0.0 MB  44_decile_gradient.py
+       0.0 MB  43_poisson_primary.py
+       0.0 MB  41_vintage_event_studies.py
+       0.0 MB  46_wfh_horserace.py
+       0.0 MB  run_all_mona_log_3.txt
+       0.0 MB  r_fepois_es.R
+       0.0 MB  39_canary_gate.py
+       0.0 MB  probe_rscript.py
+       0.0 MB  run_console3.std
+       0.0 MB  r_fepois_multi.R
+       0.0 MB  output_39b/
+       0.0 MB  42_frozen_cohort.py
+       0.0 MB  probe_rscript_log.txt
+       0.0 MB  output_39/
+       0.0 MB  49_coverage_reconcile.std
+       0.0 MB  run_console3.py
+       0.0 MB  MANIFEST.txt
+       0.0 MB  run_console1.py
+       0.0 MB  run_console2.py
+       0.0 MB  output_44/
+       0.0 MB  _ALIVE_2.txt
+       0.0 MB  _ALIVE_3.txt
+       0.0 MB  _ALIVE_1.txt
+       0.0 MB  rscript_path.txt
+    5602.8 MB  TOTAL
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 17:29
+==========================================================================
+  1. 46_wfh_horserace.py          [T10   ] Telework x period interactions, both margins
+
+PRE-FLIGHT
+  [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
+  [     ok ] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  E:\Programs\R-4.5.0\bin\x64\Rscript.exe  (Rscript (R) version 4.5.0 (2025-04-11))
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
+
+==========================================================================
+46_wfh_horserace.py  [T10]
+==========================================================================
+  memory available: 570.4 GB before 46_wfh_horserace.py
+======================================================================
+run by lodema at 2026-09-18 17:29 | 46_wfh_horserace.py
+======================================================================
+======================================================================
+46: WFH HORSE RACE (R1.7)
+======================================================================
+
+--- 22-25 ---
+  11,682,918 cells
+
+--- 26-30 ---
+  15,983,058 cells
+
+--- 31-34 ---
+  14,225,562 cells
+
+--- 35-40 ---
+  16,967,730 cells
+
+--- 41-49 ---
+  21,340,410 cells
+
+--- 50+ ---
+  29,591,094 cells
+WFH HORSE RACE -- gamma2 (PostGPT x High)
+==================================================
+   age  with WFH terms   DAIOE only

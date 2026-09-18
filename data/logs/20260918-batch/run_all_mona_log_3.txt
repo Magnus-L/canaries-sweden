@@ -5,7 +5,7 @@ run_all_mona started 2026-09-18 15:38 | user lodema | python 3.13.7
 ==========================================================================
 EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:38
 ==========================================================================
-  1. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  1. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
 
 PRE-FLIGHT
   [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
@@ -17,7 +17,7 @@ PRE-FLIGHT
   [      ok] MANIFEST.txt             every uploaded script matches what was tested
 
 Pre-flight failed. Fix the missing inputs before running.
-stage 40 exited 1; continuing to the next
+stage 44 exited 1; continuing to the next
 
 ==========================================================================
 ==========================================================================
@@ -32,7 +32,7 @@ EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:38EL67898 revision -
 
 ====================================================================================================================================================
 
-  1. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported  1. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators
 
 
 
@@ -56,16 +56,22 @@ PRE-FLIGHTPRE-FLIGHT
 
 Pre-flight failed. Fix the missing inputs before running.Pre-flight failed. Fix the missing inputs before running.
 
-stage 41 exited 1; continuing to the nextstage 41 exited 1; continuing to the next
+stage 48 exited 1; continuing to the nextstage 48 exited 1; continuing to the next
+
+
+=== 47_edu_exposure.py (standalone) ===
+=== 47_edu_exposure.py (standalone) ===
+
+47_edu_exposure.py exited 147_edu_exposure.py exited 1
 
 
 ==========================================================================
-run_all_mona started 2026-09-18 15:54 | user lodema | python 3.13.7
+run_all_mona started 2026-09-18 17:23 | user lodema | python 3.13.7
 ==========================================================================
 ==========================================================================
-EL67898 revision -- MONA run  |  lane all  |  2026-09-18 15:54
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 17:23
 ==========================================================================
-  1. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  1. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
 
 PRE-FLIGHT
   [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
@@ -78,102 +84,98 @@ PRE-FLIGHT
 
 
 ==========================================================================
-40_coverage_diagnostics.py  [T1/E3]
+44_decile_gradient.py  [T11]
 ==========================================================================
-  memory available: 610.0 GB before 40_coverage_diagnostics.py
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:62: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-  .apply(lambda g: pd.Series({
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\40_coverage_diagnostics.py:138: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(q, conn)
+  memory available: 708.5 GB before 44_decile_gradient.py
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\44_decile_gradient.py:20: SyntaxWarning: invalid escape sequence '\{'
+  d in {1..10}\{5}:  PostRB x 1[decile=d],  PostGPT x 1[decile=d]
 ======================================================================
-run by lodema at 2026-09-18 15:54 | 40_coverage_diagnostics.py
+run by lodema at 2026-09-18 17:24 | 44_decile_gradient.py
 ======================================================================
 ======================================================================
-40: EMPLOYMENT COVERAGE DIAGNOSTICS (E3)
+44: EMPLOYMENT DECILE GRADIENT (R1.4)
 ======================================================================
-  A/D: coverage_by_month_age.csv, excluded_counts.csv
-  B: vintage_composition.csv
-  C: coverage_by_quartile.csv
-  E: entrant split (SQL, person x employer x year)...
-    2019: 9,455,500 person-employer pairs (42s)
-    2020: 9,019,844 person-employer pairs (45s)
-    2021: 9,229,719 person-employer pairs (58s)
-    2022: 9,799,446 person-employer pairs (45s)
-    2023: 9,851,119 person-employer pairs (59s)
-    2024: 9,658,768 person-employer pairs (80s)
-    2025: 8,202,656 person-employer pairs (39s)
-  E: entrant_split_coverage.csv
-COVERAGE SUMMARY
+
+--- 22-25 ---
+  12,344,358 cells, 27,841 employers
+
+--- 26-30 ---
+  19,020,846 cells, 47,356 employers
+
+--- 50+ ---
+  37,555,284 cells, 103,698 employers
+DECILE GRADIENT, 22-25, post-ChatGPT (Poisson)
 ========================================
-2023: overall match 1.000; 22-25 match 1.000
-2024: overall match 1.000; 22-25 match 1.000
-2025: overall match 1.000; 22-25 match 1.000
-2024-25 incumbent: match 0.998
-2024-25 recent_hire: match 0.998
-2024-25 entrant: match 0.977
-  40_coverage_diagnostics.py: exit 0 (13.6 min)
-  memory available: 535.9 GB after 40_coverage_diagnostics.py
+  d 1: +0.0555 (SE 0.0232)
+  d 2: -0.0462 (SE 0.0252)
+  d 3: +0.0828 (SE 0.0141)
+  d 4: -0.0339 (SE 0.0151)
+  d 6: -0.1547 (SE 0.0200)
+  d 7: -0.0610 (SE 0.0149)
+  d 8: -0.1282 (SE 0.0182)
+  d 9: -0.1618 (SE 0.0197)
+  d10: -0.2422 (SE 0.0177)
+  44_decile_gradient.py: exit 0 (34.6 min)
+  memory available: 731.8 GB after 44_decile_gradient.py
 
 ==========================================================================
-TOTAL 13.6 min
+TOTAL 34.6 min
 ==========================================================================
 
 STORAGE (round folder)
-    2882.2 MB  cache/  <- disposable, --retire-caches
+    5602.2 MB  cache/  <- disposable, --retire-caches
        0.1 MB  output_40/
+       0.1 MB  output_45/
        0.0 MB  mona_common.py
        0.0 MB  output_43/
        0.0 MB  output_42/
        0.0 MB  47_edu_exposure.py
-       0.0 MB  run_all_mona_log.txt
        0.0 MB  run_all_mona.py
+       0.0 MB  run_all_mona_log.txt
        0.0 MB  45_asof_backtest.py
+       0.0 MB  47b_edu_asof_backtest.py
        0.0 MB  output_47/
+       0.0 MB  output_49/
        0.0 MB  run_all_mona_log_2.txt
+       0.0 MB  run_all_mona_log_1.txt
        0.0 MB  48_gender_poisson.py
        0.0 MB  40_coverage_diagnostics.py
+       0.0 MB  output_44/
+       0.0 MB  49_coverage_reconcile.py
        0.0 MB  r_fepois.R
+       0.0 MB  run_all_mona_log_3.txt
+       0.0 MB  49b_staleness_by_quartile.py
+       0.0 MB  output_49b/
        0.0 MB  39b_panel_diff.py
        0.0 MB  44_decile_gradient.py
        0.0 MB  43_poisson_primary.py
        0.0 MB  41_vintage_event_studies.py
        0.0 MB  46_wfh_horserace.py
-       0.0 MB  run_all_mona_log_1.txt
        0.0 MB  r_fepois_es.R
        0.0 MB  39_canary_gate.py
        0.0 MB  probe_rscript.py
+       0.0 MB  run_console3.std
        0.0 MB  r_fepois_multi.R
        0.0 MB  output_39b/
-       0.0 MB  run_all_mona_log_3.txt
        0.0 MB  42_frozen_cohort.py
        0.0 MB  probe_rscript_log.txt
        0.0 MB  output_39/
-       0.0 MB  run_console3.py
+       0.0 MB  49_coverage_reconcile.std
        0.0 MB  MANIFEST.txt
+       0.0 MB  run_console3.py
        0.0 MB  run_console1.py
        0.0 MB  run_console2.py
-       0.0 MB  output_45/
+       0.0 MB  output_47b/
+       0.0 MB  output_46/
        0.0 MB  _ALIVE_2.txt
-       0.0 MB  _ALIVE_1.txt
        0.0 MB  _ALIVE_3.txt
+       0.0 MB  _ALIVE_1.txt
        0.0 MB  rscript_path.txt
-    2882.6 MB  TOTAL
+    5602.8 MB  TOTAL
 ==========================================================================
-EL67898 revision -- MONA run  |  lane all  |  2026-09-18 16:08
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 17:58
 ==========================================================================
-  1. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators
 
 PRE-FLIGHT
   [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
@@ -181,13 +183,66 @@ PRE-FLIGHT
   [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
   [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
   [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  E:\Programs\R-4.5.0\bin\x64\Rscript.exe  (Rscript (R) version 4.5.0 (2025-04-11))
+  [      ok] MANIFEST.txt             every uploaded script matches what was tested
+
 
 ==========================================================================
-run_all_mona started 2026-09-18 19:27 | user lodema | python 3.13.7
+48_gender_poisson.py  [R2/gen]
 ==========================================================================
-resuming: skipping stages already _DONE: 40_coverage_diagnostics.py
+  memory available: 731.8 GB before 48_gender_poisson.py
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py:141: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(query, conn)
+======================================================================
+run by lodema at 2026-09-18 17:58 | 48_gender_poisson.py
+======================================================================
+======================================================================
+48: GENDER SPLIT IN POISSON (the primary estimator)
+======================================================================
+  memory available: 731.7 GB
+  2019: 23,730,089 cells in 450s
+  2020: 23,038,285 cells in 405s
+  2021: 23,546,686 cells in 402s
+  2022: 24,892,072 cells in 391s
+  2023: 25,032,516 cells in 274s
+  2024: 25,340,773 cells in 259s
+  2025: 12,934,026 cells in 125s
+  Cached -> panel_gender.parquet
+
+--- gate: summed over gender, 22-25 ---
+  pooled gamma2 = -0.1741  (anchor -0.1740)
+  GATE PASS
+
+--- 22-25, men ---
+Traceback (most recent call last):
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 243, in <module>
+    main()
+    ~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 208, in main
+    bal = build(panel, age, gender=code)
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 159, in build
+    return mc.add_treatment(mc.balance_panel(sub_a, months))
+                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 462, in balance_panel
+    .merge(cell,
+     ~~~~~^^^^^^
+           on=["employer_id", "exposure_quartile", "year_month"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           how="left"))
+           ^^^^^^^^^^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\frame.py", line 10839, in merge
+    return merge(
+        self,
+    ...<11 lines>...
+        validate=validate,
+    )
+
 ==========================================================================
-EL67898 revision -- MONA run  |  lane all  |  2026-09-18 19:27
+run_all_mona started 2026-09-18 20:23 | user lodema | python 3.13.7
+==========================================================================
+resuming: skipping stages already _DONE: 44_decile_gradient.py
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 20:23
 ==========================================================================
 
 PRE-FLIGHT
@@ -211,15 +266,15 @@ STORAGE (round folder)
        0.0 MB  mona_common.py
        0.0 MB  output_43/
        0.0 MB  output_42/
+       0.0 MB  run_all_mona_log_2.txt
        0.0 MB  47_edu_exposure.py
        0.0 MB  run_all_mona.py
        0.0 MB  run_all_mona_log.txt
-       0.0 MB  45_asof_backtest.py
        0.0 MB  47b_edu_asof_backtest.py
-       0.0 MB  run_all_mona_log_2.txt
+       0.0 MB  45_asof_backtest.py
+       0.0 MB  run_all_mona_log_3.txt
        0.0 MB  output_47/
        0.0 MB  output_49/
-       0.0 MB  run_all_mona_log_3.txt
        0.0 MB  run_all_mona_log_1.txt
        0.0 MB  48_gender_poisson.py
        0.0 MB  40_coverage_diagnostics.py
@@ -233,6 +288,7 @@ STORAGE (round folder)
        0.0 MB  43_poisson_primary.py
        0.0 MB  41_vintage_event_studies.py
        0.0 MB  46_wfh_horserace.py
+       0.0 MB  output_41/
        0.0 MB  output_46/
        0.0 MB  r_fepois_es.R
        0.0 MB  39_canary_gate.py
@@ -242,23 +298,23 @@ STORAGE (round folder)
        0.0 MB  output_39b/
        0.0 MB  42_frozen_cohort.py
        0.0 MB  probe_rscript_log.txt
-       0.0 MB  output_39/
        0.0 MB  output_47b/
+       0.0 MB  output_39/
        0.0 MB  49_coverage_reconcile.std
        0.0 MB  MANIFEST.txt
        0.0 MB  run_console3.py
        0.0 MB  run_console1.py
        0.0 MB  run_console2.py
        0.0 MB  output_48/
-       0.0 MB  _ALIVE_3.txt
-       0.0 MB  _ALIVE_1.txt
        0.0 MB  _ALIVE_2.txt
+       0.0 MB  _ALIVE_1.txt
+       0.0 MB  _ALIVE_3.txt
        0.0 MB  rscript_path.txt
     6995.3 MB  TOTAL
 ==========================================================================
-EL67898 revision -- MONA run  |  lane all  |  2026-09-18 19:27
+EL67898 revision -- MONA run  |  lane all  |  2026-09-18 20:23
 ==========================================================================
-  1. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  1. 48_gender_poisson.py         [R2/gen] Gender split re-estimated in Poisson, so the paper does not mix estimators
 
 PRE-FLIGHT
   [     ok ] daioe_quartiles.dta        in input/, uploads directly; hash-checked  sha256 matches the repo copy
@@ -271,50 +327,93 @@ PRE-FLIGHT
 
 
 ==========================================================================
-41_vintage_event_studies.py  [T2/E4]
+48_gender_poisson.py  [R2/gen]
 ==========================================================================
-  memory available: 262.1 GB before 41_vintage_event_studies.py
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
-\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\41_vintage_event_studies.py:105: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
-  f = pd.read_sql(f"SELECT DISTINCT person_id, employer_id "
+  memory available: 558.5 GB before 48_gender_poisson.py
 ======================================================================
-run by lodema at 2026-09-18 19:28 | 41_vintage_event_studies.py
+run by lodema at 2026-09-18 20:23 | 48_gender_poisson.py
 ======================================================================
 ======================================================================
-41: VINTAGE EVENT STUDIES (E4)
+48: GENDER SPLIT IN POISSON (the primary estimator)
 ======================================================================
+  memory available: 554.2 GB
 
---- variant V2023 ---
-  [V2023_22-25] 11,676,912 cells, 46,474 employers
+--- gate: summed over gender, 22-25 ---
+  pooled gamma2 = -0.1741  (anchor -0.1740)
+  GATE PASS
 
---- variant V2022 ---
-  [V2022_22-25] 8,841,456 cells, 35,834 employers
+--- 22-25, men ---
 
---- variant V2021 ---
-  [V2021_22-25] 8,837,322 cells, 35,817 employers
+UNCAUGHT EXCEPTION
+Traceback (most recent call last):
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 250, in <module>
+    main()
+    ~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 215, in main
+    bal = build(panel, age, gender=code)
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 159, in build
+    return mc.add_treatment(mc.balance_panel(sub_a, months))
+                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 462, in balance_panel
+    .merge(cell,
+     ~~~~~^^^^^^
+           on=["employer_id", "exposure_quartile", "year_month"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           how="left"))
+           ^^^^^^^^^^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\frame.py", line 10839, in merge
+    return merge(
+        self,
+    ...<11 lines>...
+        validate=validate,
+    )
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 170, in merge
+    op = _MergeOperation(
+        left_df,
+    ...<10 lines>...
+        validate=validate,
+    )
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 807, in __init__
+    self._maybe_coerce_merge_keys()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 1509, in _maybe_coerce_merge_keys
+    raise ValueError(msg)
+ValueError: You are trying to merge on float64 and object columns for key 'year_month'. If you wish to proceed you should use pd.concat
 
-Saved vintage_es.csv
+  48_gender_poisson.py: exit 1 (10.2 min)
+  memory available: 566.7 GB after 48_gender_poisson.py
 
---- margin split (year-level flag) ---
-  margin split: person x employer x year pull...
-    2019: 9,455,500 pairs
-    2020: 9,019,844 pairs
-    2021: 9,229,719 pairs
-    2022: 9,799,446 pairs
-    2023: 9,851,119 pairs
-    2024: 9,658,768 pairs
-    2025: 8,202,656 pairs
-  margin_pair_counts.csv (monthly margin ES deferred; see note in script)
-  41_vintage_event_studies.py: exit 0 (30.6 min)
-  memory available: 522.4 GB after 41_vintage_event_studies.py
+48_gender_poisson.py failed. Continuing -- later stages do not depend on it. Re-run alone with:  python run_all_mona.py --only 48
+
+==========================================================================
+TOTAL 10.2 min
+==========================================================================
+
+STORAGE (round folder)
+    6994.7 MB  cache/  <- disposable, --retire-caches
+       0.1 MB  output_40/
+       0.1 MB  output_45/
+       0.0 MB  mona_common.py
+       0.0 MB  output_43/
+       0.0 MB  output_42/
+       0.0 MB  run_all_mona_log_2.txt
+       0.0 MB  run_all_mona_log_3.txt
+       0.0 MB  47_edu_exposure.py
+       0.0 MB  run_all_mona.py
+       0.0 MB  run_all_mona_log.txt
+       0.0 MB  47b_edu_asof_backtest.py
+       0.0 MB  45_asof_backtest.py
+       0.0 MB  output_47/
+       0.0 MB  output_49/
+       0.0 MB  run_all_mona_log_1.txt
+       0.0 MB  48_gender_poisson.py
+       0.0 MB  40_coverage_diagnostics.py
+       0.0 MB  output_44/
+       0.0 MB  49_coverage_reconcile.py
+       0.0 MB  r_fepois.R
+       0.0 MB  49b_staleness_by_quartile.py
+       0.0 MB  output_49b/
+       0.0 MB  39b_panel_diff.py
+       0.0 MB  44_decile_gradient.py
+       0.0 MB  43_poisson_primary.py
+       0.0 MB  41_vintage_event_studies.py
