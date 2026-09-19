@@ -1,0 +1,51 @@
+==================================================================
+52: slimming script 50's exports under the 5 MB cap
+==================================================================
+  DAIOE: 423 occupations
+  m1a_completion_age.csv             copied unchanged       0.04 MB
+  m1b_level_change.csv               copied unchanged       0.01 MB
+  m2_occ_change.csv                  copied unchanged       0.13 MB
+  m3_staleness.csv                   copied unchanged       0.03 MB
+  m4a_enrolment_prevalence.csv       copied unchanged       0.00 MB
+  m4b_field_switch.csv               copied unchanged       0.00 MB
+  m5a_employer_size.csv              copied unchanged       0.00 MB
+  m5b_retention_22_25.csv            copied unchanged       0.00 MB
+  m6_matrix_2019.csv                     1,174 rows   0.05 MB
+      (was  3.72 MB)
+  m6_matrix_2020.csv                     1,180 rows   0.05 MB
+      (was  3.84 MB)
+  m6_matrix_2021.csv                     1,184 rows   0.05 MB
+      (was  3.88 MB)
+  m6_matrix_2022.csv                     1,187 rows   0.05 MB
+      (was  3.85 MB)
+  m6_matrix_2023.csv                     1,177 rows   0.05 MB
+      (was  3.79 MB)
+  m6b_inr_tertiary_2019.csv              2,817 rows   0.11 MB
+      (was  4.96 MB)
+  m6b_inr_tertiary_2020.csv              2,887 rows   0.11 MB
+      (was  5.26 MB)
+  m6b_inr_tertiary_2021.csv              2,906 rows   0.11 MB
+      (was  5.38 MB)
+  m6b_inr_tertiary_2022.csv              2,883 rows   0.11 MB
+      (was  5.33 MB)
+  m6b_inr_tertiary_2023.csv              2,852 rows   0.11 MB
+      (was  5.27 MB)
+  m7_validation_t2021_k0.csv             6,022 rows   0.26 MB
+      (was  7.08 MB)
+  m7_validation_t2021_k2.csv             5,569 rows   0.24 MB
+      (was  6.83 MB)
+  m7_validation_t2022_k0.csv             6,196 rows   0.27 MB
+      (was  7.36 MB)
+  m7_validation_t2022_k2.csv             5,611 rows   0.24 MB
+      (was  6.92 MB)
+  m7_validation_t2023_k0.csv             6,229 rows   0.27 MB
+      (was  7.45 MB)
+  m7_validation_t2023_k2.csv             5,624 rows   0.24 MB
+      (was  7.02 MB)
+
+Every file in output_50_slim is under the 5 MB cap.
+
+EXPORT output_50_slim, NOT output_50. The slim folder is complete:
+files that were already small are copied through unchanged.
+Floor raised to 10 on the collapsed files, and suppressed
+rows are dropped rather than blanked.

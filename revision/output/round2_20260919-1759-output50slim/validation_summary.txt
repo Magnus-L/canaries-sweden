@@ -1,0 +1,10 @@
+PREDICTIVE VALIDATION OF EDUCATION-EXPOSURE DESIGNS (ages 22-25)
+quartile agreement / Q4 recall at lag 0 -> lag 2, pooled over t
+
+  OL_daioe       agreement 0.405 -> 0.384   Q4 recall 0.599 -> 0.447
+  fresh_stock    agreement 0.404 -> 0.384   Q4 recall 0.599 -> 0.447
+  entrant        agreement 0.411 -> 0.400   Q4 recall 0.599 -> 0.444
+  entrant_share  agreement 0.345 -> 0.340   Q4 recall 0.609 -> 0.460
+  expband        agreement 0.461 -> 0.453   Q4 recall 0.303 -> 0.044
+  enrol          agreement 0.411 -> 0.400   Q4 recall 0.600 -> 0.444
+  full_nontier   agreement 0.318 -> 0.307   Q4 recall 0.599 -> 0.448

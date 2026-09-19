@@ -190,8 +190,12 @@ def t5_calibrated(export):
         return
     key, daioe = R.load_inputs()
     cal = calib.build(export, key, daioe, np.random.default_rng(7))
-    check("8.1 every calibration field is measured", not cal.placeholder_fields,
-          "placeholders: " + ", ".join(cal.placeholder_fields))
+    invented = [k for k, v in cal.source.items() if v == "placeholder"]
+    check("8.1 no calibration field is an invented placeholder", not invented,
+          "invented: " + ", ".join(invented))
+    elsewhere = [k for k, v in cal.source.items() if v == "measured elsewhere"]
+    if elsewhere:
+        print(f"      (measured, but not by script 50: {', '.join(elsewhere)})")
     sim, *_ = make(export, scenario="null", n_persons=20000, n_emp=500, lag_edu=2)
     book = R.h47.ScoreBook({y: sim.emit_weights(y) for y in (2019, 2020, 2021)}, key,
                            daioe.rename(columns={"score": "daioe_score", "high": "daioe_high"})

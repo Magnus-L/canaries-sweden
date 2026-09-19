@@ -116,6 +116,15 @@ def build(export_dir: "Path | None", key: pd.DataFrame, daioe: pd.DataFrame,
         frames = [x.assign(year=y) for y in YEARS
                   if (x := _read(d, f"m6_matrix_{y}.csv")) is not None]
         m6 = pd.concat(frames, ignore_index=True) if frames else None
+    if m6 is not None and "ssyk4" not in m6.columns:
+        # Script 52's slimmed m6 has collapsed the occupation away into
+        # sufficient statistics for the weighted means. That is all l13 needs
+        # and NOT what the generator needs: the DGP draws occupations from
+        # P(ssyk4 | group, band, year), which the slim file no longer carries.
+        # Point `build` at the FULL export (script 50's own output) instead.
+        print("  calib: m6 is the slimmed shape (no ssyk4); the generator "
+              "needs the full one. Falling back to the synthetic matrix.")
+        m6 = None
     if m6 is not None and len(m6):
         m6 = m6[m6["grp"].astype(str) != "unmatched"].copy()
         m6["ssyk4"] = m6["ssyk4"].astype(str).str.zfill(4)
@@ -156,9 +165,13 @@ def build(export_dir: "Path | None", key: pd.DataFrame, daioe: pd.DataFrame,
     def take(nameset, fn):
         got = fn() if d is not None else None
         if got:
+            notes = {k[len("__source_"):]: v for k, v in got.items()
+                     if k.startswith("__source_")}
             for k, v in got.items():
+                if k.startswith("__source_"):
+                    continue
                 setattr(c, k, v)
-                src[k] = "measured"
+                src[k] = notes.get(k, "measured")
         else:
             for k in nameset:
                 setattr(c, k, PLACEHOLDER[k])
@@ -229,7 +242,12 @@ def build(export_dir: "Path | None", key: pd.DataFrame, daioe: pd.DataFrame,
         return dict(stale_by_age={k: float(r.z / r.n) for k, r in mean.iterrows() if r.n > 0})
 
     def f_missing():
-        return None      # not in 50's export; the placeholder is a measured number
+        # Not in 50's export, but the value is not a guess: it is measured in
+        # lab-infrastructure/data-notes/occupation-missingness.md over LISA
+        # 2017-2023. Labelled for what it is, so the acceptance tests can tell
+        # a measured number from an invented one.
+        return {"occ_missing_by_age": PLACEHOLDER["occ_missing_by_age"],
+                "__source_occ_missing_by_age": "measured elsewhere"}
 
     def f_size():
         m5 = _read(d, "m5a_employer_size.csv")

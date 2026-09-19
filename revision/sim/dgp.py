@@ -168,19 +168,42 @@ class Sim:
         age22 = rng.choice(np.array(ages), n, p=wts / wts.sum())
         birth = 2022 - age22
         grp = rng.choice(self.groups, n)
-        # completion year from the group's level and the measured mean age
-        niva0 = np.array([self.grp_cell[g][0][:1] for g in grp])
-        mean_age = np.array([self.cal.completion_age.get(lv, 22.0) for lv in niva0])
-        exam = birth + np.round(mean_age + rng.normal(0, 2.0, n)).astype(int)
-        never = rng.uniform(size=n) < 0.06
-        exam = np.where(never, -9999, exam)
+        # Completion is an EVENT drawn from the MEASURED ANNUAL HAZARD, not a
+        # single draw around a mean age.
+        #
+        # m1a's mean completion age is an average over all completers, late
+        # ones included: 27.8 years for SUN level 4, 29.1 for level 5. Using
+        # that as the timing rule leaves 78 per cent of 22-25 year olds with no
+        # completion anywhere in the window, so almost nobody can be
+        # misdescribed by a stale record, and the generator then fails to
+        # reproduce the very artefact it exists to study (acceptance test 8.4,
+        # -0.027 against the measured -0.36).
+        #
+        # m1b measured the hazard directly and is the right input: the highest
+        # completed level RISES for 10.2 per cent of 22-25 year olds per year,
+        # 3.6 at 26-30, 1.9 at 31-34, 1.5 at 35-40. People at that age are
+        # finishing things constantly, which is exactly why their register
+        # record goes out of date.
+        hz = dict(self.cal.level_up)
+        young_hz = hz.get("22-25", 0.10)
+        exam = np.full(n, -9999)
+        for yy in range(1985, 2026):
+            a = yy - birth
+            band = age_band(a)
+            pr = np.array([hz.get(b, 0.0) if b else 0.0 for b in band])
+            # 19 to 21 is the busiest completion age of all and falls outside
+            # the paper's age bands; give it the 22-25 hazard rather than zero
+            pr = np.where((a >= 19) & (a < 22), young_hz, pr)
+            pr = np.where(a >= 19, pr, 0.0)
+            hit = (exam < 0) & (rng.uniform(size=n) < pr)
+            exam = np.where(hit, yy, exam)
         # enrolment: the field enrolled in, which is the completed field unless
         # the person switched (measured rate), and the last registration year
         switch = rng.uniform(size=n) < min(self.cal.field_switch * self.p.field_switch_scale, 0.9)
         enrol_grp = np.where(switch, rng.choice(self.groups, n), grp)
         self.per = pd.DataFrame(dict(
             pid=np.arange(n), birth=birth, grp=grp, exam=exam,
-            enrol_grp=enrol_grp, last_reg=np.where(never, -9999, exam - 1),
+            enrol_grp=enrol_grp, last_reg=np.where(exam > 0, exam - 1, -9999),
             eff=rng.normal(0, self.p.person_effect_sd, n)))
 
     def _occupations(self):
@@ -399,6 +422,13 @@ class Sim:
             cols[f"inr_{T % 100}"] = i2
             cols[f"expb_{T % 100}"] = e2
             cols[f"enr_{T % 100}"] = a2
+        # 47h's pull also returns the legacy (47b) cascade columns, and its
+        # gate compares the two. Here they ALIAS: the difference between the
+        # cascades is a SQL-level one -- whether '' falls through, and whether
+        # a record can be assembled from two vintages -- and this generator
+        # has no empty-string encoding to reproduce it with. The legacy arm is
+        # a MONA-only comparison; nothing in the study reads it.
+        cols["niva_21g"], cols["inr_21g"] = cols["niva_21"], cols["inr_21"]
         base = pd.DataFrame({"pid": uniq, **cols})
         ages = self.py[self.py["year"] == year].set_index("pid")["age_group"]
         m = pm.merge(base, on="pid", how="left")
@@ -445,4 +475,5 @@ class Sim:
 
 YEAR_COLS = ["employer_id", "year_month", "niva_t", "inr_t", "expb_t",
              "niva_21", "inr_21", "expb_21", "enr_21",
+             "niva_21g", "inr_21g",
              "niva_22", "inr_22", "expb_22", "enr_22", "age_group"]
