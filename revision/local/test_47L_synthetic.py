@@ -129,6 +129,60 @@ def f_counts(year, conn):
                                        "age_group", "n_emp"])
 
 
+def f_counts_young_only(year, conn):
+    """
+    Same counts, but the exposure shock lands ONLY on 22-25.
+
+    The pooled fixture applies BETA to every age band, so it cannot tell a
+    working gradient from six collinear copies of one number. This one can:
+    if the age-specific terms are identified, only the 22-25 coefficient
+    should be negative and the rest should sit at zero.
+    """
+    R = np.random.default_rng(2000 + year)
+    z = _zmap()
+    months = range(1, 13) if year < 2025 else range(1, 7)
+    rows = []
+    for emp in range(1, N_EMP + 1):
+        for m in months:
+            ym = f"{year}-{m:02d}"
+            post = ym >= "2022-12"
+            for age in AGES:
+                lam = {"22-25": 6, "26-30": 8, "31-34": 7, "35-40": 9,
+                       "41-49": 12, "50+": 15}[age]
+                if post and age == "22-25":
+                    lam *= float(np.exp(BETA * z.get((emp, age), 0.0)))
+                rows.append((emp, ym, age, int(R.poisson(lam)) + 1))
+    return pd.DataFrame(rows, columns=["employer_id", "year_month",
+                                       "age_group", "n_emp"])
+
+
+def test_gradient_separates_ages():
+    """A shock planted on 22-25 alone must show up on 22-25 alone."""
+    wire(pay=False)
+    mod.q_counts = f_counts_young_only
+    base = f_baseline(None)
+    expo = mod.build_exposure(base, DAIOE)
+    cnt = pd.concat([f_counts_young_only(y, None) for y in mod.YEARS],
+                    ignore_index=True)
+    bal = mod.build_panel(cnt, expo)
+    gr = mod.fit_gradient(bal, "L_grad_test")
+    check("the gradient returns one coefficient per age band",
+          len(gr) == len(AGES), f"{len(gr)} of {len(AGES)}")
+    if len(gr) == len(AGES):
+        g = gr.set_index("age_group")["coef"]
+        others = g.drop("22-25")
+        check("the planted 22-25 shock appears on 22-25",
+              g["22-25"] < -0.05, f"{g['22-25']:+.4f}")
+        check("and NOT on the other five bands",
+              others.abs().max() < 0.05,
+              " ".join(f"{a} {v:+.4f}" for a, v in others.items()))
+        check("so the age terms are separately identified, not collinear",
+              abs(g["22-25"]) > others.abs().max() * 3,
+              f"22-25 {g['22-25']:+.4f} vs max other "
+              f"{others.abs().max():.4f}")
+    mod.q_counts = f_counts
+
+
 def wire(pay=True):
     mc.connect = lambda: object()
     mod.q_baseline, mod.q_counts = f_baseline, f_counts
@@ -229,6 +283,7 @@ def test_end_to_end(pay=True):
 
 
 if __name__ == "__main__":
+    test_gradient_separates_ages()
     test_baseline_only()
     test_floor_and_shrinkage()
     test_identification_and_recovery()

@@ -191,3 +191,53 @@ names the R error properly and saves the whole stream to
 
 Delete `round1_EL67898\cache\*_k.parquet` in Explorer. They are a duplicate
 copy of five 38-million-row year frames that nothing reads any more.
+
+---
+
+# LANE 4 — the triangulation lane (added ~21:00, 19 Sep)
+
+## Upload to A, as `.txt` then rename to `.py`
+
+From `revision/upload/` to
+`\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\`
+
+    53_freshcode_panel.py          NEW
+    47L_age_baseline_exposure.py   REPLACES tonight's copy (adds the gradient)
+    run_lane4.py                   NEW
+
+## Run
+
+    run_lane4.py       53 then 47L      about 2 h
+
+53 pulls five years (~3 min each) and runs 18 pooled fits plus 2 event
+studies. 47L's caches are warm, so it is the fits only.
+
+## What each answers, and how each FAILS
+
+    53   the paper's own estimand -- young vs young, inside the employer,
+         monthly -- on codes assigned in the observation year, 2019-2023.
+         Uses NO education register. Window stops at 2023.
+         FAILS IF: freshness is differentially selected across the
+         exposure dimension over time.
+
+    47L  exposure frozen in 2019; afterwards only a birth year and a
+         payslip. Uses NO post-2019 occupation code and NO education.
+         Runs to 2025. Now reports a coefficient per age band.
+         FAILS IF: firms whose young did more exposed work in 2019 were
+         already on different trends.
+
+Neither failure mode is the other's, and neither is the register lag.
+
+## Read rules, pre-committed
+
+53: the fresh arm's 50+ coefficient must be within 0.03 of zero. If it is
+not, the restriction is doing something of its own and the 22-25 number
+must not be quoted alone.
+
+The Q4-vs-rest freshness gap in `selection_did.csv` is DESCRIPTIVE and is
+not a gate. It moves mechanically whenever misplacement is present, which
+the synthetic test demonstrated before this ran on real data.
+
+47L: the age profile is the object. A flat profile says the design finds
+nothing anywhere; a profile steep at 22-25 and flat at 50+ is the paper's
+claim surviving on register-immune measurement.

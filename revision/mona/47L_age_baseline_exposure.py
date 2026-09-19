@@ -108,6 +108,19 @@ MIN_FIRM_AGES = 2             # a firm must have >= 2 scored age cells
 PAYROLL_CAP_2023 = 25000      # SEK/month; the cap in the rule, to verify
 TERMS = ["post_rb_x_expo", "post_gpt_x_expo"]
 TERMS_TAX = TERMS + ["post_tax_x_taxshare"]
+
+
+def age_term(age: str) -> str:
+    """Column name for the age-specific post-GPT interaction."""
+    return "gpt_x_expo_" + age.replace("-", "_").replace("+", "p")
+
+
+# The gradient fit: the Riksbank term stays pooled (it is a control, and
+# splitting it costs degrees of freedom for nothing), the post-GPT term is
+# split by band.
+TERMS_GRAD = ["post_rb_x_expo"] + [
+    "gpt_x_expo_" + a.replace("-", "_").replace("+", "p")
+    for a in ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]]
 FES = ("fe_emp_t", "fe_emp_age", "fe_t_age")
 TAX_YM = "2023-04"            # the expiry takes effect
 
@@ -317,6 +330,13 @@ def build_panel(counts: pd.DataFrame, expo: pd.DataFrame,
     bal["post_gpt"] = (bal["year_month"] >= mc.CHATGPT_YM).astype(int)
     bal["post_rb_x_expo"] = bal["post_rb"] * bal["expo_z"]
     bal["post_gpt_x_expo"] = bal["post_gpt"] * bal["expo_z"]
+    # One post-GPT interaction PER AGE BAND, so the same design reads as a
+    # gradient rather than a single pooled number. The fixed effects are
+    # unchanged, so each coefficient is still identified inside the employer
+    # against its own other age groups; only the treatment is split.
+    for a in AGES:
+        bal[age_term(a)] = (bal["post_gpt"] * bal["expo_z"]
+                            * (bal["age_group"] == a).astype(int))
     if tax is not None:
         bal = bal.merge(tax, on=["employer_id", "age_group"], how="left")
         bal["taxshare"] = bal["taxshare"].fillna(0.0)
@@ -327,6 +347,29 @@ def build_panel(counts: pd.DataFrame, expo: pd.DataFrame,
     bal["fe_emp_age"] = e + "_" + bal["age_group"]
     bal["fe_t_age"] = bal["year_month"] + "_" + bal["age_group"]
     return bal
+
+
+def fit_gradient(bal: pd.DataFrame, tag: str) -> pd.DataFrame:
+    """
+    The same design, one post-GPT coefficient per age band.
+
+    This is the between-firm complement to the within-firm age gradient the
+    paper reports: exposure varies across employers, the comparison is made
+    inside the employer against its other age groups, and the answer is a
+    profile over age rather than one number. It fails differently from the
+    occupation route (no post-2019 codes) and differently from the education
+    route (no education register at all), which is the only reason putting
+    the three beside each other is worth anything.
+    """
+    if bal.empty:
+        return pd.DataFrame()
+    r = mc.run_fepois_multi(bal, OUT, tag=tag, terms=TERMS_GRAD, fes=FES)
+    if r.empty:
+        return pd.DataFrame()
+    want = {age_term(a): a for a in AGES}
+    r = r[r["term"].isin(want)].copy()
+    r["age_group"] = r["term"].map(want)
+    return r[["age_group", "coef", "se", "pvalue", "n_obs", "status"]]
 
 
 def fit(bal: pd.DataFrame, tag: str, terms=None) -> dict:
@@ -404,7 +447,7 @@ def main():
     del counts
     gc.collect()
 
-    rows = []
+    rows, grad_rows = [], []
     for variant, shrink in (("floor", False), ("shrunk", True)):
         expo = build_exposure(base, daioe, shrink=shrink)
         print(f"\n  exposure '{variant}': {len(expo):,} firm-age cells, "
@@ -427,6 +470,20 @@ def main():
                   f"PostGPT x exposure {r['gamma']:+.4f} (SE {r['se']:.4f}) "
                   f"n {r['n_obs']:,} {r['status']}"
                   + (f"   tax term {r['tax_coef']:+.4f}" if use_tax else ""))
+            # the age gradient: same panel, same FE, treatment split by band
+            if not use_tax:
+                gr = opt(f"age gradient ({variant})", fit_gradient, bal,
+                         f"L_grad_{variant}")
+                if gr is not None and not gr.empty:
+                    gr = gr.copy(); gr["variant"] = variant
+                    grad_rows.append(gr)
+                    pd.concat(grad_rows, ignore_index=True).to_csv(
+                        OUT / "agebase_gradient.csv", index=False)
+                    print(f"  age gradient ({variant}):")
+                    for _, g in gr.iterrows():
+                        print(f"      {g['age_group']:<5} "
+                              f"{g['coef']:+.4f} (SE {g['se']:.4f}) "
+                              f"{g['status']}")
             # coverage robustness: only on the primary variant
             if variant == "floor" and not use_tax:
                 for thr in (0.5, 0.75):
