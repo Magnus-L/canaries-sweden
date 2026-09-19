@@ -50,28 +50,46 @@ def load_daioe():
 
 
 def read_matrices(d: Path, prefix: str, years):
+    """
+    Reads either shape. Script 50 writes occupation-level rows (grp, expband,
+    fresh, ssyk4, n); script 52 collapses the occupation away in MONA, so the
+    file arrives as (grp, expband, fresh, n, ws, wh) where ws and wh are
+    sum(n * score) and sum(n * high). The collapsed form is the sufficient
+    statistic for every weighted mean below, so nothing here changes.
+    """
     frames = []
     for y in years:
         f = d / f"{prefix}_{y}.csv"
         if f.exists():
-            frames.append(pd.read_csv(f, dtype={"ssyk4": str, "inr": str, "grp": str}).assign(year=y))
+            frames.append(pd.read_csv(f, dtype={"ssyk4": str, "inr": str,
+                                                "grp": str}).assign(year=y))
     out = pd.concat(frames, ignore_index=True)
     out["n"] = out["n"].fillna(0)          # floored cells count as zero
-    out["ssyk4"] = out["ssyk4"].str.zfill(4)
+    if "ssyk4" in out.columns:
+        out["ssyk4"] = out["ssyk4"].str.zfill(4)
     return out
 
 
 def wagg(df, by, col):
-    d = df.dropna(subset=[col]).copy()
-    d["_ws"] = d[col] * d["n"]
-    g = d.groupby(by, observed=True).agg(n=("n", "sum"), _ws=("_ws", "sum")).reset_index()
+    """Weighted mean of `col`. On a collapsed (52) frame the weighted sum is
+    already there as ws/wh and `col` names which of the two to use."""
+    pre = {"score": "ws", "high": "wh"}.get(col)
+    if pre and pre in df.columns:
+        g = (df.groupby(by, observed=True)
+             .agg(n=("n", "sum"), _ws=(pre, "sum")).reset_index())
+    else:
+        d = df.dropna(subset=[col]).copy()
+        d["_ws"] = d[col] * d["n"]
+        g = (d.groupby(by, observed=True)
+             .agg(n=("n", "sum"), _ws=("_ws", "sum")).reset_index())
     g["s"] = g["_ws"] / g["n"]
     return g.drop(columns="_ws")
 
 
 def build_scores(m6, m6b, daioe, spec):
     col = "high" if spec["score"] == "share" else "score"
-    pop = m6.merge(daioe[["ssyk4", col]], on="ssyk4", how="inner")
+    pop = (m6 if "ws" in m6.columns
+           else m6.merge(daioe[["ssyk4", col]], on="ssyk4", how="inner"))
     years = [2019] if spec["weights"] == "stock" and not spec["expband"] else [2019, 2020, 2021]
     pop = pop[pop["year"].isin(years)]
     if spec["fresh"]:
@@ -89,7 +107,8 @@ def build_scores(m6, m6b, daioe, spec):
         b = b[b["n"] >= MIN_CELL]
         scores["band"] = {(g, e): s for g, e, s in zip(b["grp"], b["expband"], b["s"])}
     if spec["enrol"]:
-        ter = m6b.merge(daioe[["ssyk4", col]], on="ssyk4", how="inner")
+        ter = (m6b if "ws" in m6b.columns
+               else m6b.merge(daioe[["ssyk4", col]], on="ssyk4", how="inner"))
         ter = ter[ter["year"].isin(years)]
         if spec["fresh"]:
             ter = ter[ter["fresh"] == 1]
@@ -136,12 +155,20 @@ def main(d: Path):
                 f = d / f"m7_validation_t{t}_k{k}.csv"
                 if not f.exists():
                     continue
-                m7 = pd.read_csv(f, dtype={"ssyk4_t": str, "enr_inr": str, "grp_lag": str})
+                m7 = pd.read_csv(f, dtype={"ssyk4_t": str, "enr_inr": str,
+                                           "grp_lag": str})
                 m7["n"] = m7["n"].fillna(0)
-                m7["ssyk4_t"] = m7["ssyk4_t"].str.zfill(4)
-                m7 = m7.merge(daioe.rename(columns={"ssyk4": "ssyk4_t", "q": "q_true",
-                                                    "score": "s_true"})[["ssyk4_t", "q_true", "s_true"]],
-                              on="ssyk4_t", how="inner")
+                if "q_true" in m7.columns and "ws" in m7.columns:
+                    # collapsed by 52: the quartile is already there and the
+                    # mean true exposure in the cell is ws / n
+                    m7["s_true"] = m7["ws"] / m7["n"].replace(0, np.nan)
+                else:
+                    m7["ssyk4_t"] = m7["ssyk4_t"].str.zfill(4)
+                    m7 = m7.merge(
+                        daioe.rename(columns={"ssyk4": "ssyk4_t", "q": "q_true",
+                                              "score": "s_true"})
+                        [["ssyk4_t", "q_true", "s_true"]],
+                        on="ssyk4_t", how="inner")
                 q_hat, s_hat = predict(m7, scores, cuts, spec)
                 m7["q_hat"], m7["s_hat"] = q_hat, s_hat
                 for age, g in m7.groupby("age_group"):

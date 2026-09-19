@@ -107,3 +107,29 @@ you would rather keep this round purely about canaries.
   estimates 47b's EXACT cascade, so it measures whether the gap is our
   documented fix rather than assuming it. If the legacy arm reproduces 47b the
   run proceeds; if not it halts, as before.
+
+## 50's export was over the cap: run 52 (19 Sep, 17:50)
+
+Ten files came out above the 5 MB per-file limit: `m6b_inr_tertiary_2020..2023`
+at about 5.2 MB and the six `m7_validation_*` at 6.6 to 7.3 MB.
+
+**Fix, no SQL, seconds:**
+
+1. Upload `revision/upload/52_slim_exports.py` to
+   `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\`
+   (as `.txt`, rename to `.py`).
+2. Run it in Spyder with F5, or submit it. It reads `output_50\` and writes
+   `output_50_slim\`.
+3. **Export `output_50_slim`, not `output_50`.**
+
+It replaces the 4-digit occupation code with the two numbers the analysis
+actually consumes from it -- the DAIOE-weighted sums -- so every design score
+and every validation statistic is identical to the last digit; that is
+asserted in `revision/local/test_52_slim.py` and checked end to end through
+l13 on both shapes. It also raises the floor on those files from five to ten
+and DROPS suppressed rows rather than blanking them, which is both smaller and
+safer. Files already under the cap are copied through byte-identical, so the
+slim folder is a complete replacement.
+
+If its log still says OVER CAP for anything, tell me and I will split that file
+by age band.
