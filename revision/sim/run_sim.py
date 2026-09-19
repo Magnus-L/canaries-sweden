@@ -216,7 +216,7 @@ def main():
     path = out / "runs.csv"
     done = set()
     if a.resume and path.exists():
-        prev = pd.read_csv(path)
+        prev = read_runs(path)
         done = set(map(tuple, prev[["scenario", "registers", "seed"]].drop_duplicates().to_numpy()))
     t0 = time.time()
     for s in scen:
@@ -234,10 +234,27 @@ def main():
                       f"({time.time()-t:.0f}s)")
     print(f"\ntotal {(time.time()-t0)/60:.1f} min -> {path}")
     if path.exists():
-        print(rank(pd.read_csv(path), out))
+        print(rank(read_runs(path), out))
+
+
+def read_runs(path: Path) -> pd.DataFrame:
+    """
+    Read runs.csv WITHOUT pandas' default NA conversion. One of the three
+    scenarios is called "null", which is in pandas' default na_values list, so
+    a plain read_csv turns that label into NaN and every filter on it matches
+    nothing. The null false-decline rate -- one of the four metrics the study
+    exists to produce -- would then be empty for every design, silently.
+    """
+    return pd.read_csv(path, keep_default_na=False,
+                       na_values=["", "NaN", "nan"])
 
 
 def rank(df: pd.DataFrame, out: Path) -> str:
+    df = df.copy()
+    df["scenario"] = df["scenario"].fillna("null")   # belt and braces
+    for c in ("gamma_oracle", "gamma_prod", "bias",
+              "artefact_T2021", "artefact_T2022"):
+        df[c] = pd.to_numeric(df[c], errors="coerce")
     y = df[df["age_group"] == "22-25"].copy()
     y["pass_backtest"] = (y[["artefact_T2021", "artefact_T2022"]].abs() < 0.05).all(axis=1)
     y["false_pass"] = y["pass_backtest"] & (y["bias"].abs() > 0.05)

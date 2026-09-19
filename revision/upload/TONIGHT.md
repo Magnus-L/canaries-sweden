@@ -290,3 +290,33 @@ The exposure is a 2019 proxy for who is exposed in 2025, so it is stale
 by construction and attenuates toward zero. A null here bounds the effect
 of BASELINE exposure, not of current exposure. That limit is in the
 script's own summary and must travel with any number quoted from it.
+
+---
+
+# LAST STEP — the export pack
+
+Run this ONCE, after every lane has finished. It reads every output_*
+directory and writes ONE small folder.
+
+## Upload to A
+
+    55_export_pack.py      NEW
+
+## Run it last (Spyder F5 or batch, it takes seconds and uses no SQL)
+
+    55_export_pack.py
+
+## Then export `export_pack/` and nothing else
+
+On the real output we already hold, 23.3 MB of raw directories packed to
+0.39 MB. Every summary, every log and every coefficient table is in it.
+Large support files are NOT in it and are NAMED in `MANIFEST.txt` with
+their row and column counts, so a missing result can never be mistaken
+for a null. If one of them turns out to be needed, add its filename to
+PRIORITY at the top of the script and re-run.
+
+Every packed csv is re-floored on the way out and suppressed rows are
+dropped rather than blanked. MANIFEST.txt carries a SHA-256 per file so
+the copy that arrives can be verified against the copy that left.
+
+You are at 31 MB of the 50 MB rolling budget. This should cost about 1 MB.

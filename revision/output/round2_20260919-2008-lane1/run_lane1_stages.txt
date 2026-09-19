@@ -1,0 +1,300 @@
+
+===== 50_sim_moments.py 17:30 =====
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:158: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:158: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:158: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:158: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:158: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:174: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:174: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:174: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:174: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:194: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:194: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:194: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:194: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:209: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:209: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:209: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:209: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:209: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:233: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:233: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:233: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:272: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:295: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:317: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:317: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:317: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:317: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:317: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py:361: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+======================================================================
+run by lodema at 2026-09-19 17:30 | 50_sim_moments.py
+======================================================================
+======================================================================
+50: CALIBRATION MOMENTS FOR THE SIMULATION STUDY
+======================================================================
+  memory available: 730.7 GB
+
+M1 completion timing and level change
+  M1a: ok (15s)
+    floor: 333 cells < 5 suppressed
+  wrote m1a_completion_age.csv: 2,139 rows
+  M1b: ok (12s)
+    floor: 59 cells < 5 suppressed
+  wrote m1b_level_change.csv: 589 rows
+
+M2 occupation change among freshly coded
+  M2 2019->2020: ok (7s)
+  M2 2020->2021: ok (7s)
+  M2 2021->2022: ok (7s)
+  M2 2022->2023: ok (8s)
+    floor: 684 cells < 5 suppressed
+  wrote m2_occ_change.csv: 4,493 rows
+
+M3 staleness
+  M3: ok (213s)
+    floor: 22 cells < 5 suppressed
+  wrote m3_staleness.csv: 1,333 rows
+
+M4 enrolment
+  M4a: ok (12s)
+  wrote m4a_enrolment_prevalence.csv: 24 rows
+  M4b: ok (9s)
+  wrote m4b_field_switch.csv: 20 rows
+
+M5 employers
+  M5a: ok (1s)
+  wrote m5a_employer_size.csv: 8 rows
+  M5b: ok (3s)
+  wrote m5b_retention_22_25.csv: 6 rows
+
+M6 group x experience x occupation matrix, per year
+  M6 2019: ok (6s)
+    floor: 110,092 cells < 5 suppressed
+  wrote m6_matrix_2019.csv: 193,107 rows
+    floor: 195,552 cells < 5 suppressed
+  wrote m6b_inr_tertiary_2019.csv: 255,945 rows
+  M6 2020: ok (7s)
+    floor: 112,413 cells < 5 suppressed
+  wrote m6_matrix_2020.csv: 199,418 rows
+    floor: 205,988 cells < 5 suppressed
+  wrote m6b_inr_tertiary_2020.csv: 271,361 rows
+  M6 2021: ok (6s)
+    floor: 113,077 cells < 5 suppressed
+  wrote m6_matrix_2021.csv: 201,351 rows
+    floor: 210,145 cells < 5 suppressed
+  wrote m6b_inr_tertiary_2021.csv: 277,328 rows
+  M6 2022: ok (6s)
+    floor: 113,175 cells < 5 suppressed
+  wrote m6_matrix_2022.csv: 199,466 rows
+    floor: 208,804 cells < 5 suppressed
+  wrote m6b_inr_tertiary_2022.csv: 274,806 rows
+  M6 2023: ok (6s)
+
+[echo capped; the full log is in the script's own log file]
+
+===== 47L_age_baseline_exposure.py 17:38 =====
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47L_age_baseline_exposure.py:168: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47L_age_baseline_exposure.py:194: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47L_age_baseline_exposure.py:251: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+======================================================================
+run by lodema at 2026-09-19 17:38 | 47L_age_baseline_exposure.py
+======================================================================
+======================================================================
+47L: AGE-SPECIFIC BASELINE EXPOSURE
+     what each firm's age group DID in 2019; nobody classified after
+======================================================================
+  memory available: 708.3 GB
+  baseline 2019: 1,853,921 rows (14s)
+  baseline pay: 162,971 rows
+  counts 2019: 8,506,483 cells (68s)
+  counts 2020: 8,533,517 cells (70s)
+  counts 2021: 8,691,065 cells (69s)
+  counts 2022: 8,985,640 cells (76s)
+  counts 2023: 8,995,861 cells (73s)
+  counts 2024: 8,880,890 cells (76s)
+  counts 2025: 4,336,671 cells (49s)
+
+  exposure 'floor': 143,700 firm-age cells, 40,086 firms, median coverage 1.00
+  fepois_multi FAILED (L_floor):  sessions (batch or interactive).         |
+|                                                          |
+| Reinstalling a package that is loaded by another of your |
+|  R sessions (batch or interactive) may cause an error.   |
+|    If that happens you must close all your R sessions    |
+|             and reinstall the package again.             |
+|                                                          |
++----------------------------------------------------------+
+
+*** recursive gc invocation
+
+  [floor     ] PostGPT x exposure +nan (SE nan) n 11,208,600 no_output
+  fepois_multi FAILED (L_cov50):  sessions (batch or interactive).         |
+|                                                          |
+| Reinstalling a package that is loaded by another of your |
+|  R sessions (batch or interactive) may cause an error.   |
+|    If that happens you must close all your R sessions    |
+|             and reinstall the package again.             |
+|                                                          |
++----------------------------------------------------------+
+
+*** recursive gc invocation
+
+
+[echo capped; the full log is in the script's own log file]
+
+===== 51_vintage_ai_unboxed.py 18:10 =====
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:117: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:117: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:117: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:117: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:117: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:148: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:148: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:148: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\51_vintage_ai_unboxed.py:148: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  return pd.read_sql(q, conn)
+======================================================================
+run by lodema at 2026-09-19 18:10 | 51_vintage_ai_unboxed.py
+======================================================================
+======================================================================
+51: HOW STALE IS THE OCCUPATION VARIABLE, AND IS IT STALE FOR CLERKS
+    (the open question in occupation-missingness.md, for AI Unboxed)
+======================================================================
+  memory available: 630.7 GB
+  code age 2019: 1,100 cells (21s)
+  code age 2020: 1,137 cells (24s)
+  code age 2021: 1,268 cells (23s)
+  code age 2022: 1,394 cells (27s)
+  code age 2023: 1,006 cells (25s)
+    floor: 244 cells suppressed
+  wrote code_age_by_occupation.csv: 5,905 rows
+  clerical flows 2019->2020: ok
+  clerical flows 2020->2021: ok
+  clerical flows 2021->2022: ok
+  clerical flows 2022->2023: ok
+  wrote clerical_flows_by_freshness.csv: 192 rows
+
+[echo capped; the full log is in the script's own log file]
+
+===== 47L_age_baseline_exposure.py 19:24 =====
+======================================================================
+run by lodema at 2026-09-19 19:24 | 47L_age_baseline_exposure.py
+======================================================================
+======================================================================
+47L: AGE-SPECIFIC BASELINE EXPOSURE
+     what each firm's age group DID in 2019; nobody classified after
+======================================================================
+  memory available: 709.1 GB
+  baseline 2019: cached (1,853,921 rows)
+  counts 2019: cached (8,506,483 cells)
+  counts 2020: cached (8,533,517 cells)
+  counts 2021: cached (8,691,065 cells)
+  counts 2022: cached (8,985,640 cells)
+  counts 2023: cached (8,995,861 cells)
+  counts 2024: cached (8,880,890 cells)
+  counts 2025: cached (4,336,671 cells)
+
+  exposure 'floor': 143,700 firm-age cells, 40,086 firms, median coverage 1.00
+  R exchange dir C:\Windows\TEMP\canaries_rwork\47L_age_baseline_exposure: swept 2,822 MB, 57.5 GB free
+  [floor     ] PostGPT x exposure +0.0070 (SE 0.0089) n 11,208,600 ok
+  [coverage>=0.50] PostGPT x exposure +0.0082 (SE 0.0087) n 11,095,344
+  [coverage>=0.75] PostGPT x exposure +0.0104 (SE 0.0096) n 10,325,718
+  [floor +tax] PostGPT x exposure +0.0058 (SE 0.0087) n 11,208,600 ok   tax term +0.0318
+
+  exposure 'shrunk': 492,285 firm-age cells, 141,545 firms, median coverage 1.00
+  [shrunk     ] PostGPT x exposure -0.0005 (SE 0.0115) n 38,398,230 ok
+  [shrunk +tax] PostGPT x exposure -0.0016 (SE 0.0114) n 38,398,230 ok   tax term +0.0285
+
+AGE-SPECIFIC BASELINE EXPOSURE
+============================================================
+E(f,a) = mean DAIOE percentile of the occupations employer f's
+age-a workers held in 2019, standardised across cells.
+After the baseline year a worker needs only a birth year and a
+payslip: the occupation register is never used again and the
+education register is not used at all.
+
+Absorbed: employer x month, employer x age, month x age.
+Identified: PostGPT x E(f,a) -- among firms whose young did more
+exposed work before the shock, did young employment fall further,
+measured inside the employer against its own other age groups.
+
+  floor            tax control False gamma +0.0070 (SE 0.0089)  n 11,208,600
+  coverage>=0.50   tax control False gamma +0.0082 (SE 0.0087)  n 11,095,344
+  coverage>=0.75   tax control False gamma +0.0104 (SE 0.0096)  n 10,325,718
+  floor            tax control True  gamma +0.0058 (SE 0.0087)  n 11,208,600
+  shrunk           tax control False gamma -0.0005 (SE 0.0115)  n 38,398,230
+  shrunk           tax control True  gamma -0.0016 (SE 0.0114)  n 38,398,230
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The as-of backtest does NOT apply. Exposure is fixed in 2019
+     and the outcome uses only payroll and birth year, so later
+     register vintages cannot touch it. That is an invariance, not
+     a validation: a classifier unrelated to the work would be
+     equally invariant.
+  2. Employer x month absorbs a common firm shock, NOT a firm shock
+     that falls differently on the young. This is a
+     difference-in-differences across firms in the exposure
+     dimension and needs the corresponding parallel-trend
+     assumption, on the multiplicative scale.
+  3. The reduced employer contribution for those born 1998-2004
+     expired 31 March 2023, inside the post window and on this age
+     band. The 'tax control' rows interact PRE-SHOCK pay below the
+     SEK 25,000 cap with the expiry date. If the coefficient moves,
+     say so.
+  4. The baseline inherits 2019 occupation coverage (about 29 per
+     cent missing under 30). The coverage>= rows are that check.
+  5. The outcome is EMPLOYMENT, not hiring. Ageing into and out of
+     the band moves it.
+Runtime 35.5 min. memory available: 679.6 GB
