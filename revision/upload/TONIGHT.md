@@ -241,3 +241,52 @@ the synthetic test demonstrated before this ran on real data.
 47L: the age profile is the object. A flat profile says the design finds
 nothing anywhere; a profile steep at 22-25 and flat at 50+ is the paper's
 claim surviving on register-immune measurement.
+
+---
+
+# LANE 5 — the fast margin (added ~21:30, 19 Sep)
+
+Run this AFTER one of the others finishes. Batch, like the rest.
+
+## Upload to A, as `.txt` then rename to `.py`
+
+    54_hiring_flows.py     NEW
+    run_lane5.py           NEW
+
+## Run
+
+    run_lane5.py       54 alone      about 90 min, least certain estimate
+                                     in this round
+
+## What it is
+
+Hires and separations per employer x age x month, on 47L's exposure
+frozen in 2019. A hire is an (employer, person) spell present this month
+and absent last month. Birth year gives the age band. No occupation code
+after 2019, no education register, nothing with a register lag in the
+outcome.
+
+47L bounded the effect on the employment STOCK at about one log point.
+Headcount is the slowest margin there is, with notice periods and
+collective agreements in the way, and the entry-level claim is about
+HIRING. This is the margin where an effect should appear first.
+
+## Watch the first year
+
+Nothing of this shape has run on P1207: each month joins two
+five-million-row AGI tables to each other. The pull runs one month at a
+time and caches per year, so a failure names the month and a restart
+keeps what was already fetched. If year 2019 alone takes more than 20
+minutes, stop it and say so; the query needs an index hint, not patience.
+
+## How to read it
+
+Hires and separations side by side. A fall in hiring with separations
+flat is an inflow adjustment, which is the entry-level claim. Both moving
+is a scale effect and means something else. The age gradient is reported
+for both outcomes.
+
+The exposure is a 2019 proxy for who is exposed in 2025, so it is stale
+by construction and attenuates toward zero. A null here bounds the effect
+of BASELINE exposure, not of current exposure. That limit is in the
+script's own summary and must travel with any number quoted from it.
