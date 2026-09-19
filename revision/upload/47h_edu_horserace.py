@@ -83,6 +83,7 @@ make a resubmit skip every pull.
 
 import gc
 import hashlib
+import os
 import sys
 import time
 import traceback
@@ -892,18 +893,70 @@ def main():
         return pd.concat([pd.read_parquet(CACHE / f"edu_hr_coll_{name}_{arm}_T{T}_{y}.parquet")
                           for y in YEARS], ignore_index=True)
 
+    # ---- resume, rather than start the fits again from nothing ----
+    # This used to delete the results file on every run. On 19 Sep the job
+    # reached 95 GB against the server's 100 GB per-job cap four hours in,
+    # with roughly seventy fits behind it, and a memory kill would have
+    # thrown all of them away: the pulls are cached but the fits were not.
+    # Each cell is a pure function of its cached collapse pieces, so a
+    # completed one can be read back instead of recomputed.
+    #
+    # The guard is a code tag. Reusing a coefficient computed under a
+    # DIFFERENT set of designs, arms or truncations would silently mix two
+    # versions of the script in one table, which is worse than recomputing,
+    # so a row is reused only when the tag matches exactly.
     results_path = OUT / "horserace_estimates.csv"
-    if results_path.exists():
-        results_path.unlink()
+    code_tag = hashlib.sha256(
+        repr((sorted(designs), tuple(ARMS), tuple(GATE_ARMS),
+              tuple(TRUNCATIONS), tuple(ages_all))).encode()).hexdigest()[:12]
+    done = {}
+    if os.environ.get("CANARIES_47H_FRESH") == "1":
+        results_path.unlink(missing_ok=True)
+        print("\n  CANARIES_47H_FRESH=1: previous fits discarded")
+    elif results_path.exists():
+        try:
+            prev = pd.read_csv(results_path)
+            if "code_tag" in prev.columns:
+                keep = prev[prev["code_tag"].astype(str) == code_tag]
+                dropped = len(prev) - len(keep)
+                for _, r in keep.iterrows():
+                    done[(r["design"], r["arm"], int(r["trunc"]),
+                          r["age_group"])] = r.to_dict()
+                print(f"\n  RESUMING: {len(done)} fits reused from an earlier "
+                      f"run" + (f", {dropped} discarded (different code tag)"
+                                if dropped else ""))
+                if dropped:
+                    keep.to_csv(results_path, index=False)
+            else:
+                results_path.unlink()
+                print("\n  previous results carry no code tag; starting the "
+                      "fits again")
+        except BaseException as ex:
+            print(f"\n  could not read previous results "
+                  f"({type(ex).__name__}); starting the fits again")
+            results_path.unlink(missing_ok=True)
+            done = {}
 
     def run_cell(name, arm, T, age, tier):
+        key = (name, arm, int(T), age)
+        if key in done:
+            row = done[key]
+            print(f"  [{tier}] {name:<14} {arm:<4} T{T} {age:<5} gamma2 "
+                  f"{row['gamma2']:+.4f} (SE {row['se']:.4f}) reused")
+            return row
         row = estimate(load_coll(name, arm, T), age,
                        tag=f"hr_{name}_{arm}_T{T}_{age.replace('-', '_').replace('+', 'p')}")
-        row = dict(design=name, arm=arm, trunc=T, age_group=age, tier=tier, **row)
+        row = dict(design=name, arm=arm, trunc=T, age_group=age, tier=tier,
+                   code_tag=code_tag, **row)
         _append_row(results_path, row)
+        done[key] = row
         print(f"  [{tier}] {name:<14} {arm:<4} T{T} {age:<5} gamma2 {row['gamma2']:+.4f} "
               f"(SE {row['se']:.4f}) n {row['n_obs']:,} {row['elapsed_s']:.0f}s "
               f"{row['status']}")
+        # Each fit concatenates five years of collapse pieces and builds two
+        # string fixed-effect columns over ten million rows. Seventy of those
+        # without a collect is how a job reaches 95 GB.
+        gc.collect()
         return row
 
     # ---- gate: does the pull reproduce 47b, and if not, WHY ----

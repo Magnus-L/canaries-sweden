@@ -232,6 +232,41 @@ def test_enrolment_degrades():
     print("PASS degraded path: no enrolment -> designs run unanchored, said so")
 
 
+def test_resume(tmp):
+    """
+    47h reached 95 GB against a 100 GB per-job cap on 19 Sep with about
+    seventy fits behind it. A memory kill would have discarded every one,
+    because the script deleted its results file at the start of each run.
+    It now reuses them, guarded by a code tag so two versions of the
+    script can never be mixed into one table.
+    """
+    out, _ = wire(tmp, enrol=True)
+    est = out / "horserace_estimates.csv"
+    before = pd.read_csv(est)
+    assert "code_tag" in before.columns, "results carry no code tag"
+    n_before = len(before)
+
+    real = mod.estimate
+    mod.estimate = lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("refitted a cell already on disk"))
+    try:
+        mod.main()
+    finally:
+        mod.estimate = real
+    after = pd.read_csv(est)
+    assert len(after) == n_before, (n_before, len(after))
+    print(f"PASS a restart reuses all {n_before} fits and refits nothing")
+
+    tampered = before.copy()
+    tampered["code_tag"] = "deadbeef1234"
+    tampered.to_csv(est, index=False)
+    mod.main()
+    fresh = pd.read_csv(est)
+    assert (fresh["code_tag"] != "deadbeef1234").all(), \
+        f"rows from another code version were reused: {fresh['code_tag'].unique()[:3]}"
+    print("PASS rows written under a different code tag are discarded")
+
+
 def test_gate_halts():
     tmp = TMP / "gate"; tmp.mkdir()
     out, _ = wire(tmp, enrol=True)
@@ -252,5 +287,6 @@ if __name__ == "__main__":
     happy = test_happy_path()
     test_cache_reuse(happy)
     test_enrolment_degrades()
+    test_resume(happy)
     test_gate_halts()
     print(f"\nALL PASS  (tmp: {TMP})")
