@@ -1,0 +1,14 @@
+
+RANKING (ages 22-25; bias is against the ORACLE on the same sample)
+design            |bias|  |artefact|  falsepass  null<-0.05  placebo
+entrant_share      0.085       0.263       0.00         nan    0.000
+full               0.085       0.248       0.00         nan    0.000
+OL_daioe           0.120       0.498       0.00         nan    0.000
+enrol              0.120       0.454       0.00         nan    0.000
+entrant            0.120       0.498       0.00         nan    0.000
+fresh_stock        0.120       0.498       0.00         nan    0.000
+OL_exact           0.123       0.387       0.00         nan    0.000
+expband            0.159       0.596       0.00         nan    0.000
+
+Finalists = smallest |bias| among designs with null_false_decline < 0.10
+and placebo < 0.02. The winner is never the largest coefficient.

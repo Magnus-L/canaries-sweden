@@ -69,6 +69,11 @@ PRIORITY = {
     "poisson_pooled.csv",          # 43 headline
     "poisson_es.csv",              # 43 event study
     "bridge_inputs.csv",           # 43 OLS vs Poisson bridge
+    "dynamics_pooled.csv",         # 56 event study, pooled over ages
+    "dynamics_young.csv",          # 56 event study, the 22-25 differential
+    "reliability.csv",             # 57 lambda(y), the attenuation curve
+    "vintage_estimates.csv",       # 57 pooled, per baseline year
+    "vintage_gradient.csv",        # 57 age gradient, per baseline year
 }
 
 COUNT_HINTS = ("n_emp", "n_obs", "n", "count", "cells", "firms", "n_coded",
