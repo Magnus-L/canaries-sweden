@@ -89,7 +89,10 @@ FES = ("fe_emp_t", "fe_emp_age", "fe_t_age")
 
 def _h47():
     import importlib.util
-    spec = importlib.util.spec_from_file_location("h47", HERE / "47h_edu_horserace.py")
+    # locate 47h relative to THIS FILE, not to the module-level HERE: HERE is
+    # a mutable global and a caller that reassigns it must not break the import
+    _here = Path(__file__).resolve().parent
+    spec = importlib.util.spec_from_file_location("h47", _here / "47h_edu_horserace.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m

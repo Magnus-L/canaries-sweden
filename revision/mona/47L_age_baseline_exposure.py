@@ -112,6 +112,17 @@ FES = ("fe_emp_t", "fe_emp_age", "fe_t_age")
 TAX_YM = "2023-04"            # the expiry takes effect
 
 
+def opt(label: str, fn, *a, **kw):
+    """Stata's `capture noisily`: run something INESSENTIAL, report a
+    failure loudly, carry on. Never wrap an estimate in this."""
+    try:
+        return fn(*a, **kw)
+    except BaseException as ex:
+        print(f"  [optional] {label} FAILED ({type(ex).__name__}): {str(ex)[:200]}")
+        print("  [optional] continuing; this does not affect the estimates")
+        return None
+
+
 def q_baseline(conn) -> pd.DataFrame:
     """
     The 2019 baseline: for each employer x age band, the occupations its
@@ -399,12 +410,12 @@ def main():
         print(f"\n  exposure '{variant}': {len(expo):,} firm-age cells, "
               f"{expo['employer_id'].nunique():,} firms, "
               f"median coverage {expo['coverage'].median():.2f}")
-        mc.enforce_min_cell(
+        opt(f"support table ({variant})", lambda: mc.enforce_min_cell(
             expo.groupby("age_group", observed=True)
             .agg(cells=("employer_id", "nunique"),
                  med_coverage=("coverage", "median"),
                  med_expo=("expo", "median")).reset_index(),
-            count_col="cells").to_csv(OUT / f"exposure_support_{variant}.csv", index=False)
+            count_col="cells").to_csv(OUT / f"exposure_support_{variant}.csv", index=False))
         for use_tax in ((False, True) if pay is not None else (False,)):
             bal = build_panel(cnt, expo, tax=(pay if use_tax else None))
             r = fit(bal, f"L_{variant}{'_tax' if use_tax else ''}",

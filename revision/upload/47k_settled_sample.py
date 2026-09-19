@@ -89,9 +89,40 @@ OCC_ARTEFACT = {2021: -0.3068, 2022: -0.1627}
 STEP1_MIN_CUMULATIVE = 5
 
 
+def cache_name(stem: str) -> Path:
+    """
+    47h writes its pulls to cache/edu_hr_*.parquet. If 47h is running in
+    another console, reading those half-written files is a corruption risk,
+    and mona_common's footer check would DELETE the file it finds truncated
+    -- destroying the other console's work. So: use 47h's caches only when
+    47h has finished, which its summary file proves, and otherwise keep a
+    private copy under a "_k" suffix.
+    """
+    if (HERE / "output_47h" / "47h_summary.txt").exists():
+        return CACHE / f"{stem}.parquet"
+    return CACHE / f"{stem}_k.parquet"
+
+
+def opt(label: str, fn, *a, **kw):
+    """
+    Stata's `capture noisily`. Runs something INESSENTIAL: a diagnostic, a
+    side table, a print. A failure is reported loudly and the run continues.
+    Never wrap an estimate or a primary export in this.
+    """
+    try:
+        return fn(*a, **kw)
+    except BaseException as ex:
+        print(f"  [optional] {label} FAILED ({type(ex).__name__}): {str(ex)[:200]}")
+        print(f"  [optional] continuing; this does not affect the estimates")
+        return None
+
+
 def _h47():
     import importlib.util
-    spec = importlib.util.spec_from_file_location("h47", HERE / "47h_edu_horserace.py")
+    # locate 47h relative to THIS FILE, not to the module-level HERE: HERE is
+    # a mutable global and a caller that reassigns it must not break the import
+    _here = Path(__file__).resolve().parent
+    spec = importlib.util.spec_from_file_location("h47", _here / "47h_edu_horserace.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -206,7 +237,7 @@ def main():
     conn = None
     counts = {}
     for y in (2019, 2020, 2021):
-        cf = CACHE / f"edu_hr_weights_{y}.parquet"
+        cf = cache_name(f"edu_hr_weights_{y}")
         w = mc.read_cache(cf)
         if w is None:
             conn = conn or mc.connect()
@@ -221,7 +252,7 @@ def main():
 
     frames = {}
     for y in YEARS:
-        cf = CACHE / f"edu_hr_{y}.parquet"
+        cf = cache_name(f"edu_hr_{y}")
         f = mc.read_cache(cf)
         if f is None:
             conn = conn or mc.connect()
@@ -248,8 +279,8 @@ def main():
                 ret.append(g)
     retention = pd.concat(ret, ignore_index=True)
     retention["kept_share"] = retention["n_kept"] / retention["n_total"].clip(lower=1)
-    mc.enforce_min_cell(retention, count_col="n_kept").to_csv(
-        OUT / "retention.csv", index=False)
+    opt("retention export", lambda: mc.enforce_min_cell(
+        retention, count_col="n_kept").to_csv(OUT / "retention.csv", index=False))
     r22 = retention[(retention.age_group == "22-25") & (retention.rule != "all")]
     for T in TRUNCATIONS:
         for rule in ("feasible", "oracle"):

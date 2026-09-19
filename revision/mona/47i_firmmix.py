@@ -87,8 +87,9 @@ def _h47():
     function so an import failure lands in this script's log, not in a
     silent stderr BatchClient discards."""
     import importlib.util
+    _here = Path(__file__).resolve().parent
     spec = importlib.util.spec_from_file_location(
-        "h47", HERE / "47h_edu_horserace.py")
+        "h47", _here / "47h_edu_horserace.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
