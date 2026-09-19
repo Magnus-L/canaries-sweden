@@ -23,6 +23,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import numpy as np
@@ -217,15 +218,58 @@ def test_restriction_shrinks_the_artefact(book, sp, frames):
 
 
 def test_cache_isolation():
-    """The rule itself: shared name only when 47h is done."""
+    """
+    47k shares 47h's cache unconditionally, and the safety comes from the
+    WRITE being atomic rather than from a second private copy.
+
+    Until 19 Sep 2026 this asserted the opposite: a private "_k" duplicate
+    whenever 47h had not written its summary. 47h then halted at its gate
+    without a summary, 47k kept a second copy of five 38-million-row year
+    frames, and three lanes died with "No space left on device". The test
+    now checks the mechanism that replaced it, which is what a reader in
+    another console actually depends on: while a frame is being written,
+    the target path is either absent or a COMPLETE, readable parquet, never
+    a truncated one.
+    """
+    import threading
     mark_47h_finished(False)
-    priv = mod.cache_name("edu_hr_2021")
+    a = mod.cache_name("edu_hr_2021")
     mark_47h_finished(True)
-    shared = mod.cache_name("edu_hr_2021")
-    check("a private cache while 47h may still be running",
-          priv.name == "edu_hr_2021_k.parquet", priv.name)
-    check("47h's own cache once it has finished",
-          shared.name == "edu_hr_2021.parquet", shared.name)
+    b = mod.cache_name("edu_hr_2021")
+    check("one shared cache name, whatever 47h is doing",
+          a == b and a.name == "edu_hr_2021.parquet", f"{a.name} / {b.name}")
+
+    # A frame big enough that the write takes long enough to race against.
+    big = pd.DataFrame({"employer_id": np.arange(400_000),
+                        "n_emp": np.arange(400_000) % 7,
+                        "pad": ["xxxxxxxxxxxxxxxxxxxx"] * 400_000})
+    target = mod.CACHE / "atomicity_probe.parquet"
+    target.unlink(missing_ok=True)
+    torn = []
+
+    def reader():
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            if target.exists():
+                try:
+                    got = pd.read_parquet(target)
+                except Exception as ex:          # a partial file would land here
+                    torn.append(f"unreadable: {type(ex).__name__}")
+                    return
+                if len(got) != len(big):
+                    torn.append(f"short read: {len(got)} of {len(big)}")
+                    return
+
+    t = threading.Thread(target=reader, daemon=True)
+    t.start()
+    mc.write_cache(big, target)
+    t.join(timeout=6)
+    check("a concurrent reader never sees a partial cache",
+          not torn, "; ".join(torn))
+    check("no temp file is left behind",
+          not list(mod.CACHE.glob("atomicity_probe.*.tmp*")),
+          str([f.name for f in mod.CACHE.glob("atomicity_probe.*.tmp*")]))
+    target.unlink(missing_ok=True)
 
 
 def test_end_to_end():

@@ -91,16 +91,21 @@ STEP1_MIN_CUMULATIVE = 5
 
 def cache_name(stem: str) -> Path:
     """
-    47h writes its pulls to cache/edu_hr_*.parquet. If 47h is running in
-    another console, reading those half-written files is a corruption risk,
-    and mona_common's footer check would DELETE the file it finds truncated
-    -- destroying the other console's work. So: use 47h's caches only when
-    47h has finished, which its summary file proves, and otherwise keep a
-    private copy under a "_k" suffix.
+    The shared cache under cache/edu_hr_*.parquet, which 47h, 47i and 47j
+    also use.
+
+    This used to return a private "_k" duplicate whenever 47h had not yet
+    written its summary, because reading a half-written parquet from another
+    console is a corruption risk. The cure was worse than the disease: on
+    19 Sep 2026 47h halted at its gate without writing a summary, 47k
+    therefore re-pulled and kept a SECOND copy of five 38-million-row year
+    frames, and three lanes died with "No space left on device".
+
+    mona_common.write_cache now writes to a temp name and renames, so a
+    reader sees a whole file or the previous whole file, never a partial
+    one. One copy, shared.
     """
-    if (HERE / "output_47h" / "47h_summary.txt").exists():
-        return CACHE / f"{stem}.parquet"
-    return CACHE / f"{stem}_k.parquet"
+    return CACHE / f"{stem}.parquet"
 
 
 def opt(label: str, fn, *a, **kw):
@@ -238,11 +243,11 @@ def main():
     counts = {}
     for y in (2019, 2020, 2021):
         cf = cache_name(f"edu_hr_weights_{y}")
-        w = mc.read_cache(cf)
+        w = mc.read_cache(cf, require=h47.WEIGHT_COLS)
         if w is None:
             conn = conn or mc.connect()
             w = h47.pull_weights(y, conn)
-            w.to_parquet(cf, index=False)
+            mc.write_cache(w, cf)
         counts[y] = w
         print(f"  weights {y}: {len(w):,} cells")
     book = h47.ScoreBook(counts, key, scores)
@@ -253,12 +258,12 @@ def main():
     frames = {}
     for y in YEARS:
         cf = cache_name(f"edu_hr_{y}")
-        f = mc.read_cache(cf)
+        f = mc.read_cache(cf, require=h47.YEAR_COLS + ["n_emp"])
         if f is None:
             conn = conn or mc.connect()
             print(f"  {y}: no 47h cache, pulling")
             f = h47.pull_year(y, conn, True)
-            f.to_parquet(cf, index=False)
+            mc.write_cache(f, cf)
         else:
             print(f"  {y}: cached ({len(f):,} cells)")
         frames[y] = f

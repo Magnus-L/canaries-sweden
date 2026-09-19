@@ -24,6 +24,7 @@ test suite runs the panel builder and the R wrapper against synthetic data.
 """
 
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -117,23 +118,69 @@ def cache_ok(path) -> bool:
         return False
 
 
-def read_cache(path) -> "pd.DataFrame | None":
+def write_cache(df: "pd.DataFrame", path) -> Path:
     """
-    Read a cache parquet, or return None if it is missing OR UNREADABLE.
+    Write a cache parquet ATOMICALLY: to a unique temporary name in the same
+    directory, then rename onto the target. os.replace is atomic on Windows
+    as well as POSIX, so a concurrent reader sees either the whole previous
+    file or the whole new one, never a truncated write.
+
+    This is what lets several scripts share one cache directory. Before it,
+    47k kept a private "_k" duplicate of 47h's year frames to avoid reading
+    a half-written file; on 19 Sep 2026 that second copy of five 38-million
+    row frames helped fill the batch server's disk and killed three lanes
+    with ENOSPC. One correct copy is better than two defensive ones.
+    """
+    path = Path(path)
+    tmp = path.with_name(f"{path.stem}.{os.getpid()}.tmp{path.suffix}")
+    df.to_parquet(tmp, index=False)
+    try:
+        os.replace(tmp, path)
+    except OSError as ex:
+        # Windows refuses a rename onto a file another process holds open.
+        # The caller already has the frame in memory, so this is survivable:
+        # drop the temp copy rather than leave a duplicate behind.
+        print(f"  cache {path.name} not replaced ({type(ex).__name__}); "
+              f"another console is reading it")
+        Path(tmp).unlink(missing_ok=True)
+    return path
+
+
+def read_cache(path, require=None) -> "pd.DataFrame | None":
+    """
+    Read a cache parquet, or return None if it is missing, UNREADABLE, or
+    written under an OLDER SCHEMA than the caller now needs.
+
     A batch job killed mid-write (the 48-hour limit, a memory kill) leaves a
     truncated parquet; cache-first logic must treat that as absent and
     rebuild, never crash the restart on a corrupt read.
+
+    `require` is the column list the caller will actually use. A cache that
+    predates a change to the pull is silently WRONG rather than broken: it
+    reads fine and then raises a KeyError deep in the analysis, hours later
+    and far from the cause. That is what killed 47h on 19 Sep 2026, when two
+    education columns were added to the year pull and the previous night's
+    frames were reused. Validate the schema where the cache is read, once,
+    for every caller, rather than remembering to bump a version string.
     """
     path = Path(path)
     if not path.exists():
         return None
     try:
-        return pd.read_parquet(path)
+        df = pd.read_parquet(path)
     except Exception as ex:
         print(f"  cache {path.name} unreadable ({type(ex).__name__}); "
               f"deleting and rebuilding")
         path.unlink(missing_ok=True)
         return None
+    if require:
+        missing = [c for c in require if c not in df.columns]
+        if missing:
+            print(f"  cache {path.name} predates a schema change "
+                  f"(missing {missing}); deleting and rebuilding")
+            path.unlink(missing_ok=True)
+            return None
+    return df
 
 
 def runlog(script: str, rc: int, minutes: float):
@@ -622,6 +669,9 @@ def _rscript() -> str:
 _RSCRIPT_CACHED = None
 
 
+_R_WORKDIR_SWEPT = False
+
+
 def _r_workdir(workdir: Path) -> Path:
     """
     The R exchange files (multi-million-row CSVs) go to LOCAL disk, not the
@@ -642,9 +692,106 @@ def _r_workdir(workdir: Path) -> Path:
         d = (Path(tempfile.gettempdir()) / "canaries_rwork"
              / Path(sys.argv[0]).stem)
         d.mkdir(parents=True, exist_ok=True)
-        return d
     except OSError:
         return workdir
+    # FIRST call in this process only: sweep what a previous crashed run of
+    # THIS script left behind, and say how much room is left. A run killed
+    # mid-fit leaves its exchange file on disk, and three lanes accumulating
+    # those is how the batch server ran out of space on 19 Sep 2026. The
+    # sweep is confined to this script's own subdirectory, so a lane can
+    # never delete another lane's live input.
+    global _R_WORKDIR_SWEPT
+    if not _R_WORKDIR_SWEPT:
+        _R_WORKDIR_SWEPT = True
+        freed = 0
+        for f in list(d.glob("_rin_*")) + list(d.glob("_rout_*")) + list(d.glob("_rerr_*")):
+            try:
+                freed += f.stat().st_size
+                f.unlink()
+            except OSError:
+                pass
+        try:
+            free_gb = shutil.disk_usage(d).free / 1e9
+            print(f"  R exchange dir {d}: swept {freed/1e6:,.0f} MB, "
+                  f"{free_gb:,.1f} GB free")
+        except OSError:
+            pass
+    return d
+
+
+def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
+    """
+    Report an R failure so it can be DIAGNOSED, not just noticed.
+
+    47L died on 19 Sep 2026 with three fits reported as
+    `fepois_multi FAILED (L_floor): <the tail of a package-reinstall warning
+    box>`, because we printed only stderr[-500:] and R's real error had
+    scrolled past. The message that reached the log was not the error at
+    all. Keep the whole stream on disk, and print both ends of it: the first
+    lines carry the cause, the last carry the collapse.
+    """
+    err = (r.stderr or "").strip()
+    out = (r.stdout or "").strip()
+    path = workdir / f"_rerr_{tag}.txt"
+    try:
+        path.write_text(f"returncode {r.returncode}\n\n=== stderr ===\n{err}"
+                        f"\n\n=== stdout ===\n{out}", encoding="utf-8",
+                        errors="replace")
+        where = f"  full R output: {path}"
+    except BaseException as ex:
+        where = f"  (could not save R output: {type(ex).__name__})"
+    lines = err.splitlines()
+    head = "\n    ".join(lines[:12]) if lines else "(stderr empty)"
+    tail = "\n    ".join(lines[-6:]) if len(lines) > 18 else ""
+    print(f"  {kind} FAILED ({tag}) rc={r.returncode}")
+    print(f"    {head}")
+    if tail:
+        print(f"    ... {len(lines) - 18} lines ...\n    {tail}")
+    print(where)
+
+
+def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
+                   recode: tuple = ()) -> Path:
+    """
+    Write the R exchange file, COMPACTLY, and return the path actually used.
+
+    Three lanes died on 19 Sep 2026 with `OSError: [Errno 28] No space left
+    on device`, all three inside the CSV writer: each was handing R a panel
+    of ten to eleven million rows whose two fixed-effect columns are long
+    concatenated strings ("1234567890_2021-03"), so a single exchange file
+    ran to roughly a gigabyte and three of them were open at once on the
+    batch server's temp volume.
+
+    Two changes, neither of which touches an estimate. The fixed-effect
+    columns are written as integer factor codes, since every R script
+    coerces them with as.factor() and a factor's labels are never used.
+    And the file is gzipped at level 1, which the R side reads transparently
+    because read.csv() detects compression from the connection. Together
+    these take a ~1 GB exchange to well under 100 MB.
+
+    Level 1 rather than 9 on purpose: the default costs minutes of CPU on
+    ten million rows for a few per cent more, and the constraint here is
+    disk, not bandwidth.
+    """
+    # De-duplicate, preserving order: 47i uses employer_id as BOTH a fixed
+    # effect and the cluster, so the column list names it twice. Writing it
+    # twice made read.csv rename the second copy and silently ignore it;
+    # selecting it twice makes panel[cols] return a DataFrame per name.
+    cols = list(dict.fromkeys(cols))
+    out = panel[cols]
+    recode = [c for c in recode if c in out.columns]
+    if recode:
+        out = out.copy()
+        for c in recode:
+            out[c] = pd.factorize(out[c], sort=False)[0].astype("int32")
+    inp = inp.with_suffix(inp.suffix + ".gz")
+    free_mb = shutil.disk_usage(inp.parent).free / 1e6
+    if free_mb < 500:
+        print(f"  WARNING: only {free_mb:,.0f} MB free on {inp.parent}; "
+              f"the R exchange may not fit")
+    out.to_csv(inp, index=False,
+               compression={"method": "gzip", "compresslevel": 1})
+    return inp
 
 
 def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
@@ -655,13 +802,14 @@ def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
     outp = workdir / f"_rout_{tag}.csv"
     cols = ["n_emp", "post_rb_x_high", "post_gpt_x_high",
             "fe_emp_bin", "fe_emp_t", cluster]
-    panel[cols].to_csv(inp, index=False)
+    inp = _write_r_input(panel, cols, inp,
+                         recode=("fe_emp_bin", "fe_emp_t"))
     cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster]
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
     if r.returncode != 0:
-        print(f"  fepois FAILED ({tag}): {r.stderr[-500:]}")
+        _r_failed(tag, "fepois", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
     inp.unlink(missing_ok=True)
     return res
@@ -675,13 +823,16 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = workdir / f"_rin_es_{tag}.csv"
     outp = workdir / f"_rout_es_{tag}.csv"
     cols = ["n_emp", "high", "halfyear", "fe_emp_bin", "fe_emp_t", cluster]
-    panel[cols].to_csv(inp, index=False)
+    # `halfyear` is NOT recoded: r_fepois_es.R names its coefficients after
+    # the level ("halfyear2021H1") and matches --ref against the label.
+    inp = _write_r_input(panel, cols, inp,
+                         recode=("fe_emp_bin", "fe_emp_t"))
     cmd = [_rscript(), str(R_FEPOIS_ES), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster, "--ref", ref]
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
     if r.returncode != 0:
-        print(f"  fepois_es FAILED ({tag}): {r.stderr[-500:]}")
+        _r_failed(tag, "fepois_es", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
     inp.unlink(missing_ok=True)
     return res
@@ -695,7 +846,7 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = workdir / f"_rin_multi_{tag}.csv"
     outp = workdir / f"_rout_multi_{tag}.csv"
     cols = ["n_emp"] + list(terms) + list(fes) + [cluster]
-    panel[cols].to_csv(inp, index=False)
+    inp = _write_r_input(panel, cols, inp, recode=tuple(fes))
     cmd = [_rscript(), str(_THIS_DIR / "r_fepois_multi.R"),
            "--input", str(inp), "--output", str(outp),
            "--terms", ",".join(terms), "--cluster", cluster,
@@ -703,7 +854,7 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
     if r.returncode != 0:
-        print(f"  fepois_multi FAILED ({tag}): {r.stderr[-500:]}")
+        _r_failed(tag, "fepois_multi", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
     inp.unlink(missing_ok=True)
     return res

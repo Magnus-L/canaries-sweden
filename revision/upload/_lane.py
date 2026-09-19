@@ -24,6 +24,7 @@ warns. That is the `capture noisily` distinction, and it belongs next to the
 code that knows which is which, not in the runner.
 """
 
+import os
 import subprocess
 import sys
 import time
@@ -105,9 +106,17 @@ def run(lane: str, stages: list):
                 fh.write(f"\n===== {script} {time.strftime('%H:%M')} =====\n"
                          .encode())
                 fh.flush()
+                # The stage's own Tee caps its echo at 2 KB, which is right
+                # when stdout is BatchClient's blocking pipe and wrong here:
+                # this lane has already replaced stdout with a file, which
+                # cannot block, and the cap then hides the very detail the
+                # file exists to capture. On 19 September all three failures
+                # in lanes 1 and 3 were invisible for exactly this reason.
+                # The lane knows the destination is safe, so it lifts the cap.
+                env = dict(os.environ, CANARIES_ECHO_LIMIT="100000000")
                 rc = subprocess.run([sys.executable, str(HERE / script)],
                                     cwd=str(HERE), stdout=fh,
-                                    stderr=subprocess.STDOUT).returncode
+                                    stderr=subprocess.STDOUT, env=env).returncode
         except BaseException as ex:
             rc = -1
             print(f"  could not start {script}: {type(ex).__name__}: {ex}")

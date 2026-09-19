@@ -367,7 +367,7 @@ def main():
     if base is None:
         t = time.time()
         base = q_baseline(conn)
-        base.to_parquet(cf, index=False)
+        mc.write_cache(base, cf)
         print(f"  baseline {BASE_YEAR}: {len(base):,} rows ({time.time()-t:.0f}s)")
     else:
         print(f"  baseline {BASE_YEAR}: cached ({len(base):,} rows)")
@@ -377,7 +377,7 @@ def main():
     if pay is None:
         try:
             pay = q_basepay(conn)
-            pay.to_parquet(cf, index=False)
+            mc.write_cache(pay, cf)
             print(f"  baseline pay: {len(pay):,} rows")
         except Exception as ex:
             print(f"  baseline pay FAILED ({type(ex).__name__}): {str(ex)[:200]}")
@@ -395,7 +395,7 @@ def main():
         if c is None:
             t = time.time()
             c = q_counts(y, conn)
-            c.to_parquet(cf, index=False)
+            mc.write_cache(c, cf)
             print(f"  counts {y}: {len(c):,} cells ({time.time()-t:.0f}s)")
         else:
             print(f"  counts {y}: cached ({len(c):,} cells)")

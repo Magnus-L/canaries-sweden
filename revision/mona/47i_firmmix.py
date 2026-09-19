@@ -201,11 +201,11 @@ def main():
     counts = {}
     for y in (2019, 2020, 2021):
         cf = CACHE / f"edu_hr_weights_{y}.parquet"
-        w = mc.read_cache(cf)
+        w = mc.read_cache(cf, require=h47.WEIGHT_COLS)
         if w is None:
             conn = conn or mc.connect()
             w = h47.pull_weights(y, conn)
-            w.to_parquet(cf, index=False)
+            mc.write_cache(w, cf)
             print(f"  weights {y}: pulled {len(w):,} cells")
         else:
             print(f"  weights {y}: cached")
@@ -221,12 +221,12 @@ def main():
     frames = {}
     for y in YEARS:
         cf = CACHE / f"edu_hr_{y}.parquet"
-        f = mc.read_cache(cf)
+        f = mc.read_cache(cf, require=h47.YEAR_COLS + ["n_emp"])
         if f is None:
             conn = conn or mc.connect()
             print(f"  {y}: no 47h cache, pulling")
             f = h47.pull_year(y, conn, True)
-            f.to_parquet(cf, index=False)
+            mc.write_cache(f, cf)
         else:
             print(f"  {y}: cached ({len(f):,} cells)")
         frames[y] = f

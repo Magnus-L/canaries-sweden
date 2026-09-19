@@ -447,6 +447,7 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
     return out
 
 
+WEIGHT_COLS = ["niva", "inr", "ssyk4", "fresh", "expband", "young", "n"]
 YEAR_COLS = ["employer_id", "year_month", "niva_t", "inr_t", "expb_t",
              "niva_21", "inr_21", "expb_21", "enr_21",
              "niva_21g", "inr_21g",
@@ -795,11 +796,11 @@ def main():
     counts = {}
     for y in WEIGHT_YEARS:
         cf = CACHE / f"edu_hr_weights_{y}.parquet"
-        w = mc.read_cache(cf)
+        w = mc.read_cache(cf, require=WEIGHT_COLS)
         if w is None:
             t0 = time.time()
             w = pull_weights(y, conn)
-            w.to_parquet(cf, index=False)
+            mc.write_cache(w, cf)
             print(f"  weights {y}: {len(w):,} cells ({time.time()-t0:.0f}s)")
         else:
             print(f"  weights {y}: cached ({len(w):,} cells)")
@@ -815,32 +816,69 @@ def main():
     print("\nYEAR PULLS AND COLLAPSES")
     ages_all = AGES_A + AGES_B + (AGES_C if GRADIENT_TIER else [])
     rate_frames = []
+    def coll_path(name, arm, T, y):
+        return CACHE / f"edu_hr_coll_{name}_{arm}_T{T}_{y}.parquet"
+
+    def wanted_pieces(y):
+        """Every collapse piece this run will later load, as (key, path)."""
+        want = [((n, a, T), coll_path(n, a, T, y))
+                for n in designs for a in ("true", "asof") for T in TRUNCATIONS]
+        # the legacy arm is T=2021 only: niva_21g/inr_21g are the 2021
+        # vintage, and collapse_year skips it for any other truncation.
+        # Asking for more than exists here would leave `missing` permanently
+        # non-empty and defeat the cache on every run.
+        want += [(("OL_daioe", "asof_legacy", 2021),
+                  coll_path("OL_daioe", "asof_legacy", 2021, y))]
+        return want
+
     for y in YEARS:
+        # The collapse costs ~27 minutes a year and the pull ~19, so a re-run
+        # that recomputes both is four hours before the first fit. Both are
+        # pure functions of the year frame and the scorebook, so a year whose
+        # pieces are all on disk needs neither: skip it entirely and never
+        # touch the frame. This is what makes adding ONE arm cheap instead of
+        # a full rebuild (19 Sep 2026: the legacy arm cost a four-hour redo).
+        missing = [(k, pth) for k, pth in wanted_pieces(y) if not pth.exists()]
+        if not missing:
+            print(f"  {y}: all {len(wanted_pieces(y))} collapse pieces cached, "
+                  f"no pull needed")
+            continue
         cf = CACHE / f"edu_hr_{y}.parquet"
-        frame = mc.read_cache(cf)
+        # require= is what stops a cache written before a change to the pull
+        # from being reused: adding niva_21g/inr_21g on 19 Sep silently
+        # invalidated the previous night's frames and the run died hours in.
+        frame = mc.read_cache(cf, require=YEAR_COLS + ["n_emp"])
         if frame is None:
             t0 = time.time()
             frame = pull_year(y, conn, enrol_ok)
-            frame.to_parquet(cf, index=False)
+            mc.write_cache(frame, cf)
             print(f"  {y}: {len(frame):,} cells pulled ({time.time()-t0:.0f}s)")
         else:
             print(f"  {y}: cached ({len(frame):,} cells)")
         t0 = time.time()
-        pieces, rates = collapse_year(y, frame, book, designs, ages_all)
-        # one extra pass for the gate's legacy arm: OL_daioe at T=2021 only,
-        # so the gate can measure 47b's own cascade rather than assume it.
-        # Doing this inside the main pass would collapse 8 designs x 3 arms
-        # instead of 8 x 2, for a comparison only one design needs.
-        globals()["ARMS"] = ("asof_legacy",)
-        gpieces, _ = collapse_year(y, frame, book,
-                                   {"OL_daioe": designs["OL_daioe"]}, ages_all)
-        globals()["ARMS"] = ("true", "asof")
-        pieces.update(gpieces)
+        # Collapse only the designs that are actually missing a piece.
+        need_main = sorted({k[0] for k, _ in missing if k[1] != "asof_legacy"})
+        need_legacy = any(k[1] == "asof_legacy" for k, _ in missing)
+        pieces, rates = ({}, pd.DataFrame())
+        if need_main:
+            pieces, rates = collapse_year(
+                y, frame, book, {n: designs[n] for n in need_main}, ages_all)
+        # one extra pass for the gate's legacy arm, so the gate can measure
+        # 47b's own cascade rather than assume it. Doing this inside the main
+        # pass would collapse every design x 3 arms instead of x 2, for a
+        # comparison only one design needs.
+        if need_legacy:
+            globals()["ARMS"] = ("asof_legacy",)
+            gpieces, _ = collapse_year(y, frame, book,
+                                       {"OL_daioe": designs["OL_daioe"]}, ages_all)
+            globals()["ARMS"] = ("true", "asof")
+            pieces.update(gpieces)
         for (name, arm, T), coll in pieces.items():
-            coll.to_parquet(CACHE / f"edu_hr_coll_{name}_{arm}_T{T}_{y}.parquet", index=False)
+            mc.write_cache(coll, coll_path(name, arm, T, y))
         if not rates.empty:
             rate_frames.append(rates)
-        print(f"  {y}: collapsed {len(pieces)} design-arm-T pieces ({time.time()-t0:.0f}s)  "
+        print(f"  {y}: collapsed {len(pieces)} design-arm-T pieces "
+              f"({len(missing)} were missing) ({time.time()-t0:.0f}s)  "
               + mc.mem_line())
         del frame, pieces
         gc.collect()
