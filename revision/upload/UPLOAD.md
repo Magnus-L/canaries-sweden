@@ -333,3 +333,19 @@ stated in the output: a shock that hit every age equally inside exposed firms wo
 Tested locally: corrupting every young education record, and deleting the young entirely, leaves
 all 140 fixture firms' exposure bit-identical; a planted decline on the classifier's own Q4 firms
 is recovered with the right sign and size; end to end with SQL forbidden.
+
+## 11. ONE FILE for tonight (19 Sep 2026)
+
+`revision/upload/run_tonight.py` -> `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\run_tonight.py`
+(upload as `.txt`, rename to `.py`). Submit THAT and nothing else.
+
+It runs, in dependency order and skipping anything already finished: 47h (resumed from its
+caches if needed), then 47i, 47j, 48 and 50. A failed stage does not stop the rest. It prints
+the plan with expected runtimes first, and the export list at the end.
+
+Still upload the individual scripts it calls (sections 6 to 10) and `eloundou_ssyk4.dta`.
+
+**Then on this machine, one command:** `python3 revision/assemble.py <export folder>`
+-- writes `revision/EVIDENCE.md` and `.pdf`, one section per claim, each with the number, the
+source file and the verdict under the pre-committed rule. Add `--sim` to run the simulation
+study too (about three hours). It never deletes anything; use `fdr` for filing.
