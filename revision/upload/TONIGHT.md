@@ -320,3 +320,52 @@ dropped rather than blanked. MANIFEST.txt carries a SHA-256 per file so
 the copy that arrives can be verified against the copy that left.
 
 You are at 31 MB of the 50 MB rolling budget. This should cost about 1 MB.
+
+---
+
+# LANE 6 — time and attenuation (added ~21:45, 19 Sep)
+
+Run AFTER lanes 4 and 5. Batch.
+
+## Upload to A
+
+    57_baseline_vintage.py     NEW
+    56_dynamics_by_age.py      NEW
+    run_lane6.py               NEW
+
+## Run
+
+    run_lane6.py       57 then 56      about 80 min
+
+## Why
+
+Two gaps, both of which matter if the effect is late.
+
+TIME. Every register-immune design so far reports one number pooled over
+the whole post period. A pooled number cannot separate a shock that
+arrived with ChatGPT from a trend already running in 2019. 56 estimates
+Poisson event studies on the stock, on hires and on separations,
+referenced to 2022H1, with the 22-25 differential estimated inside the
+same fit. The pre-period is the test and it is printed first.
+
+ATTENUATION. Exposure frozen in 2019 is a six-year-old proxy by 2025, so
+the design is weakest exactly where the effect is most likely. 57 turns
+that from a caveat into a number: it rebuilds the exposure measure in
+2021, 2022 and 2023 and regresses each on the 2019 version, giving
+lambda(y), the share of the 2019 signal still present. It then re-runs
+the whole design on a 2022 baseline, which is still pre-ChatGPT and three
+years closer to the outcome years.
+
+## How to read lane 6
+
+If the 2022 baseline finds MORE than the 2019 one, the 2019 estimate is
+an attenuated version of a real effect and must be reported as a LOWER
+BOUND on the magnitude, never as a null. In the synthetic test, a world
+with a drifting occupation mix gave +0.004 on the 2019 baseline and
+-0.017 on the 2022 baseline: same data, same design, and the stale
+baseline saw nothing.
+
+lambda is measured only for years with their own occupation register.
+For 2024 and 2025 it is extrapolated, and the summary says so. Dividing
+an estimate by lambda corrects the point estimate and inflates its
+standard error by the same factor: do both or neither.
