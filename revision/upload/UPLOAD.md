@@ -284,3 +284,29 @@ roughly 30 to 40 minutes. Exports: `output_48\gender_poisson.csv`, `48_summary.t
 
 Tested locally: `revision/local/test_48_gender.py` (four cases: the 18 Sep bug reproduces and is
 now caught; the fix works on a string panel and an int panel; a panel missing a code raises).
+
+## 9. 47i, firm-mix exposure -- the register route ML ruled for (19 Sep 2026)
+
+Exposure becomes a property of the FIRM (the worker-weighted education mix of its whole
+workforce, quartiles fixed on 2019), as in Nordstrom Skans and Sokolow Romin (2026), so a young
+worker's own stale education record never enters the classification -- the mechanism that gave
+47b its -0.36 artefact. The young are counted as the outcome, never classified.
+
+| File on this machine | Destination on MONA (full path) |
+|---|---|
+| `revision/upload/47i_firmmix.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47i_firmmix.py` (upload as `.txt`, rename to `.py`) |
+
+**It needs no SQL of its own if 47h has run**: it reads 47h's cached year frames and weight
+pulls, so with a warm cache it is about 10 minutes for 48 fits. With a cold cache it pulls
+them itself and takes as long as 47h's pull stage.
+
+Submit standalone, AFTER 47h (or after its caches exist). Exports:
+`output_47i\47i_summary.txt`, `firmmix_estimates.csv`, `firmmix_quartile_sizes.csv`,
+`47i_log.txt`.
+
+**What it costs, stated in the output rather than buried:** a firm holds one quartile, so the
+paper's within-employer comparison is not available in this design; identification is across
+firms. The industry-reweighted contrast and hires-as-outcome are additions, not corrections,
+and are named in the summary as not done.
+
+Tested locally end to end: `revision/local/test_47i_synthetic.py` (three cases, no SQL, real R).
