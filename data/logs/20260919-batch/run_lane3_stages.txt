@@ -1,0 +1,81 @@
+
+===== 47h_edu_horserace.py 17:30 =====
+\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47h_edu_horserace.py:303: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  r = pd.read_sql(q, conn)
+======================================================================
+run by lodema at 2026-09-19 17:30 | 47h_edu_horserace.py
+======================================================================
+======================================================================
+47h: EDUCATION-EXPOSURE HORSE RACE, JUDGED BY THE AS-OF BACKTEST
+======================================================================
+  memory available: 730.6 GB
+  plan: weights 3 x ~1 min | year pulls 5 x 10-15 min | collapses 5 x ~5 min | Tier A 32 fits x ~6 min | Tier B ~1 h
+  designs: OL_exact, OL_daioe, fresh_stock, entrant, entrant_share, expband, enrol, full
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  key: 10,241 niva x inr cells, 105 groups
+  enrolment register usable: True
+  weights 2019: cached (796,532 cells)
+  weights 2020: cached (850,629 cells)
+  weights 2021: cached (869,318 cells)
+
+SCORES
+  OL_exact       groups 105  cuts 0.246 / 0.335 / 0.400
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  fresh_stock    groups 105  cuts 33.467 / 42.718 / 60.656
+  entrant        groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7
+  entrant_share  groups 105  cuts 0.032 / 0.068 / 0.254  share_stock_fallback_groups 7
+  expband        groups 105  cuts 32.229 / 42.069 / 58.449  band_cells 586
+  enrol          groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7  anchor_fields 252
+  full           groups 105  cuts 0.030 / 0.068 / 0.223  stock_fallback_groups 7  tier1_cells 639  band_cells 196  anchor_fields 252
+
+YEAR PULLS AND COLLAPSES
+  2019: cached (38,120,245 cells)
+
+[echo capped; the full log is in the script's own log file]
+
+===== 47i_firmmix.py 18:00 =====
+======================================================================
+run by lodema at 2026-09-19 18:00 | 47i_firmmix.py
+======================================================================
+======================================================================
+47i: FIRM-MIX EXPOSURE -- the education route that does not
+     classify the young worker (Nordstrom Skans & Sokolow Romin)
+======================================================================
+  memory available: 698.4 GB
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  weights 2019: cached
+  weights 2020: cached
+  weights 2021: cached
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  entrant        groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7
+  2019: cached (38,120,245 cells)
+  2020: cached (37,149,064 cells)
+  2021: cached (37,299,976 cells)
+  2022: cached (39,132,553 cells)
+  2023: cached (40,311,961 cells)
+  OL_daioe   true T2021 22-25 gamma2 +0.0243 (SE 0.0091) n 10,547,940 ok
+
+[echo capped; the full log is in the script's own log file]
+
+===== 47j_within_employer_triple.py 18:13 =====
+======================================================================
+run by lodema at 2026-09-19 18:13 | 47j_within_employer_triple.py
+======================================================================
+======================================================================
+47j: WITHIN-EMPLOYER TRIPLE DIFFERENCE ON FIRM-MIX EXPOSURE
+     no young worker is classified; age carries the within variation
+======================================================================
+  memory available: 707.5 GB
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  weights 2019: 796,532 cells
+  weights 2020: 850,629 cells
+  weights 2021: 869,318 cells
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  entrant        groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7
+  2019: cached (38,120,245 cells)
+  2020: cached (37,149,064 cells)
+  2021: cached (37,299,976 cells)
+  2022: cached (39,132,553 cells)
+  2023: cached (40,311,961 cells)
+
+[echo capped; the full log is in the script's own log file]

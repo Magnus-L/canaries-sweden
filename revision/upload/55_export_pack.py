@@ -74,6 +74,10 @@ PRIORITY = {
     "reliability.csv",             # 57 lambda(y), the attenuation curve
     "vintage_estimates.csv",       # 57 pooled, per baseline year
     "vintage_gradient.csv",        # 57 age gradient, per baseline year
+    "es_rebased.csv",              # 58 event study rebased on its own season
+    "es_h1only.csv",               # 58 event study, first half-years only
+    "readrule.csv",                # 58 the pre-committed rule, evaluated
+    "agi_tables.csv",              # 58 which AGI months exist, which vintage
 }
 
 COUNT_HINTS = ("n_emp", "n_obs", "n", "count", "cells", "firms", "n_coded",

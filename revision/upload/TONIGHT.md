@@ -369,3 +369,50 @@ lambda is measured only for years with their own occupation register.
 For 2024 and 2025 it is extrapolated, and the summary says so. Dividing
 an estimate by lambda corrects the point estimate and inflates its
 standard error by the same factor: do both or neither.
+
+---
+
+# LANE 7 — settle the 2025H1 result (added ~01:00, 20 Sep)
+
+## Upload to A
+
+    58_seasonal_and_vintage.py   NEW
+    run_lane7.py                 NEW
+    55_export_pack.py            REPLACE (now packs 58's outputs too)
+
+## Run
+
+    run_lane7.py       about 35 min, one metadata query, rest from cache
+
+## Why
+
+56 found the 22-25 hiring differential at -0.069 in 2025H1 against
+-0.000 to +0.027 in every earlier first half-year. Three things stand
+between that and a result.
+
+THE SLICE WAS CHOSEN AFTER SEEING THE DATA. Reading H1 against H1 is
+right, because the series has a marked exposure-specific seasonal, but
+nobody said so beforehand. 58 answers it two independent ways: the path
+rebased on its own season, and an H1-only estimate with no seasonal
+model at all. A finding that survives both is not an artefact of how the
+seasonal was handled.
+
+NO STANDARD ERRORS. 56 printed coefficients only. Every table in 58
+carries the SE and the t.
+
+2025 IS PRELIMINARY. One metadata query lists every monthly AGI table
+with its vintage and row count. If definitive 2025 months now exist, 54
+and 47L must be re-pulled before any of this is believed, and the log
+says so in capitals.
+
+## The pre-committed rule, written before the numbers existed
+
+The 2025H1 young hiring differential counts as a finding only if it is
+negative in BOTH specifications, at least twice its standard error in
+both, and larger in magnitude than every pre-2022H2 coefficient in the
+same specification. Failing the third condition makes it suggestive
+whatever its t-statistic.
+
+The rule is evaluated in the script and its verdict is printed. It can
+refuse, and the synthetic test confirms it refuses on a world with the
+seasonal and no shock.
