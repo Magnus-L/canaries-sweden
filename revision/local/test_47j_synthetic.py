@@ -103,6 +103,10 @@ def year_frame(year, corrupt_young=False, drop_young=False, shock=True,
                         rec[f"niva_{T%100}"], rec[f"inr_{T%100}"] = g["niva"], g["inr"]
                         rec[f"expb_{T%100}"] = "3-5"
                         rec[f"enr_{T%100}"] = None
+                    # 47h's pull now also returns the legacy (47b) cascade
+                    # columns. This script never uses that arm, so they alias
+                    # the corrected ones; the gate in 47h is where they differ.
+                    rec["niva_21g"], rec["inr_21g"] = rec["niva_21"], rec["inr_21"]
                     rows.append(rec)
     return h47.compact(pd.DataFrame(rows)[h47.YEAR_COLS + ["n_emp"]])
 

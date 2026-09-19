@@ -105,6 +105,8 @@ CACHE.mkdir(exist_ok=True)
 YEARS = list(range(2019, 2024))          # backtest window: every year coded
 TRUNCATIONS = (2021, 2022)
 WEIGHT_YEARS = (2019, 2020, 2021)        # all pre-ChatGPT; 2019 alone = O&L
+ARMS = ("true", "asof")
+GATE_ARMS = ("true", "asof", "asof_legacy")   # the gate alone adds the legacy arm
 AGES_A = ["22-25"]
 AGES_B = ["26-30", "50+"]
 # ML's fallback (18 Sep): if the youngest band cannot be classified, does an
@@ -306,6 +308,22 @@ def probe_enrolment(conn) -> bool:
         return False
 
 
+def _legacy_cols(prefix: str, vintages, field: str) -> str:
+    """
+    47b's cascade, reproduced verbatim: a plain COALESCE over the raw column,
+    PER FIELD and independently. Two consequences we believe matter, and this
+    arm exists to MEASURE rather than assert them:
+      - '' (the 2021+ encoding for missing) is not NULL, so COALESCE returns
+        it and the row fails the key join instead of falling through;
+      - niva and inr are resolved separately, so a record can be assembled
+        from two different vintages.
+    Kept only for the gate. Nothing downstream uses it.
+    """
+    return ("COALESCE("
+            + ", ".join(f"{prefix}{i}.{field}" for i in range(1, len(vintages) + 1))
+            + ")")
+
+
 def _asof_cols(prefix: str, vintages, field: str) -> str:
     """First vintage with a non-empty niva supplies the whole record
     (niva, inr, ExamAr together), so a record is never assembled across
@@ -378,6 +396,8 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
                {_asof_cols('b', v21, "NULLIF(LTRIM(RTRIM({a}.Sun2020Niva)),'')")} AS niva_21,
                {_asof_cols('b', v21, "NULLIF(LTRIM(RTRIM({a}.Sun2020Inr)),'')")}  AS inr_21,
                {_asof_cols('b', v21, exam_expr)} AS exam_21,
+               {_legacy_cols('b', v21, 'Sun2020Niva')} AS niva_21g,
+               {_legacy_cols('b', v21, 'Sun2020Inr')}  AS inr_21g,
                {_asof_cols('c', v22, "NULLIF(LTRIM(RTRIM({a}.Sun2020Niva)),'')")} AS niva_22,
                {_asof_cols('c', v22, "NULLIF(LTRIM(RTRIM({a}.Sun2020Inr)),'')")}  AS inr_22,
                {_asof_cols('c', v22, exam_expr)} AS exam_22,
@@ -400,6 +420,7 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
         SELECT employer_id, period, person_id,
                niva_t, inr_t, {band('exam_t')} AS expb_t,
                niva_21, inr_21, {band('exam_21')} AS expb_21, enr_21,
+               niva_21g, inr_21g,
                niva_22, inr_22, {band('exam_22')} AS expb_22, enr_22,
                CAST(LEFT(period,4) AS INT) - birth_year AS age
         FROM base WHERE birth_year IS NOT NULL
@@ -407,11 +428,13 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
     SELECT employer_id,
            LEFT(period,4) + '-' + SUBSTRING(period,5,2) AS year_month,
            niva_t, inr_t, expb_t, niva_21, inr_21, expb_21, enr_21,
+           niva_21g, inr_21g,
            niva_22, inr_22, expb_22, enr_22,
            {AGE_CASE} AS age_group, COUNT(DISTINCT person_id) AS n_emp
     FROM age_calc WHERE age BETWEEN 22 AND 69
     GROUP BY employer_id, period, niva_t, inr_t, expb_t, niva_21, inr_21,
-             expb_21, enr_21, niva_22, inr_22, expb_22, enr_22, {AGE_CASE}
+             expb_21, enr_21, niva_21g, inr_21g,
+             niva_22, inr_22, expb_22, enr_22, {AGE_CASE}
     """
     chunks = []
     for ch in pd.read_sql(q, conn, chunksize=2_000_000):
@@ -426,8 +449,10 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
 
 YEAR_COLS = ["employer_id", "year_month", "niva_t", "inr_t", "expb_t",
              "niva_21", "inr_21", "expb_21", "enr_21",
+             "niva_21g", "inr_21g",
              "niva_22", "inr_22", "expb_22", "enr_22", "age_group"]
 CODE_COLS = ["niva_t", "inr_t", "niva_21", "inr_21", "enr_21",
+             "niva_21g", "inr_21g",
              "niva_22", "inr_22", "enr_22"]
 
 
@@ -615,9 +640,17 @@ def collapse_year(year: int, frame: pd.DataFrame, book: ScoreBook,
     out, rates = {}, []
     for name, spec in designs.items():
         for T in TRUNCATIONS:
-            for arm in ("true", "asof"):
+            for arm in ARMS:
+                if arm == "asof_legacy" and T != 2021:
+                    continue          # the legacy columns exist for T=2021 only
                 if arm == "true":
                     cols = ["niva_t", "inr_t", "expb_t"]
+                    enr = None
+                elif arm == "asof_legacy":
+                    # 47b's own cascade. The experience band comes from the
+                    # corrected arm: 47b had none of its own there, and the
+                    # band is not what this arm tests.
+                    cols = ["niva_21g", "inr_21g", "expb_21"]
                     enr = None
                 else:
                     cols = [f"niva_{T % 100}", f"inr_{T % 100}", f"expb_{T % 100}"]
@@ -794,6 +827,15 @@ def main():
             print(f"  {y}: cached ({len(frame):,} cells)")
         t0 = time.time()
         pieces, rates = collapse_year(y, frame, book, designs, ages_all)
+        # one extra pass for the gate's legacy arm: OL_daioe at T=2021 only,
+        # so the gate can measure 47b's own cascade rather than assume it.
+        # Doing this inside the main pass would collapse 8 designs x 3 arms
+        # instead of 8 x 2, for a comparison only one design needs.
+        globals()["ARMS"] = ("asof_legacy",)
+        gpieces, _ = collapse_year(y, frame, book,
+                                   {"OL_daioe": designs["OL_daioe"]}, ages_all)
+        globals()["ARMS"] = ("true", "asof")
+        pieces.update(gpieces)
         for (name, arm, T), coll in pieces.items():
             coll.to_parquet(CACHE / f"edu_hr_coll_{name}_{arm}_T{T}_{y}.parquet", index=False)
         if not rates.empty:
@@ -826,20 +868,43 @@ def main():
               f"{row['status']}")
         return row
 
-    # ---- gate: OL_daioe at T=2021, 22-25, reproduces 47b ----
-    print("\nGATE (OL_daioe = script 47b's design)")
+    # ---- gate: does the pull reproduce 47b, and if not, WHY ----
+    # 19 September. 47h's first run halted here: its as-of arm gave -0.156
+    # where 47b reported -0.370. That is either 47h's deliberate cascade fix
+    # (NULLIF, so '' falls through, and whole records instead of per-field
+    # COALESCE) or something we do not understand. Asserting the first would
+    # be assuming the answer, so the gate estimates 47b's EXACT cascade as a
+    # third arm and decides on that one:
+    #   legacy reproduces 47b -> the pull is verified, the gap between the two
+    #                            as-of arms IS the fix, and the run proceeds
+    #   legacy does not       -> the pull differs for an unknown reason, halt
+    print("\nGATE (OL_daioe = script 47b's design, three arms)")
+    globals()["ARMS"] = GATE_ARMS
     gate = {arm: run_cell("OL_daioe", arm, 2021, "22-25", "gate")["gamma2"]
-            for arm in ("true", "asof")}
-    for arm in ("true", "asof"):
-        d = abs(gate[arm] - GATE_47B[arm])
-        verdict = ("PASS" if d <= GATE_WARN else
-                   "PASS with drift (NULLIF cascade fix; documented)" if d <= GATE_HALT
-                   else "FAIL")
-        print(f"  gate {arm}: {gate[arm]:+.4f} vs 47b {GATE_47B[arm]:+.4f} "
-              f"(|d| {d:.4f}) -> {verdict}")
-        if verdict == "FAIL":
-            raise SystemExit("GATE FAILED: the pull does not reproduce 47b; "
-                             "stopping before Tier A")
+            for arm in GATE_ARMS}
+    globals()["ARMS"] = ("true", "asof")
+    d_true = abs(gate["true"] - GATE_47B["true"])
+    d_leg = abs(gate["asof_legacy"] - GATE_47B["asof"])
+    print(f"  true        {gate['true']:+.4f} vs 47b {GATE_47B['true']:+.4f}"
+          f"   |d| {d_true:.4f}")
+    print(f"  asof_legacy {gate['asof_legacy']:+.4f} vs 47b "
+          f"{GATE_47B['asof']:+.4f}   |d| {d_leg:.4f}   <- the gate")
+    print(f"  asof        {gate['asof']:+.4f}   (corrected cascade; not gated)")
+    print(f"  ARTEFACT legacy {gate['asof_legacy'] - gate['true']:+.4f}"
+          f"   corrected {gate['asof'] - gate['true']:+.4f}")
+    try:
+        pd.DataFrame([{"arm": a, "gamma2": v, "ref_47b": GATE_47B.get(a, np.nan)}
+                      for a, v in gate.items()]).to_csv(
+            OUT / "gate_decomposition.csv", index=False)
+    except BaseException as ex:
+        print(f"  [optional] gate_decomposition.csv FAILED ({type(ex).__name__})")
+    if d_true > GATE_HALT or d_leg > GATE_HALT:
+        raise SystemExit(
+            f"GATE FAILED: the legacy arm does not reproduce 47b (|d| true "
+            f"{d_true:.4f}, legacy {d_leg:.4f}). The pull differs for a reason "
+            f"that is NOT the documented cascade fix. Stopping before Tier A.")
+    print("  GATE PASS: the legacy arm reproduces 47b, so the gap between the "
+          "two as-of arms is the cascade fix and nothing else.")
 
     # ---- Tier A ----
     print("\nTIER A: every design, 22-25, both arms, both truncations")
@@ -848,7 +913,7 @@ def main():
         for T in TRUNCATIONS:
             rows = {}
             for arm in ("true", "asof"):
-                if name == "OL_daioe" and T == 2021:
+                if name == "OL_daioe" and T == 2021 and arm in gate:
                     rows[arm] = gate[arm]
                     continue
                 rows[arm] = run_cell(name, arm, T, "22-25", "A")["gamma2"]

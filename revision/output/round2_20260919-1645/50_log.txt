@@ -1,0 +1,20 @@
+======================================================================
+run by lodema at 2026-09-19 01:00 | 50_sim_moments.py
+======================================================================
+======================================================================
+50: CALIBRATION MOMENTS FOR THE SIMULATION STUDY
+======================================================================
+  memory available: 492.8 GB
+
+M1 completion timing and level change
+  M1a: ok (18s)
+    floor: 333 cells < 5 suppressed
+  wrote m1a_completion_age.csv: 2,139 rows
+  M1b: ok (22s)
+    floor: 59 cells < 5 suppressed
+  wrote m1b_level_change.csv: 589 rows
+
+M2 occupation change among freshly coded
+  M2 2019->2020: ok (8s)
+  M2 2020->2021: ok (20s)
+  M2 2021->2022: ok (9s)

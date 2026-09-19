@@ -234,6 +234,21 @@ class Tee:
     are personal, so getpass.getuser() is the runner's identity.
     """
 
+    # BatchClient's stdout is an OS pipe with no reader. It fills at about
+    # 4 KB and the next write to it BLOCKS FOREVER. Two consequences, both
+    # of which we have now paid for:
+    #   - echoing BEFORE writing the file means the blocked line never
+    #     reaches the log either, so the log simply stops mid-run and looks
+    #     like the place the script died. 47h's log froze at 1,650 bytes on
+    #     19 September while its results CSV kept growing, and console 3's
+    #     log ended mid-traceback on 18 September. Both were this.
+    #   - an uncapped echo guarantees it on any script that prints.
+    # So: write the log FIRST and flush it, then echo up to a hard cap.
+    # 2048 on MONA, where stdout is the blocking pipe. A local test rig can
+    # raise it (CANARIES_ECHO_LIMIT) so its own output stays readable; the
+    # variable is never set in MONA, so the safe default is what runs there.
+    TERMINAL_ECHO_LIMIT = int(os.environ.get("CANARIES_ECHO_LIMIT", "2048"))
+
     def __init__(self, path: Path):
         import getpass
         self._header = ("run by %s at %s | %s\n" % (
@@ -241,17 +256,49 @@ class Tee:
             Path(sys.argv[0]).name))
         self._f = open(path, "a", encoding="utf-8", errors="replace")
         self._stdout = sys.stdout
+        self._echoed = 0
+        self._echo_stopped = False
         sys.stdout = self
         print("=" * 70 + "\n" + self._header + "=" * 70)
 
     def write(self, s):
-        self._stdout.write(s)
-        self._f.write(s)
-        self._f.flush()
+        # the log is the record and must survive a kill: file first, always
+        try:
+            self._f.write(s)
+            self._f.flush()
+        except BaseException:
+            pass
+        if self._echo_stopped:
+            return
+        try:
+            self._echoed += len(s)
+            if self._echoed > self.TERMINAL_ECHO_LIMIT:
+                self._echo_stopped = True
+                note = ("\n[echo capped; the full log is in the script's own "
+                        "log file]\n")
+                # the LOG must say so too, or a reader cannot tell that the
+                # terminal view is partial
+                try:
+                    self._f.write(note)
+                    self._f.flush()
+                except BaseException:
+                    pass
+                self._stdout.write(note)
+            else:
+                self._stdout.write(s)
+        except BaseException:
+            self._echo_stopped = True     # a cp1252 failure lands here too
 
     def flush(self):
-        self._stdout.flush()
-        self._f.flush()
+        try:
+            self._f.flush()
+        except BaseException:
+            pass
+        try:
+            if not self._echo_stopped:
+                self._stdout.flush()
+        except BaseException:
+            self._echo_stopped = True
 
 
 def connect():

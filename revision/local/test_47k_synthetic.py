@@ -44,6 +44,9 @@ spec_k = importlib.util.spec_from_file_location("s47k", MONA / "47k_settled_samp
 mod = importlib.util.module_from_spec(spec_k); spec_k.loader.exec_module(mod)
 mod.OUT = TMP / "output_47k"; mod.OUT.mkdir(); mod.CACHE = mc.CACHE_DIR
 h47 = mod._h47(); mod._H47 = h47
+# only AFTER _h47() has used the real directory to find 47h: from here on
+# HERE is the sandbox, so the 47h-completion marker is written there
+mod.HERE = TMP
 
 RNG = np.random.default_rng(47000)
 KEY = h47.load_key()
@@ -117,8 +120,25 @@ def year_frame(year):
                         rec[f"niva_{s}"], rec[f"inr_{s}"] = g["niva"], g["inr"]
                         rec[f"expb_{s}"] = ("0-2" if kind == "recent" else "6-10")
                         rec[f"enr_{s}"] = (c["inr"] if kind == "middegree" else None)
+                    # 47h's pull now also returns the legacy (47b) cascade
+                    # columns. This script never uses that arm, so they alias
+                    # the corrected ones; the gate in 47h is where they differ.
+                    rec["niva_21g"], rec["inr_21g"] = rec["niva_21"], rec["inr_21"]
                     rows.append(rec)
     return h47.compact(pd.DataFrame(rows)[h47.YEAR_COLS + ["n_emp"]])
+
+
+def mark_47h_finished(done=True):
+    """47k reads 47h's caches only when 47h has FINISHED, which its summary
+    file proves. Without it, 47k keeps a private copy, so two consoles can
+    run at once without one truncating the other's parquet."""
+    d = mod.HERE / "output_47h"
+    d.mkdir(exist_ok=True)
+    f = d / "47h_summary.txt"
+    if done:
+        f.write_text("synthetic marker")
+    elif f.exists():
+        f.unlink()
 
 
 def setup():
@@ -196,7 +216,20 @@ def test_restriction_shrinks_the_artefact(book, sp, frames):
           " -> ".join(f"{k} {art[k]:+.4f}" for k in ("all", "feasible", "oracle")))
 
 
+def test_cache_isolation():
+    """The rule itself: shared name only when 47h is done."""
+    mark_47h_finished(False)
+    priv = mod.cache_name("edu_hr_2021")
+    mark_47h_finished(True)
+    shared = mod.cache_name("edu_hr_2021")
+    check("a private cache while 47h may still be running",
+          priv.name == "edu_hr_2021_k.parquet", priv.name)
+    check("47h's own cache once it has finished",
+          shared.name == "edu_hr_2021.parquet", shared.name)
+
+
 def test_end_to_end():
+    mark_47h_finished(True)      # the fixture wrote 47h-style cache names
     def boom(*a, **k):
         raise AssertionError("SQL attempted although the cache is warm")
     mc.connect = boom
@@ -223,6 +256,7 @@ if __name__ == "__main__":
     test_mask_is_arm_invariant_and_feasible(frames)
     test_the_middegree_trap(frames)
     test_restriction_shrinks_the_artefact(book, sp, frames)
+    test_cache_isolation()
     test_end_to_end()
     print("\nFAILED: " + ", ".join(FAILS) if FAILS else "\nALL PASS")
     sys.exit(1 if FAILS else 0)

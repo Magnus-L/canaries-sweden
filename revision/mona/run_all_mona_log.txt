@@ -1,0 +1,61 @@
+
+==========================================================================
+run_all_mona started 2026-09-04 14:45 | user mslk | python 3.12.9
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-04 14:45
+==========================================================================
+  1. 39_canary_gate.py            [gate  ] Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet
+  2. 43_poisson_primary.py        [T4/E6 ] Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM
+  3. 42_frozen_cohort.py          [T3/E5 ] Coverage-immune cohort: coded by Dec 2023, followed forward
+  4. 45_asof_backtest.py          [T3/E5 ] CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant
+  5. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  6. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  7. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
+  8. 46_wfh_horserace.py          [T10   ] Telework x period interactions, both margins
+
+PRE-FLIGHT
+  [ MISSING] daioe_quartiles.dta        in input/, uploads directly; hash-checked
+  [ MISSING] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  /opt/homebrew/bin/Rscript  (Rscript (R) version 4.6.0 (2026-04-24))
+  [    note] MANIFEST.txt             absent; script integrity not verified
+
+
+==========================================================================
+run_all_mona started 2026-09-04 15:50 | user mslk | python 3.12.9
+==========================================================================
+==========================================================================
+EL67898 revision -- MONA run  |  lane all  |  2026-09-04 15:50
+==========================================================================
+  1. 39_canary_gate.py            [gate  ] Reproduce g2=-0.010, Poisson -0.174, N=11,970,426; write panel_vintage.parquet
+  2. 39b_panel_diff.py            [diag  ] Localise any N drift: v2 pull vs v1 archive cache, by year/quartile/pair
+  3. 43_poisson_primary.py        [T4/E6 ] Poisson headline: pooled + ES per age group, bridge inputs, extensive-margin LPM
+  4. 42_frozen_cohort.py          [T3/E5 ] Coverage-immune cohort: coded by Dec 2023, followed forward
+  5. 45_asof_backtest.py          [T3/E5 ] CENTREPIECE: as-of backtest, missingness x misclassification frontier, backdated variant
+  6. 40_coverage_diagnostics.py   [T1/E3 ] Match rates by month x age x quartile; incumbents/hires/entrants; vintage shares
+  7. 41_vintage_event_studies.py  [T2/E4 ] ES by code vintage 2023/2022/2021; same-employer vs job-changer; imputed vs reported
+  8. 44_decile_gradient.py        [T11   ] Employment deciles, pre-committed monotonicity read
+  9. 46_wfh_horserace.py          [T10   ] Telework x period interactions, both margins
+
+PRE-FLIGHT
+  [ MISSING] daioe_quartiles.dta        in input/, uploads directly; hash-checked
+  [ MISSING] dingel_neiman_ssyk4.dta    in input/, uploads directly; 46 dies without it
+  [     ok ] r_fepois.R                 beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_es.R              beside the scripts; upload as .txt, RENAME to .R
+  [     ok ] r_fepois_multi.R           beside the scripts; upload as .txt, RENAME to .R
+  [      ok] Rscript                  /opt/homebrew/bin/Rscript  (Rscript (R) version 4.6.0 (2026-04-24))
+  [    note] MANIFEST.txt             absent; script integrity not verified
+
+
+==========================================================================
+run_all_mona started 2026-09-18 15:41 | user mslk | python 3.12.9
+==========================================================================
+  --only 40: R required = False
+  --only 41: R required = True
+  --only 44: R required = True
+  --only 45: R required = True
+  --only 46: R required = True
+  --only 48: R required = True

@@ -1,0 +1,28 @@
+======================================================================
+run by lodema at 2026-09-19 00:59 | 47h_edu_horserace.py
+======================================================================
+======================================================================
+47h: EDUCATION-EXPOSURE HORSE RACE, JUDGED BY THE AS-OF BACKTEST
+======================================================================
+  memory available: 493.5 GB
+  plan: weights 3 x ~1 min | year pulls 5 x 10-15 min | collapses 5 x ~5 min | Tier A 32 fits x ~6 min | Tier B ~1 h
+  designs: OL_exact, OL_daioe, fresh_stock, entrant, entrant_share, expband, enrol, full
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  key: 10,241 niva x inr cells, 105 groups
+  enrolment register usable: True
+  weights 2019: 796,532 cells (8s)
+  weights 2020: 850,629 cells (16s)
+  weights 2021: 869,318 cells (18s)
+
+SCORES
+  OL_exact       groups 105  cuts 0.246 / 0.335 / 0.400
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  fresh_stock    groups 105  cuts 33.467 / 42.718 / 60.656
+  entrant        groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7
+  entrant_share  groups 105  cuts 0.032 / 0.068 / 0.254  share_stock_fallback_groups 7
+  expband        groups 105  cuts 32.229 / 42.069 / 58.449  band_cells 586
+  enrol          groups 105  cuts 30.520 / 40.498 / 55.278  stock_fallback_groups 7  anchor_fields 252
+  full           groups 105  cuts 0.030 / 0.068 / 0.223  stock_fallback_groups 7  tier1_cells 639  band_cells 196  anchor_fields 252
+
+YEAR PULLS AND COLLAPSES
+  compact: dropping 13 rows with no employer id

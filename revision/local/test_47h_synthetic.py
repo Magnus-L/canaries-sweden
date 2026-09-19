@@ -103,6 +103,16 @@ def synth_year(year, conn, enrol_ok):
                             rec[f"niva_{T%100}"], rec[f"inr_{T%100}"] = c["niva"], c["inr"]
                             rec[f"expb_{T%100}"] = expb_t
                             rec[f"enr_{T%100}"] = None
+                    # the legacy (47b) cascade columns the gate compares
+                    # against. Deliberately DIFFERENT from the corrected ones
+                    # for a share of rows, so a test that silently aliased the
+                    # two as-of arms would fail rather than pass.
+                    if RNG.uniform() < 0.3:
+                        g = gym.iloc[RNG.integers(len(gym))]
+                        rec["niva_21g"], rec["inr_21g"] = g["niva"], g["inr"]
+                    else:
+                        rec["niva_21g"] = rec["niva_21"]
+                        rec["inr_21g"] = rec["inr_21"]
                     rows.append(rec)
     df = pd.DataFrame(rows)
     # a few null employers must be dropped, not crash
@@ -159,7 +169,7 @@ def test_happy_path():
     est = pd.read_csv(out / "horserace_estimates.csv")
     n_designs = len(mod.DESIGNS)
     tier_b_designs = est.loc[est["tier"] == "B", "design"].nunique()
-    expected = (2 + (n_designs * 4 - 2)
+    expected = (3 + (n_designs * 4 - 2)      # the gate now runs three arms
                 + tier_b_designs * 2 * 2 * 2
                 + 2 * 3 * 2)
     assert len(est) == expected, (len(est), expected)
@@ -170,13 +180,23 @@ def test_happy_path():
         sc = pd.read_csv(out / f"score_{name}.csv")
         assert (sc["n_workers"] >= 5).all()
         assert set(sc["quartile"]) <= {1, 2, 3, 4}
-    for f in ("47h_summary.txt", "anchoring_rates.csv", "score_diagnostics.csv", "47h_log.txt"):
+    for f in ("47h_summary.txt", "anchoring_rates.csv", "score_diagnostics.csv",
+              "47h_log.txt", "gate_decomposition.csv"):
         assert (out / f).exists(), f
+    gd = pd.read_csv(out / "gate_decomposition.csv")
+    assert set(gd["arm"]) == {"true", "asof", "asof_legacy"}, gd["arm"].tolist()
+    assert gd.loc[gd.arm == "asof_legacy", "gamma2"].notna().all()
+    assert (gd.loc[gd.arm == "asof_legacy", "gamma2"].iloc[0]
+            != gd.loc[gd.arm == "asof", "gamma2"].iloc[0]), \
+        "the legacy arm must not be an alias of the corrected one"
     summ = (out / "47h_summary.txt").read_text()
     assert "ARTEFACT BY DESIGN" in summ and "Tier C" in summ and "NOTE" not in summ
     ar = pd.read_csv(out / "anchoring_rates.csv")
     assert (ar["anchored_share"] > 0).any(), "enrolment anchoring never fired"
-    assert len(list(cache.glob("edu_hr_*.parquet"))) == 3 + 5 + n_designs * 2 * 2 * 5
+    # 3 weight pulls + 5 year pulls + (designs x arms x truncations x years)
+    # + the gate's legacy pass: OL_daioe, one arm, T=2021 only, 5 years
+    assert len(list(cache.glob("edu_hr_*.parquet"))) == 3 + 5 + n_designs * 2 * 2 * 5 + 5, \
+        len(list(cache.glob("edu_hr_*.parquet")))
     # wiring guard: the as-of pieces must differ from the true pieces at BOTH
     # truncations, and the two truncations from each other, in years after T
     for name in ("OL_daioe", "enrol"):

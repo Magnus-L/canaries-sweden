@@ -1,0 +1,122 @@
+======================================================================
+run by lodema at 2026-09-18 17:58 | 48_gender_poisson.py
+======================================================================
+======================================================================
+48: GENDER SPLIT IN POISSON (the primary estimator)
+======================================================================
+  memory available: 731.7 GB
+  2019: 23,730,089 cells in 450s
+  2020: 23,038,285 cells in 405s
+  2021: 23,546,686 cells in 402s
+  2022: 24,892,072 cells in 391s
+  2023: 25,032,516 cells in 274s
+  2024: 25,340,773 cells in 259s
+  2025: 12,934,026 cells in 125s
+  Cached -> panel_gender.parquet
+
+--- gate: summed over gender, 22-25 ---
+  pooled gamma2 = -0.1741  (anchor -0.1740)
+  GATE PASS
+
+--- 22-25, men ---
+======================================================================
+run by lodema at 2026-09-18 20:23 | 48_gender_poisson.py
+======================================================================
+======================================================================
+48: GENDER SPLIT IN POISSON (the primary estimator)
+======================================================================
+  memory available: 554.2 GB
+
+--- gate: summed over gender, 22-25 ---
+  pooled gamma2 = -0.1741  (anchor -0.1740)
+  GATE PASS
+
+--- 22-25, men ---
+
+UNCAUGHT EXCEPTION
+Traceback (most recent call last):
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 250, in <module>
+    main()
+    ~~~~^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 215, in main
+    bal = build(panel, age, gender=code)
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py", line 159, in build
+    return mc.add_treatment(mc.balance_panel(sub_a, months))
+                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\mona_common.py", line 462, in balance_panel
+    .merge(cell,
+     ~~~~~^^^^^^
+           on=["employer_id", "exposure_quartile", "year_month"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           how="left"))
+           ^^^^^^^^^^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\frame.py", line 10839, in merge
+    return merge(
+        self,
+    ...<11 lines>...
+        validate=validate,
+    )
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 170, in merge
+    op = _MergeOperation(
+        left_df,
+    ...<10 lines>...
+        validate=validate,
+    )
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 807, in __init__
+    self._maybe_coerce_merge_keys()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "E:\Programs\WinPython-31700\python\Lib\site-packages\pandas\core\reshape\merge.py", line 1509, in _maybe_coerce_merge_keys
+    raise ValueError(msg)
+ValueError: You are trying to merge on float64 and object columns for key 'year_month'. If you wish to proceed you should use pd.concat
+
+======================================================================
+run by lodema at 2026-09-19 01:00 | 48_gender_poisson.py
+======================================================================
+======================================================================
+48: GENDER SPLIT IN POISSON (the primary estimator)
+======================================================================
+  memory available: 492.2 GB
+
+--- gate: summed over gender, 22-25 ---
+======================================================================
+run by lodema at 2026-09-19 01:03 | 48_gender_poisson.py
+======================================================================
+======================================================================
+48: GENDER SPLIT IN POISSON (the primary estimator)
+======================================================================
+  memory available: 491.9 GB
+  gender codes in the panel: '1' 206,602,576, '2' 199,397,740
+
+--- gate: summed over gender, 22-25 ---
+  pooled gamma2 = -0.1741  (anchor -0.1740)
+  GATE PASS
+
+--- 22-25, men ---
+  6,393,426 cells, 26,323 employers
+  memory available: 466.0 GB
+
+--- 22-25, women ---
+  7,398,534 cells, 30,581 employers
+  memory available: 456.4 GB
+
+--- 26-30, men ---
+  9,363,822 cells, 39,891 employers
+  memory available: 457.9 GB
+
+--- 26-30, women ---
+  9,486,828 cells, 41,539 employers
+  memory available: 457.4 GB
+
+GENDER SPLIT -- pooled Poisson gamma2
+========================================
+  22-25   men: -0.1508 (SE 0.0150) = -14.0%
+  22-25 women: -0.2004 (SE 0.0127) = -18.2%
+  26-30   men: -0.0593 (SE 0.0098) = -5.8%
+  26-30 women: -0.0553 (SE 0.0075) = -5.4%
+
+Read: the submitted ln(n+1) split was -0.016 women vs
+-0.007 men at 22-25. Poisson should agree in sign and
+ordering. If it does not, the abstract's 'concentrated
+among young women' has to be restated or dropped.
+
+48 done. memory available: 457.4 GB

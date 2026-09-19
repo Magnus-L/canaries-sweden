@@ -14,6 +14,7 @@ run_lane1.py
 run_lane2.py
 run_lane3.py
 _lane.py
+mona_common.py          <- CHANGED 19 Sep, must be re-uploaded
 50_sim_moments.py
 47L_age_baseline_exposure.py
 51_vintage_ai_unboxed.py
@@ -93,3 +94,16 @@ paper that finds an effect is the favourable direction: the true effect would be
 least as large. It changes how the measure is described, not whether the finding
 survives. Delete the `51_vintage_ai_unboxed.py` line from `run_lane1.py`'s STAGES if
 you would rather keep this round purely about canaries.
+
+## Changed on 19 September, after reading the 16:45 export
+
+- **`mona_common.py` must be re-uploaded.** Its `Tee` echoed to stdout before
+  writing the log and had no cap, so when BatchClient's pipe filled the line
+  never reached the log either. That is why 47h's log froze at 1,650 bytes
+  while its results file kept growing, and why console 3's log ended
+  mid-traceback on the 18th. It now writes the file first and caps the echo.
+- **`47h_edu_horserace.py` has a third gate arm.** Its first run halted at the
+  gate: the as-of arm gave -0.156 where 47b reported -0.370. The gate now also
+  estimates 47b's EXACT cascade, so it measures whether the gap is our
+  documented fix rather than assuming it. If the legacy arm reproduces 47b the
+  run proceeds; if not it halts, as before.
