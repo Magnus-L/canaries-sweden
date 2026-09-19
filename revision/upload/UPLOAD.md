@@ -310,3 +310,26 @@ firms. The industry-reweighted contrast and hires-as-outcome are additions, not 
 and are named in the summary as not done.
 
 Tested locally end to end: `revision/local/test_47i_synthetic.py` (three cases, no SQL, real R).
+
+## 10. 47j, the within-employer triple difference (19 Sep 2026)
+
+Their exposure idea with our identification. Exposure is the education mix of the firm's
+INCUMBENTS (31+) in 2019, fixed; the within-employer variation comes from AGE, the one worker
+attribute that cannot go stale. Employer x month, employer x age and month x age are all
+absorbed, so the surviving term is PostGPT x High x Young: young versus older workers inside
+one employer in one month.
+
+| File on this machine | Destination on MONA (full path) |
+|---|---|
+| `revision/upload/47j_within_employer_triple.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47j_within_employer_triple.py` (upload as `.txt`, rename to `.py`) |
+
+Reads 47h's caches; about 10 minutes warm. Submit standalone, after 47h or 47i. Exports:
+`output_47j\47j_summary.txt`, `triple_estimates.csv`, `triple_quartile_sizes.csv`, `47j_log.txt`.
+
+**The estimand is the age gradient**, which is what the paper's title claims, so this is closer
+to the stated contribution than the current design, not further from it. Its blind spot is
+stated in the output: a shock that hit every age equally inside exposed firms would not appear.
+
+Tested locally: corrupting every young education record, and deleting the young entirely, leaves
+all 140 fixture firms' exposure bit-identical; a planted decline on the classifier's own Q4 firms
+is recovered with the right sign and size; end to end with SQL forbidden.
