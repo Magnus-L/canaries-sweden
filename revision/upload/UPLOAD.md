@@ -349,3 +349,35 @@ Still upload the individual scripts it calls (sections 6 to 10) and `eloundou_ss
 -- writes `revision/EVIDENCE.md` and `.pdf`, one section per claim, each with the number, the
 source file and the verdict under the pre-committed rule. Add `--sim` to run the simulation
 study too (about three hours). It never deletes anything; use `fdr` for filing.
+
+## 12. The final upload list (19 Sep 2026, after the cross-vendor review)
+
+Submit ONE file: `run_tonight.py`. Upload all of these first, every one as `.txt` renamed to
+`.py` unless stated, into
+`\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\`:
+
+| # | File in `revision/upload/` | Note |
+|---|---|---|
+| 1 | `run_tonight.py` | the only one you submit |
+| 2 | `50_sim_moments.py` | runs first, ~20 min; carries the validation table |
+| 3 | `47L_age_baseline_exposure.py` | **new**, the design the review identified; own SQL, ~75 min |
+| 4 | `47h_edu_horserace.py` | the long one, ~5.5 h, resumes from its caches |
+| 5 | `47k_settled_sample.py` | **new**, keeps the paper's estimand; reads 47h's caches |
+| 6 | `47i_firmmix.py` | supporting evidence |
+| 7 | `47j_within_employer_triple.py` | supporting evidence |
+| 8 | `48_gender_poisson.py` | with the char/int fix |
+| 9 | `MANIFEST.txt` | optional, for the hash rows |
+
+And one data file, uploaded directly with no rename, into
+`\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\input\`:
+
+| 10 | `eloundou_ssyk4.dta` | 47h needs it |
+
+No new folders anywhere. Total if nothing has finished: about 10 hours; far less if 47h
+already completed, since 47i, 47j and 47k then read its caches.
+
+**Export afterwards:** `output_50`, `output_47L`, `output_47h`, `output_47k`, `output_47i`,
+`output_47j`, `output_48`, plus `output_41`, `output_44` and `output_46`, which finished
+earlier and were never fetched.
+
+**Then here:** `python3 revision/assemble.py <the export folder>`.

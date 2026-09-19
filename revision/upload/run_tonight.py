@@ -32,12 +32,19 @@ HERE = Path(__file__).resolve().parent
 LOG = HERE / "run_tonight_log.txt"
 
 # (script, the file that proves it finished, expected minutes)
+# Order is deliberate. 50 first: it is short and it carries the predictive
+# validation table the whole local analysis waits on. Then 47L, the design
+# the cross-vendor review identified as the one we had missed, which has its
+# own SQL and does not depend on 47h. Then 47h, the long one, and the three
+# that read its caches.
 STAGES = [
+    ("50_sim_moments.py",             "output_50/50_summary.txt",     20),
+    ("47L_age_baseline_exposure.py",  "output_47L/47L_summary.txt",   75),
     ("47h_edu_horserace.py",          "output_47h/47h_summary.txt",  330),
+    ("47k_settled_sample.py",         "output_47k/47k_summary.txt",  120),
     ("47i_firmmix.py",                "output_47i/47i_summary.txt",   12),
     ("47j_within_employer_triple.py", "output_47j/47j_summary.txt",   12),
     ("48_gender_poisson.py",          "output_48/48_summary.txt",     40),
-    ("50_sim_moments.py",             "output_50/50_summary.txt",     20),
 ]
 
 
@@ -91,8 +98,9 @@ def main():
     print("SUMMARY")
     for script, rc, el in results:
         print(f"  {script:<34} exit {rc}  {el:6.1f} min")
-    print("\nEXPORT THESE FOLDERS: output_47h, output_47i, output_47j, "
-          "output_48, output_50, output_41, output_44, output_46")
+    print("\nEXPORT THESE FOLDERS: output_50, output_47L, output_47h, output_47k,")
+    print("                     output_47i, output_47j, output_48, and the ones")
+    print("                     never fetched: output_41, output_44, output_46")
     print("Then on the Mac:  python3 revision/assemble.py <the export folder>")
 
 
