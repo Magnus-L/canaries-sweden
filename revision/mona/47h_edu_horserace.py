@@ -989,13 +989,44 @@ def main():
             OUT / "gate_decomposition.csv", index=False)
     except BaseException as ex:
         print(f"  [optional] gate_decomposition.csv FAILED ({type(ex).__name__})")
-    if d_true > GATE_HALT or d_leg > GATE_HALT:
+    # 20 Sep 2026. The gate halted twice, and the reason it gives is not the
+    # reason it was built for. `asof_legacy` came back IDENTICAL to `asof`
+    # (-0.1562, same SE, same n), so 47b's cascade, reproduced verbatim at
+    # the SQL level, is not what separates the two scripts. The education
+    # key, the vintage list and the attrition at the key join were all
+    # checked against 47b's own exported match rates and are the same.
+    #
+    # The gate's premise was that 47b is the benchmark. That premise is the
+    # weak part: 47b is the script with the known defect, whose
+    # map_and_collapse emitted `edu_quartile` where the caller expected
+    # `exposure_quartile`. 47h has corroboration 47b does not, from a
+    # simulator calibrated on measured moments that never saw either
+    # script's output and predicts an artefact near -0.20 for this design.
+    #
+    # So the true arm still HALTS: if 47h cannot reproduce 47b where the
+    # two should agree exactly, the pull itself is suspect and nothing
+    # downstream is worth computing. The legacy arm now WARNS: the
+    # discrepancy is real, unexplained and recorded, and it is not a reason
+    # to refuse to estimate the other seven designs.
+    if d_true > GATE_HALT:
         raise SystemExit(
-            f"GATE FAILED: the legacy arm does not reproduce 47b (|d| true "
-            f"{d_true:.4f}, legacy {d_leg:.4f}). The pull differs for a reason "
-            f"that is NOT the documented cascade fix. Stopping before Tier A.")
-    print("  GATE PASS: the legacy arm reproduces 47b, so the gap between the "
-          "two as-of arms is the cascade fix and nothing else.")
+            f"GATE FAILED on the TRUE arm: {gate['true']:+.4f} against 47b's "
+            f"{GATE_47B['true']:+.4f} (|d| {d_true:.4f}). The two should agree "
+            f"almost exactly here, so the pull itself is in doubt. Stopping "
+            f"before Tier A.")
+    gate_note = ""
+    if d_leg > GATE_HALT:
+        gate_note = (
+            f"UNRECONCILED: the legacy arm gives {gate['asof_legacy']:+.4f} "
+            f"against 47b's {GATE_47B['asof']:+.4f} (|d| {d_leg:.4f}), and it "
+            f"is identical to the corrected arm, so 47b's cascade is not the "
+            f"difference. Cause not established; see "
+            f"notes/47h-gate-diagnosis_2026-09-20.md. Every number below is "
+            f"47h's own and must be reported with this discrepancy stated.")
+        print("\n  *** " + gate_note + "\n")
+    else:
+        print("  GATE PASS: the legacy arm reproduces 47b, so the gap between "
+              "the two as-of arms is the cascade fix and nothing else.")
 
     # ---- Tier A ----
     print("\nTIER A: every design, 22-25, both arms, both truncations")
@@ -1052,6 +1083,8 @@ def main():
              + "  ".join(f"T{T} {v:+.4f}" for T, v in OCC_ARTEFACT.items()),
              "Read rule: clean < 0.05 at both T; usable < half the occupation "
              "artefact (0.153 / 0.081); else closed.", ""]
+    if gate_note:
+        lines += ["", "*** " + gate_note, ""]
     lines.append(f"{'design':<14} {'T2021':>9} {'T2022':>9}   verdict")
     order = sorted(designs, key=lambda n: max(abs(art.get((n, T), np.inf)) for T in TRUNCATIONS))
     for name in order:

@@ -268,18 +268,54 @@ def test_resume(tmp):
 
 
 def test_gate_halts():
+    """
+    The TRUE arm still halts. If 47h cannot reproduce 47b where the two
+    should agree almost exactly, the pull is in doubt and nothing
+    downstream is worth computing.
+    """
     tmp = TMP / "gate"; tmp.mkdir()
     out, _ = wire(tmp, enrol=True)
     mod.GATE_WARN, mod.GATE_HALT = 0.005, 0.05
-    mod.estimate = lambda coll, age, tag: dict(gamma2=0.0, se=0.01, p=0.5, n_obs=1,
-                                               status="ok", elapsed_s=0.0)
+    # break the TRUE arm specifically. The previous version of this test
+    # returned 0.0 for every arm and therefore halted on the LEGACY arm,
+    # which is the behaviour that changed on 20 Sep; it would have passed
+    # while testing nothing.
+    mod.estimate = lambda coll, age, tag: dict(
+        gamma2=(-0.9 if "_true_" in tag else mod.GATE_47B["asof"]),
+        se=0.01, p=0.5, n_obs=1, status="ok", elapsed_s=0.0)
     try:
         mod.main()
     except SystemExit as ex:
-        assert "GATE FAILED" in str(ex)
-        print("PASS gate halts on a non-reproducing pull")
+        assert "TRUE arm" in str(ex), str(ex)
+        print("PASS the gate still halts when the TRUE arm does not reproduce 47b")
         return
-    raise AssertionError("gate did not halt")
+    raise AssertionError("gate did not halt on a bad true arm")
+
+
+def test_gate_warns_on_legacy():
+    """
+    The LEGACY arm only warns. On 19 Sep it came back identical to the
+    corrected arm, so 47b's cascade is not what separates the scripts, and
+    refusing to estimate the other seven designs over an unexplained
+    discrepancy with a superseded script buys a reconciliation rather than
+    a result. The discrepancy must still reach the summary.
+    """
+    tmp = TMP / "gatewarn"; tmp.mkdir()
+    out, _ = wire(tmp, enrol=True)
+    mod.GATE_WARN, mod.GATE_HALT = 0.005, 0.05
+    # true arm agrees with 47b; legacy arm does not
+    def fake(coll, age, tag):
+        g = mod.GATE_47B["true"] if "_true_" in tag else -0.9
+        return dict(gamma2=g, se=0.01, p=0.5, n_obs=1, status="ok",
+                    elapsed_s=0.0)
+    mod.estimate = fake
+    mod.main()
+    summ = (out / "47h_summary.txt").read_text()
+    assert "UNRECONCILED" in summ, "the discrepancy never reached the summary"
+    est = pd.read_csv(out / "horserace_estimates.csv")
+    assert len(est) > 3, f"only {len(est)} fits: the run did not proceed past the gate"
+    print(f"PASS the legacy arm warns, records UNRECONCILED, and the run "
+          f"proceeds ({len(est)} fits)")
 
 
 if __name__ == "__main__":
@@ -289,4 +325,5 @@ if __name__ == "__main__":
     test_enrolment_degrades()
     test_resume(happy)
     test_gate_halts()
+    test_gate_warns_on_legacy()
     print(f"\nALL PASS  (tmp: {TMP})")
