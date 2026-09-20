@@ -148,5 +148,22 @@ check("and the planted world is clearly separated from the null world",
       f"planted {P['coef'].min():+.3f} vs null {P0['coef'].min():+.3f}, "
       f"separation {P0['coef'].min() - P['coef'].min():.3f}")
 
+# ---- main(), which the entry-point ratchet flagged as untested --------
+mc.write_cache(base, mc.CACHE_DIR / "L_baseline_2019.parquet")
+_F = f_flows()
+for _y in s54.YEARS:
+    mc.write_cache(_F[_F["year_month"].str[:4] == str(_y)],
+                   mc.CACHE_DIR / f"flows_{_y}.parquet")
+mc.connect = lambda: (_ for _ in ()).throw(AssertionError("SQL attempted"))
+s60.GRID = s60.GRID[:2]          # two grid points is enough to exercise it
+try:
+    s60.main(); _ok = True
+except BaseException:
+    import traceback; traceback.print_exc(); _ok = False
+check("main() runs end to end from cache with SQL forbidden", _ok)
+if _ok:
+    check("it writes the pre-specified table",
+          (s60.OUT / "prespecified.csv").exists())
+
 print("\n" + ("ALL PASS" if not FAILS else f"FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)

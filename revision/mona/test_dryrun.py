@@ -132,6 +132,67 @@ def stage_compile():
         record("compile", f, r.returncode == 0, r.stderr.strip()[:120])
 
 
+def stage_entrypoints():
+    """
+    Which scripts have a main() that no test anywhere ever calls?
+
+    This is not a style complaint. On 20 Sep script 58 died eighteen
+    seconds into a MONA run on two bugs in a block that only main()
+    reaches, and it died there because every test drove the internals
+    directly. The entry point ran for the first time on the share, which
+    is the most expensive place to discover anything.
+
+    The check REPORTS rather than fails: several of these scripts cannot
+    be driven without SQL and giving each a mocked harness is a day's
+    work, not a five-minute one. A visible standing list is still worth
+    having, because an untested entry point is a known risk rather than
+    an unknown one, and the list should shrink over time rather than
+    quietly grow.
+    """
+    print("\n1b. ENTRY POINTS EXERCISED BY A TEST")
+    local = HERE.parent / "local"
+    tests = list(local.glob("test_*.py")) + [HERE / "test_dryrun.py"]
+    # PER FILE, not against a concatenated blob. The blob version counted a
+    # script as tested if ANY test mentioned it and ANY OTHER test called a
+    # main(), and it then counted the baseline list written into this very
+    # file as evidence that those four scripts were tested. A check that
+    # can be satisfied by its own exemption list is worse than no check.
+    texts = [t.read_text(errors="replace") for t in tests
+             if t.is_file() and t.name != "test_dryrun.py"]
+    naked = []
+    for f in PY_FILES:
+        src = (HERE / f).read_text(errors="replace")
+        if "\ndef main(" not in src:
+            continue
+        stem = f[:-3]
+        # A script this harness RUNS as a subprocess has its main()
+        # exercised just as surely as one a test imports and calls.
+        if f in RUNNABLE or f in ("39b_panel_diff.py", "47_edu_exposure.py"):
+            continue
+        if any(stem in txt and ".main()" in txt for txt in texts):
+            continue
+        naked.append(f)
+    # A RATCHET, not a gate. Four scripts cannot be driven without SQL and
+    # giving each a mocked harness is a day's work; failing the build on
+    # them would make the harness permanently red, which teaches everyone
+    # to ignore red. So the baseline is recorded and the test fails only
+    # if the list GROWS. Existing debt is visible and new debt is blocked.
+    # Shrink the baseline whenever one of these gets a test.
+    BASELINE = {"39_canary_gate.py", "47b_edu_asof_backtest.py",
+                "48_gender_poisson.py", "49_coverage_reconcile.py",
+                "49b_staleness_by_quartile.py", "run_all_mona.py"}
+    new_debt = sorted(set(naked) - BASELINE)
+    fixed = sorted(BASELINE - set(naked))
+    record("entrypoints", "no NEW script has an untested main()",
+           not new_debt,
+           f"new: {new_debt}" if new_debt else f"{len(naked)} known, baseline held")
+    for f in sorted(naked):
+        mark = "NEW" if f in new_debt else "known"
+        print(f"      untested main() [{mark}]: {f}")
+    if fixed:
+        print(f"      now tested, remove from BASELINE: {fixed}")
+
+
 def stage_import(work: Path, env: dict):
     print("\n2. IMPORT (CANARIES_DRYRUN=1)")
     for f in PY_FILES:
@@ -408,6 +469,7 @@ def main():
     a = ap.parse_args()
 
     stage_compile()
+    stage_entrypoints()
 
     work = Path(tempfile.mkdtemp(prefix="canaries_dryrun_"))
     share = work / "share"; share.mkdir()

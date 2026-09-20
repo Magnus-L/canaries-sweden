@@ -165,5 +165,23 @@ check("it is floored", ((d.n_cells == 0) | (d.n_cells >= 10)).all())
 check("it splits exposure and age", {0, 1} <= set(d.high_exposure)
       and {0, 1} <= set(d.young))
 
+# ---- main(), which the entry-point ratchet flagged as untested --------
+# 58 crashed on MONA in a block only main() reaches. Same risk here.
+mc.write_cache(base, mc.CACHE_DIR / "L_baseline_2019.parquet")
+_F = f_flows()
+for _y in s54.YEARS:
+    mc.write_cache(_F[_F["year_month"].str[:4] == str(_y)],
+                   mc.CACHE_DIR / f"flows_{_y}.parquet")
+mc.connect = lambda: (_ for _ in ()).throw(AssertionError("SQL attempted"))
+try:
+    s59.main(); _ok = True
+except BaseException:
+    import traceback; traceback.print_exc(); _ok = False
+check("main() runs end to end from cache with SQL forbidden", _ok)
+if _ok:
+    check("it writes the quarterly path", (s59.OUT / "path_quarter.csv").exists())
+    check("and the plottable descriptive series",
+          (s59.OUT / "descriptive.csv").exists())
+
 print("\n" + ("ALL PASS" if not FAILS else f"FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)
