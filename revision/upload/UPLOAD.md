@@ -381,3 +381,53 @@ already completed, since 47i, 47j and 47k then read its caches.
 earlier and were never fetched.
 
 **Then here:** `python3 revision/assemble.py <the export folder>`.
+
+## 13. Three jobs at once: 61, 62 and 63 (20 September 2026)
+
+The three questions section 11 of the memo left open, written as three
+single-stage lanes so they occupy MONA's three slots simultaneously. They
+read the same caches and none of them writes one, so they cannot interfere;
+`test_lanes.py` checks both properties rather than asserting them.
+
+| Lane | Script | Question | Expect |
+|---|---|---|---|
+| 8 | `61_redated_triple.py` | The within-employer design with the treatment dated where SCB's adoption data put it (2024-01), not at the launch | 3–4 h |
+| 9 | `62_reconcile_gradients.py` | Why 47L and 47j disagree about which age band is affected: source, unit or form | 2–3 h |
+| 10 | `63_measure_robustness.py` | Does the answer depend on DAIOE? Eloundou as a second measure, teleworkability as a placebo, and a horse race between them | 3–4 h |
+
+Upload these eight files into
+`\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\`,
+each as `.txt` renamed to `.py` on arrival:
+
+| # | File in `revision/upload/` | Note |
+|---|---|---|
+| 1 | `61_redated_triple.py` | new |
+| 2 | `62_reconcile_gradients.py` | new |
+| 3 | `63_measure_robustness.py` | new |
+| 4 | `run_lane8.py` | submit this one |
+| 5 | `run_lane9.py` | submit this one |
+| 6 | `run_lane10.py` | submit this one |
+| 7 | `55_export_pack.py` | replaced: it now knows the seven new tables |
+| 8 | `60_treatment_date.py` | replaced: the version that ran, for the record |
+
+No new folders. `dingel_neiman_ssyk4.dta` and `eloundou_ssyk4.dta` are already in
+`input\` from earlier rounds; lane 10 needs both and says so if either is missing.
+
+**What each lane needs to have finished already.** All three read caches and
+perform no SQL, so a missing cache is an immediate, loud error rather than a
+silent pull:
+
+- lane 8: 47h's `edu_hr_2019` and `edu_hr_weights_2019..2021`, and 47L's
+  `L_counts_2021..2025`
+- lane 9: 47L's `L_baseline_2019` and `L_counts_2019..2025`, 47h's as above
+- lane 10: 47L's as above, and 54's `flows_*`
+
+**A note on lane 8's panel.** 47j takes its panel from 47h's year frames, and
+those stop in 2023 because the education register does. Re-dating the treatment
+to January 2024 on that panel would have estimated the headline coefficient on
+no data at all and returned a number. Lane 8 therefore takes the outcome from
+47L's monthly counts, which run to June 2025, and refuses to start if what it
+finds does not reach the adoption window.
+
+**Export afterwards:** `output_61`, `output_62`, `output_63`, then
+`55_export_pack.py`, then `python3 revision/assemble.py <the export folder>`.

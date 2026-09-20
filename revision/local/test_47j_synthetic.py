@@ -38,77 +38,17 @@ mod = importlib.util.module_from_spec(spec_j); spec_j.loader.exec_module(mod)
 mod.OUT = TMP / "output_47j"; mod.OUT.mkdir(); mod.CACHE = mc.CACHE_DIR
 h47 = mod._h47()
 
-RNG = np.random.default_rng(147)
-KEY = h47.load_key()
-D = pd.read_stata(SHARE / "daioe_quartiles.dta")
-HI = D.loc[D.high_exposure == 1, "ssyk4"].astype(str).str.zfill(4).to_numpy()
-LO = D.loc[D.high_exposure == 0, "ssyk4"].astype(str).str.zfill(4).to_numpy()
-ter = KEY[KEY["niva"].str[:1].isin(["4", "5", "6"])].sample(30, random_state=1)
-gym = KEY[KEY["niva"].str[:1] == "3"].sample(12, random_state=2)
-CELLS = pd.concat([ter, gym]).reset_index(drop=True)
-AGE_W = {"22-25": 0.10, "26-30": 0.13, "31-34": 0.10, "35-40": 0.14,
-         "41-49": 0.23, "50+": 0.30}
-EXPOSED = set(range(1, 61))          # firms 1-60 are the exposed ones
-SHOCK = 0.65                          # young employment in exposed firms after GPT
+from _fixtures import Fixture  # noqa: E402
+
+# The synthetic register frames live in _fixtures, shared with the tests
+# for 61 and 62. SHOCK is the multiplier planted on young employment in
+# exposed firms after the launch, and the fit must return its log.
+FIX = Fixture(mc, h47)
+SHOCK = FIX.shock
 
 
-def weights_frame(year):
-    RNG = np.random.default_rng(1000 + year)      # deterministic per year
-    rows = []
-    for _, c in CELLS.iterrows():
-        hi = c["niva"][:1] in "456"
-        for code in np.concatenate([RNG.choice(HI, 4), RNG.choice(LO, 4)]):
-            base = 500 if ((code in set(HI)) == hi) else 120
-            for band in h47.EXP_BANDS:
-                rows.append((c["niva"], c["inr"], code, 1, band, 1,
-                             int(RNG.poisson(base)) + 1))
-    return pd.DataFrame(rows, columns=["niva", "inr", "ssyk4", "fresh",
-                                       "expband", "young", "n"])
-
-
-def year_frame(year, corrupt_young=False, drop_young=False, shock=True,
-               shock_firms=None):
-    # One seed per YEAR only: two variants of the same year therefore differ
-    # in exactly the thing being varied and in nothing else, which is what
-    # makes the incumbent-invariance test meaningful.
-    RNG = np.random.default_rng(2000 + year)
-    ters = CELLS[CELLS["niva"].str[:1].isin(list("456"))]
-    gyms = CELLS[CELLS["niva"].str[:1] == "3"]
-    rows = []
-    for emp in range(1, 141):
-        pool = ters if emp in EXPOSED else gyms
-        mix = pool.sample(min(4, len(pool)), random_state=emp % 97)
-        for m in range(1, 13):
-            ym = f"{year}-{m:02d}"
-            post = ym >= "2022-12"
-            for _, c in mix.iterrows():
-                for age, w in AGE_W.items():
-                    # Draw for EVERY age, then skip: dropping the young with a
-                    # `continue` before the draw shifts the RNG sequence, so the
-                    # incumbents differ too and the invariance test measures the
-                    # fixture rather than the design.
-                    lam = 40 * w
-                    tgt = EXPOSED if shock_firms is None else shock_firms
-                    if shock and post and age == "22-25" and emp in tgt:
-                        lam *= SHOCK
-                    n_emp = int(RNG.poisson(lam)) + 1
-                    if drop_young and age in ("22-25", "26-30"):
-                        continue
-                    rec = dict(employer_id=emp, year_month=ym, age_group=age,
-                               niva_t=c["niva"], inr_t=c["inr"], expb_t="3-5",
-                               n_emp=n_emp)
-                    for T in (2021, 2022):
-                        bad = corrupt_young and age in ("22-25", "26-30")
-                        g = gyms.iloc[(emp + m) % len(gyms)] if bad else c
-                        rec[f"niva_{T%100}"], rec[f"inr_{T%100}"] = g["niva"], g["inr"]
-                        rec[f"expb_{T%100}"] = "3-5"
-                        rec[f"enr_{T%100}"] = None
-                    # 47h's pull now also returns the legacy (47b) cascade
-                    # columns. This script never uses that arm, so they alias
-                    # the corrected ones; the gate in 47h is where they differ.
-                    rec["niva_21g"], rec["inr_21g"] = rec["niva_21"], rec["inr_21"]
-                    rows.append(rec)
-    return h47.compact(pd.DataFrame(rows)[h47.YEAR_COLS + ["n_emp"]])
+def setup(**kw):
+    return FIX.install_edu(mod.YEARS, **kw)
 
 
 def q4_firms():
@@ -117,22 +57,9 @@ def q4_firms():
     over Q3 and Q4 is diluted by the controls and the recovered coefficient
     would understate the truth for a reason that has nothing to do with 47j."""
     book, sp, frames = setup(shock=False)
-    expo, _ = mod.incumbent_exposure(frames[2019], book, "OL_daioe", sp, "true", 2021)
+    expo, _ = mod.incumbent_exposure(frames[2019], book, "OL_daioe", sp,
+                                     "true", 2021)
     return set(expo.loc[expo["fq"] == 4, "employer_id"].astype(int))
-
-
-def setup(**kw):
-    for y in (2019, 2020, 2021):
-        weights_frame(y).to_parquet(mc.CACHE_DIR / f"edu_hr_weights_{y}.parquet", index=False)
-    for y in mod.YEARS:
-        year_frame(y, **kw).to_parquet(mc.CACHE_DIR / f"edu_hr_{y}.parquet", index=False)
-    counts = {y: pd.read_parquet(mc.CACHE_DIR / f"edu_hr_weights_{y}.parquet")
-              for y in (2019, 2020, 2021)}
-    h47.MIN_CELL = 10
-    book = h47.ScoreBook(counts, KEY, h47.load_scores())
-    sp = dict(h47.DESIGNS["OL_daioe"]); book.build("OL_daioe", sp)
-    frames = {y: pd.read_parquet(mc.CACHE_DIR / f"edu_hr_{y}.parquet") for y in mod.YEARS}
-    return book, sp, frames
 
 
 def test_incumbents_only():

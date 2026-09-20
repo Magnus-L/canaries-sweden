@@ -34,18 +34,31 @@ inference, so the choice is made here, in the source, before the run.
     2022-12  ChatGPT public launch, 30 November 2022. A capability event.
     2023-04  the quarter after GPT-4, 14 March 2023. The first release
              widely described as useful for professional work.
-    2023-11  Microsoft 365 Copilot general availability. A DEPLOYMENT
-             event: the first time the technology arrived inside the
-             tools Swedish office work already runs on.
-    2024-01  the date the qualitative accounts point to.
+    2023-10  the midpoint of the interval over which SWEDISH FIRM ADOPTION
+             more than doubled. See below.
+    2024-01  the far end of that interval, and the date the qualitative
+             accounts point to.
 
 Employment responds to firms USING the technology, not to a model being
-released, so the deployment and diffusion anchors are the ones I would
-weight. The external adoption series that would date this properly are
-SCB's ICT survey for Swedish firms and the Bick, Blandin and Deming
-series for individual use. NEITHER IS CITED HERE because neither has been
-verified against its source in this round; the four dates above stand on
-publicly datable events only.
+released, so the diffusion anchor is the one to weight, and for Sweden it
+is measured rather than inferred. SCB's IT-anvandning i foretag puts the
+share of enterprises with ten or more employees using AI technology at
+
+    10.4 per cent in 2023
+    25.2 per cent in 2024
+    35.0 per cent in 2025
+
+so adoption roughly two and a half times over between the 2023 and 2024
+observations, the largest proportional jump in the series, and then grew
+more slowly. Whatever the survey's reference convention, and SCB's public
+pages do not state whether the figure describes the survey year or the
+year before it, the transition is centred on the second half of 2023 and
+the first half of 2024. That is the interval the grid below is built to
+cover, and 2023-10 and 2024-01 bracket it.
+
+Verified against SCB's own statistical news releases on 20 Sep 2026. The
+Bick, Blandin and Deming series measures individual use in the United
+States and is NOT used here: it dates a different population.
 
 PART 2, EXPLORATORY. The same coefficient over a grid of candidate dates,
 reported as a profile.
@@ -101,8 +114,8 @@ FES = ("fe_emp_t", "fe_emp_age", "fe_t_age")
 PRESPEC = {
     "2022-12": "ChatGPT public launch (30 Nov 2022)",
     "2023-04": "quarter after GPT-4 (14 Mar 2023)",
-    "2023-11": "Microsoft 365 Copilot general availability",
-    "2024-01": "onset suggested by the qualitative accounts",
+    "2023-10": "midpoint of SCB's 10.4 to 25.2 per cent adoption jump",
+    "2024-01": "far end of that jump; the qualitative accounts' onset",
 }
 # Exploratory grid: every quarter from the launch to a year before the end,
 # so the shortest post window is still four quarters.

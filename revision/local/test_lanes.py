@@ -130,9 +130,48 @@ def test_lane_plan_is_coherent():
     check("the longest lane is under nine hours", max(tot.values()) < 540, str(tot))
 
 
+def test_parallel_lanes():
+    """
+    Lanes 8, 9 and 10 are meant to occupy MONA's three slots at once, so
+    they have to be independent in a stronger sense than lanes 1 to 3:
+    not merely unordered, but incapable of interfering. Two things make
+    that true and both are checked here. They share no stage, and none of
+    them WRITES to the shared cache directory. A script that wrote a cache
+    another was reading would corrupt it silently, and the failure would
+    surface as an estimate rather than as an error.
+    """
+    stages = {}
+    for n in (8, 9, 10):
+        spec = importlib.util.spec_from_file_location(f"p{n}",
+                                                      MONA / f"run_lane{n}.py")
+        m = importlib.util.module_from_spec(spec)
+        sys.modules[f"p{n}"] = m
+        spec.loader.exec_module(m)
+        stages[n] = [x[0] for x in m.STAGES]
+        check(f"lane {n} is a single stage, so a slot holds one job",
+              len(m.STAGES) == 1, str(stages[n]))
+    flat = [x for v in stages.values() for x in v]
+    check("the three parallel lanes share no stage", len(flat) == len(set(flat)))
+    for f in flat:
+        src = (MONA / f)
+        check(f"{f} exists in revision/mona", src.exists())
+        if not src.exists():
+            continue
+        body = src.read_text(errors="replace")
+        check(f"{f} never writes to the shared cache",
+              "write_cache" not in body,
+              "so three jobs can read the same caches at once")
+        check(f"{f} performs no SQL", "mc.connect(" not in body)
+    tot = {n: sum(x[2] for x in sys.modules[f"p{n}"].STAGES) for n in (8, 9, 10)}
+    print(f"      parallel lane minutes: {tot}")
+    check("each parallel lane is under six hours", max(tot.values()) < 360,
+          str(tot))
+
+
 if __name__ == "__main__":
     test_order_skip_continue()
     test_echo_is_capped_but_the_log_is_not()
     test_lane_plan_is_coherent()
+    test_parallel_lanes()
     print("\nFAILED: " + ", ".join(FAILS) if FAILS else "\nALL PASS")
     sys.exit(1 if FAILS else 0)

@@ -83,6 +83,13 @@ PRIORITY = {
     "descriptive.csv",             # 59 the plottable series
     "prespecified.csv",            # 60 the four pre-specified dates
     "profile.csv",                 # 60 the exploratory date profile
+    "redated_step.csv",            # 61 the three disjoint windows
+    "redated_pooled.csv",          # 61 the single post-2024 coefficient
+    "gradient_by_variant.csv",     # 62 the age gradient, one row per variant
+    "exposure_agreement.csv",      # 62 how far the four exposures agree
+    "robustness_gradient.csv",     # 63 age gradient x measure x outcome
+    "horserace.csv",               # 63 both measures in one regression
+    "measure_correlation.csv",     # 63 how far the three measures agree
 }
 
 COUNT_HINTS = ("n_emp", "n_obs", "n", "count", "cells", "firms", "n_coded",

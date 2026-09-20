@@ -93,6 +93,12 @@ WANTED = {
     "59":   "path_quarter.csv",
     "60":   "prespecified.csv",
     "60p":  "profile.csv",
+    # the three jobs of 20 Sep: re-dating, reconciliation, measure robustness
+    "61":   "redated_step.csv",
+    "61p":  "redated_pooled.csv",
+    "62":   "gradient_by_variant.csv",
+    "63":   "robustness_gradient.csv",
+    "63h":  "horserace.csv",
 }
 
 
@@ -432,6 +438,103 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
                                         f"writing the sentence._"))
         else:
             L.append(sec(title, claim + "\n\n**Pending.**"))
+
+    # ---- the three jobs of 20 September, each with its own read rule ----
+    r = _num("61", "coef", design="OL_daioe", arm="true", young_band="22-25",
+             term="s_adoption")
+    rse = _num("61", "se", design="OL_daioe", arm="true", young_band="22-25",
+               term="s_adoption")
+    rl = _num("61", "coef", design="OL_daioe", arm="true", young_band="22-25",
+              term="s_launch")
+    ra = _num("61p", "coef", design="OL_daioe", arm="asof",
+              young_band="22-25", term="post2024_x_high_x_young")
+    rt = _num("61p", "coef", design="OL_daioe", arm="true",
+              young_band="22-25", term="post2024_x_high_x_young")
+    if r is not None:
+        art = (f" The artefact at the new dating is "
+               f"{ra - rt:+.4f}." if (ra is not None and rt is not None)
+               else " The artefact at the new dating was not estimated.")
+        L.append(sec(
+            "8i. The within-employer design, dated where adoption happened (61)",
+            f"Young against older inside one employer, exposure from the 2019 "
+            f"education mix of incumbents aged 31 and over, and the treatment "
+            f"dated on SCB's measured firm adoption rather than on the launch."
+            f"\n\n- adoption window, from 2024-01: **{r:+.4f}**"
+            + (f" (SE {rse:.4f}, t {r/rse:+.2f})" if rse else "")
+            + (f"\n- launch window, 2022-12 to 2023-11: {rl:+.4f}, which is "
+               f"the period every earlier estimate averaged in" if rl is not None else "")
+            + art
+            + "\n\nRead rule: the windows were fixed by script 60 before any "
+              "of this was estimated, and the adoption window is the shortest, "
+              "so compare the windows on their t and not on their size."))
+    else:
+        L.append(sec("8i. The within-employer design, dated where adoption "
+                     "happened (61)", "**Pending.**"))
+
+    if "62" in found:
+        try:
+            d = pd.read_csv(found["62"])
+            y = d[d["age_group"] == "22-25"].set_index("variant")["coef"]
+            rows = "\n".join(f"- {k}: {v:+.4f}" for k, v in y.items())
+            a, b = y.get("A_occ_age_cont"), y.get("B_occ_firm_cont")
+            c, dd = y.get("C_edu_age_cont"), y.get("D_edu_firm_quart")
+            moves = []
+            if a is not None and b is not None:
+                moves.append(f"UNIT alone moves 22-25 by {b - a:+.4f}")
+            if a is not None and c is not None:
+                moves.append(f"SOURCE alone by {c - a:+.4f}")
+            if c is not None and dd is not None:
+                moves.append(f"unit and form together by {dd - c:+.4f}")
+            L.append(sec("8j. Why the two clean designs disagree about age (62)",
+                         "47L and 47j name different age bands. Their exposures "
+                         "differ in source, unit and form at once, so this "
+                         "holds the outcome, the panel and the fixed effects at "
+                         "47L's and varies one ingredient at a time. At 22-25:"
+                         f"\n\n{rows}\n\n"
+                         + ("; ".join(moves) + "." if moves else "")
+                         + "\n\nRead rule: whichever ingredient moves the "
+                           "answer is the one the two designs were disagreeing "
+                           "about. If it is the unit, they were answering "
+                           "different questions and neither is wrong."))
+        except Exception as ex:
+            L.append(sec("8j. Why the two clean designs disagree about age (62)",
+                         f"found but unreadable ({type(ex).__name__})"))
+    else:
+        L.append(sec("8j. Why the two clean designs disagree about age (62)",
+                     "**Pending.**"))
+
+    if "63" in found:
+        try:
+            d = pd.read_csv(found["63"])
+            st = d[(d["outcome"] == "stock") & (d["age_group"] == "22-25")]
+            st = st.set_index("measure")["coef"]
+            body = ("Every other design in this round assigns exposure from "
+                    "DAIOE at four-digit occupation, so if that measure is "
+                    "wrong they all fail together. At 22-25 on the employment "
+                    "stock:\n\n"
+                    + "\n".join(f"- {k}: {v:+.4f}" for k, v in st.items()))
+            hd = _num("63h", "coef", outcome="stock", spec="by_age",
+                      term="gpt_x_expo_22_25")
+            ht = _num("63h", "coef", outcome="stock", spec="by_age",
+                      term="t_22_25")
+            if hd is not None and ht is not None:
+                body += (f"\n\nHorse race, both measures in one regression, "
+                         f"22-25 on the stock: AI exposure **{hd:+.4f}**, "
+                         f"teleworkability {ht:+.4f}.")
+            body += ("\n\nRead rule: the measures correlate 0.66 to 0.87 "
+                     "across occupations, so teleworkability being negative on "
+                     "its own is not evidence against the AI reading. The horse "
+                     "race is what separates them, and if teleworkability wins "
+                     "it the interpretation fails however clean the "
+                     "identification is.")
+            L.append(sec("8k. Does the answer depend on the exposure measure? (63)",
+                         body))
+        except Exception as ex:
+            L.append(sec("8k. Does the answer depend on the exposure measure? (63)",
+                         f"found but unreadable ({type(ex).__name__})"))
+    else:
+        L.append(sec("8k. Does the answer depend on the exposure measure? (63)",
+                     "**Pending.**"))
 
     L.append(sec("10. Advertisements, no register involved",
                  "**Supported, and unaffected by any of the above.** Within-employer design on "
