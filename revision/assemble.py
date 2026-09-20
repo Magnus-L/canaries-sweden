@@ -79,6 +79,20 @@ WANTED = {
     "44":   "decile_pooled.csv",
     "46":   "wfh_horserace.csv",
     "50":   "m7_validation_t2023_k2.csv",
+    # the register-immune family, added 20 Sep once it existed
+    "47k":  "settled_estimates.csv",
+    "47L":  "agebase_estimates.csv",
+    "47Lg": "agebase_gradient.csv",
+    "53":   "fresh_pooled.csv",
+    "54":   "flow_estimates.csv",
+    "54g":  "flow_gradient.csv",
+    "56":   "dynamics_young.csv",
+    "57":   "reliability.csv",
+    "57v":  "vintage_estimates.csv",
+    "58":   "readrule.csv",
+    "59":   "path_quarter.csv",
+    "60":   "prespecified.csv",
+    "60p":  "profile.csv",
 }
 
 
@@ -302,6 +316,89 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
             df = pd.read_csv(found[key])
             L.append(sec(title, claim + f"\n\n_{len(df)} rows in `{found[key].name}`; "
                                         f"read it before writing the sentence._"))
+        else:
+            L.append(sec(title, claim + "\n\n**Pending.**"))
+
+    # ---- the register-immune family, which is now the spine ----
+    def _num(key, col, **eq):
+        """One number from a found csv, or None, without ever raising."""
+        if key not in found:
+            return None
+        try:
+            d = pd.read_csv(found[key])
+            for k, v in eq.items():
+                d = d[d[k].astype(str) == str(v)]
+            return None if d.empty else float(d[col].iloc[0])
+        except Exception:
+            return None
+
+    imm = []
+    g = _num("47L", "gamma", variant="floor", payroll_tax_control="False")
+    if g is None:
+        g = _num("47L", "gamma", variant="floor")
+    se = _num("47L", "se", variant="floor")
+    if g is not None:
+        imm.append(f"- **47L, employment stock, exposure frozen 2019**: "
+                   f"{g:+.4f}" + (f" (SE {se:.4f})" if se else "")
+                   + ". Uses no occupation code after 2019 and no education "
+                     "register at all.")
+    lam = None
+    if "57" in found:
+        try:
+            d = pd.read_csv(found["57"])
+            d = d[(d["age_group"] == "ALL")]
+            lam = float(d.sort_values("year")["lam"].iloc[-1])
+        except Exception:
+            lam = None
+    if lam is not None:
+        imm.append(f"- **57, reliability of that frozen exposure**: lambda = "
+                   f"{lam:.3f} at the last measured year. Attenuation is "
+                   f"{'mild, so a null is a null' if lam > 0.75 else 'severe, so a null is not informative'}.")
+    h = _num("54", "gamma", outcome="hires", variant="all_months")
+    if h is None:
+        h = _num("54", "gamma", outcome="hires")
+    if h is not None:
+        imm.append(f"- **54, hiring flow**: {h:+.4f}. The fast margin, and "
+                   f"the one the entry-level claim is about.")
+    L.append(sec("8b. The register-immune family",
+                 ("\n".join(imm) + "\n\nThese share the DAIOE measure and "
+                  "differ in their register dependence and identifying "
+                  "variation, so agreement between them is corroboration "
+                  "only against measurement error, not against a mismeasured "
+                  "exposure concept.")
+                 if imm else "**Pending**: none of 47L, 54 or 57 found."))
+
+    for key, title, claim in (
+        ("53", "8c. The paper's own estimand on contemporaneous codes (53)",
+         "Young against young, inside the employer, monthly, restricted to "
+         "worker-months whose occupation code was assigned in the "
+         "observation year. Window ends 2023. Read the fresh arm against "
+         "the stale arm: the contrast is internal."),
+        ("47k", "8d. The settled sample (47k)",
+         "Restricted to young workers whose education record is correct."),
+        ("56", "8e. By age and over time (56)",
+         "Event studies on stock, hires and separations. The PRE-PERIOD is "
+         "the test; quote it."),
+        ("58", "8f. Seasonal control and the pre-committed rule (58)",
+         "Whether the 2025H1 reading survives honest seasonal handling. The "
+         "rule can refuse, and on 20 Sep it did."),
+        ("59", "8g. Quarterly and monthly path (59)",
+         "Whether any late movement is a drift or one odd month."),
+        ("60", "8h. When did it start? (60)",
+         "Four pre-specified treatment dates, anchored on SCB's measured "
+         "Swedish firm adoption (10.4 per cent in 2023, 25.2 in 2024, 35.0 "
+         "in 2025), plus an exploratory profile. Earlier estimates all "
+         "define post as Dec 2022 and therefore average an untreated year "
+         "into the post window."),
+    ):
+        if key in found:
+            try:
+                n = len(pd.read_csv(found[key]))
+            except Exception:
+                n = "?"
+            L.append(sec(title, claim + f"\n\n_{n} rows in "
+                                        f"`{found[key].name}`; read it before "
+                                        f"writing the sentence._"))
         else:
             L.append(sec(title, claim + "\n\n**Pending.**"))
 
