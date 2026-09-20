@@ -119,11 +119,11 @@ education designs report an age gap between the young and the over-fifties of
 about −0.31. Under a world with a true gap of −0.15, they report about −0.34.
 Fit a line and you get
 
-> measured gap ≈ −0.31 + 0.18 × true gap
+> measured gap = −0.31 + 0.18 × true gap
 
 against the same estimator given correct codes, which returns
 
-> measured gap ≈ −0.02 + 0.72 × true gap
+> measured gap = −0.02 + 0.72 × true gap
 
 The second line describes a well-behaved estimator with ordinary attenuation.
 The first does not describe an estimator at all in any useful sense, since it
