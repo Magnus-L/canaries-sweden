@@ -317,11 +317,14 @@ def main():
         "     them is not a test. The shape is the evidence.",
         "  5. 2025 is the preliminary AGI file and stops in June, so 2025Q2",
         "     is a two-month quarter.",
-        "  6. The month-by-age fixed effect absorbs the average response",
-        "     across firms, so every coefficient is a deviation from that",
-        "     average rather than an absolute change. With the exposed",
-        "     quartile at a quarter of employment, the absolute effect is",
-        "     larger than what is printed here by roughly a third.",
+        "  6. Every coefficient is the exposed quartile MINUS the rest,",
+        "     not what an exposed firm experienced. To split it, note that",
+        "     the national average is the employment-weighted mean of the",
+        "     two, so with the exposed quartile at a quarter of employment",
+        "     an exposed firm sits three quarters of the coefficient below",
+        "     that average and the rest sit one quarter above it. The",
+        "     average itself is absorbed by the month-by-age effect and has",
+        "     to come from the descriptive series, not from here.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "64_summary.txt").write_text("\n".join(lines))
     print("\n" + "\n".join(lines))
