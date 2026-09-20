@@ -28,6 +28,7 @@ import _lane  # noqa: E402
 
 STAGES = [
     ("58_seasonal_and_vintage.py", "output_58/58_summary.txt", 35),
+    ("59_monthly_path.py",         "output_59/59_summary.txt", 50),
 ]
 
 if __name__ == "__main__":

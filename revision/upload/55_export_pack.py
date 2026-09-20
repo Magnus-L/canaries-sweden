@@ -78,6 +78,9 @@ PRIORITY = {
     "es_h1only.csv",               # 58 event study, first half-years only
     "readrule.csv",                # 58 the pre-committed rule, evaluated
     "agi_tables.csv",              # 58 which AGI months exist, which vintage
+    "path_quarter.csv",            # 59 quarterly path, rebased
+    "path_zoom.csv",               # 59 monthly path from 2024
+    "descriptive.csv",             # 59 the plottable series
 }
 
 COUNT_HINTS = ("n_emp", "n_obs", "n", "count", "cells", "firms", "n_coded",
