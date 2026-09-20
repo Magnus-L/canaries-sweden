@@ -167,7 +167,7 @@ def test_parallel_lanes():
     surface as an estimate rather than as an error.
     """
     stages = {}
-    for n in (8, 9, 10):
+    for n in (8, 9, 10, 11):
         spec = importlib.util.spec_from_file_location(f"p{n}",
                                                       MONA / f"run_lane{n}.py")
         m = importlib.util.module_from_spec(spec)
@@ -188,7 +188,8 @@ def test_parallel_lanes():
               "write_cache" not in body,
               "so three jobs can read the same caches at once")
         check(f"{f} performs no SQL", "mc.connect(" not in body)
-    tot = {n: sum(x[2] for x in sys.modules[f"p{n}"].STAGES) for n in (8, 9, 10)}
+    tot = {n: sum(x[2] for x in sys.modules[f"p{n}"].STAGES)
+           for n in (8, 9, 10, 11)}
     print(f"      parallel lane minutes: {tot}")
     check("each parallel lane is under six hours", max(tot.values()) < 360,
           str(tot))
