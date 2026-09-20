@@ -121,14 +121,27 @@ def fake_61(d: Path, adoption=-0.09, launch=-0.004, artefact=0.002):
 
 
 def fake_62(d: Path, unit_matters=True):
+    """
+    The firm-level variants lose the 50+ band to collinearity, exactly as
+    they do in MONA, so the fixture reproduces the trap: their coefficients
+    are differences from that band and the age-specific ones are not.
+    `unit_matters=False` builds a world where the whole apparent unit step
+    is that base difference and nothing else.
+    """
     rows = []
-    vals = {"A_occ_age_cont": -0.02,
-            "B_occ_firm_cont": 0.05 if unit_matters else -0.021,
-            "C_edu_age_cont": -0.019, "D_edu_firm_quart": -0.013}
-    for v, c in vals.items():
-        for age in ("22-25", "41-49"):
-            rows.append(dict(age_group=age, variant=v, label=v,
-                             coef=c if age == "22-25" else -0.019,
+    age_specific = {"A_occ_age_cont": {"22-25": -0.02, "41-49": -0.05,
+                                       "50+": 0.03},
+                    "C_edu_age_cont": {"22-25": -0.019, "41-49": -0.048,
+                                       "50+": 0.03}}
+    if unit_matters:
+        firm = {"B_occ_firm_cont": {"22-25": 0.05, "41-49": -0.01},
+                "D_edu_firm_quart": {"22-25": 0.04, "41-49": -0.01}}
+    else:                       # B is exactly A rebased on 50+
+        firm = {"B_occ_firm_cont": {"22-25": -0.05, "41-49": -0.08},
+                "D_edu_firm_quart": {"22-25": -0.049, "41-49": -0.078}}
+    for v, bands in {**age_specific, **firm}.items():
+        for age, c in bands.items():
+            rows.append(dict(age_group=age, variant=v, label=v, coef=c,
                              se=0.01, pvalue=0.1, n_obs=10, status="ok"))
     pd.DataFrame(rows).to_csv(d / "gradient_by_variant.csv", index=False)
 
@@ -190,8 +203,11 @@ def test_the_three_jobs_are_read_correctly():
               "-0.0040" in md)
         check("61's artefact at the new dating is computed, not assumed",
               "artefact at the new dating is +0.0020" in md)
-        check("62 attributes the disagreement to the unit",
-              "UNIT alone moves 22-25 by +0.0700" in md)
+        check("62 attributes the disagreement to the unit, on a common base",
+              "UNIT alone moves 22-25 by +0.1000" in md,
+              "A rebased is -0.05, B is +0.05")
+        check("62 says why a common base was needed",
+              "lose the 50+ band to collinearity" in md)
         check("63 reports the horse race, not only the marginal columns",
               "AI exposure **-0.0170** (SE 0.0100, t -1.70), "
               "teleworkability -0.0020" in md)
@@ -210,8 +226,9 @@ def test_the_three_jobs_are_read_correctly():
         # read rather than crash the assembler
         fake_63(d2, placebo_fires=True, datings=("launch",))
         md2 = asm.build_report(asm.find([str(d2)]), False, "")
-        check("a disagreement that is NOT about the unit reads that way",
-              "UNIT alone moves 22-25 by -0.0010" in md2)
+        check("a unit step that is only a change of base reads as zero",
+              "UNIT alone moves 22-25 by +0.0000" in md2,
+              "the trap that caught me on 20 Sep, caught by the assembler")
         check("a placebo that fires is reported as the placebo firing",
               "AI exposure **-0.0020** (SE 0.0100, t -0.20), "
               "teleworkability -0.0260" in md2)

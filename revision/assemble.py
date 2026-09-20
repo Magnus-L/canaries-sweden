@@ -474,11 +474,36 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
     if "62" in found:
         try:
             d = pd.read_csv(found["62"])
-            y = d[d["age_group"] == "22-25"].set_index("variant")["coef"]
-            rows = "\n".join(f"- {k}: {v:+.4f}" for k, v in y.items())
-            a, b = y.get("A_occ_age_cont"), y.get("B_occ_firm_cont")
-            c, dd = y.get("C_edu_age_cont"), y.get("D_edu_firm_quart")
+            piv = d.pivot_table(index="age_group", columns="variant",
+                                values="coef")
+            # A firm-level exposure is constant within employer x month, so
+            # the six age interactions sum to something the employer x month
+            # fixed effect already absorbs and one band drops. Those columns
+            # are therefore DIFFERENCES FROM THE OMITTED BAND, and comparing
+            # them with the age-specific columns, which are not, measures a
+            # change of base rather than a change of unit. Put both on the
+            # same footing before saying anything.
+            base = "50+"
+            dropped = [c for c in piv.columns if base not in
+                       piv[c].dropna().index]
+            reb = piv.copy()
+            for c in piv.columns:
+                if c not in dropped and base in piv.index:
+                    reb[c] = piv[c] - piv.loc[base, c]
+            y = piv.loc["22-25"] if "22-25" in piv.index else piv.iloc[0]
+            ry = reb.loc["22-25"] if "22-25" in reb.index else reb.iloc[0]
+            rows = "\n".join(
+                f"- {k}: {v:+.4f}"
+                + (f" (as published; {ry[k]:+.4f} measured from {base})"
+                   if k not in dropped else f" (already measured from {base})")
+                for k, v in y.items())
+            a, b = ry.get("A_occ_age_cont"), ry.get("B_occ_firm_cont")
+            c, dd = ry.get("C_edu_age_cont"), ry.get("D_edu_firm_quart")
             moves = []
+            if dropped:
+                moves.append(f"on a common base, since {', '.join(dropped)} "
+                             f"lose the {base} band to collinearity and are "
+                             f"differences from it")
             if a is not None and b is not None:
                 moves.append(f"UNIT alone moves 22-25 by {b - a:+.4f}")
             if a is not None and c is not None:
@@ -494,8 +519,11 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
                          + ("; ".join(moves) + "." if moves else "")
                          + "\n\nRead rule: whichever ingredient moves the "
                            "answer is the one the two designs were disagreeing "
-                           "about. If it is the unit, they were answering "
-                           "different questions and neither is wrong."))
+                           "about, and the steps above are computed on a "
+                           "common base for the reason given. A step that "
+                           "survives rebasing is a measurement difference; one "
+                           "that does not was a normalisation difference and "
+                           "says nothing about the world."))
         except Exception as ex:
             L.append(sec("8j. Why the two clean designs disagree about age (62)",
                          f"found but unreadable ({type(ex).__name__})"))
