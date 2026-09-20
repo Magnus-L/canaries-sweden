@@ -91,3 +91,38 @@ turned in 2025.
    does not depend on a post-hoc slice. Cheap: the panels are cached.
 3. Ask whether the 2025 definitive AGI delivery is available, since the whole
    finding currently rests on preliminary data.
+
+
+---
+
+## ADDENDUM, 20 September 08:15: the rule refuses
+
+Script 58 returned the standard errors and they change the conclusion.
+
+| specification | 2025H1 hires | SE | t | 95% interval |
+|---|---|---|---|---|
+| rebased | -0.0689 | 0.0792 | -0.9 | -0.224 to +0.086 |
+| H1-only | -0.0494 | 0.0672 | -0.7 | -0.181 to +0.083 |
+
+The standard error on 2025H1 is three to four times every other half-year,
+which run 0.014 to 0.023. The estimate is not distinguishable from zero in
+either specification, so condition (ii) of the pre-committed rule fails and
+**the 2025H1 hiring break is not a finding.**
+
+Separations at 2025H1 are +0.0420 (SE 0.0199, t +2.1), which is significant
+but sits inside a series that has been positive throughout, so it is not a
+break either. Stock is -0.0072 (SE 0.0133), nothing.
+
+The error in section 2 of this note was mine and it is worth naming: I
+compared point estimates across half-years without their standard errors,
+which is exactly what the pre-committed rule exists to prevent. The rule was
+written before the numbers arrived and it has now refused them. That is the
+system working rather than failing.
+
+What survives from lane 6 is the attenuation result in section 1, which is
+unaffected: lambda is 0.83 to 0.89 and flat, so the tight null on the stock
+is a real null.
+
+The AGI vintage question is UNANSWERED. The probe returned an empty frame and
+printed nothing, so its silence looked like an answer. Fixed, with a fallback
+through INFORMATION_SCHEMA and a loud message when both find nothing.

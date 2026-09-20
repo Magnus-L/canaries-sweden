@@ -144,6 +144,30 @@ def probe_agi(conn) -> pd.DataFrame:
 # 1 and 2. the two event studies, both with standard errors
 # ----------------------------------------------------------------------
 
+def probe_agi_info(conn) -> pd.DataFrame:
+    """
+    The same question through INFORMATION_SCHEMA, which a restricted
+    account can normally read even where sys.tables is hidden from it.
+    No row counts are available here; presence is what matters.
+    """
+    q = """
+    SELECT TABLE_NAME AS table_name, CAST(NULL AS BIGINT) AS n_rows
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME LIKE 'Arb_AGIIndivid%'
+    ORDER BY TABLE_NAME
+    """
+    df = pd.read_sql(q, conn)
+    if df.empty:
+        return df
+    df["period"] = df["table_name"].str.extract(r"(\d{6})")
+    df["vintage"] = np.where(df["table_name"].str.endswith("_def"), "def",
+                    np.where(df["table_name"].str.endswith("_prel"), "prel",
+                             "other"))
+    df["year"] = df["period"].str[:4]
+    df["month"] = df["period"].str[4:]
+    return df.sort_values(["period", "vintage"])
+
+
 def build_terms(bal: pd.DataFrame, h1_only: bool):
     """Event-study terms on a panel that already carries expo_z."""
     b = bal.copy()
@@ -244,12 +268,18 @@ def event_study(panels, spec_name, h1_only, rebase=False):
         y = r[r["is_young_term"] & (r["halfyear"] != "h2")].copy()
         y["outcome"], y["spec"] = label, spec_name
         out.append(y)
-        print(f"  {spec_name:<7} {label:<5} ({time.time()-t0:.0f}s)")
-        for _, x in y.sort_values("halfyear").iterrows():
+        # Print AFTER rebasing, not before. The first version rebased the
+        # concatenated frame at the end of the function, so the log printed
+        # raw coefficients under a heading that said REBASED, and two
+        # readers, one of them me, took the printed numbers for rebased.
+        shown = rebase_by_half(y) if rebase else y
+        print(f"  {spec_name:<7} {label:<5} ({time.time()-t0:.0f}s)"
+              + ("   [rebased]" if rebase else ""))
+        for _, x in shown.sort_values("halfyear").iterrows():
             star = "  <-- focus" if x["halfyear"] == FOCUS else ""
             print(f"    {x['halfyear']}  {x['coef']:+.4f} "
                   f"(SE {x['se']:.4f})  t {x['coef']/max(x['se'],1e-12):+.1f}"
-                  + star)
+                  f"  n {int(x['n_obs']):,}" + star)
         del b
         gc.collect()
     if not out:
@@ -275,6 +305,14 @@ def evaluate_rule(y: pd.DataFrame) -> pd.DataFrame:
             "spec": spec,
             "coef": f["coef"], "se": f["se"],
             "t": f["coef"] / max(f["se"], 1e-12),
+            "ci_lo": f["coef"] - 1.96 * f["se"],
+            "ci_hi": f["coef"] + 1.96 * f["se"],
+            # a focus half-year estimated far less precisely than its
+            # neighbours is the signal that a dramatic point estimate is
+            # thin data rather than a break. On 20 Sep this ratio was 4.
+            "se_vs_other_median": (
+                f["se"] / g.drop(index=FOCUS)["se"].median()
+                if len(g) > 1 else np.nan),
             "negative": bool(f["coef"] < 0),
             "twice_se": bool(abs(f["coef"]) >= 2 * f["se"]),
             "beats_pre_max": bool(abs(f["coef"]) > pre_max)
@@ -300,7 +338,20 @@ def main():
 
     # ---- 3. the vintage question, first and cheap ----
     conn = mc.connect()
-    tabs = opt("AGI table probe", probe_agi, conn)
+    tabs = opt("AGI table probe (sys.tables)", probe_agi, conn)
+    if tabs is None or tabs.empty:
+        print("  sys.tables returned nothing for Arb_AGIIndivid%; trying "
+              "INFORMATION_SCHEMA, which a restricted account can usually "
+              "read where sys.tables is hidden from it")
+        tabs = opt("AGI table probe (INFORMATION_SCHEMA)", probe_agi_info,
+                   conn)
+    if tabs is None or tabs.empty:
+        print("\n  *** THE AGI TABLE PROBE FOUND NOTHING. That is a failure "
+              "of the probe, NOT evidence that no definitive 2025 file "
+              "exists. The vintage question is UNANSWERED and every 2025 "
+              "figure below still rests on the preliminary file. On 20 Sep "
+              "the first version of this probe returned an empty frame and "
+              "printed nothing at all, which read like an answer.")
     if tabs is not None and not tabs.empty:
         tabs.to_csv(OUT / "agi_tables.csv", index=False)
         piv = (tabs.pivot_table(index="year", columns="vintage",
