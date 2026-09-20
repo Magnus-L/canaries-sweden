@@ -81,6 +81,8 @@ PRIORITY = {
     "path_quarter.csv",            # 59 quarterly path, rebased
     "path_zoom.csv",               # 59 monthly path from 2024
     "descriptive.csv",             # 59 the plottable series
+    "prespecified.csv",            # 60 the four pre-specified dates
+    "profile.csv",                 # 60 the exploratory date profile
 }
 
 COUNT_HINTS = ("n_emp", "n_obs", "n", "count", "cells", "firms", "n_coded",
