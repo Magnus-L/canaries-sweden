@@ -506,27 +506,60 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
     if "63" in found:
         try:
             d = pd.read_csv(found["63"])
-            st = d[(d["outcome"] == "stock") & (d["age_group"] == "22-25")]
-            st = st.set_index("measure")["coef"]
+            # the second version of 63 runs every fit at two treatment
+            # dates; the first ran only the launch. Handle both.
+            if "dating" not in d.columns:
+                d["dating"] = "launch"
             body = ("Every other design in this round assigns exposure from "
                     "DAIOE at four-digit occupation, so if that measure is "
-                    "wrong they all fail together. At 22-25 on the employment "
-                    "stock:\n\n"
-                    + "\n".join(f"- {k}: {v:+.4f}" for k, v in st.items()))
-            hd = _num("63h", "coef", outcome="stock", spec="by_age",
-                      term="gpt_x_expo_22_25")
-            ht = _num("63h", "coef", outcome="stock", spec="by_age",
-                      term="t_22_25")
-            if hd is not None and ht is not None:
-                body += (f"\n\nHorse race, both measures in one regression, "
-                         f"22-25 on the stock: AI exposure **{hd:+.4f}**, "
-                         f"teleworkability {ht:+.4f}.")
+                    "wrong they all fail together. Age gradient at 22-25 and "
+                    "41-49, by measure:\n")
+            for dating in sorted(d["dating"].unique()):
+                for outcome in sorted(d["outcome"].unique()):
+                    sub = d[(d.dating == dating) & (d.outcome == outcome)]
+                    for age in ("22-25", "41-49"):
+                        r = sub[sub.age_group == age].set_index("measure")["coef"]
+                        if r.empty:
+                            continue
+                        body += (f"\n- {outcome}, {dating}-dated, {age}: "
+                                 + ", ".join(f"{k} {v:+.4f}"
+                                             for k, v in r.items()))
+            H = None
+            if "63h" in found:
+                H = pd.read_csv(found["63h"])
+                if "dating" not in H.columns:
+                    H["dating"] = "launch"
+                by = H[(H["spec"] == "by_age")]
+                if not by.empty:
+                    body += ("\n\nHorse race, both measures in one "
+                             "regression, which is the comparison that holds "
+                             "the sample fixed and the one worth quoting:\n")
+                    for dating in sorted(by["dating"].unique()):
+                        for outcome in sorted(by["outcome"].unique()):
+                            sub = by[(by.dating == dating)
+                                     & (by.outcome == outcome)]
+                            for age, dterm, tterm in (
+                                    ("22-25", "gpt_x_expo_22_25", "t_22_25"),
+                                    ("41-49", "gpt_x_expo_41_49", "t_41_49")):
+                                a = sub[sub.term == dterm]
+                                b = sub[sub.term == tterm]
+                                if a.empty or b.empty:
+                                    continue
+                                ac, ase = float(a.coef.iloc[0]), float(a.se.iloc[0])
+                                bc = float(b.coef.iloc[0])
+                                body += (f"\n- {outcome}, {dating}-dated, "
+                                         f"{age}: AI exposure **{ac:+.4f}** "
+                                         f"(SE {ase:.4f}, t "
+                                         f"{ac/max(ase,1e-12):+.2f}), "
+                                         f"teleworkability {bc:+.4f}")
             body += ("\n\nRead rule: the measures correlate 0.66 to 0.87 "
                      "across occupations, so teleworkability being negative on "
-                     "its own is not evidence against the AI reading. The horse "
-                     "race is what separates them, and if teleworkability wins "
-                     "it the interpretation fails however clean the "
-                     "identification is.")
+                     "its own is not evidence against the AI reading, and the "
+                     "horse race is what separates them. If teleworkability "
+                     "wins it, the interpretation fails however clean the "
+                     "identification is. The launch-dated rows are comparable "
+                     "with the rest of this round; the adoption-dated rows are "
+                     "where scripts 60 and 61 put the treatment.")
             L.append(sec("8k. Does the answer depend on the exposure measure? (63)",
                          body))
         except Exception as ex:

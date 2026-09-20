@@ -133,24 +133,41 @@ def fake_62(d: Path, unit_matters=True):
     pd.DataFrame(rows).to_csv(d / "gradient_by_variant.csv", index=False)
 
 
-def fake_63(d: Path, placebo_fires=False):
+def fake_63(d: Path, placebo_fires=False, datings=("launch", "adoption")):
+    """
+    The second version of 63 runs every fit at two treatment dates and
+    writes a `dating` column; the first did not. The assembler has to read
+    both, so the fixture produces both shapes.
+    """
     rows = []
-    for m, c in (("daioe", -0.018), ("eloundou", -0.016),
-                 ("telework", -0.014 if not placebo_fires else -0.030)):
-        for out in ("stock", "hires"):
-            rows.append(dict(age_group="22-25", measure=m, outcome=out,
-                             coef=c, se=0.01, pvalue=0.1, n_obs=10,
-                             status="ok"))
-    pd.DataFrame(rows).to_csv(d / "robustness_gradient.csv", index=False)
+    for dating in datings:
+        for m, c in (("daioe", -0.018), ("eloundou", -0.016),
+                     ("telework", -0.014 if not placebo_fires else -0.030)):
+            for out in ("stock", "hires"):
+                for age in ("22-25", "41-49"):
+                    rows.append(dict(age_group=age, measure=m, outcome=out,
+                                     dating=dating, coef=c, se=0.01,
+                                     pvalue=0.1, n_obs=10, status="ok"))
+    R = pd.DataFrame(rows)
+    if len(datings) == 1:
+        R = R.drop(columns="dating")
+    R.to_csv(d / "robustness_gradient.csv", index=False)
     hr = []
-    for spec, terms in (("pooled", {"post_gpt_x_expo": -0.004,
-                                    "post_gpt_x_tele": -0.001}),
-                        ("by_age", {"gpt_x_expo_22_25": -0.017 if not placebo_fires else -0.002,
-                                    "t_22_25": -0.002 if not placebo_fires else -0.026})):
-        for term, c in terms.items():
-            hr.append(dict(outcome="stock", spec=spec, term=term, coef=c,
-                           se=0.01, n_obs=10, n_cells=900, status="ok"))
-    pd.DataFrame(hr).to_csv(d / "horserace.csv", index=False)
+    for dating in datings:
+        for spec, terms in (
+                ("pooled", {"post_gpt_x_expo": -0.004,
+                            "post_gpt_x_tele": -0.001}),
+                ("by_age", {"gpt_x_expo_22_25": -0.017 if not placebo_fires else -0.002,
+                            "t_22_25": -0.002 if not placebo_fires else -0.026,
+                            "gpt_x_expo_41_49": -0.057, "t_41_49": 0.046})):
+            for term, c in terms.items():
+                hr.append(dict(outcome="stock", dating=dating, spec=spec,
+                               term=term, coef=c, se=0.01, n_obs=10,
+                               n_cells=900, status="ok"))
+    Hf = pd.DataFrame(hr)
+    if len(datings) == 1:
+        Hf = Hf.drop(columns="dating")
+    Hf.to_csv(d / "horserace.csv", index=False)
 
 
 def test_the_three_jobs_are_read_correctly():
@@ -176,17 +193,28 @@ def test_the_three_jobs_are_read_correctly():
         check("62 attributes the disagreement to the unit",
               "UNIT alone moves 22-25 by +0.0700" in md)
         check("63 reports the horse race, not only the marginal columns",
-              "AI exposure **-0.0170**, teleworkability -0.0020" in md)
+              "AI exposure **-0.0170** (SE 0.0100, t -1.70), "
+              "teleworkability -0.0020" in md)
+        check("63 reports both treatment datings",
+              "launch-dated" in md and "adoption-dated" in md)
+        check("63 reports the hiring margin, not only the stock",
+              "hires, launch-dated, 22-25" in md)
+        check("63 reports 41-49 beside 22-25",
+              "stock, launch-dated, 41-49" in md)
         check("63 warns that the placebo is a weak one",
               "correlate 0.66 to 0.87" in md)
 
         d2 = Path(t) / "b"; d2.mkdir()
-        fake_62(d2, unit_matters=False); fake_63(d2, placebo_fires=True)
+        fake_62(d2, unit_matters=False)
+        # the OLD shape, with no dating column: a stale export must still
+        # read rather than crash the assembler
+        fake_63(d2, placebo_fires=True, datings=("launch",))
         md2 = asm.build_report(asm.find([str(d2)]), False, "")
         check("a disagreement that is NOT about the unit reads that way",
               "UNIT alone moves 22-25 by -0.0010" in md2)
         check("a placebo that fires is reported as the placebo firing",
-              "AI exposure **-0.0020**, teleworkability -0.0260" in md2)
+              "AI exposure **-0.0020** (SE 0.0100, t -0.20), "
+              "teleworkability -0.0260" in md2)
         check("and 61 missing is pending, not silence",
               "## 8i." in md2 and "**Pending.**" in md2.split("## 8i.")[1][:80])
 

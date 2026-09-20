@@ -103,9 +103,11 @@ def world(planted_on: str):
                       for y in l47.YEARS], ignore_index=True)
 
 
-def race(counts, tag):
+def race(counts, tag, post_from=None):
     """(daioe, telework) at 22-25, from the by-age horse race."""
     bal = l47.build_panel(counts, EXPO["daioe"])
+    if post_from:
+        s63.redate(bal, l47, post_from)
     r, n = s63.horserace(bal, EXPO["telework"], l47, tag)
     by = r[r["spec"] == "by_age"].set_index("term")["coef"]
     pool = r[r["spec"] == "pooled"].set_index("term")["coef"]
@@ -131,6 +133,25 @@ check("so this test can fail, which is the only reason to run it",
       (d1 < t1) and (t2 < d2),
       f"AI world {d1:+.3f}/{t1:+.3f}, telework world {d2:+.3f}/{t2:+.3f}")
 
+# ---- the re-dating, which is the point of running this twice ---------
+# A decline that starts in 2024 must be found by the adoption dating and
+# missed, or badly diluted, by the launch dating. If re-dating made no
+# difference the second pass would be wasted MONA time.
+c24 = pd.concat([FIX.counts_frame(y, zmap=zmap("daioe"), beta=BETA,
+                                  bands=("22-25",), from_ym="2024-01")
+                 for y in l47.YEARS], ignore_index=True)
+d_launch, _, _ = race(c24, "t63_d24_launch", post_from=mc.CHATGPT_YM)
+d_adopt, _, _ = race(c24, "t63_d24_adopt", post_from="2024-01")
+check("a 2024 decline is recovered by the adoption dating",
+      abs(d_adopt - BETA) < 0.15, f"{d_adopt:+.4f} against {BETA:+.4f}")
+check("and the launch dating dilutes it, which is why both are run",
+      d_launch > d_adopt + 0.08,
+      f"launch-dated {d_launch:+.4f} vs adoption-dated {d_adopt:+.4f}")
+check("re-dating touches the terms and not the panel",
+      set(l47.age_term(a) for a in l47.AGES) <= set(
+          s63.redate(l47.build_panel(c24, EXPO["daioe"]), l47,
+                     "2024-01").columns))
+
 # ---- end to end -------------------------------------------------------
 FIX.install_occ(l47.YEARS, zmap=zmap("daioe"), beta=BETA, bands=("22-25",),
                 from_ym=mc.CHATGPT_YM)
@@ -151,24 +172,26 @@ def boom(*a, **k):
 mc.connect = boom
 s63.main()
 G = pd.read_csv(s63.OUT / "robustness_gradient.csv")
-check("every measure was estimated on both outcomes",
-      set(zip(G["measure"], G["outcome"])) ==
-      {(m, o) for m in SC for o in ("stock", "hires")},
-      f"{len(set(zip(G['measure'], G['outcome'])))} of 6 combinations")
-st = G[G.outcome == "stock"].pivot_table(index="age_group", columns="measure",
-                                         values="coef")
+check("every measure was estimated on both outcomes and both datings",
+      set(zip(G["measure"], G["outcome"], G["dating"])) ==
+      {(m, o, d) for m in SC for o in ("stock", "hires")
+       for d, _ in s63.POST_DATES},
+      f"{len(set(zip(G['measure'], G['outcome'], G['dating'])))} of 12")
+st = (G[(G.outcome == "stock") & (G.dating == "launch")]
+      .pivot_table(index="age_group", columns="measure", values="coef"))
 check("main() recovers the planted decline on the stock, on daioe",
       abs(st.loc["22-25", "daioe"] - BETA) < 0.15,
       f"{st.loc['22-25', 'daioe']:+.4f}")
-hi = G[G.outcome == "hires"].pivot_table(index="age_group", columns="measure",
-                                         values="coef")
+hi = (G[(G.outcome == "hires") & (G.dating == "launch")]
+      .pivot_table(index="age_group", columns="measure", values="coef"))
 check("and finds nothing on the flow, where nothing was planted",
       abs(hi.loc["22-25", "daioe"]) < 0.10,
       f"{hi.loc['22-25', 'daioe']:+.4f}")
 H = pd.read_csv(s63.OUT / "horserace.csv")
-check("the horse race ran on both outcomes and both specifications",
+check("the horse race ran on both outcomes, specifications and datings",
       set(H["outcome"]) == {"stock", "hires"}
-      and set(H["spec"]) == {"pooled", "by_age"})
+      and set(H["spec"]) == {"pooled", "by_age"}
+      and set(H["dating"]) == {d for d, _ in s63.POST_DATES})
 cor = pd.read_csv(s63.OUT / "measure_correlation.csv")
 check("the correlation table covers every pair of measures",
       len(cor) == 3, f"{len(cor)} pairs")
