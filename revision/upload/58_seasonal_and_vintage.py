@@ -197,17 +197,50 @@ def run_es(b, outcome, terms, tag):
               "n_obs", "status"]]
 
 
+FOCUS_OUTCOME = "hires"
+FAILURES = []
+
+
 def event_study(panels, spec_name, h1_only, rebase=False):
-    """One specification across every outcome; returns the young rows."""
+    """
+    One specification across every outcome; returns the young rows.
+
+    TOLERANT PER OUTCOME, and deliberately so. On 20 Sep the stock arm of
+    the H1-only specification segfaulted R (rc 3221225477, an access
+    violation, preceded by "recursive gc invocation": the garbage
+    collector re-entered while three lanes competed for memory). That one
+    crash took the whole script down and with it the HIRES estimate, which
+    is the one the paper turns on. A supporting outcome must not be able
+    to destroy a primary one.
+
+    So each outcome is attempted, retried once, and then recorded as
+    failed and skipped. The run still fails loudly if the FOCUS outcome is
+    missing from both specifications, because at that point there is
+    nothing to report.
+    """
     out = []
     for label, (bal, outcome) in panels.items():
         b, p_terms, y_terms = build_terms(bal, h1_only)
         t0 = time.time()
-        r = run_es(b, outcome, p_terms + y_terms,
-                   f"s58_{spec_name}_{label}")
+        r = pd.DataFrame()
+        for attempt in (1, 2):
+            r = run_es(b, outcome, p_terms + y_terms,
+                       f"s58_{spec_name}_{label}"
+                       + ("_retry" if attempt == 2 else ""))
+            if not r.empty:
+                break
+            if attempt == 1:
+                print(f"  {spec_name}/{label} returned nothing; retrying "
+                      f"once in case it was a transient memory collision")
+                gc.collect()
+                time.sleep(30)
         if r.empty:
-            raise RuntimeError(f"{spec_name}/{label} returned nothing; this "
-                               f"is a primary estimate")
+            FAILURES.append(f"{spec_name}/{label}")
+            print(f"  *** {spec_name}/{label} FAILED TWICE and is skipped. "
+                  f"The R output is in the exchange directory.")
+            del b
+            gc.collect()
+            continue
         y = r[r["is_young_term"] & (r["halfyear"] != "h2")].copy()
         y["outcome"], y["spec"] = label, spec_name
         out.append(y)
@@ -219,6 +252,10 @@ def event_study(panels, spec_name, h1_only, rebase=False):
                   + star)
         del b
         gc.collect()
+    if not out:
+        return pd.DataFrame(columns=["term", "is_young_term", "halfyear",
+                                     "coef", "se", "pvalue", "n_obs",
+                                     "status", "outcome", "spec"])
     res = pd.concat(out, ignore_index=True)
     return rebase_by_half(res) if rebase else res
 
@@ -328,6 +365,11 @@ def main():
     h1.to_csv(OUT / "es_h1only.csv", index=False)
 
     y = pd.concat([purged, h1], ignore_index=True)
+    if FOCUS_OUTCOME not in set(y.get("outcome", pd.Series(dtype=str))):
+        raise RuntimeError(
+            f"the {FOCUS_OUTCOME} arm failed in BOTH specifications "
+            f"({'; '.join(FAILURES)}), so there is nothing to report. Re-run "
+            f"when no other lane is competing for memory.")
     rule = evaluate_rule(y)
     rule.to_csv(OUT / "readrule.csv", index=False)
 
@@ -342,6 +384,13 @@ def main():
               hs.round(4).to_string(), ""]
     lines += ["PRE-COMMITTED READ RULE, evaluated:", rule.round(4).to_string(
         index=False), ""]
+    if FAILURES:
+        lines += ["FITS THAT FAILED AND ARE ABSENT FROM THE TABLES ABOVE:",
+                  "  " + "; ".join(FAILURES),
+                  "  R segfaults under memory pressure when several lanes run",
+                  "  at once. A missing row here is a missing fit, never a",
+                  "  zero, and the tables must not be read as though the",
+                  "  outcome had been estimated and found small.", ""]
     if "passes" in rule.columns and len(rule):
         if rule["passes"].all():
             lines.append("VERDICT: the 2025H1 young hiring differential meets "

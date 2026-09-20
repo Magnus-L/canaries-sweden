@@ -161,5 +161,29 @@ check("with the seasonal but NO shock, the rule REFUSES",
       not bool(rule0["passes"].any()),
       rule0[["spec", "coef", "t", "passes"]].to_string(index=False))
 
+
+# ---- a supporting outcome must not be able to kill the primary one ----
+# 20 Sep: the stock arm segfaulted R (access violation, rc 3221225477) and
+# took the whole script down, including the hires estimate the paper turns
+# on. Now it is recorded and skipped.
+real_run_es = s58.run_es
+def flaky(b, outcome, terms, tag):
+    if outcome == "n_emp":            # the stock arm, always fails
+        return pd.DataFrame()
+    return real_run_es(b, outcome, terms, tag)
+
+s58.run_es = flaky
+s58.FAILURES.clear()
+both = {"hires": (bal, "n_hire"), "stock": (bal, "n_emp")}
+got = s58.event_study(both, "h1only", h1_only=True)
+s58.run_es = real_run_es
+
+check("a failing supporting outcome does not stop the run",
+      "hires" in set(got["outcome"]), str(sorted(set(got["outcome"]))))
+check("the failure is RECORDED rather than silently dropped",
+      any("stock" in f for f in s58.FAILURES), str(s58.FAILURES))
+check("the surviving outcome still carries its focus estimate",
+      "2025H1" in set(got[got.outcome == "hires"]["halfyear"]))
+
 print("\n" + ("ALL PASS" if not FAILS else f"FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)
