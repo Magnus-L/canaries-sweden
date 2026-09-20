@@ -13,10 +13,12 @@ What a lane must do, and each is tested against a sandbox of fake stages:
     python3 revision/local/test_lanes.py
 """
 import importlib.util
+import os
 import re
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -69,6 +71,9 @@ def test_order_skip_continue():
     stage_script(t, "c.py", 0, "out_c/done.txt")
     (t / "out_d").mkdir(); (t / "out_d" / "done.txt").write_text("already")
     stage_script(t, "d.py", 0, "out_d/done.txt")      # already finished
+    # "finished" means finished with THIS script, so the marker has to be
+    # the newer of the two for the stage to count as done
+    os.utime(t / "out_d" / "done.txt", (time.time() + 60, time.time() + 60))
     stages = [("a.py", "out_a/done.txt", 1), ("b.py", "out_b/done.txt", 1),
               ("c.py", "out_c/done.txt", 1), ("d.py", "out_d/done.txt", 1),
               ("missing.py", "out_e/done.txt", 1)]
@@ -84,6 +89,27 @@ def test_order_skip_continue():
     order = [m for m in re.findall(r"^  (\w+\.py): exit", log, re.M)]
     check("stages run in the declared order", order == ["a.py", "b.py", "c.py"], str(order))
     check("the summary names what failed", "failed: b.py" in log)
+
+
+def test_a_new_script_beats_an_old_result():
+    """
+    On 20 September 2026 a re-uploaded script was skipped because the
+    previous version's summary file was still on the share, and the lane
+    reported success having run nothing at all. A result is only a result
+    for the code that produced it, so a script newer than its own marker
+    must re-run.
+    """
+    t = sandbox()
+    (t / "out_e").mkdir()
+    (t / "out_e" / "done.txt").write_text("the previous version's result")
+    os.utime(t / "out_e" / "done.txt", (time.time() - 600, time.time() - 600))
+    stage_script(t, "e.py", 0, "out_e/done.txt")      # uploaded afterwards
+    r, log = run_lane(t, [("e.py", "out_e/done.txt", 1)])
+    check("a script newer than its result is re-run, not skipped",
+          "RUN   e.py" in log and "SKIP  e.py" not in log)
+    check("and the lane says why, so the rerun is not a surprise",
+          "NEWER" in log)
+    check("the stage actually ran", "e.py: exit 0" in log)
 
 
 def test_echo_is_capped_but_the_log_is_not():
@@ -170,6 +196,7 @@ def test_parallel_lanes():
 
 if __name__ == "__main__":
     test_order_skip_continue()
+    test_a_new_script_beats_an_old_result()
     test_echo_is_capped_but_the_log_is_not()
     test_lane_plan_is_coherent()
     test_parallel_lanes()

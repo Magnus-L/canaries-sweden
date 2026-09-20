@@ -79,9 +79,22 @@ def run(lane: str, stages: list):
     print("=" * 70)
     plan = []
     for script, done, mins in stages:
-        if (HERE / done).exists():
+        marker, src = HERE / done, HERE / script
+        # A finished stage is skipped so that resubmitting a killed lane is
+        # cheap. But "finished" has to mean "finished with THIS code": on
+        # 20 Sep a re-uploaded script was skipped because the result of the
+        # previous version was still sitting there, and the lane reported
+        # success having done nothing. So the marker only counts if it is
+        # newer than the script that produced it.
+        if marker.exists() and src.exists() and \
+                src.stat().st_mtime > marker.stat().st_mtime:
+            plan.append((script, mins))
+            print(f"  RUN   {script:<34} about {mins} min  "
+                  f"(the script is NEWER than {done}, so the old result "
+                  f"is stale and will be overwritten)")
+        elif marker.exists():
             print(f"  SKIP  {script:<34} {done} exists")
-        elif not (HERE / script).exists():
+        elif not src.exists():
             print(f"  ABSENT {script:<33} NOT UPLOADED -- this lane will skip it")
         else:
             plan.append((script, mins))
