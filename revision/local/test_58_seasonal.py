@@ -185,5 +185,52 @@ check("the failure is RECORDED rather than silently dropped",
 check("the surviving outcome still carries its focus estimate",
       "2025H1" in set(got[got.outcome == "hires"]["halfyear"]))
 
+# ---- main() itself, which no test had ever called --------------------
+# 58 crashed 18 seconds into the 20 Sep run on two bugs in the AGI probe:
+# int() on a NaN row count from the INFORMATION_SCHEMA fallback, which has
+# no counts, and a case-sensitive vintage split that put every real table
+# in "other" because the suffixes are _Def and _Prel, not _def and _prel.
+# Neither could be caught, because every test called event_study directly
+# and main() was never exercised. It is now, with the SQL layer mocked to
+# answer exactly as MONA answers it.
+def _fake_sql(q, conn):
+    if "sys.tables" in q:
+        return pd.DataFrame(columns=["table_name", "n_rows"])   # hidden
+    names = [f"Arb_AGIIndivid{y}{m:02d}_Def"
+             for y in range(2019, 2025) for m in range(1, 13)]
+    names += [f"Arb_AGIIndivid2025{m:02d}_Prel" for m in range(1, 7)]
+    return pd.DataFrame({"table_name": names, "n_rows": [None] * len(names)})
+
+
+_real_sql, _real_connect = pd.read_sql, mc.connect
+pd.read_sql = _fake_sql
+mc.connect = lambda: object()
+mc.write_cache(base, mc.CACHE_DIR / "L_baseline_2019.parquet")
+for _y in s54.YEARS:
+    _sub = f_flows()
+    mc.write_cache(_sub[_sub["year_month"].str[:4] == str(_y)],
+                   mc.CACHE_DIR / f"flows_{_y}.parquet")
+try:
+    s58.FAILURES.clear()
+    s58.main()
+    _ok = True
+except BaseException as _ex:
+    import traceback; traceback.print_exc()
+    _ok = False
+finally:
+    pd.read_sql, mc.connect = _real_sql, _real_connect
+
+check("main() runs end to end with the SQL layer mocked", _ok)
+if _ok:
+    _tab = pd.read_csv(s58.OUT / "agi_tables.csv")
+    check("the vintage split is case-insensitive, so _Def counts as def",
+          set(_tab["vintage"]) == {"def", "prel"},
+          str(sorted(set(_tab["vintage"]))))
+    # year comes back from the csv as int64, so compare as strings
+    check("and it sees that 2025 is preliminary only",
+          set(_tab[_tab["year"].astype(str) == "2025"]["vintage"]) == {"prel"},
+          str(sorted(set(_tab[_tab["year"].astype(str) == "2025"]["vintage"]))))
+    check("the summary was written", (s58.OUT / "58_summary.txt").exists())
+
 print("\n" + ("ALL PASS" if not FAILS else f"FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)

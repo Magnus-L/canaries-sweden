@@ -113,6 +113,22 @@ def _mod(name: str):
 # 3. which AGI months exist, and in which vintage
 # ----------------------------------------------------------------------
 
+def _vintage_of(names: pd.Series) -> pd.Series:
+    """
+    def / prel / other, CASE-INSENSITIVELY.
+
+    2019's monthly tables are suffixed _def and 2020 onwards _Def, and SQL
+    Server matches identifiers without regard to case so nothing in the
+    pipeline ever noticed. A case-sensitive split here put every table in
+    "other" and made it look as though no definitive month existed
+    anywhere, which is the opposite of the truth.
+    """
+    low = names.str.lower()
+    return pd.Series(np.where(low.str.endswith("_def"), "def",
+                     np.where(low.str.endswith("_prel"), "prel", "other")),
+                     index=names.index)
+
+
 def probe_agi(conn) -> pd.DataFrame:
     """
     Every monthly AGI table the project can see, with its vintage suffix
@@ -132,9 +148,7 @@ def probe_agi(conn) -> pd.DataFrame:
     if df.empty:
         return df
     df["period"] = df["table_name"].str.extract(r"(\d{6})")
-    df["vintage"] = np.where(df["table_name"].str.endswith("_def"), "def",
-                    np.where(df["table_name"].str.endswith("_prel"), "prel",
-                             "other"))
+    df["vintage"] = _vintage_of(df["table_name"])
     df["year"] = df["period"].str[:4]
     df["month"] = df["period"].str[4:]
     return df.sort_values(["period", "vintage"])
@@ -160,9 +174,7 @@ def probe_agi_info(conn) -> pd.DataFrame:
     if df.empty:
         return df
     df["period"] = df["table_name"].str.extract(r"(\d{6})")
-    df["vintage"] = np.where(df["table_name"].str.endswith("_def"), "def",
-                    np.where(df["table_name"].str.endswith("_prel"), "prel",
-                             "other"))
+    df["vintage"] = _vintage_of(df["table_name"])
     df["year"] = df["period"].str[:4]
     df["month"] = df["period"].str[4:]
     return df.sort_values(["period", "vintage"])
@@ -363,8 +375,11 @@ def main():
         if not late.empty:
             print("\n2025 and later, table by table:")
             for _, r in late.iterrows():
-                print(f"    {r['table_name']:<32} {r['vintage']:<5} "
-                      f"{int(r['n_rows']):>12,} rows")
+                # INFORMATION_SCHEMA carries no row counts, so n_rows is
+                # NULL on the fallback path and int() on it raises.
+                n = ("" if pd.isna(r["n_rows"])
+                     else f"{int(r['n_rows']):>12,} rows")
+                print(f"    {r['table_name']:<32} {r['vintage']:<5} {n}")
         d25 = set(late[(late["year"] == "2025")
                        & (late["vintage"] == "def")]["month"])
         if d25:
