@@ -70,8 +70,17 @@ def check(name, cond, detail=""):
 
 
 # ---- what the two units actually measure -----------------------------
-A = s62.occ_exposure(BASE, FIX.daioe, True)
-B = s62.occ_exposure(BASE, FIX.daioe, False)
+A = s62.occ_exposure(BASE, FIX.daioe, True, l47)
+B = s62.occ_exposure(BASE, FIX.daioe, False, l47)
+# Variant A must be 47L, not merely like it: the decomposition is anchored
+# on 47L's published gradient, and the first version of this script scored
+# four times as many cells because it left 47L's coverage floors out.
+ref = l47.build_exposure(BASE, FIX.daioe)
+j0 = A.merge(ref[["employer_id", "age_group", "expo"]],
+             on=["employer_id", "age_group"], suffixes=("", "_ref"))
+check("variant A is 47L's exposure exactly, cell for cell",
+      len(j0) == len(A) == len(ref) and np.allclose(j0["expo"], j0["expo_ref"]),
+      f"A {len(A)} cells, 47L {len(ref)} cells, {len(j0)} matched")
 check("the age-specific measure varies across bands inside a firm",
       A.groupby("employer_id")["expo"].nunique().min() > 1)
 check("the firm measure is one number repeated across the firm's bands",
@@ -84,7 +93,7 @@ check("the exposed firms' YOUNG are the exposed ones",
 corrupt = BASE.copy()
 young = corrupt["age_group"].isin(["22-25", "26-30"])
 corrupt.loc[young, "ssyk4"] = "9999"        # a code DAIOE does not score
-Bc = s62.occ_exposure(corrupt, FIX.daioe, False)
+Bc = s62.occ_exposure(corrupt, FIX.daioe, False, l47)
 j = B.merge(Bc, on=["employer_id", "age_group"], suffixes=("", "_c"))
 check("the firm measure ignores the young entirely",
       len(j) > 100 and np.allclose(j["expo"], j["expo_c"]),
@@ -93,8 +102,8 @@ check("the firm measure ignores the young entirely",
 # ---- the education side ----------------------------------------------
 book, spec, frames = FIX.install_edu([2019])
 f19 = frames[2019]
-C = s62.edu_exposure(f19, book, "OL_daioe", spec, True, False)
-D = s62.edu_exposure(f19, book, "OL_daioe", spec, False, True)
+C = s62.edu_exposure(f19, book, "OL_daioe", spec, True, False, l47)
+D = s62.edu_exposure(f19, book, "OL_daioe", spec, False, True, l47)
 check("the quartile form really is a quartile",
       set(np.unique(D["expo"])) <= {1.0, 2.0, 3.0, 4.0},
       " ".join(f"{v:.0f}" for v in np.unique(D["expo"])))
@@ -159,9 +168,15 @@ def boom(*a, **k):
 mc.connect = boom
 s62.main()
 G = pd.read_csv(s62.OUT / "gradient_by_variant.csv")
-check("all four variants were estimated",
-      set(G["variant"]) == {k for k, _ in s62.VARIANTS},
+check("all four variants were estimated, and the anchor beside them",
+      set(G["variant"]) == {k for k, _ in s62.VARIANTS} | {s62.ANCHOR[0]},
       " ".join(sorted(set(G["variant"]))))
+piv0 = G.pivot_table(index="age_group", columns="variant", values="coef")
+check("the anchor reproduces variant A's own answer at 22-25",
+      abs(piv0.loc["22-25", s62.ANCHOR[0]]
+          - piv0.loc["22-25", "A_occ_age_cont"]) < 0.06,
+      f"anchor {piv0.loc['22-25', s62.ANCHOR[0]]:+.4f} vs common-sample A "
+      f"{piv0.loc['22-25', 'A_occ_age_cont']:+.4f}")
 piv = G.pivot_table(index="age_group", columns="variant", values="coef")
 check("main() finds the decline through the age-specific occupation route",
       abs(piv.loc["22-25", "A_occ_age_cont"] - BETA) < 0.10,
@@ -173,6 +188,8 @@ check("and main() does NOT find it through the firm-incumbent route",
 agree = pd.read_csv(s62.OUT / "exposure_agreement.csv")
 check("the agreement table covers every pair of variants",
       len(agree) == 6, f"{len(agree)} pairs")
+check("the summary states the cost of the common sample",
+      "SAMPLE alone (anchor to A)" in (s62.OUT / "62_summary.txt").read_text())
 summ = (s62.OUT / "62_summary.txt").read_text()
 for must in ("UNIT alone (A to B)", "SOURCE alone (A to C)", "READ THIS"):
     check(f"the summary states {must!r}", must in summ)

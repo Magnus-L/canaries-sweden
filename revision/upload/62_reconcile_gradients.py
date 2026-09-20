@@ -98,36 +98,43 @@ def _mod(name, alias):
     return m
 
 
-def occ_exposure(base: pd.DataFrame, daioe: pd.DataFrame, age_specific: bool):
+def occ_exposure(base: pd.DataFrame, daioe: pd.DataFrame,
+                 age_specific: bool, l47):
     """
-    Mean DAIOE percentile of the occupations held in 2019, either per
-    employer x age cell or once per employer from its incumbents aged 31
-    and over. Returns employer x age_group x expo, so a firm-level measure
-    is simply the same number repeated across that firm's age cells.
+    Mean DAIOE percentile of the occupations held in 2019, per employer x
+    age cell or once per employer from its incumbents aged 31 and over.
+
+    Variant A is 47L's OWN builder, floors and all, so the anchor is exact
+    rather than approximate: a cell needs three coded workers and a firm
+    needs two scored cells. The first version of this script left those
+    floors out and scored 607,244 cells where 47L scores 143,700, which
+    would have made the sample a fourth ingredient in a decomposition
+    designed to vary one at a time.
+
+    Variant B then reuses the SAME cells and changes only the unit, so the
+    A to B step is a clean test of the unit and of nothing else.
     """
-    b = base.copy()
-    b["ssyk4"] = b["ssyk4"].astype(str).str.zfill(4)
-    b = b[b["ssyk4"] != "____"].merge(daioe, on="ssyk4", how="inner")
-    b["ws"] = b["score"] * b["n"]
+    cells = l47.build_exposure(base, daioe)
     if age_specific:
-        g = (b.groupby(["employer_id", "age_group"], observed=True)
-             .agg(ws=("ws", "sum"), n=("n", "sum")).reset_index())
-        g["expo"] = g["ws"] / g["n"]
-        return g[["employer_id", "age_group", "expo"]]
-    inc = b[b["age_group"].astype(str).isin(INCUMBENT_BANDS)]
+        return cells[["employer_id", "age_group", "expo"]].copy()
+    inc = cells[cells["age_group"].astype(str).isin(INCUMBENT_BANDS)].copy()
+    if inc.empty:
+        return pd.DataFrame(columns=["employer_id", "age_group", "expo"])
+    inc["ws"] = inc["expo"] * inc["n_coded"]
     g = (inc.groupby("employer_id", observed=True)
-         .agg(ws=("ws", "sum"), n=("n", "sum")).reset_index())
-    g["expo"] = g["ws"] / g["n"]
-    cells = b[["employer_id", "age_group"]].drop_duplicates()
-    return cells.merge(g[["employer_id", "expo"]], on="employer_id",
-                       how="inner")
+         .agg(ws=("ws", "sum"), n=("n_coded", "sum")).reset_index())
+    g["fexpo"] = g["ws"] / g["n"]
+    out = cells[["employer_id", "age_group"]].merge(
+        g[["employer_id", "fexpo"]], on="employer_id", how="inner")
+    return out.rename(columns={"fexpo": "expo"})
 
 
 def edu_exposure(frame19: pd.DataFrame, book, name: str, spec: dict,
-                 age_specific: bool, as_quartile: bool):
+                 age_specific: bool, as_quartile: bool, l47):
     """
     The same construction on EDUCATION rather than occupation, scored
-    through 47h's scorebook so it is the identical mapping 47j uses.
+    through 47h's scorebook so it is the identical mapping 47j uses, and
+    floored the same way 47L floors the occupation route.
     """
     cols = ["niva_t", "inr_t", "expb_t"]
     keycols = cols + ["age_group"]
@@ -145,11 +152,28 @@ def edu_exposure(frame19: pd.DataFrame, book, name: str, spec: dict,
     f = f.merge(combos, on=keycols, how="left")
     f = f[f["_score"].notna()]
     f["ws"] = f["_score"] * f["n_emp"]
-    by = ["employer_id", "age_group"] if age_specific else ["employer_id"]
-    src = f if age_specific else f[f["age_group"].astype(str).isin(INCUMBENT_BANDS)]
-    g = (src.groupby(by, observed=True)
-         .agg(ws=("ws", "sum"), n=("n_emp", "sum")).reset_index())
-    g["expo"] = g["ws"] / g["n"]
+    cell = (f.groupby(["employer_id", "age_group"], observed=True)
+            .agg(ws=("ws", "sum"), n=("n_emp", "sum")).reset_index())
+    # 47L's floors, on the education side: a cell needs enough scored
+    # workers to mean anything, and a firm needs more than one scored cell
+    # or it contributes nothing to a within-employer comparison.
+    cell = cell[cell["n"] >= l47.MIN_CELL_CODED]
+    if cell.empty:
+        return pd.DataFrame(columns=["employer_id", "age_group", "expo"])
+    keep = (cell.groupby("employer_id")["age_group"].transform("nunique")
+            >= l47.MIN_FIRM_AGES)
+    cell = cell[keep]
+    cell["cexpo"] = cell["ws"] / cell["n"]
+    if age_specific:
+        g = cell.rename(columns={"cexpo": "expo"})[
+            ["employer_id", "age_group", "expo", "n"]]
+    else:
+        inc = cell[cell["age_group"].astype(str).isin(INCUMBENT_BANDS)]
+        fm = (inc.groupby("employer_id", observed=True)
+              .agg(ws=("ws", "sum"), n=("n", "sum")).reset_index())
+        fm["expo"] = fm["ws"] / fm["n"]
+        g = cell[["employer_id", "age_group"]].merge(
+            fm[["employer_id", "expo", "n"]], on="employer_id", how="inner")
     if as_quartile:
         # WORKER-weighted cutoffs, which is what 47j uses. An unweighted
         # qcut over firms would put a quarter of FIRMS in each group and a
@@ -162,13 +186,10 @@ def edu_exposure(frame19: pd.DataFrame, book, name: str, spec: dict,
                            for q in (0.25, 0.5, 0.75)])
         g["expo"] = (np.searchsorted(cuts, g["expo"].to_numpy(),
                                      side="right") + 1).astype(float)
-    if age_specific:
-        return g[["employer_id", "age_group", "expo"]]
-    cells = f[["employer_id", "age_group"]].drop_duplicates()
-    return cells.merge(g[["employer_id", "expo"]], on="employer_id",
-                       how="inner")
+    return g[["employer_id", "age_group", "expo"]]
 
 
+ANCHOR = ("A0_47L_anchor", "47L exactly, on 47L's own sample")
 VARIANTS = [
     ("A_occ_age_cont",  "occupation, age-specific, continuous  (= 47L)"),
     ("B_occ_firm_cont", "occupation, firm incumbents, continuous"),
@@ -223,13 +244,18 @@ def main():
               "skipped, and the SOURCE comparison cannot be made")
 
     expos = {}
-    expos["A_occ_age_cont"] = occ_exposure(base, daioe, True)
-    expos["B_occ_firm_cont"] = occ_exposure(base, daioe, False)
+    expos["A_occ_age_cont"] = occ_exposure(base, daioe, True, l47)
+    expos["B_occ_firm_cont"] = occ_exposure(base, daioe, False, l47)
     if book is not None:
         expos["C_edu_age_cont"] = opt("variant C", edu_exposure, frame19,
-                                      book, "OL_daioe", spec, True, False)
+                                      book, "OL_daioe", spec, True, False,
+                                      l47)
         expos["D_edu_firm_quart"] = opt("variant D", edu_exposure, frame19,
-                                        book, "OL_daioe", spec, False, True)
+                                        book, "OL_daioe", spec, False, True,
+                                        l47)
+    expos = {k: v for k, v in expos.items() if v is not None and not v.empty}
+    for k, v in expos.items():
+        print(f"  {k:<18} {len(v):,} firm-age cells")
     # the 2019 education frame is tens of millions of rows and nothing
     # below needs it: the exposures are built and the panels come from the
     # counts. Free it before the first panel is built rather than after.
@@ -255,10 +281,33 @@ def main():
             print(f"    {r['a']:<18} vs {r['b']:<18} corr {r['corr']:+.3f} "
                   f"on {r['n_cells']:,} cells")
 
-    rows = []
+    # ONE SAMPLE FOR ALL FOUR. A decomposition that varies the exposure
+    # one ingredient at a time must not vary the sample as well, and the
+    # four constructions do not score identical sets of cells: the
+    # education route reaches firms the occupation route does not, and the
+    # firm-level measures need a firm to have incumbents. So every variant
+    # is restricted to the cells all of them score, and the anchor fit
+    # below reports 47L on 47L's own sample so the cost of that
+    # restriction is visible rather than assumed.
+    common = None
+    for e in expos.values():
+        k = e[["employer_id", "age_group"]].drop_duplicates()
+        common = k if common is None else common.merge(
+            k, on=["employer_id", "age_group"], how="inner")
+    print(f"\n  common sample: {len(common):,} cells scored by all "
+          f"{len(expos)} constructions")
+
+    jobs = [(ANCHOR[0], ANCHOR[1], expos["A_occ_age_cont"])]
     for key, label in VARIANTS:
         e = expos.get(key)
-        if e is None:
+        if e is not None:
+            jobs.append((key, label, e.merge(common,
+                                             on=["employer_id", "age_group"],
+                                             how="inner")))
+
+    rows = []
+    for key, label, e in jobs:
+        if e is None or e.empty:
             print(f"\n  {key}: skipped")
             continue
         t1 = time.time()
@@ -269,6 +318,7 @@ def main():
         if bal.empty:
             print(f"  {key}: empty panel, skipped")
             continue
+        print(f"  {key}: panel {len(bal):,} rows from {len(e):,} cells")
         gr = l47.fit_gradient(bal, f"g62_{key}")
         del bal
         gc.collect()
@@ -301,6 +351,10 @@ def main():
         se = G.pivot_table(index="age_group", columns="variant", values="se")
         lines += ["standard errors:", se.reindex(order).round(4).to_string(), ""]
         cols = list(piv.columns)
+        if ANCHOR[0] in cols and "A_occ_age_cont" in cols:
+            d = piv.loc["22-25", "A_occ_age_cont"] - piv.loc["22-25", ANCHOR[0]]
+            lines.append(f"SAMPLE alone (anchor to A) moves 22-25 by {d:+.4f}"
+                         "  <- the cost of the common sample, not a finding")
         if "A_occ_age_cont" in cols and "B_occ_firm_cont" in cols:
             d = piv.loc["22-25", "B_occ_firm_cont"] - piv.loc["22-25", "A_occ_age_cont"]
             lines.append(f"UNIT alone (A to B) moves 22-25 by {d:+.4f}")
@@ -326,6 +380,13 @@ def main():
         "     and neither is wrong.",
         "  3. Every variant here uses the stock as the outcome, so none of",
         "     them speaks to hiring.",
+        "  4. CHECK THE ANCHOR FIRST. A0 is 47L's own exposure on 47L's own",
+        "     sample and must reproduce 47L's published gradient (+0.0081",
+        "     at 22-25, -0.0193 at 41-49). If it does not, something other",
+        "     than the exposure has changed and nothing below it should be",
+        "     read. The four variants then run on one common sample, so",
+        "     the A0-to-A step is the price of that restriction and the",
+        "     A-to-B, A-to-C and C-to-D steps are the decomposition.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "62_summary.txt").write_text("\n".join(lines))
     print("\n" + "\n".join(lines))
