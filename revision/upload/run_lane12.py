@@ -26,6 +26,17 @@ READS ONLY CACHES: 47L's L_baseline_2019 and L_counts_2021 to 2025. No
 SQL, no cache writes, safe beside anything. Four fits on two panels.
 
 If output_61 is present the summary prints both registers side by side.
+
+  66  what an exposed firm actually experienced              ~2-3 min
+
+Descriptive, no regressions, on the SAME firm classification as the
+headline so the two can be read side by side. Every coefficient in this
+project is the exposed quartile minus the rest, net of what the fixed
+effects remove, which is the right thing to estimate and the wrong thing
+to say out loud. This produces the raw counterpart: what happened to the
+young-to-older ratio in each exposure quartile, on employment, hiring
+and separations, and the quartile's employment share, which is what
+converts a coefficient into what a firm experienced.
 """
 
 import sys
@@ -35,7 +46,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402
 
 STAGES = [
-    ("65_occupation_arm.py", "output_65/65_summary.txt", 30),
+    ("65_occupation_arm.py",     "output_65/65_summary.txt", 30),
+    ("66_plain_magnitudes.py",   "output_66/66_summary.txt",  3),
 ]
 
 if __name__ == "__main__":
