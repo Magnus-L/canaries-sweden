@@ -201,6 +201,16 @@ negative value in the entire hiring column, across both halves of every year.
 Separations do not fall. If anything they are slightly up. The stock has barely
 moved.
 
+**Then the standard errors arrived and the reading collapsed.** That −0.069
+carries a standard error of 0.079, and the honest seasonal handling gives
+−0.049 with 0.067. Both are within one standard error of zero, and the
+precision on that half-year is three to four times worse than on any other,
+which is what made the point estimate look dramatic in the first place. A rule
+we had written before the number existed says an effect must be twice its
+standard error, and it refused. I had spent an evening comparing point
+estimates across half-years without looking at their precision, which is
+exactly what the rule was there to prevent.
+
 The second half-years tell the complementary story. Through December 2024 the
 young hiring differential sat between +0.044 and +0.076 with a standard deviation
 of 0.010, straight through ChatGPT, with the post-2022 average marginally higher
@@ -301,6 +311,18 @@ periods and collective agreements stand between a demand shock and a headcount.
 Therefore the measurement problem, painful as it was, cost us less than the
 conceptual one.
 
+**Date the treatment, do not assume it.** This is the one I am least proud of
+missing. Every estimate above defines the post period as the ChatGPT launch,
+which pools thirteen months of 2023 with eighteen of 2024 and 2025. If the
+labour market responded to firms adopting rather than to a model shipping,
+that averages an untreated period with a treated one and attenuates the
+coefficient for reasons that have nothing to do with the world. SCB's own
+survey puts Swedish firm adoption at 10.4 per cent in 2023, 25.2 in 2024 and
+35.0 in 2025, so the diffusion happened almost entirely after the date we
+called the treatment. Our tight bound is a bound on the average over the whole
+window, and I had been presenting it as though it bounded the effect. It does
+not.
+
 **Measure your attenuation rather than apologising for it.** We very nearly wrote
 a careful paragraph conceding that our proxy decays with distance from the
 baseline, hedging the late-period results accordingly, and inviting the reader to
@@ -329,6 +351,10 @@ alternatives cannot, and the paper should say so once, plainly, and then move on
 ---
 
 ## 9. Where the work stands
+
+The single most valuable thing outstanding is not another design. It is
+re-estimating what we already have with the treatment dated where the adoption
+data put it, which costs one parameter and a re-fit.
 
 Three things are running or waiting. The horse race across the education designs
 is re-running, though the simulator has already told us what it will conclude. The
