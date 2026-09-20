@@ -195,8 +195,60 @@ def test_end_to_end():
           f"summary states the estimand and its blind spot")
 
 
+def test_dead_cells_are_free():
+    """
+    On 20 Sep every 22-25 fit crashed R with an access violation on a
+    39-million-row panel, while the LARGER 26-30 panel at 45 million
+    succeeded. Zero-filling five age bands over seven years creates a
+    great many cells that are empty for the life of the panel, and the
+    youngest band is where employers most often have none.
+
+    fixest discards such cells internally, because under an employer x
+    age fixed effect a cell that is zero throughout has that effect at
+    minus infinity and contributes nothing to any other parameter. So
+    removing them before they reach R is free. This checks that it really
+    is free rather than merely plausible.
+    """
+    book, sp, frames = setup()
+    expo, _ = mod.incumbent_exposure(frames[2019], book, "OL_daioe", sp,
+                                     "true", 2021)
+    bal = mod.build_panel(frames, expo, "22-25")
+    assert not bal.empty, "the fixture produced no panel"
+    tot = bal.groupby(["employer_id", "age_group"], observed=True)["n_emp"].sum()
+    assert (tot > 0).all(), "a cell that is zero throughout survived"
+    bands = bal.groupby("employer_id", observed=True)["age_group"].nunique()
+    assert (bands >= 2).all(), "an employer with one band survived"
+
+    real = mod._drop_dead_cells
+    mod._drop_dead_cells = lambda b: b
+    try:
+        full = mod.build_panel(frames, expo, "22-25")
+    finally:
+        mod._drop_dead_cells = real
+
+    # The fixture as built has no dead cells, so comparing it with itself
+    # would prove nothing. Create some: empty the 41-49 band entirely for
+    # a third of employers, exactly the pattern that inflates the real
+    # panel. The drop must remove them and the estimate must not move.
+    emp = sorted(full["employer_id"].unique())[::3]
+    killed = full["employer_id"].isin(emp) & (full["age_group"] == "41-49")
+    full = full.copy()
+    full.loc[killed, "n_emp"] = 0
+    trimmed = mod._drop_dead_cells(full)
+    assert len(trimmed) < len(full), "the drop removed nothing on a panel "\
+                                     "built to contain dead cells"
+    a = mod.fit(trimmed, "dead_trimmed")
+    b = mod.fit(full, "dead_kept")
+    assert np.isfinite(a["gamma3"]) and np.isfinite(b["gamma3"]), (a, b)
+    assert abs(a["gamma3"] - b["gamma3"]) < 1e-6, (a["gamma3"], b["gamma3"])
+    print(f"PASS dropping dead cells changes nothing: {len(full):,} rows -> "
+          f"{len(trimmed):,} ({1-len(trimmed)/len(full):.0%} removed), "
+          f"gamma3 {b['gamma3']:+.6f} -> {a['gamma3']:+.6f}")
+
+
 if __name__ == "__main__":
     test_incumbents_only()
     test_absorption_and_sign()
+    test_dead_cells_are_free()
     test_end_to_end()
     print(f"\nALL PASS  (tmp: {TMP})")

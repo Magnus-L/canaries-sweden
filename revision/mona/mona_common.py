@@ -732,7 +732,21 @@ def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
     """
     err = (r.stderr or "").strip()
     out = (r.stdout or "").strip()
+    # Save beside the SCRIPT'S OUTPUT, on the share, not in the batch
+    # node's temp. On 20 Sep every 47j fit at 22-25 crashed R, the log
+    # named C:\Windows\TEMP\...\_rerr_*.txt, and that path is local to
+    # the batch node: unreadable from the interactive session and
+    # unexportable. An error report nobody can open is not a report.
     path = workdir / f"_rerr_{tag}.txt"
+    try:
+        import inspect
+        for frame in inspect.stack():
+            cand = frame.frame.f_globals.get("OUT")
+            if isinstance(cand, Path) and cand.is_dir():
+                path = cand / f"_rerr_{tag}.txt"
+                break
+    except BaseException:
+        pass
     try:
         path.write_text(f"returncode {r.returncode}\n\n=== stderr ===\n{err}"
                         f"\n\n=== stdout ===\n{out}", encoding="utf-8",
@@ -740,8 +754,22 @@ def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
         where = f"  full R output: {path}"
     except BaseException as ex:
         where = f"  (could not save R output: {type(ex).__name__})"
-    lines = err.splitlines()
-    head = "\n    ".join(lines[:12]) if lines else "(stderr empty)"
+    # MONA prints a twelve-line boxed banner about its CRAN mirror at the
+    # start of every R session. Printing "the first twelve lines" therefore
+    # printed the banner and nothing else, twice over, on 19 and 20 Sep.
+    # Drop it before choosing what to show.
+    def _is_banner(ln: str) -> bool:
+        t = ln.strip()
+        return (not t or set(t) <= set("+-|") or t.startswith("|")
+                or "CRAN-mirror" in t or "install.packages" in t
+                or "MONA has a local" in t or "R sessions (batch" in t
+                or "Reinstalling a package" in t or "remain installed" in t
+                or "reinstall the package" in t or "lines ..." in t)
+
+    lines = [ln for ln in err.splitlines() if not _is_banner(ln)]
+    head = "\n    ".join(lines[:12]) if lines else "(stderr empty once the "
+    if not lines:
+        head = "(no error text: stderr held only MONA's startup banner)"
     tail = "\n    ".join(lines[-6:]) if len(lines) > 18 else ""
     print(f"  {kind} FAILED ({tag}) rc={r.returncode}")
     print(f"    {head}")

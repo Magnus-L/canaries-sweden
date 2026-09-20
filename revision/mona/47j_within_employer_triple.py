@@ -139,6 +139,36 @@ def incumbent_exposure(frame19: pd.DataFrame, book, name: str, spec: dict,
     return fy[["employer_id", "fq", "mix", "n"]], cuts
 
 
+def _drop_dead_cells(bal: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove employer x age cells that are zero in EVERY month, and any
+    employer left with fewer than two age bands.
+
+    This changes no estimate. Under a Poisson with an employer x age fixed
+    effect, a cell whose outcome is zero throughout has that effect at
+    minus infinity and contributes nothing to any other parameter; fixest
+    discards it internally. Doing it here instead means the rows never
+    reach R.
+
+    The reason it matters: on 20 Sep every 22-25 fit crashed R with an
+    access violation on a panel of 39 million rows, while the LARGER
+    26-30 panel at 45 million succeeded. Zero-filling a balanced panel
+    over five age bands creates a great many cells that are empty for the
+    life of the panel, and the youngest band is where employers most often
+    have none at all.
+    """
+    alive = bal.groupby(["employer_id", "age_group"], observed=True)["n_emp"].transform("sum") > 0
+    out = bal[alive]
+    bands = out.groupby("employer_id", observed=True)["age_group"].transform("nunique")
+    out = out[bands >= 2]
+    dropped = len(bal) - len(out)
+    if dropped:
+        print(f"    dropped {dropped:,} of {len(bal):,} rows in cells that "
+              f"are zero in every month ({dropped/len(bal):.0%}); this is "
+              f"what fixest would discard internally")
+    return out.copy()
+
+
 def build_panel(frames: dict, expo: pd.DataFrame, young: str) -> pd.DataFrame:
     """Balanced employer x age band x month panel with the triple interaction."""
     pieces = []
@@ -167,6 +197,9 @@ def build_panel(frames: dict, expo: pd.DataFrame, young: str) -> pd.DataFrame:
            ["n_emp"].sum().reindex(full, fill_value=0).reset_index()
            .merge(emp, on="employer_id", how="left"))
     bal["n_emp"] = bal["n_emp"].astype(int)
+    bal = _drop_dead_cells(bal)
+    if bal.empty:
+        return bal
     bal["post_rb"] = (bal["year_month"] >= mc.RIKSBANK_YM).astype(int)
     bal["post_gpt"] = (bal["year_month"] >= mc.CHATGPT_YM).astype(int)
     bal["high"] = (bal["fq"] == 4).astype(int)

@@ -9,8 +9,22 @@ Two questions, both cheap metadata lookups, no job slot needed:
      has, the lag we have spent two days working around just shrank by a
      year, and several designs become far less constrained.
 """
+from pathlib import Path
+
 import pandas as pd
 import pyodbc
+
+# Write a file as well as printing. A console in MONA is ephemeral and
+# cannot be exported, so a probe whose only output is stdout makes the
+# operator take screenshots. Anything worth reading is worth saving.
+OUT = Path(__file__).resolve().parent / "probe_vintage_result.txt"
+_lines = []
+
+
+def say(*a):
+    msg = " ".join(str(x) for x in a)
+    say(msg)
+    _lines.append(msg)
 
 conn = pyodbc.connect(
     "DRIVER={ODBC Driver 17 for SQL Server};"
@@ -24,29 +38,34 @@ t = pd.read_sql("""
 agi = t[t.TABLE_NAME.str.startswith("Arb_AGIIndivid")].copy()
 agi["period"] = agi.TABLE_NAME.str.extract(r"(\d{6})")
 agi["year"] = agi.period.str[:4]
-agi["vintage"] = agi.TABLE_NAME.str.rsplit("_", n=1).str[-1]
+# lower(): 2019 is suffixed _def and 2020 onwards _Def, and SQL Server
+# matches identifiers case-insensitively so nothing downstream noticed.
+# A case-sensitive split here invents a distinction that does not exist.
+agi["vintage"] = agi.TABLE_NAME.str.rsplit("_", n=1).str[-1].str.lower()
 
-print("\nMONTHLY AGI: months present, by year and vintage")
-print(agi.pivot_table(index="year", columns="vintage", values="TABLE_NAME",
+say("\nMONTHLY AGI: months present, by year and vintage")
+say(agi.pivot_table(index="year", columns="vintage", values="TABLE_NAME",
                       aggfunc="count").fillna(0).astype(int).to_string())
 
-print("\n2025 and later, one line each:")
+say("\n2025 and later, one line each:")
 late = agi[agi.year >= "2025"].sort_values("TABLE_NAME")
-print("  (none)" if late.empty else
+say("  (none)" if late.empty else
       "\n".join(f"  {r.TABLE_NAME}" for r in late.itertuples()))
 
-if "def" in set(late.vintage):
-    print("\n  *** DEFINITIVE 2025 MONTHS EXIST. Scripts 54 and 47L used the")
-    print("  *** preliminary file. Re-pull before believing any 2025 number.")
+if "def" in set(late.vintage.str.lower()):
+    say("\n  *** DEFINITIVE 2025 MONTHS EXIST. Scripts 54 and 47L used the")
+    say("  *** preliminary file. Re-pull before believing any 2025 number.")
 else:
-    print("\n  no definitive 2025 months: preliminary is still all we have.")
+    say("\n  no definitive 2025 months: preliminary is still all we have.")
 
 occ = sorted(t[t.TABLE_NAME.str.match(r"Individ_\d{4}$")].TABLE_NAME)
-print(f"\nOCCUPATION REGISTER: {', '.join(occ) if occ else '(none found)'}")
+say(f"\nOCCUPATION REGISTER: {', '.join(occ) if occ else '(none found)'}")
 if any(x >= "Individ_2024" for x in occ):
-    print("  *** Individ_2024 OR LATER EXISTS. The occupation lag is shorter")
-    print("  *** than we assumed and the backtest should be re-based on it.")
+    say("  *** Individ_2024 OR LATER EXISTS. The occupation lag is shorter")
+    say("  *** than we assumed and the backtest should be re-based on it.")
 else:
-    print("  latest is 2023, as assumed: 2024 and 2025 inherit stale codes.")
+    say("  latest is 2023, as assumed: 2024 and 2025 inherit stale codes.")
 
 conn.close()
+OUT.write_text("\n".join(_lines), encoding="utf-8")
+print(f"\nwritten to {OUT}")
