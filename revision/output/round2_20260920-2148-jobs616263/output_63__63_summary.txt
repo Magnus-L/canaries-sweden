@@ -1,0 +1,170 @@
+DOES THE ANSWER DEPEND ON THE EXPOSURE MEASURE?
+====================================================
+
+  daioe     our own measure, the one every other design uses
+  eloundou  a different team, a different method, the same object
+  telework  NOT an AI measure: a placebo that should NOT reproduce the result
+
+correlation across occupations:
+  daioe     vs eloundou  +0.868
+  daioe     vs telework  +0.748
+  eloundou  vs telework  +0.659
+
+age gradient, outcome = hires, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0273   -0.0111    0.0103
+26-30     -0.0206   -0.0075    0.0028
+31-34     -0.0123   -0.0019    0.0028
+35-40     -0.0236   -0.0103   -0.0051
+41-49     -0.0345   -0.0271   -0.0071
+50+        0.0195    0.0244    0.0210
+
+age gradient, outcome = seps, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0090   -0.0048    0.0020
+26-30     -0.0050    0.0057    0.0007
+31-34     -0.0067    0.0040   -0.0060
+35-40     -0.0217   -0.0065   -0.0146
+41-49     -0.0388   -0.0278   -0.0200
+50+       -0.0208   -0.0110   -0.0006
+
+age gradient, outcome = stock, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25      0.0081    0.0017    0.0176
+26-30      0.0131    0.0031    0.0170
+31-34      0.0091   -0.0012    0.0117
+35-40     -0.0044   -0.0145    0.0024
+41-49     -0.0193   -0.0320   -0.0006
+50+        0.0357    0.0184    0.0389
+
+age gradient, outcome = hires, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0754   -0.0400   -0.0233
+26-30     -0.0540   -0.0258   -0.0244
+31-34     -0.0390   -0.0162   -0.0199
+35-40     -0.0412   -0.0173   -0.0195
+41-49     -0.0612   -0.0421   -0.0290
+50+       -0.0122    0.0044    0.0026
+
+age gradient, outcome = seps, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0124   -0.0117    0.0139
+26-30     -0.0044    0.0062    0.0077
+31-34     -0.0065    0.0043   -0.0034
+35-40     -0.0188   -0.0037   -0.0095
+41-49     -0.0430   -0.0317   -0.0209
+50+       -0.0297   -0.0186   -0.0057
+
+age gradient, outcome = stock, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0132   -0.0132    0.0069
+26-30     -0.0016   -0.0054    0.0051
+31-34      0.0039   -0.0028    0.0063
+35-40     -0.0028   -0.0106    0.0040
+41-49     -0.0208   -0.0311   -0.0034
+50+        0.0316    0.0152    0.0379
+
+The launch rows are comparable with every earlier estimate
+in this round. The adoption rows are where scripts 60 and
+61 put the treatment, and they are the ones to read if the
+question is whether the measure carries a real effect
+rather than whether three measures agree about a null.
+
+THE PLACEBO TEST. If the telework column reproduces the
+daioe column, we are measuring office work rather than
+exposure to generative AI, and the interpretation fails
+however clean the identification is. Read it against the
+correlation above: at 0.74 the columns SHOULD resemble
+each other, and only the horse race separates them.
+
+HORSE RACE: both measures in one regression. The daioe row
+is the effect of AI exposure holding teleworkability fixed,
+which is the coefficient worth quoting.
+
+  pooled over age:
+    stock  launch    daioe     -0.0047 (SE 0.0105) t -0.45
+    stock  launch    telework  +0.0148 (SE 0.0094) t +1.57
+    stock  adoption  daioe     -0.0117 (SE 0.0092) t -1.27
+    stock  adoption  telework  +0.0146 (SE 0.0084) t +1.74
+    hires  launch    daioe     -0.0395 (SE 0.0169) t -2.33
+    hires  launch    telework  +0.0290 (SE 0.0163) t +1.78
+    hires  adoption  daioe     -0.0635 (SE 0.0223) t -2.85
+    hires  adoption  telework  +0.0226 (SE 0.0180) t +1.26
+    seps   launch    daioe     -0.0238 (SE 0.0130) t -1.83
+    seps   launch    telework  +0.0085 (SE 0.0119) t +0.71
+    seps   adoption  daioe     -0.0328 (SE 0.0106) t -3.09
+    seps   adoption  telework  +0.0176 (SE 0.0099) t +1.78
+
+  by age band, which is where the claim lives:
+    hires  launch    22-25  daioe -0.0606 (0.0332)   telework +0.0457 (0.0241)
+    hires  launch    26-30  daioe -0.0415 (0.0198)   telework +0.0266 (0.0165)
+    hires  launch    31-34  daioe -0.0192 (0.0181)   telework +0.0094 (0.0160)
+    hires  launch    35-40  daioe -0.0339 (0.0187)   telework +0.0135 (0.0178)
+    hires  launch    41-49  daioe -0.0711 (0.0178)   telework +0.0443 (0.0177)
+    hires  launch    50+    daioe +0.0436 (0.0376)   telework -0.0279 (0.0293)
+    seps   launch    22-25  daioe -0.0227 (0.0227)   telework +0.0201 (0.0197)
+    seps   launch    26-30  daioe -0.0110 (0.0130)   telework +0.0089 (0.0127)
+    seps   launch    31-34  daioe +0.0014 (0.0155)   telework -0.0083 (0.0141)
+    seps   launch    35-40  daioe -0.0215 (0.0175)   telework +0.0012 (0.0162)
+    seps   launch    41-49  daioe -0.0673 (0.0166)   telework +0.0350 (0.0160)
+    seps   launch    50+    daioe -0.0604 (0.0188)   telework +0.0485 (0.0173)
+    stock  launch    22-25  daioe -0.0062 (0.0152)   telework +0.0206 (0.0130)
+    stock  launch    26-30  daioe +0.0059 (0.0125)   telework +0.0101 (0.0102)
+    stock  launch    31-34  daioe +0.0065 (0.0118)   telework +0.0043 (0.0101)
+    stock  launch    35-40  daioe -0.0128 (0.0120)   telework +0.0112 (0.0110)
+    stock  launch    41-49  daioe -0.0568 (0.0141)   telework +0.0456 (0.0134)
+    stock  launch    50+    daioe +0.0199 (0.0162)   telework +0.0199 (0.0124)
+    hires  adoption  22-25  daioe -0.1032 (0.0500)   telework +0.0394 (0.0283)
+    hires  adoption  26-30  daioe -0.0636 (0.0290)   telework +0.0129 (0.0168)
+    hires  adoption  31-34  daioe -0.0333 (0.0200)   telework -0.0059 (0.0127)
+    hires  adoption  35-40  daioe -0.0405 (0.0173)   telework +0.0002 (0.0132)
+    hires  adoption  41-49  daioe -0.0853 (0.0184)   telework +0.0293 (0.0166)
+    hires  adoption  50+    daioe +0.0008 (0.0569)   telework -0.0149 (0.0443)
+    seps   adoption  22-25  daioe -0.0434 (0.0213)   telework +0.0445 (0.0183)
+    seps   adoption  26-30  daioe -0.0189 (0.0118)   telework +0.0204 (0.0118)
+    seps   adoption  31-34  daioe +0.0023 (0.0137)   telework -0.0081 (0.0124)
+    seps   adoption  35-40  daioe -0.0185 (0.0158)   telework +0.0022 (0.0142)
+    seps   adoption  41-49  daioe -0.0706 (0.0167)   telework +0.0351 (0.0158)
+    seps   adoption  50+    daioe -0.0680 (0.0181)   telework +0.0481 (0.0168)
+    stock  adoption  22-25  daioe -0.0318 (0.0143)   telework +0.0271 (0.0124)
+    stock  adoption  26-30  daioe -0.0054 (0.0115)   telework +0.0060 (0.0098)
+    stock  adoption  31-34  daioe +0.0083 (0.0113)   telework -0.0042 (0.0097)
+    stock  adoption  35-40  daioe -0.0074 (0.0109)   telework +0.0067 (0.0097)
+    stock  adoption  41-49  daioe -0.0493 (0.0134)   telework +0.0350 (0.0125)
+    stock  adoption  50+    daioe +0.0142 (0.0155)   telework +0.0220 (0.0124)
+
+The pooled row averages over six age bands, so a decline
+concentrated in one band arrives divided by roughly six.
+Compare the by-age rows with the gradient table, not with
+the pooled row.
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. Every score is standardised, so a coefficient is the effect of
+     a one standard deviation more exposed occupation ON THAT
+     MEASURE'S OWN SCALE. Sizes are comparable only in that sense.
+  2. Agreement between daioe and eloundou is reassurance about the
+     measure, not about the design. They may share a common error.
+  3. Disagreement with telework is what we WANT, but the two
+     measures correlate 0.74 across occupations, so the telework
+     column being negative is not by itself bad news. The horse
+     race is what settles it.
+  4. The three measures score slightly different sets of
+     occupations, so the marginal columns rest on slightly
+     different samples of firm-age cells; the log gives the counts.
+     The horse race uses only cells both measures score, which is
+     the comparison that holds the sample fixed.
+  5. READ HIRES AND SEPARATIONS TOGETHER. Hiring falling in
+     exposed firms while the stock holds means separations fell
+     too, and that is reduced churn rather than reduced
+     employment. Only a fall in hiring WITHOUT a matching fall in
+     separations is a fall in jobs.
+  6. This still says nothing about whether DAIOE predicts actual
+     use of the technology. That needs a survey we do not hold.
+
+Runtime 111.1 min. memory available: 723.9 GB

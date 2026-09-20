@@ -1,0 +1,44 @@
+THE WITHIN-EMPLOYER DESIGN, RE-DATED
+====================================================
+
+Young against older workers inside one employer in one month.
+Exposure from the education mix of incumbents aged 31+ in 2019.
+No young worker is ever classified.
+
+Windows: launch 2022-12 to 2023-11; copilot 2023-11 to 2024-01; adoption 2024-01 to 9999-99
+
+STEP FUNCTION, young = 22-25:
+  OL_daioe   asof  launch -0.0224(-2.1)  copilot +0.0735(+5.1)  adoption -0.0488(-2.7)
+  OL_daioe   true  launch -0.0270(-2.7)  copilot +0.0686(+4.7)  adoption -0.0584(-3.5)
+  entrant    true  launch -0.0276(-2.7)  copilot +0.0612(+3.9)  adoption -0.0598(-3.6)
+
+STEP FUNCTION, young = 26-30:
+  OL_daioe   asof  launch -0.0047(-0.8)  copilot +0.0270(+3.7)  adoption -0.0430(-4.0)
+  OL_daioe   true  launch -0.0055(-1.0)  copilot +0.0263(+3.6)  adoption -0.0441(-4.2)
+  entrant    true  launch -0.0036(-0.7)  copilot +0.0271(+3.7)  adoption -0.0404(-3.8)
+
+POOLED from 2024-01, coefficient (SE) t:
+  OL_daioe   true  22-25  -0.0509 (0.0122) t -4.18
+  OL_daioe   asof  22-25  -0.0442 (0.0131) t -3.39
+  entrant    true  22-25  -0.0513 (0.0123) t -4.17
+  OL_daioe   true  26-30  -0.0437 (0.0079) t -5.55
+  OL_daioe   asof  26-30  -0.0432 (0.0081) t -5.33
+  entrant    true  26-30  -0.0411 (0.0082) t -5.00
+
+ARTEFACT AT THE NEW DATING (as-of minus true). A design
+clean at one date is not automatically clean at another:
+  OL_daioe   22-25  +0.0067
+  OL_daioe   26-30  +0.0006
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The window boundaries were fixed by script 60 before any of
+     this was estimated. They were not chosen to suit the answer.
+  2. The adoption window is the shortest, so its coefficient is the
+     least precise. Compare the windows on their t, not their size.
+  3. A later dating does not rescue a null. It tests a sharper
+     hypothesis and it can fail.
+  4. 2025 is the preliminary AGI file and stops in June.
+  5. The panel starts at 2021-01, not 2019. The earlier years
+     identify nothing here and cost enough rows to crash R.
+
+Runtime 65.4 min. memory available: 661.8 GB

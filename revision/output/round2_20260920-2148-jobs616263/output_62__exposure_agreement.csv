@@ -1,0 +1,7 @@
+a,b,n_cells,corr
+A_occ_age_cont,B_occ_firm_cont,142120,0.9279228702129202
+A_occ_age_cont,C_edu_age_cont,143580,0.7675884749932284
+A_occ_age_cont,D_edu_firm_quart,143520,0.7547635954354981
+B_occ_firm_cont,C_edu_age_cont,142000,0.7657593033097899
+B_occ_firm_cont,D_edu_firm_quart,141998,0.8040804821447419
+C_edu_age_cont,D_edu_firm_quart,626020,0.7064226035133433
