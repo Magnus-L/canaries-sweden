@@ -105,7 +105,14 @@ def find(dirs: list) -> dict:
         for root in roots:
             if not root.exists():
                 continue
-            for p in [root / name] + list(root.rglob(name)):
+            # The export pack flattens output_47h/horserace_estimates.csv to
+            # output_47h__horserace_estimates.csv, so a search for the bare
+            # name silently misses the whole pack and falls back on older
+            # local copies. That is the worst possible failure here: it
+            # reports confidently from stale numbers. Match both shapes.
+            cands = ([root / name] + list(root.rglob(name))
+                     + list(root.rglob(f"*__{name}")))
+            for p in cands:
                 if p.is_file() and (best is None or p.stat().st_mtime > best.stat().st_mtime):
                     best = p
         if best is not None:
@@ -195,8 +202,11 @@ def read_47j(p: Path):
             a = arts_from_arms(df[df.young_band == yb], "design", d,
                                age_col="young_band", age=yb, coef="gamma3")
             s = df[(df.design == d) & (df.young_band == yb) & (df.arm == "true")]
-            rows.append(dict(design=d, young_band=yb,
-                             true=float(s["gamma3"].iloc[0]) if len(s) else np.nan,
+            se = float(s["se"].iloc[0]) if len(s) and "se" in s else np.nan
+            est = float(s["gamma3"].iloc[0]) if len(s) else np.nan
+            rows.append(dict(design=d, young_band=yb, true=est, se=se,
+                             t=(est / se) if (se and se == se and se > 0)
+                             else np.nan,
                              a2021=a[2021], a2022=a[2022],
                              verdict=verdict(a[2021], a[2022])))
     return pd.DataFrame(rows)
@@ -224,8 +234,13 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
         head = ("| design | artefact T2021 | artefact T2022 | true 22-25 | 50+ placebo | verdict |\n"
                 "|---|---|---|---|---|---|\n")
         for r in t.itertuples():
+            # a blank 50+ cell is Tier B never having run for that design,
+            # which happens when nothing survives Tier A to become a
+            # finalist. "nan" reads like a failed fit; it was not one.
             head += (f"| {r.design} | {r.a2021:+.4f} | {r.a2022:+.4f} | {r.true22:+.4f} | "
-                     f"{r.placebo:.4f} | {r.verdict} |\n")
+                     + ("not estimated" if pd.isna(r.placebo)
+                        else f"{r.placebo:.4f}")
+                     + f" | {r.verdict} |\n")
         if len(win):
             claim = (f"**Supported, by {len(win)} of {len(t)} designs.** The paper's claim and "
                      f"its within-employer design survive with education-based exposure; the "
@@ -244,19 +259,35 @@ def build_report(found: dict, sim_done: bool, val_txt: str) -> str:
     # 2 within-employer triple difference
     if "47j" in found:
         t = read_47j(found["47j"])
-        tbl = ("| design | young band | gamma3 (true) | artefact T2021 | artefact T2022 | verdict |\n"
-               "|---|---|---|---|---|---|\n")
+        tbl = ("| design | young band | gamma3 (true) | SE | t | artefact T2021 "
+               "| artefact T2022 | verdict |\n|---|---|---|---|---|---|---|---|\n")
         for r in t.itertuples():
-            tbl += (f"| {r.design} | {r.young_band} | {r.true:+.4f} | {r.a2021:+.4f} | "
-                    f"{r.a2022:+.4f} | {r.verdict} |\n")
+            tbl += (f"| {r.design} | {r.young_band} | {r.true:+.4f} | "
+                    + ("" if pd.isna(r.se) else f"{r.se:.4f}") + " | "
+                    + ("" if pd.isna(r.t) else f"{r.t:+.2f}") + " | "
+                    + f"{r.a2021:+.4f} | {r.a2022:+.4f} | {r.verdict} |\n")
         ok = t[(t.young_band == "22-25") & t.verdict.isin(["CLEAN", "USABLE WITH CAVEAT"])]
         neg = ok[ok["true"] < 0]
-        claim = ("**Supported.** Inside the same employer in the same month, young workers fell "
-                 "behind older ones after ChatGPT, and more so where the firm's incumbent staff "
-                 "are AI-exposed. No young worker's own education record enters the classifier."
-                 if len(neg) else
-                 "**Not supported as stated.** Either the artefact fails the rule or the gap is "
-                 "not negative; read the table before writing anything.")
+        sig = neg[neg["t"].abs() >= 1.96]
+        # A CLEAN verdict is a statement about the ARTEFACT, not about the
+        # estimate. Calling a t of -1.2 "supported" because its artefact is
+        # small conflates an unbiased design with an established effect, and
+        # this report existed for two days doing exactly that.
+        if len(sig):
+            claim = ("**Supported.** Inside the same employer in the same month, young "
+                     "workers fell behind older ones after ChatGPT, and more so where the "
+                     "firm's incumbent staff are AI-exposed. The design is clean on the "
+                     "artefact test AND the estimate is distinguishable from zero.")
+        elif len(neg):
+            b = neg.iloc[0]
+            claim = (f"**Clean but imprecise.** The design passes the artefact test, which "
+                     f"is what the rule tests, and the estimate is negative at every "
+                     f"specification. It is NOT distinguishable from zero: "
+                     f"{b['true']:+.4f} with a standard error of {b['se']:.4f}, t "
+                     f"{b['t']:+.2f}. What this licenses is a bound, not a finding.")
+        else:
+            claim = ("**Not supported as stated.** Either the artefact fails the rule or the "
+                     "gap is not negative; read the table before writing anything.")
         L.append(sec("2. The age gradient within employers (47j)", claim + "\n\n" + tbl))
     else:
         L.append(sec("2. The age gradient within employers (47j)",

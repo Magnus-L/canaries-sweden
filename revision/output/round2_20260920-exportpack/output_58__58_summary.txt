@@ -1,0 +1,61 @@
+SEASONAL CONTROL, STANDARD ERRORS, AND THE 2025 VINTAGE
+============================================================
+
+22-25 differential in HIRES, both specifications:
+
+spec      h1only  rebased
+halfyear                 
+2019H1    0.0071  -0.0006
+2019H2       NaN   0.0083
+2020H1    0.0092   0.0051
+2020H2       NaN  -0.0125
+2021H1    0.0013  -0.0045
+2021H2       NaN   0.0042
+2022H2       NaN   0.0196
+2023H1    0.0298   0.0208
+2023H2       NaN   0.0016
+2024H1    0.0107   0.0069
+2024H2       NaN   0.0028
+2025H1   -0.0494  -0.0752
+
+standard errors:
+spec      h1only  rebased
+halfyear                 
+2019H1    0.0185   0.0183
+2019H2       NaN   0.0198
+2020H1    0.0198   0.0194
+2020H2       NaN   0.0217
+2021H1    0.0177   0.0179
+2021H2       NaN   0.0186
+2022H2       NaN   0.0172
+2023H1    0.0138   0.0147
+2023H2       NaN   0.0216
+2024H1    0.0137   0.0138
+2024H2       NaN   0.0225
+2025H1    0.0672   0.0792
+
+PRE-COMMITTED READ RULE, evaluated:
+   spec    coef     se       t   ci_lo  ci_hi  se_vs_other_median  negative  twice_se  beats_pre_max  pre_max_abs  passes
+ h1only -0.0494 0.0672 -0.7351 -0.1812 0.0823              3.8050      True     False           True       0.0092   False
+rebased -0.0752 0.0792 -0.9495 -0.2304 0.0800              4.2651      True     False           True       0.0125   False
+
+FITS THAT FAILED AND ARE ABSENT FROM THE TABLES ABOVE:
+  h1only/stock
+  R segfaults under memory pressure when several lanes run
+  at once. A missing row here is a missing fit, never a
+  zero, and the tables must not be read as though the
+  outcome had been estimated and found small.
+
+VERDICT: it does not meet the conditions. It is within the ordinary variation of this series and must not be quoted as a finding.
+
+STILL TRUE WHATEVER THE VERDICT:
+  1. It is one half-year at the very end of the window.
+  2. The 2025 source vintage is recorded in agi_tables.csv.
+     If definitive months now exist, nothing here should be
+     believed until 54 and 47L are re-pulled on them.
+  3. Exposure is frozen in 2019. Script 57 measured lambda at
+     0.83 to 0.89 and flat from 2022, so attenuation is mild,
+     but the 2025 value of lambda is extrapolated, not
+     measured.
+
+Runtime 36.8 min. memory available: 669.2 GB

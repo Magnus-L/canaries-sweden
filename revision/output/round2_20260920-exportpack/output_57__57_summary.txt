@@ -1,0 +1,43 @@
+BASELINE VINTAGE AND ATTENUATION
+====================================================
+
+lambda(y): share of the 2019 exposure signal still present
+age_group    ALL  22-25  26-30  31-34  35-40  41-49    50+
+year                                                      
+2019       1.000  1.000  1.000  1.000  1.000  1.000  1.000
+2021       0.917  0.835  0.885  0.906  0.921  0.935  0.937
+2022       0.890  0.817  0.846  0.869  0.894  0.912  0.917
+2023       0.890  0.829  0.871  0.870  0.885  0.906  0.910
+
+Same design, two pre-treatment baselines:
+baseline    2019    2022
+outcome                 
+hires    -0.0167 -0.0100
+seps     -0.0171 -0.0483
+stock     0.0070 -0.0005
+
+  hires  2022 baseline moves the estimate +0.0067 against the 2019 one
+  seps   2022 baseline moves the estimate -0.0313 against the 2019 one
+  stock  2022 baseline moves the estimate -0.0075 against the 2019 one
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. lambda is measured for years with their own occupation
+     register. For 2024 and 2025 it is EXTRAPOLATED, because
+     there is no register to measure it against. An
+     attenuation correction for those years rests on that
+     extrapolation and must say so.
+  2. The 2019 baseline stays the headline: it has the
+     longest clean pre-period. The 2022 baseline is the
+     check on attenuation, not a replacement, because it
+     sits after the April 2022 tightening and leaves only
+     one pre-treatment half-year.
+  3. If the two baselines agree, attenuation is not what is
+     driving the result. If the 2022 baseline finds more,
+     the 2019 estimate is an attenuated version of a real
+     effect and should be reported as a LOWER BOUND on its
+     magnitude, not as a null.
+  4. Dividing an estimate by lambda corrects the point
+     estimate and inflates its standard error by the same
+     factor. Do both or neither.
+
+Runtime 39.5 min. memory available: 610.3 GB

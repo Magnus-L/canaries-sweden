@@ -1,0 +1,13 @@
+date,outcome,n_post_months,coef,se,status,n_obs,spec,why
+2022-12,hires,31,-0.014744299034201,0.0200262009196877,ok,11013772,prespecified,ChatGPT public launch (30 Nov 2022)
+2022-12,seps,31,0.0079692168203161,0.0132952988570406,ok,11013772,prespecified,ChatGPT public launch (30 Nov 2022)
+2022-12,stock,31,-0.0016865668115915,0.0108253340503726,ok,11208600,prespecified,ChatGPT public launch (30 Nov 2022)
+2023-04,hires,27,-0.0160572986869059,0.0207680092926589,ok,11013772,prespecified,quarter after GPT-4 (14 Mar 2023)
+2023-04,seps,27,0.0087357458255418,0.0133263199391398,ok,11013772,prespecified,quarter after GPT-4 (14 Mar 2023)
+2023-04,stock,27,-0.0046724983176106,0.0108623355992727,ok,11208600,prespecified,quarter after GPT-4 (14 Mar 2023)
+2023-11,hires,20,-0.0405201530495728,0.0277436375073651,ok,11013772,prespecified,Microsoft 365 Copilot general availability
+2023-11,seps,20,-0.0016441279987147,0.0144062004728878,ok,11013772,prespecified,Microsoft 365 Copilot general availability
+2023-11,stock,20,-0.0094283133664346,0.0105467659632916,ok,11208600,prespecified,Microsoft 365 Copilot general availability
+2024-01,hires,18,-0.034969826655117,0.0300571163731919,ok,11013772,prespecified,onset suggested by the qualitative accounts
+2024-01,seps,18,0.0070427928156424,0.014786569685897,ok,11013772,prespecified,onset suggested by the qualitative accounts
+2024-01,stock,18,-0.0179341561845596,0.0105164935725343,ok,11208600,prespecified,onset suggested by the qualitative accounts

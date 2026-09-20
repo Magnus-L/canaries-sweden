@@ -1,0 +1,24 @@
+EDUCATION DESIGN: WHAT THE REGISTER LAG MANUFACTURES
+========================================================
+Occupation design, script 45, ages 22-25:
+  T=2021  true +0.0193  as-of -0.2875  ARTEFACT -0.3068
+  T=2022  true +0.0176  as-of -0.1452  ARTEFACT -0.1627
+
+Education design, ages 22-25:
+  T=2021  true -0.0099  as-of -0.3695  ARTEFACT -0.3596
+  T=2022  true -0.0099  as-of -0.3041  ARTEFACT -0.2941
+
+Education design, ages 26-30:
+  T=2021  true +0.0119  as-of -0.1778  ARTEFACT -0.1897
+  T=2022  true +0.0119  as-of -0.1245  ARTEFACT -0.1364
+
+Education design, ages 50+:
+  T=2021  true +0.0223  as-of +0.0195  ARTEFACT -0.0028
+  T=2022  true +0.0223  as-of +0.0201  ARTEFACT -0.0022
+
+READ RULE (pre-committed):
+  |artefact| < 0.05 at both truncations -> the education design
+    is the paper's register evidence.
+  0.05 to half of the occupation artefact -> usable only with
+    the artefact reported beside every estimate.
+  at or above half -> the register route is closed by lag.

@@ -1,0 +1,84 @@
+THE PATH AT MONTHLY RESOLUTION
+====================================================
+
+Exposure frozen 2019. Outcome from payroll and birth year
+only. Absorbed: employer x month, employer x age, month x age.
+
+QUARTERLY, 22-25 differential in hires.
+rebased on the same quarter of the pre-period.
+
+  2019Q1  +0.0434 (SE 0.0332) t +1.3   rebased +0.0084
+  2019Q2  +0.0056 (SE 0.0257) t +0.2   rebased -0.0014
+  2019Q3  +0.1242 (SE 0.0320) t +3.9   rebased +0.0303
+  2019Q4  +0.0265 (SE 0.0262) t +1.0   rebased -0.0190
+  2020Q1  +0.0327 (SE 0.0370) t +0.9   rebased -0.0022
+  2020Q2  +0.0157 (SE 0.0246) t +0.6   rebased +0.0087
+  2020Q3  +0.0603 (SE 0.0313) t +1.9   rebased -0.0335
+  2020Q4  +0.0534 (SE 0.0330) t +1.6   rebased +0.0080
+  2021Q1  +0.0347 (SE 0.0370) t +0.9   rebased -0.0003
+  2021Q2  -0.0004 (SE 0.0231) t -0.0   rebased -0.0074
+  2021Q3  +0.0900 (SE 0.0304) t +3.0   rebased -0.0038
+  2021Q4  +0.0565 (SE 0.0276) t +2.0   rebased +0.0110
+  2022Q1  +0.0292 (SE 0.0289) t +1.0   rebased -0.0058
+  2022Q3  +0.1009 (SE 0.0279) t +3.6   rebased +0.0070
+  2022Q4  +0.0756 (SE 0.0271) t +2.8   rebased +0.0302
+  2023Q1  +0.0393 (SE 0.0364) t +1.1   rebased +0.0044
+  2023Q2  +0.0402 (SE 0.0131) t +3.1   rebased +0.0333
+  2023Q3  +0.1222 (SE 0.0328) t +3.7   rebased +0.0283
+  2023Q4  +0.0105 (SE 0.0338) t +0.3   rebased -0.0350
+  2024Q1  +0.0304 (SE 0.0288) t +1.1   rebased -0.0046
+  2024Q2  +0.0223 (SE 0.0224) t +1.0   rebased +0.0153
+  2024Q3  +0.1055 (SE 0.0355) t +3.0   rebased +0.0117
+  2024Q4  +0.0358 (SE 0.0305) t +1.2   rebased -0.0097
+  2025Q1  +0.0935 (SE 0.0354) t +2.6   rebased +0.0585
+  2025Q2  -0.1812 (SE 0.1374) t -1.3   rebased -0.1882
+
+MONTHLY FROM 2024, 22-25 differential in hires.
+READ FOR SHAPE, NOT LEVEL: these monthly points have no
+same-month pre-period counterpart, so the level is
+contaminated by calendar seasonality. Whether the series
+drifts or jumps is what it can tell you.
+
+  2019H1  +0.0061 (SE 0.0182) t +0.3
+  2019H2  +0.0649 (SE 0.0199) t +3.3
+  2020H1  +0.0110 (SE 0.0194) t +0.6
+  2020H2  +0.0442 (SE 0.0217) t +2.0
+  2021H1  +0.0018 (SE 0.0179) t +0.1
+  2021H2  +0.0611 (SE 0.0185) t +3.3
+  2022H2  +0.0766 (SE 0.0171) t +4.5
+  2023H1  +0.0269 (SE 0.0147) t +1.8
+  2023H2  +0.0582 (SE 0.0215) t +2.7
+  2024-01  +0.0734 (SE 0.0303) t +2.4
+  2024-02  -0.0363 (SE 0.0396) t -0.9
+  2024-03  -0.0055 (SE 0.0293) t -0.2
+  2024-04  +0.0650 (SE 0.0305) t +2.1
+  2024-05  -0.0498 (SE 0.0210) t -2.4
+  2024-06  +0.0117 (SE 0.0430) t +0.3
+  2024-07  +0.0711 (SE 0.0405) t +1.8
+  2024-08  +0.0342 (SE 0.0383) t +0.9
+  2024-09  +0.1606 (SE 0.0300) t +5.4
+  2024-10  +0.0887 (SE 0.0296) t +3.0
+  2024-11  +0.0270 (SE 0.0470) t +0.6
+  2024-12  -0.0419 (SE 0.0434) t -1.0
+  2025-01  +0.1199 (SE 0.0377) t +3.2
+  2025-02  +0.0726 (SE 0.0478) t +1.5
+  2025-03  +0.0265 (SE 0.0251) t +1.1
+  2025-04  +0.0689 (SE 0.0281) t +2.5
+  2025-05  -0.0526 (SE 0.0225) t -2.3
+  2025-06  -0.4274 (SE 0.2556) t -1.7
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. Resolution is bought with precision. Individual quarters and
+     months are noisier than half-years by construction, and one
+     significant month is not a finding. A consistent shape across
+     several consecutive points is the evidence here.
+  2. The half-yearly result this refines was NOT significant:
+     2025H1 hires came in at -0.069 with a standard error of
+     0.079. Nothing below overturns that; it can only show whether
+     the point estimate came from a drift or from one month.
+  3. 2025 is the preliminary AGI file and stops in June.
+  4. descriptive.csv carries the plottable series. If the event
+     study says something those four lines cannot show, distrust
+     the event study first.
+
+Runtime 57.8 min. memory available: 679.3 GB

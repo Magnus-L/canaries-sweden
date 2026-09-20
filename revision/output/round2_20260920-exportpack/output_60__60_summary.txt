@@ -1,0 +1,56 @@
+WHEN DID IT START?
+====================================================
+
+22-25 differential, by assumed treatment date.
+Identified inside the employer against its own other ages.
+
+PRE-SPECIFIED (these carry the inference):
+  2022-12  ChatGPT public launch (30 Nov 2022)
+  2023-04  quarter after GPT-4 (14 Mar 2023)
+  2023-11  Microsoft 365 Copilot general availability
+  2024-01  onset suggested by the qualitative accounts
+
+outcome   hires    seps   stock
+date                           
+2022-12 -0.0147  0.0080 -0.0017
+2023-04 -0.0161  0.0087 -0.0047
+2023-11 -0.0405 -0.0016 -0.0094
+2024-01 -0.0350  0.0070 -0.0179
+
+standard errors:
+outcome   hires    seps   stock
+date                           
+2022-12  0.0200  0.0133  0.0108
+2023-04  0.0208  0.0133  0.0109
+2023-11  0.0277  0.0144  0.0105
+2024-01  0.0301  0.0148  0.0105
+
+EXPLORATORY PROFILE, hires. Searching over dates, so no
+p-value here means anything. Read the SHAPE.
+
+  2023-01  -0.0154 (SE 0.0205)  post months 30
+  2023-04  -0.0161 (SE 0.0208)  post months 27
+  2023-07  -0.0179 (SE 0.0239)  post months 24
+  2023-10  -0.0371 (SE 0.0268)  post months 21
+  2024-01  -0.0350 (SE 0.0301)  post months 18
+  2024-04  -0.0375 (SE 0.0337)  post months 15
+  2024-07  -0.0406 (SE 0.0434)  post months 12
+
+  most negative at 2024-07: -0.0406 (SE 0.0434)
+  at an ENDPOINT, which is what a trend rather than a break looks like, and is also what shrinking precision alone can produce
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The four pre-specified dates were fixed in the source
+     before the run and all four are reported. The grid was
+     not, and nothing in it carries a p-value.
+  2. The post window shrinks as the date moves later, so
+     standard errors grow along the profile for reasons that
+     have nothing to do with the effect. Every row carries
+     its post-month count; use it.
+  3. A late date does not rescue a null. It tests a different
+     and more specific hypothesis, and it can fail.
+  4. Exposure is still frozen in 2019 and 2025 is still the
+     preliminary file. Re-dating the treatment changes
+     neither.
+
+Runtime 50.3 min. memory available: 640.2 GB

@@ -1,0 +1,11 @@
+GENDER SPLIT -- pooled Poisson gamma2
+========================================
+  22-25   men: -0.1508 (SE 0.0150) = -14.0%
+  22-25 women: -0.2004 (SE 0.0127) = -18.2%
+  26-30   men: -0.0593 (SE 0.0098) = -5.8%
+  26-30 women: -0.0553 (SE 0.0075) = -5.4%
+
+Read: the submitted ln(n+1) split was -0.016 women vs
+-0.007 men at 22-25. Poisson should agree in sign and
+ordering. If it does not, the abstract's 'concentrated
+among young women' has to be restated or dropped.

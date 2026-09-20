@@ -1,0 +1,63 @@
+AI EXPOSURE BY AGE AND OVER TIME
+====================================================
+Poisson event studies, reference 2022H1, exposure frozen 2019.
+Absorbed: employer x month, employer x age, month x age.
+
+POOLED over ages, coefficient on E(f,a) x half-year:
+outcome    hires    seps   stock
+halfyear                        
+2019H1   -0.0577 -0.0361 -0.0251
+2019H2   -0.0472 -0.0669 -0.0323
+2020H1   -0.0414 -0.0632 -0.0241
+2020H2   -0.0500 -0.0654 -0.0169
+2021H1   -0.0193 -0.0126 -0.0071
+2021H2   -0.0355 -0.0419 -0.0116
+2022H1    0.0000  0.0000  0.0000
+2022H2   -0.0246 -0.0420 -0.0021
+2023H1   -0.0043 -0.0194  0.0102
+2023H2   -0.0296 -0.0343  0.0061
+2024H1   -0.0483 -0.0298  0.0070
+2024H2   -0.0493 -0.0608  0.0025
+2025H1   -0.0959 -0.0449  0.0016
+
+22-25 DIFFERENTIAL, coefficient on E(f,a) x half-year x young:
+outcome    hires    seps   stock
+halfyear                        
+2019H1    0.0057  0.0316  0.0009
+2019H2    0.0643  0.0357  0.0412
+2020H1    0.0114  0.0286  0.0068
+2020H2    0.0435  0.0471  0.0266
+2021H1    0.0018  0.0156 -0.0038
+2021H2    0.0602  0.0409  0.0266
+2022H1    0.0000  0.0000  0.0000
+2022H2    0.0756  0.0473  0.0451
+2023H1    0.0271  0.0292  0.0128
+2023H2    0.0576  0.0535  0.0426
+2024H1    0.0132  0.0198 -0.0009
+2024H2    0.0587  0.0597  0.0159
+2025H1   -0.0689  0.0406 -0.0072
+
+PRE-PERIOD, which is the test:
+  largest |coefficient| before 2022H2, by outcome:
+  hires 0.0643  seps 0.0471  stock 0.0412
+  A young differential already moving here means the
+  post-period coefficients are not a shock response.
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The pre-period is the test, not the decoration. Quote it.
+  2. A shock arriving with ChatGPT shows in 2022H2 or 2023H1 and
+     persists. One isolated half-year is noise.
+  3. Stock and flow should disagree if firms adjusted through
+     hiring: hires turn first, the stock follows slowly or not at
+     all within this window. If the stock moves first, the story
+     is not entry-level.
+  4. Exposure is frozen in 2019, so attenuation toward zero GROWS
+     with distance from the baseline. A flat path late in the
+     window is weaker evidence of no effect than a flat path
+     early in it.
+  5. The age contrast is estimated inside one fit on the
+     multi-age panel. It cannot be estimated by splitting the
+     sample: employer x month is a singleton within one age band
+     and would absorb the outcome.
+
+Runtime 39.6 min. memory available: 593.2 GB

@@ -1,0 +1,9 @@
+side,quartile,n_pairs
+v1_only,1,0
+v1_only,2,0
+v1_only,3,0
+v1_only,4,0
+v2_only,1,4166
+v2_only,2,4714
+v2_only,3,3446
+v2_only,4,5385

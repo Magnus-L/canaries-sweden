@@ -1,0 +1,41 @@
+AGE-SPECIFIC BASELINE EXPOSURE
+============================================================
+E(f,a) = mean DAIOE percentile of the occupations employer f's
+age-a workers held in 2019, standardised across cells.
+After the baseline year a worker needs only a birth year and a
+payslip: the occupation register is never used again and the
+education register is not used at all.
+
+Absorbed: employer x month, employer x age, month x age.
+Identified: PostGPT x E(f,a) -- among firms whose young did more
+exposed work before the shock, did young employment fall further,
+measured inside the employer against its own other age groups.
+
+  floor            tax control False gamma +0.0070 (SE 0.0089)  n 11,208,600
+  coverage>=0.50   tax control False gamma +0.0082 (SE 0.0087)  n 11,095,344
+  coverage>=0.75   tax control False gamma +0.0104 (SE 0.0096)  n 10,325,718
+  floor            tax control True  gamma +0.0058 (SE 0.0087)  n 11,208,600
+  shrunk           tax control False gamma -0.0005 (SE 0.0115)  n 38,398,230
+  shrunk           tax control True  gamma -0.0016 (SE 0.0114)  n 38,398,230
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The as-of backtest does NOT apply. Exposure is fixed in 2019
+     and the outcome uses only payroll and birth year, so later
+     register vintages cannot touch it. That is an invariance, not
+     a validation: a classifier unrelated to the work would be
+     equally invariant.
+  2. Employer x month absorbs a common firm shock, NOT a firm shock
+     that falls differently on the young. This is a
+     difference-in-differences across firms in the exposure
+     dimension and needs the corresponding parallel-trend
+     assumption, on the multiplicative scale.
+  3. The reduced employer contribution for those born 1998-2004
+     expired 31 March 2023, inside the post window and on this age
+     band. The 'tax control' rows interact PRE-SHOCK pay below the
+     SEK 25,000 cap with the expiry date. If the coefficient moves,
+     say so.
+  4. The baseline inherits 2019 occupation coverage (about 29 per
+     cent missing under 30). The coverage>= rows are that check.
+  5. The outcome is EMPLOYMENT, not hiring. Ageing into and out of
+     the band moves it.
+Runtime 52.5 min. memory available: 583.8 GB

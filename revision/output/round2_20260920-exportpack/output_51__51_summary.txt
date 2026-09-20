@@ -1,0 +1,24 @@
+OCCUPATION CODE VINTAGE, AND THE CLERICAL CUT
+==========================================================
+Share of coded people whose code was assigned in the year itself:
+
+  2019: 70.0% of codes assigned that year, all occupations; clerical 65.9%
+  2020: 63.8% of codes assigned that year, all occupations; clerical 58.3%
+  2021: 64.8% of codes assigned that year, all occupations; clerical 59.6%
+  2022: 69.7% of codes assigned that year, all occupations; clerical 64.6%
+  2023: 71.9% of codes assigned that year, all occupations; clerical 68.1%
+
+Clerical exits, by whether the NEXT year's code was freshly
+assigned (an exit recorded without a reassignment is a coding
+artefact, not a move):
+  NOT reassigned           2.11% of clerical stock
+  reassigned that year     10.92% of clerical stock
+
+READ THIS AS A MEASUREMENT FACT, NOT A RESULT.
+  It does not re-estimate AI Unboxed and does not touch its data.
+  Stale codes at an endpoint attenuate a measured change toward
+  zero, so for a paper that FINDS an effect the direction is
+  favourable: the true effect is at least as large. The number
+  matters for how the paper describes its measure, not for
+  whether its finding survives.
+Runtime 2.4 min. memory available: 627.7 GB

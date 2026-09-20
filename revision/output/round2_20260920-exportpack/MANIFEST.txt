@@ -1,0 +1,454 @@
+EXPORT PACK  2026-09-20 17:13
+======================================================================
+
+PACKED 207 files, 3.37 MB total
+
+        2.2 KB  output_39__39_canary_gate_log.txt
+        0.3 KB  output_39___rout_gate.csv
+        0.1 KB  output_39__canary_gate_results.csv
+        0.2 KB  output_39__canary_gate_verdict.txt
+        1.1 KB  output_39b__39b_log.txt
+        0.7 KB  output_39b__39b_summary.txt
+        0.1 KB  output_39b__pair_diff_22_25.csv
+        2.1 KB  output_39b__panel_diff_by_quartile.csv
+        0.6 KB  output_39b__panel_diff_by_year.csv
+        1.2 KB  output_40__40_log.txt
+       20.4 KB  output_40__coverage_by_month_age.csv
+       77.5 KB  output_40__coverage_by_quartile.csv
+        0.3 KB  output_40__coverage_summary.txt
+        1.0 KB  output_40__entrant_split_coverage.csv
+       10.8 KB  output_40__excluded_counts.csv
+       23.1 KB  output_40__vintage_composition.csv
+        1.0 KB  output_41__41_log.txt
+        0.2 KB  output_41__margin_pair_counts.csv
+        4.7 KB  output_41__vintage_es.csv
+        1.5 KB  output_42__42_log.txt
+        0.5 KB  output_42__42_summary.txt
+        1.4 KB  output_42___rout_es_frz_es_22-25.csv
+        1.4 KB  output_42___rout_es_frz_es_26-30.csv
+        1.4 KB  output_42___rout_es_frz_es_31-34.csv
+        1.4 KB  output_42___rout_es_frz_es_35-40.csv
+        1.4 KB  output_42___rout_es_frz_es_41-49.csv
+        1.4 KB  output_42___rout_es_frz_es_50+.csv
+        0.3 KB  output_42___rout_frz_22-25.csv
+        0.3 KB  output_42___rout_frz_26-30.csv
+        0.3 KB  output_42___rout_frz_31-34.csv
+        0.3 KB  output_42___rout_frz_35-40.csv
+        0.3 KB  output_42___rout_frz_41-49.csv
+        0.3 KB  output_42___rout_frz_50+.csv
+        8.6 KB  output_42__frozen_es.csv
+        1.5 KB  output_42__frozen_pooled.csv
+        1.7 KB  output_43__43_log.txt
+        0.8 KB  output_43__43_summary.txt
+        1.4 KB  output_43___rout_es_es_22-25.csv
+        1.4 KB  output_43___rout_es_es_26-30.csv
+        1.4 KB  output_43___rout_es_es_31-34.csv
+        1.4 KB  output_43___rout_es_es_35-40.csv
+        1.4 KB  output_43___rout_es_es_41-49.csv
+        1.4 KB  output_43___rout_es_es_50+.csv
+        0.3 KB  output_43___rout_pool_22-25.csv
+        0.3 KB  output_43___rout_pool_26-30.csv
+        0.3 KB  output_43___rout_pool_31-34.csv
+        0.3 KB  output_43___rout_pool_35-40.csv
+        0.3 KB  output_43___rout_pool_41-49.csv
+        0.3 KB  output_43___rout_pool_50+.csv
+        0.9 KB  output_43__bridge_inputs.csv
+        0.9 KB  output_43__extensive_lpm.csv
+        0.8 KB  output_43__olsplus1_pooled.csv
+        8.6 KB  output_43__poisson_es.csv
+        1.5 KB  output_43__poisson_pooled.csv
+        0.9 KB  output_44__44_log.txt
+        0.3 KB  output_44__44_summary.txt
+        6.9 KB  output_44__decile_pooled.csv
+        1.2 KB  output_45__45_log.txt
+        0.1 KB  output_45__45_summary.txt
+        6.5 KB  output_45__asof_confusion_T2021.csv
+        3.3 KB  output_45__asof_confusion_T2022.csv
+        2.3 KB  output_45__asof_es_T2021.csv
+        2.3 KB  output_45__asof_es_T2022.csv
+        0.3 KB  output_45__asof_estimates.csv
+        1.2 KB  output_45__asof_matchrates_T2021.csv
+        1.2 KB  output_45__asof_matchrates_T2022.csv
+       60.9 KB  output_45__frontier_grid.csv
+        0.9 KB  output_46__46_log.txt
+        0.3 KB  output_46__46_summary.txt
+        1.5 KB  output_46__wfh_daioe_only.csv
+        2.9 KB  output_46__wfh_horserace.csv
+        1.1 KB  output_47__47_log.txt
+        3.4 KB  output_47__edu_exposure_groups_2019.csv
+        3.3 KB  output_47__edu_exposure_groups_2019_young.csv
+        3.4 KB  output_47__edu_exposure_groups_2021.csv
+        2.0 KB  output_47__edu_match_rates.csv
+        4.8 KB  output_47b__47b_log.txt
+        1.0 KB  output_47b__47b_summary.txt
+        1.0 KB  output_47b__edu_asof_estimates.csv
+        0.9 KB  output_47b__edu_asof_matchrates.csv
+       21.7 KB  output_47h__47h_log.txt
+        2.2 KB  output_47h__47h_summary.txt
+        5.0 KB  output_47h__anchoring_rates.csv
+        0.1 KB  output_47h__gate_decomposition.csv
+        6.8 KB  output_47h__horserace_estimates.csv
+        0.2 KB  output_47h__score_diagnostics.csv
+        3.2 KB  output_47h__score_enrol.csv
+        3.2 KB  output_47h__score_entrant.csv
+        3.2 KB  output_47h__score_entrant_share.csv
+        3.2 KB  output_47h__score_expband.csv
+        3.2 KB  output_47h__score_fresh_stock.csv
+        3.2 KB  output_47h__score_full.csv
+        3.2 KB  output_47h__score_OL_daioe.csv
+        3.3 KB  output_47h__score_OL_exact.csv
+       10.4 KB  output_47i__47i_log.txt
+        2.5 KB  output_47i__47i_summary.txt
+        3.6 KB  output_47i__firmmix_estimates.csv
+        2.9 KB  output_47i__firmmix_quartile_sizes.csv
+       24.3 KB  output_47j__47j_log.txt
+        1.7 KB  output_47j__47j_summary.txt
+        1.2 KB  output_47j___rerr_tj_entrant_asof_2021_26_30.txt
+        1.2 KB  output_47j___rerr_tj_entrant_asof_2022_26_30.txt
+        1.2 KB  output_47j___rerr_tj_entrant_true_2021_26_30.txt
+        1.2 KB  output_47j___rerr_tj_entrant_true_2022_26_30.txt
+        1.2 KB  output_47j___rerr_tj_OL_daioe_asof_2021_26_30.txt
+        1.2 KB  output_47j___rerr_tj_OL_daioe_asof_2022_26_30.txt
+        1.2 KB  output_47j___rerr_tj_OL_daioe_true_2021_26_30.txt
+        1.2 KB  output_47j___rerr_tj_OL_daioe_true_2022_26_30.txt
+        1.1 KB  output_47j__triple_estimates.csv
+        1.2 KB  output_47j__triple_quartile_sizes.csv
+        7.1 KB  output_47k__47k_log.txt
+        1.7 KB  output_47k__47k_summary.txt
+        9.5 KB  output_47k__retention.csv
+        3.0 KB  output_47k__settled_estimates.csv
+       13.3 KB  output_47L__47L_log.txt
+        2.2 KB  output_47L__47L_summary.txt
+        0.5 KB  output_47L__agebase_estimates.csv
+        1.0 KB  output_47L__agebase_gradient.csv
+        0.2 KB  output_47L__exposure_support_floor.csv
+        0.2 KB  output_47L__exposure_support_shrunk.csv
+        5.1 KB  output_48__48_log.txt
+        0.5 KB  output_48__48_summary.txt
+        1.1 KB  output_48__gender_poisson.csv
+        4.5 KB  output_49__49_log.txt
+        0.9 KB  output_49__49_summary.txt
+        4.1 KB  output_49__attrition_by_frozen_quartile.csv
+        3.1 KB  output_49__match_rate_definitions.csv
+        1.5 KB  output_49b__49b_log.txt
+        0.9 KB  output_49b__49b_summary.txt
+        1.6 KB  output_49b__boundary_crossing.csv
+        2.8 KB  output_49b__freshness_by_frozen_quartile.csv
+        4.4 KB  output_50__50_log.txt
+        0.6 KB  output_50__50_summary.txt
+       34.3 KB  output_50__m1a_completion_age.csv
+       12.5 KB  output_50__m1b_level_change.csv
+      127.7 KB  output_50__m2_occ_change.csv
+       29.3 KB  output_50__m3_staleness.csv
+        0.5 KB  output_50__m4a_enrolment_prevalence.csv
+        0.3 KB  output_50__m4b_field_switch.csv
+        0.2 KB  output_50__m5a_employer_size.csv
+        0.1 KB  output_50__m5b_retention_22_25.csv
+        2.4 KB  output_50_slim__52_log.txt
+       34.3 KB  output_50_slim__m1a_completion_age.csv
+       12.5 KB  output_50_slim__m1b_level_change.csv
+      127.7 KB  output_50_slim__m2_occ_change.csv
+       29.3 KB  output_50_slim__m3_staleness.csv
+        0.5 KB  output_50_slim__m4a_enrolment_prevalence.csv
+        0.3 KB  output_50_slim__m4b_field_switch.csv
+        0.2 KB  output_50_slim__m5a_employer_size.csv
+        0.1 KB  output_50_slim__m5b_retention_22_25.csv
+       43.5 KB  output_50_slim__m6_matrix_2019.csv
+       44.0 KB  output_50_slim__m6_matrix_2020.csv
+       44.3 KB  output_50_slim__m6_matrix_2021.csv
+       44.2 KB  output_50_slim__m6_matrix_2022.csv
+       43.9 KB  output_50_slim__m6_matrix_2023.csv
+      100.7 KB  output_50_slim__m6b_inr_tertiary_2019.csv
+      103.4 KB  output_50_slim__m6b_inr_tertiary_2020.csv
+      104.3 KB  output_50_slim__m6b_inr_tertiary_2021.csv
+      103.4 KB  output_50_slim__m6b_inr_tertiary_2022.csv
+      102.5 KB  output_50_slim__m6b_inr_tertiary_2023.csv
+      251.0 KB  output_50_slim__m7_validation_t2021_k0.csv
+      232.6 KB  output_50_slim__m7_validation_t2021_k2.csv
+      258.3 KB  output_50_slim__m7_validation_t2022_k0.csv
+      234.2 KB  output_50_slim__m7_validation_t2022_k2.csv
+      260.0 KB  output_50_slim__m7_validation_t2023_k0.csv
+      235.1 KB  output_50_slim__m7_validation_t2023_k2.csv
+        2.2 KB  output_51__51_log.txt
+        1.2 KB  output_51__51_summary.txt
+        4.7 KB  output_51__clerical_flows_by_freshness.csv
+      134.6 KB  output_51__code_age_by_occupation.csv
+        6.0 KB  output_53__53_log.txt
+        2.4 KB  output_53__53_summary.txt
+        6.8 KB  output_53__fresh_es.csv
+        4.5 KB  output_53__fresh_pooled.csv
+       59.6 KB  output_53__freshness_shares.csv
+        1.0 KB  output_53__panel_sizes.csv
+        0.9 KB  output_53__selection_did.csv
+        2.7 KB  output_54__54_log.txt
+        0.2 KB  output_54__flow_estimates.csv
+        1.6 KB  output_54__flow_gradient.csv
+        0.4 KB  output_54__flow_support.csv
+        6.2 KB  output_56__56_log.txt
+        2.5 KB  output_56__56_summary.txt
+        3.8 KB  output_56__dynamics_pooled.csv
+        3.9 KB  output_56__dynamics_young.csv
+        4.7 KB  output_57__57_log.txt
+        1.9 KB  output_57__57_summary.txt
+        1.3 KB  output_57__reliability.csv
+        0.4 KB  output_57__vintage_estimates.csv
+        4.0 KB  output_57__vintage_gradient.csv
+       12.7 KB  output_58__58_log.txt
+        2.2 KB  output_58__58_summary.txt
+        1.2 KB  output_58___rerr_s58_h1only_stock.txt
+        1.2 KB  output_58___rerr_s58_h1only_stock_retry.txt
+        3.5 KB  output_58__agi_tables.csv
+        1.4 KB  output_58__es_h1only.csv
+        4.1 KB  output_58__es_rebased.csv
+        0.4 KB  output_58__readrule.csv
+        4.7 KB  output_59__59_log.txt
+        3.7 KB  output_59__59_summary.txt
+       26.5 KB  output_59__descriptive.csv
+        5.4 KB  output_59__path_quarter.csv
+        4.7 KB  output_59__path_zoom.csv
+        4.6 KB  output_60__60_log.txt
+        2.1 KB  output_60__60_summary.txt
+        1.5 KB  output_60__prespecified.csv
+        0.6 KB  output_60__profile.csv
+
+NOT PACKED 23 files (over 800 KB and not in PRIORITY).
+Add a name to PRIORITY in the script and re-run to fetch one.
+
+        0.0 KB  output_39/_DONE   0 rows x 1 cols
+        0.0 KB  output_39b/_DONE   0 rows x 1 cols
+        0.0 KB  output_40/_DONE   0 rows x 1 cols
+        0.0 KB  output_41/_DONE   0 rows x 1 cols
+        0.0 KB  output_43/_DONE   0 rows x 1 cols
+        0.0 KB  output_44/_DONE   0 rows x 1 cols
+        0.0 KB  output_45/_DONE   0 rows x 1 cols
+     3628.1 KB  output_50/m6_matrix_2019.csv   193,107 rows x 5 cols
+     3751.8 KB  output_50/m6_matrix_2020.csv   199,418 rows x 5 cols
+     3790.2 KB  output_50/m6_matrix_2021.csv   201,351 rows x 5 cols
+     3755.5 KB  output_50/m6_matrix_2022.csv   199,466 rows x 5 cols
+     3699.7 KB  output_50/m6_matrix_2023.csv   196,497 rows x 5 cols
+     4842.4 KB  output_50/m6b_inr_tertiary_2019.csv   255,945 rows x 5 cols
+     5139.1 KB  output_50/m6b_inr_tertiary_2020.csv   271,361 rows x 5 cols
+     5254.3 KB  output_50/m6b_inr_tertiary_2021.csv   277,328 rows x 5 cols
+     5207.6 KB  output_50/m6b_inr_tertiary_2022.csv   274,806 rows x 5 cols
+     5148.0 KB  output_50/m6b_inr_tertiary_2023.csv   271,581 rows x 5 cols
+     6909.2 KB  output_50/m7_validation_t2021_k0.csv   239,809 rows x 7 cols
+     6671.6 KB  output_50/m7_validation_t2021_k2.csv   231,176 rows x 7 cols
+     7188.3 KB  output_50/m7_validation_t2022_k0.csv   249,417 rows x 7 cols
+     6761.5 KB  output_50/m7_validation_t2022_k2.csv   234,295 rows x 7 cols
+     7273.4 KB  output_50/m7_validation_t2023_k0.csv   252,401 rows x 7 cols
+     6857.7 KB  output_50/m7_validation_t2023_k2.csv   237,653 rows x 7 cols
+
+SHA-256 of every packed file:
+
+  68c3309a252308f6397a2097a8539de30f58407650ccbf371cb9559a405744f3  55_log.txt
+  fa3978bbd911abf234e237b2a3ed7f9e61d306fa16c4b55b9aa0e67e314abef5  output_39__39_canary_gate_log.txt
+  b8afc3501b5a9a967be00ed0031a5f108de98e9b665bb893bd0c3bc656ed9c29  output_39___rout_gate.csv
+  16092cdc0d70f822df77c8698387fd4873b5eb6e34b7e7a3f493b13267ec0827  output_39__canary_gate_results.csv
+  d4e484a20d10f41b0de9e8a66033323bc9d46a7374b2c51f6d7a733be59b39f7  output_39__canary_gate_verdict.txt
+  86d7bd3ba553284298b72e01d83a31833d734b3967b2e02e6d709901ba3a2d8d  output_39b__39b_log.txt
+  77ffe10d2910b6f458064c4b06c9aed4c34c87369db929a29e0656ed692d5f4c  output_39b__39b_summary.txt
+  4cf5a546ab67c59bacdf117ebc5c8f7c037ccac716f9852a7ff23a16a362786b  output_39b__pair_diff_22_25.csv
+  161bf53d3194bb71a8b57e13374b4eb0f21ffd2a83ed82bb7b63ad7684787ad7  output_39b__panel_diff_by_quartile.csv
+  0cdacc93155c5dd34978256dcbd39c5b4dcaafb2d0db06e1a6985edb1e86e1e9  output_39b__panel_diff_by_year.csv
+  cf680a1b0d37a1d2473ab161e2b5a5f8ef413b46873a81936f2e846b279bb365  output_40__40_log.txt
+  1b96f54d294860f4b864af27e2423e733bd17431cedf6a12576e3872afdd47ad  output_40__coverage_by_month_age.csv
+  cd0f35217f18f3d1901753b46a3cb18a836d63e3457569919fd6590e79eb95b7  output_40__coverage_by_quartile.csv
+  cfedca93b1ab3042b42dca42a345285cc3a7c6f6e0c261ebbe5e2ec002be0bea  output_40__coverage_summary.txt
+  547a9b90346286f5bbd7f5357976ec7cf4ed4de6d19e2dd422b1cd98e48f6080  output_40__entrant_split_coverage.csv
+  1e2bc41127d0e7f2c517b7209650c97de923b473cfb4fce2e4defad0d03b31fe  output_40__excluded_counts.csv
+  315cde9d788736443f8b6924052c620c4622eb4ad5dfa1455a3c97cf9bc5ba31  output_40__vintage_composition.csv
+  05a3c15c47be875e139ddbaef4e04cf27ebefc867ec6e1f28c6bc89f3dd987a6  output_41__41_log.txt
+  ef98c7c11fb64abda731a4b8eaca02ec0b4e7815d60e207c5c4cef6eb563dd6e  output_41__margin_pair_counts.csv
+  710fdd639993d30f4b09af7f7c3ea2b259c5d5e0b0958b6e716e609a5892fcf1  output_41__vintage_es.csv
+  54874e413ffdeb8955a73ab77a992dbe38822f8480f1a733803fd41c4941e26d  output_42__42_log.txt
+  55bcaa551b324fdc51fe4545c7130dccfdfda30fc86a39a27c543a76756d3c96  output_42__42_summary.txt
+  0c656de0191f9448dc201107998c17f8b9ec19a01ee6a633f379eb3e795dea01  output_42___rout_es_frz_es_22-25.csv
+  a89f7f72c84a2cca6766f1f0c02b6ca508c8bfe8996f75c41e9a5a4a993976b7  output_42___rout_es_frz_es_26-30.csv
+  ce2b40cf1483dc44093637f58515bc07296784c1f975a307b74f2f261e4f3361  output_42___rout_es_frz_es_31-34.csv
+  1bfad0726f4d348d6abd6ecee5ea572b97c7c26184f39eec6ef56b3f7a678b46  output_42___rout_es_frz_es_35-40.csv
+  3f07936c77d496fb5edbc30cd37e4de786120429e3e7dc66d4e6c5e893fc2d20  output_42___rout_es_frz_es_41-49.csv
+  ddb5df3f1e439c5b702366b743fce1fc2d19f44bfa6643d13736e1d9b51d1178  output_42___rout_es_frz_es_50+.csv
+  d840088960c642206aae2bd41d31f0f9acccf6f125c134d37565475c4fb8caf5  output_42___rout_frz_22-25.csv
+  702cc5ed619ec0c5abaae17788d70f5f0572e1444f58225bbbb384a1eb1fd141  output_42___rout_frz_26-30.csv
+  540d6025c1884c93af87a8a218eb166a06b708ef4951ab478469ee749f7ea858  output_42___rout_frz_31-34.csv
+  20fbfca7c450d3d9ba2ff06cb77eb0008873f72cd3ddca4c0044c4bb3f8954d7  output_42___rout_frz_35-40.csv
+  3c0749c419086015dcf5f7ebb5f77412dad318f6f31cdfcf0e1897b3745131b0  output_42___rout_frz_41-49.csv
+  8db77ba6112068d65a6b5d046bef852fad2840d7126903b5b1f4c3589c260b9e  output_42___rout_frz_50+.csv
+  2571fe66dddf38617d6f1e417ffec6d03368258138d027ce76fcee52db912872  output_42__frozen_es.csv
+  e7ee9fd1de713dde94cc7d2594bccd3989ced8e9306abd29f29644949b8f5172  output_42__frozen_pooled.csv
+  8075725e00dd10d9ad4874c6380877a1f31a4dd798f5ebe80c22442e371848dc  output_43__43_log.txt
+  8232bbfddab774af934886bdd59b0cbc18c8d48166f10cdf6aac09c3432da70e  output_43__43_summary.txt
+  c856414613cc65c318d88a05519787ff8c1f1f4d70a9ecb9f7e42c264eed50b4  output_43___rout_es_es_22-25.csv
+  55a9f8479b690c1fb2387999169f55ed9d9b451be77723307807434ac74e2c45  output_43___rout_es_es_26-30.csv
+  159c6c78982d662fe740a7f4b1b96093b093375d084666a5a0ff5c9779f9711f  output_43___rout_es_es_31-34.csv
+  c65da07098507d18a92a36399c2b065f83d915f15218737198bc70d0f6b6328e  output_43___rout_es_es_35-40.csv
+  28aaadefbe2d03d2316dbc34d8341365b5b01a033c813adcd6e9c2ada9964f88  output_43___rout_es_es_41-49.csv
+  1d3375e5ccb2c6616e2478738a4776c6981f15f5982f8d9a4ccf9ef993daf923  output_43___rout_es_es_50+.csv
+  529953e345de6620a5d8858eb9a21725dbfb3e1ae17eadbe940c433e86127374  output_43___rout_pool_22-25.csv
+  9f2563725959452cd5a238264212c0d8b65c3ed4ab71b8f7ba591ec0c6146ce7  output_43___rout_pool_26-30.csv
+  2b61cf549793dd4202144e8678a7c12dd418abc5095a7f252bd0cee23ba33566  output_43___rout_pool_31-34.csv
+  4276e8572c3bd772b781a64fdd8f1043913b17f509badf7d446cb0992861eb60  output_43___rout_pool_35-40.csv
+  a3513a9e54917916d91c926ba568ac9c189061136c524ecdac8e65b3092879cc  output_43___rout_pool_41-49.csv
+  0e779c9c8a415163e3324437b4451098bccddc4e78dbe7031b6e49aa1cfe821f  output_43___rout_pool_50+.csv
+  4e96db31e0775ace1549a80ceb978ec1fb6cf081b5a1a563beda76eadad2456f  output_43__bridge_inputs.csv
+  437499ca7d900b2019f19a5e1d3623bd1bc50eb213a1429967e2e56531462ee8  output_43__extensive_lpm.csv
+  05b39d5baf380b5f3827aada534b66d80d9a8e454557da63a0c35bd772a09565  output_43__olsplus1_pooled.csv
+  8e08c0911bc8087ec33c2632f2543dc216c1a619ea1a267b485b7263ec33135a  output_43__poisson_es.csv
+  554d763ddf013acb1d39b73178d9d87895f45d771a321d4729df3975736a3d74  output_43__poisson_pooled.csv
+  14a987187fab7cda9f43e7d48b9ba8bb29bcbcf8c177646ce8d457c8229f2c0e  output_44__44_log.txt
+  2c17552d29832d3cffe94867fc661e341b8fce90248f95836d4b35d3bfb5b005  output_44__44_summary.txt
+  2a4df848e53bf0cae9483c0b925daf297761b71023d47f626f7129a149ce87ee  output_44__decile_pooled.csv
+  72eb2d9d7d4bc6437fa6b8f9b9fe37975c97e9e7208767a9ce689dbd086bbd15  output_45__45_log.txt
+  279e734955080ccdbe704d9cf3d92d216b17211e2a3027b92b1a380f6412e58a  output_45__45_summary.txt
+  59cc23c6b0abe1bbf5b31450bc110731bcc17a7f8724252a4e50251285a84915  output_45__asof_confusion_T2021.csv
+  0e2006f26491fb40cbeb13bc32296cc362df63d73ca91bd0201987b7ae0f226b  output_45__asof_confusion_T2022.csv
+  00362160b19be85ace13e2a779a66056747fa6bfd1bbca4835fe5727d8e27263  output_45__asof_es_T2021.csv
+  3d5a1252e7bd0a44052c385641cbe2037eba2b96c6dd2bac5160a78df338bbdd  output_45__asof_es_T2022.csv
+  67b5b610762614ac80191a22f50046cf0ae4df9a7419e94471c9311f0a83e05c  output_45__asof_estimates.csv
+  aa2f1ed360bd8da7ec5de40fff5d95051a38b864f9ab36931e4b640de4c0779d  output_45__asof_matchrates_T2021.csv
+  d782cf55105e18c06bb6193fe7231267060f8b5f54b6618e5d2e8cd5d111574e  output_45__asof_matchrates_T2022.csv
+  eb1e535eea69f0e04f378fd9198b313020c42d7da8cc284ee665d926184f501d  output_45__frontier_grid.csv
+  f593771eb6860617765582bffceee05ddab29d4729e0ddcc27996f7baf16fefa  output_46__46_log.txt
+  060d920d1f172d78a38bf2514c5a2217f46c15b9cf1663497c8ff1e413a19631  output_46__46_summary.txt
+  638fdfd2ea3171d08cb026fc483f006c6c44401b3f2875b0b3f52e4e542ec2c6  output_46__wfh_daioe_only.csv
+  56363f9a780180ede688856b390210ddd9a866f85a78b53652e97269ec30f241  output_46__wfh_horserace.csv
+  44add436f9adb9e8e3b7c4628f13b7978f7728c619c705a173ffb3bd9f427d7a  output_47__47_log.txt
+  94c0975f7d5fa9c8f87cfe1f585557ce2676e9a854b25cdc6d7e817f2f802b30  output_47__edu_exposure_groups_2019.csv
+  d6d1c2007afe27f1042b659706b9ccd80566d13ef5a845d85fc0f769a534c890  output_47__edu_exposure_groups_2019_young.csv
+  8a9758552b518040c1564471c1bfcbd4fc2f3ef3644dadc4367de80af79c1318  output_47__edu_exposure_groups_2021.csv
+  09827b755a4e634944b0735608ff85369130ef8e02bd812f209fee239f95a7ef  output_47__edu_match_rates.csv
+  af59eb2e56656c7f770973c7b5e166591fdad58f82a21451d2382b7efff2f8be  output_47b__47b_log.txt
+  90a6af30fe7333c409a954204867b3a791d02419081e005b0f223b8b5f50544b  output_47b__47b_summary.txt
+  fe153b03deb22aac75247990d73589421f8f9b8fd42881011c5efc3483ccfa8c  output_47b__edu_asof_estimates.csv
+  0d8312197a37f2d457dc1f4211e88118dae4b4b03a4c86f10b2e4a0a24a4a4d6  output_47b__edu_asof_matchrates.csv
+  ea91a5eadfe17dffadb9a91694e52922179e6dd654d7e6c59ba716254901c158  output_47h__47h_log.txt
+  d85e7644ab743ebd8ede550d0e60a2813baa5b91af8ba6f2708bfe6016553b28  output_47h__47h_summary.txt
+  e96d3f9c1fde0f41a29f16acaf47c0b0e00c78ecd90564002124a97745359b52  output_47h__anchoring_rates.csv
+  c59c1228cef344d82ed892bd44a805a38ddfcb1e2f8989b726938d7c254f5c7e  output_47h__gate_decomposition.csv
+  7d43d01f0ec9020a0ca486863333d523afe64b3a5bc4eab29f82d03d9d41c9c7  output_47h__horserace_estimates.csv
+  93b9f6cf58d77b2f516dd173e60205a5c3e8d066ac6dc1393ae9ae60602ee77c  output_47h__score_diagnostics.csv
+  d7d9048b97d2729dbaa466d3ef33cec44388b5844b14cb442b7e3092aa422e82  output_47h__score_enrol.csv
+  d7d9048b97d2729dbaa466d3ef33cec44388b5844b14cb442b7e3092aa422e82  output_47h__score_entrant.csv
+  496c6c713863e1473617e2f6faa87498a433bf0df3c33bb79d802bf5c9a778ad  output_47h__score_entrant_share.csv
+  86f077bd4176a060f41e65f67025c81ddf1318bf399817b79e2eef7a0fccd3f4  output_47h__score_expband.csv
+  7baccabd9470b39531cac23225008d0e24346c0912ad82260d07c7fc0ba17936  output_47h__score_fresh_stock.csv
+  a47ed651b362969af2c4b3bc24c209fa8a2776ef5798452c7871b11f1d73cac5  output_47h__score_full.csv
+  97ef51915a086882307e7b62aee4a9acb1f8c3a6b0d4d1ccefaaef4bb85b9d23  output_47h__score_OL_daioe.csv
+  0258f6aa5c3b9ba9a4275d01bc633e2b221286f914e432e3fc15c676a3708094  output_47h__score_OL_exact.csv
+  5ff4497b9b877a64db9bfb1a408f0ba6e8a0ae213233be984c6128d62f261154  output_47i__47i_log.txt
+  5c541e603ad2408068944e53d404191789520936624c7d0472cfa38245b6c01c  output_47i__47i_summary.txt
+  60fe165d0f95d02272a3942dfcbb4a787f0b6f6c987470b5752cb0551da52309  output_47i__firmmix_estimates.csv
+  bedf47e8bb054d23d13792546a3ce24c0d98b4a083ce656fbd9113710ed551ea  output_47i__firmmix_quartile_sizes.csv
+  fd2f5fccf0fa5f93dc018eb04efefadec111190cbdce26ace343a0da48070980  output_47j__47j_log.txt
+  5135175e97fad4bb8f075c0a46422823094a69e4cc5a954cc709af93bf07d875  output_47j__47j_summary.txt
+  713534fb15ec27723c029f0e1538f46f66277b214f5417e07bbaa42ae5a0dd71  output_47j___rerr_tj_entrant_asof_2021_26_30.txt
+  3a356e50367bc2814632ad0870e12c82d49e5684b9898bc8c610c3667b85a550  output_47j___rerr_tj_entrant_asof_2022_26_30.txt
+  a632c968037fb2c8814fdff5b7e5e20d14e2c34fd7fe6bd023f4f352942eef24  output_47j___rerr_tj_entrant_true_2021_26_30.txt
+  a632c968037fb2c8814fdff5b7e5e20d14e2c34fd7fe6bd023f4f352942eef24  output_47j___rerr_tj_entrant_true_2022_26_30.txt
+  713534fb15ec27723c029f0e1538f46f66277b214f5417e07bbaa42ae5a0dd71  output_47j___rerr_tj_OL_daioe_asof_2021_26_30.txt
+  3a356e50367bc2814632ad0870e12c82d49e5684b9898bc8c610c3667b85a550  output_47j___rerr_tj_OL_daioe_asof_2022_26_30.txt
+  a632c968037fb2c8814fdff5b7e5e20d14e2c34fd7fe6bd023f4f352942eef24  output_47j___rerr_tj_OL_daioe_true_2021_26_30.txt
+  a632c968037fb2c8814fdff5b7e5e20d14e2c34fd7fe6bd023f4f352942eef24  output_47j___rerr_tj_OL_daioe_true_2022_26_30.txt
+  9aee652f923961d149461c7fcc3d0f3c4cbb002f621a31786e95dd689babc52d  output_47j__triple_estimates.csv
+  7d98739a4b4e19df93f82108c428ececc24c12f599dfae1373312b29053aa160  output_47j__triple_quartile_sizes.csv
+  f80b73ac896ee92a7d094d562279e35a94830b97d6eb2ffe1dd51921d064cd81  output_47k__47k_log.txt
+  a8bd2498f1178ab9f21ace754ec077a96fe3ba82f4e11df0669500216a4edd5f  output_47k__47k_summary.txt
+  84b19e0641b3cd2e29717e23f76db3170c65bf29cc1213a72b8f0a7634edbcc4  output_47k__retention.csv
+  e6a4c958395cd98dc72d44340f9232ebb71323e728a8e0ddfc7a88bb216b8824  output_47k__settled_estimates.csv
+  db86b0c2d5536d4ca2f666cfca4a63b37c9e2182e1cc054656559169f7577868  output_47L__47L_log.txt
+  7f1596847ca862a51858dcdf09440db1395ccc841112bb1b55120a00a4192e5e  output_47L__47L_summary.txt
+  f97a9969e9b53a4dbd22dddbadb059d3e75fa7179b634f4c1e06b9532fddc408  output_47L__agebase_estimates.csv
+  1bc61e991abf39deccc8cb51458fcc19b11d8820819f399ad92a859b58e6a950  output_47L__agebase_gradient.csv
+  f6d4dfa649d7a0b16ffb10836fa0af952eda8deb9d902247777755f8ecd70e9b  output_47L__exposure_support_floor.csv
+  36ff6b70772e5633e801efa41831e8d984f4d8d822c2bbdd0bc23d5f62a09f43  output_47L__exposure_support_shrunk.csv
+  f0a1382d5f592bf06c5e2e9bcf8f4f55eff22839e91a55ac36f334d0de73aed9  output_48__48_log.txt
+  1cb93eb5e9f4fef80def34e5825ca58bcf86e6da9b55112303bfe8f908d99451  output_48__48_summary.txt
+  8a3b65b7674444d97a35ee926d6f61a8a0f30262f2fc0ea6d9e5439da59b190e  output_48__gender_poisson.csv
+  139acdd8756ac80514ceb7b5386bccb687729f694171a82b4cb71ce3a43ba374  output_49__49_log.txt
+  b461bf8dbbb45bcb3636d3861f2e585d3a3a01586ddf937ffe4b6019d65e8d4e  output_49__49_summary.txt
+  361a3c4e3a1910a66e5217dbec96291788a92b3cfd83dec0513c137a2d5db8db  output_49__attrition_by_frozen_quartile.csv
+  6e0e16d064f7225fbd1496ed479246e4c910fbc29ad64dd9c775c9bc911cdaed  output_49__match_rate_definitions.csv
+  550d7044c336fcef4fe8787f00483409fd928e71559e8612b9d599b8afb57bb8  output_49b__49b_log.txt
+  25e255fdcaa5f081c232d7b782f8fbbbac56f9c640d04966ac90d7c32940260a  output_49b__49b_summary.txt
+  dfbd1d475b109dd6254cd4f0a015f6578a2e66734fbf0b6bec0e28c1fe840c0a  output_49b__boundary_crossing.csv
+  0a332ce2c1ed7b6cb11daec436a91998ca9416bdd98099e6b797126a028c39d7  output_49b__freshness_by_frozen_quartile.csv
+  87f26cf59fd8a4535172507fb0b33f9cc39dce39f78fb5627535c7ccb17d85a0  output_50__50_log.txt
+  14cb68d6f89fcadcfdf618c568b10a153df5fa9f6d55501f7a768f6ec0e4c797  output_50__50_summary.txt
+  c5af2f55f86489233883b5e31220a8332f6c70dc46477161e215ef9b70d5a075  output_50__m1a_completion_age.csv
+  437ab9c1f9090ea62c8c6351c24c388bbf421fd976992b7aaebba209020b1282  output_50__m1b_level_change.csv
+  8d2418a4d54d256198d34b261a0461890b011b6da382b8ad3a2a4417360850c3  output_50__m2_occ_change.csv
+  341aa4b7156496f37553ef0e47f05e876a1e60bbcefaf6543904d2fa85bc1586  output_50__m3_staleness.csv
+  39de1a31ede08acfadb75215a41983dad84538cb35fbe169f9d60533a2f51a28  output_50__m4a_enrolment_prevalence.csv
+  4cd0e4b54ce958150f2677d8d1142f986abb2338a8ce1c860a0f0b2999a54c59  output_50__m4b_field_switch.csv
+  28969ab9dde5c3944ace965f28b561a53b2722fc85cf12112a2c73335ed0e3f3  output_50__m5a_employer_size.csv
+  d2487cf1ba6cb07bae11fe26cbe6d3c9a1b709fc6e505b8c56eb8bf1d1517289  output_50__m5b_retention_22_25.csv
+  8d7f46ff5bda4b81c7ee1fd70b03e5e5aa80ee7793c4a27739b8769d7b00b61c  output_50_slim__52_log.txt
+  c5af2f55f86489233883b5e31220a8332f6c70dc46477161e215ef9b70d5a075  output_50_slim__m1a_completion_age.csv
+  437ab9c1f9090ea62c8c6351c24c388bbf421fd976992b7aaebba209020b1282  output_50_slim__m1b_level_change.csv
+  8d2418a4d54d256198d34b261a0461890b011b6da382b8ad3a2a4417360850c3  output_50_slim__m2_occ_change.csv
+  341aa4b7156496f37553ef0e47f05e876a1e60bbcefaf6543904d2fa85bc1586  output_50_slim__m3_staleness.csv
+  39de1a31ede08acfadb75215a41983dad84538cb35fbe169f9d60533a2f51a28  output_50_slim__m4a_enrolment_prevalence.csv
+  4cd0e4b54ce958150f2677d8d1142f986abb2338a8ce1c860a0f0b2999a54c59  output_50_slim__m4b_field_switch.csv
+  28969ab9dde5c3944ace965f28b561a53b2722fc85cf12112a2c73335ed0e3f3  output_50_slim__m5a_employer_size.csv
+  d2487cf1ba6cb07bae11fe26cbe6d3c9a1b709fc6e505b8c56eb8bf1d1517289  output_50_slim__m5b_retention_22_25.csv
+  a08d67b14be016628a78834381f0ac61d91f29064e19f74cab144c8f1728e26a  output_50_slim__m6_matrix_2019.csv
+  b9f87c67df40f4b8d1127612b7db815ef0ccaae6aa6497268b3bb0c3ba5b5c60  output_50_slim__m6_matrix_2020.csv
+  a611bec96b49657087027755a72817dbbdd67064f62b52f2e61b08972d2d02c6  output_50_slim__m6_matrix_2021.csv
+  cd81d7c511561c1eea6b6dc67172279230d31ba1a6ba375aabebc0b8f5cb5922  output_50_slim__m6_matrix_2022.csv
+  82d23a62e4bb9ab0a4d354fcc4155df0ca10c4316cedfcbf4c8a3cc63ba6649b  output_50_slim__m6_matrix_2023.csv
+  fdd1005f366bea4eaf41d8cf2f2eec75e89ffa529dda26353557fd1104f1a6ff  output_50_slim__m6b_inr_tertiary_2019.csv
+  258f1cb6a38ddf6ac12ea583adb9b841d193056dde8b3ec687fac2dd3e8668b5  output_50_slim__m6b_inr_tertiary_2020.csv
+  19bbf3a5e1e6092469dd180a753d4d762b3b61af158f2d73db7d659f99b30d7c  output_50_slim__m6b_inr_tertiary_2021.csv
+  aa6188edbd1e5b7eba1b9456e154c84517b2ea248635af1b42e1bd08d959e687  output_50_slim__m6b_inr_tertiary_2022.csv
+  eda13f1c59182fcf2b211a9add5b923133a7d9204c51a4bdb1fa6df5e98836da  output_50_slim__m6b_inr_tertiary_2023.csv
+  00ae1bb82f8a3bca2ae4136aca566d6d1f9e1e4cea8b53ea59b477b15e447532  output_50_slim__m7_validation_t2021_k0.csv
+  dfed8b9802035648be40bf84d1ca835f3c4fb0957f04773c67f1d3a5c12e99f9  output_50_slim__m7_validation_t2021_k2.csv
+  0e7ca8c958d51b17e0e98f62ec890da523b2c3744085526880c8d7925af553ab  output_50_slim__m7_validation_t2022_k0.csv
+  f03ec30379ebfa42f024f215101bf826af05ae6c459023c3d0d9d9eb01e659ce  output_50_slim__m7_validation_t2022_k2.csv
+  372576fa80ab7ee9ae929ad1024b2c792b87f12f23153e978c130183d6179c60  output_50_slim__m7_validation_t2023_k0.csv
+  8154951c2cdd60a01c3c0f7d9b13cd22069765d1381ff43f5d0fd353cbf6befe  output_50_slim__m7_validation_t2023_k2.csv
+  1324ac7d9f1b83289da3df6c125827bb1b5ad1ade3d0832fcf04fb91be5f6839  output_51__51_log.txt
+  c3f33c45a5c417f4703fd45afaa996b09f0be2bcb35481625c5775d045737bf3  output_51__51_summary.txt
+  072e0930e05b226402fc57d1b404c3aa25d65fe0700317699121dc854eed3c46  output_51__clerical_flows_by_freshness.csv
+  08411716121fe619fa4011bb057031e4bb172542b5474a64dafa6b96df882bfb  output_51__code_age_by_occupation.csv
+  9375a71bf744b91adbed72e66bbc20d04720e10171f3106a49d0c2c5725ff60f  output_53__53_log.txt
+  68ea161dbc8fc729d0d189ff424f67ed18fb8e5c7ae6e1fac89883cdb23a200e  output_53__53_summary.txt
+  6840e468b082ab41689e7474d466e6bff2b645454aa63c280a7d76a0eb53ebb8  output_53__fresh_es.csv
+  d0debfe1dbc00d67a6c24c5c4fc02fdae5bd4697a71f0d4070eeff5fff6bcdfd  output_53__fresh_pooled.csv
+  a0b80720defbcefc9a9c3219aaf26baa4b760d954281ecb2ad4acc4c7ce63907  output_53__freshness_shares.csv
+  a31e9bf88c5dc89a353c32b8ea582b673c36c3db4d454a5f8f466c50c1f2bd2c  output_53__panel_sizes.csv
+  bb759afb02177e6931d69b36384a6bcded239e338c8ba786f4484ec0216cdaee  output_53__selection_did.csv
+  ef6801e678af4fa508f86fdf881a5e150f393427576158cec571cc68b9954075  output_54__54_log.txt
+  d1c7523f313d4aaa24ea4acc6b9fb20c363cb6e6cc0e6b96bf59202c6a0b0584  output_54__flow_estimates.csv
+  93791bdcb22dcfc161d5946e50a417143a188567c8a5137780cb03aaf93c5a7e  output_54__flow_gradient.csv
+  29c14057c3cc8f34622a40930651239fe639a64b6298ed73e05009c5d28c22bb  output_54__flow_support.csv
+  5b481b512087998d4e9b9fbe457a32e08d4e7e655765abd9f816f126b2b6f6ce  output_56__56_log.txt
+  7d19397cbd13abaf4be3e90331579bf725492607e8e4df2710db319d6a5c7cb3  output_56__56_summary.txt
+  c3cada5f1c192fb269f9a86a01b4e3d8cd982b1f99aceed18117e31d119f4758  output_56__dynamics_pooled.csv
+  bfdd145a30710498ddfdf4977276cc6b704be80a344960e7bb33d5ce3eefffc4  output_56__dynamics_young.csv
+  92e8e5fddb3b1597b91cb9dc88f801006e8aecbd9d14b4d71d2f9c2a72de6d36  output_57__57_log.txt
+  f33b827dfe0910219e2f4e4e47afc1d499257f5ba36b071cac3991ebf8a56e8e  output_57__57_summary.txt
+  9df2f14a12395ef2c5c06886f10bce27c778fdb4e63f96df36a5bc898054293e  output_57__reliability.csv
+  39fcfb9a5ef7c62e2307cc78225fbef30d6bfb496c152b350c5bc32f0cd9922d  output_57__vintage_estimates.csv
+  a1effc9b301bd7ecdd75f050cef84fe457804515b1bab67dc972cff285f1cdee  output_57__vintage_gradient.csv
+  a60ef27b989d221964aabc259626f2374e6317b511d66ae130057a466073e132  output_58__58_log.txt
+  8e89c53b5e88d4495d7db32b425f53a27b67df2c21c49d234619e73363027a72  output_58__58_summary.txt
+  61e1005fe66e385c580ebc15474d59dfc79af7d1784327a7afac96a607f615b9  output_58___rerr_s58_h1only_stock.txt
+  61e1005fe66e385c580ebc15474d59dfc79af7d1784327a7afac96a607f615b9  output_58___rerr_s58_h1only_stock_retry.txt
+  a79fd5b68f049fb34f1022fa720863afa7d9e0bc563c4dc1023c6f9db0d578b6  output_58__agi_tables.csv
+  124a368e0a9ba957a004cf823351f8a157ca2035723dfea747def5362d3fe6bf  output_58__es_h1only.csv
+  384364618557aa4886a7beb5afe0d1d279760fae2f6f9285de4a5b8fada8eff6  output_58__es_rebased.csv
+  00dcac1ffa1ec973cee4573d943726903999e9a29861ca2d8ee197cf421304a4  output_58__readrule.csv
+  437a2adcae1941beaeb072a461bf5de2ae3b277951bff2d1f22c024870f89cac  output_59__59_log.txt
+  c3e6f13261e4286acf75868180330728e42b81d098b5cf5821c27b93cd983f2e  output_59__59_summary.txt
+  6083aa2ef4e86210ed4852779997bf28af5dfe5fadd395e630f71b21e3e599b9  output_59__descriptive.csv
+  35718efde0a1c4f9828a3235032ac196ab76292f9ffabf01df07b63f51890530  output_59__path_quarter.csv
+  05a8b3b3fee0bc3e1981f7192a2b259651845972024811605dbd9448e88dbdb5  output_59__path_zoom.csv
+  53bdd125822cf42756bba4f067fbed3bede37f47640f5f6f4b64fc299a7d044c  output_60__60_log.txt
+  bc64014a0e5d61dac77c7742a53d91359f033d5c505aeaa9528c03c78fc0b062  output_60__60_summary.txt
+  5a58bbab39cda885460a0546814af49b90a6e7ac3a23622ca708f9737afa7dd3  output_60__prespecified.csv
+  91600d05e817667ed505a12299a0dfee04452e53d75755fe75254249228313a7  output_60__profile.csv
+
+Budget note: 5 MB per file, 50 MB per rolling seven days.
+This pack is 3.37 MB across 207 files; the largest single file is 0.25 MB.
+Runtime 21s.

@@ -1,0 +1,57 @@
+FRESH-CODE PANEL 2019-2023 -- gamma2 (post-GPT x Q4)
+==============================================================
+Codes assigned in the observation year, against the same
+design on all codes and on carried-forward codes only.
+
+arm           all   fresh   stale
+age_group                        
+22-25      0.0191 -0.0330  0.1144
+26-30      0.0548  0.0052  0.1746
+31-34      0.0431  0.0223  0.0921
+35-40      0.0215  0.0128  0.0570
+41-49      0.0064  0.0071  0.0132
+50+        0.0116  0.0095  0.0377
+
+standard errors:
+arm           all   fresh   stale
+age_group                        
+22-25      0.0089  0.0109  0.0168
+26-30      0.0056  0.0059  0.0130
+31-34      0.0050  0.0060  0.0117
+35-40      0.0043  0.0071  0.0109
+41-49      0.0027  0.0052  0.0103
+50+        0.0032  0.0038  0.0095
+
+22-25: fresh -0.0330 vs all +0.0191  (difference -0.0521)
+carry-forward arm at 22-25: +0.1144  -- the staleness channel measured on real data, not simulated by truncation
+
+PRE-COMMITTED READ RULE (placebo, limit 0.03):
+  fresh arm at 50+: +0.0095   within limit, the fresh arm is clean
+
+SELECTION CHECK (descriptive, NOT a gate -- see the note in the source):
+  22-25 Q4-vs-rest freshness gap moves -0.0163
+  26-30 Q4-vs-rest freshness gap moves -0.0168
+  31-34 Q4-vs-rest freshness gap moves -0.0155
+  35-40 Q4-vs-rest freshness gap moves -0.0124
+  41-49 Q4-vs-rest freshness gap moves -0.0107
+  50+   Q4-vs-rest freshness gap moves -0.0055
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The window ends in 2023, so this cannot speak to 2024 or
+     2025. It answers whether the finding was ever there, not
+     whether it is there now.
+  2. Freshness is not random: a code is assigned when the
+     register observes someone in an occupation, so the fresh
+     arm over-represents movers and entrants. That cannot move
+     an INTERACTION unless it moves differentially across the
+     exposure dimension over time. The freshness-gap table
+     below does NOT test that, because the gap moves whenever
+     misplacement is present; the 50+ placebo does.
+  3. The 50+ row is the placebo and is not a robustness check:
+     if it moves in the fresh arm, the arm is not clean.
+  4. The 'all' arm here is script 43's design on a shorter
+     window, so it will NOT equal the published -0.174, which
+     runs to 2025. Compare arms within this table, never one
+     of these numbers against the published one.
+
+Total runtime 73.3 min. memory available: 631.1 GB

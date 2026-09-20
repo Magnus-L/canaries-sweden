@@ -1,0 +1,32 @@
+THE SETTLED-EDUCATION SUBSAMPLE
+============================================================
+Question kept: exposed young vs OTHER YOUNG workers, within
+employer, monthly. The sampling rule is computed from the as-of
+side and applied to BOTH arms, so only the classification differs.
+
+Occupation design (45), 22-25: T2021 -0.3068  T2022 -0.1627
+Unrestricted education (47b), 22-25: T2021 -0.3596  T2022 -0.2941
+
+rule      = all       47b's sample, the baseline
+            feasible  record older than 2 years AND not enrolled;
+                      applicable to 2024-25
+            oracle    record identical to the truth; NOT applicable,
+                      included as the ceiling
+
+OL_daioe   all       artefact T2021 -0.1624  T2022 -0.1446  50+ -0.0022  true 22-25 +0.0062   CLOSED
+OL_daioe   feasible  artefact T2021 -0.1752  T2022 -0.1770  50+ -0.0006  true 22-25 +0.2789   CLOSED
+OL_daioe   oracle    artefact T2021 +0.0000  T2022 +0.0000  50+ +0.0000  true 22-25 -0.2625   CLEAN
+entrant    feasible  artefact T2021 -0.5559  T2022 -1.2047  50+ -0.0017  true 22-25 +0.5777   CLOSED
+
+The gap between 'feasible' and 'oracle' is the cost of not being
+able to see who is mid-degree. If 'oracle' is clean and 'feasible'
+is not, the enrolment register is the binding constraint and the
+fix is a newer delivery of it, not a better classifier.
+
+Retention (share of young person-months kept) is in retention.csv.
+The excluded are the newest entrants, so a negative estimate here is
+CONSERVATIVE for the phenomenon if they are more affected.
+
+READ RULE (pre-committed, as 47b): clean below 0.05 at both
+truncations; usable below half the occupation artefact; else closed.
+Runtime 239.9 min. memory available: 602.6 GB

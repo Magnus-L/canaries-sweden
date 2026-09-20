@@ -1,0 +1,49 @@
+FIRM-MIX EXPOSURE: ARTEFACT BY AGE BAND
+==========================================================
+Exposure is the firm's workforce education mix, so a young
+worker's own (stale) record never enters the classification.
+Identification is ACROSS firms: a firm holds one quartile, so the
+paper's within-employer comparison is not available in this design.
+
+Occupation design (45), 22-25: T2021 -0.3068  T2022 -0.1627
+Worker-level education design (47b), 22-25: T2021 -0.3596  T2022 -0.2941
+
+OL_daioe:
+  22-25 T2021  true +0.0243  as-of +0.0162  ARTEFACT -0.0080
+  22-25 T2022  true +0.0243  as-of +0.0158  ARTEFACT -0.0084
+  26-30 T2021  true +0.0375  as-of +0.0324  ARTEFACT -0.0051
+  26-30 T2022  true +0.0375  as-of +0.0339  ARTEFACT -0.0036
+  31-34 T2021  true +0.0297  as-of +0.0273  ARTEFACT -0.0024
+  31-34 T2022  true +0.0297  as-of +0.0288  ARTEFACT -0.0009
+  35-40 T2021  true +0.0163  as-of +0.0143  ARTEFACT -0.0020
+  35-40 T2022  true +0.0163  as-of +0.0162  ARTEFACT -0.0002
+  41-49 T2021  true +0.0104  as-of +0.0093  ARTEFACT -0.0011
+  41-49 T2022  true +0.0104  as-of +0.0100  ARTEFACT -0.0003
+  50+   T2021  true +0.0630  as-of +0.0623  ARTEFACT -0.0007
+  50+   T2022  true +0.0630  as-of +0.0633  ARTEFACT +0.0003
+
+entrant:
+  22-25 T2021  true +0.0149  as-of +0.0120  ARTEFACT -0.0029
+  22-25 T2022  true +0.0149  as-of +0.0105  ARTEFACT -0.0044
+  26-30 T2021  true +0.0315  as-of +0.0283  ARTEFACT -0.0032
+  26-30 T2022  true +0.0315  as-of +0.0286  ARTEFACT -0.0029
+  31-34 T2021  true +0.0241  as-of +0.0208  ARTEFACT -0.0033
+  31-34 T2022  true +0.0241  as-of +0.0211  ARTEFACT -0.0030
+  35-40 T2021  true +0.0113  as-of +0.0095  ARTEFACT -0.0019
+  35-40 T2022  true +0.0113  as-of +0.0101  ARTEFACT -0.0012
+  41-49 T2021  true +0.0106  as-of +0.0097  ARTEFACT -0.0009
+  41-49 T2022  true +0.0106  as-of +0.0105  ARTEFACT -0.0001
+  50+   T2021  true +0.0562  as-of +0.0546  ARTEFACT -0.0016
+  50+   T2022  true +0.0562  as-of +0.0541  ARTEFACT -0.0021
+
+READ RULE (pre-committed, as 47b):
+  |artefact| < 0.05 at both truncations at 22-25 -> this design can
+    carry the paper's register evidence.
+  0.05 to half the occupation artefact (0.153 / 0.081) -> usable with
+    the artefact stated beside every estimate.
+  at or above half -> the register route is closed by lag.
+
+NOT DONE HERE: the industry-reweighted contrast (no industry column in
+the cached frames) and hires as an outcome (needs the 12-month-earlier
+presence flag). Both are additions, not corrections.
+Runtime 296.1 min. memory available: 640.7 GB

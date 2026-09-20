@@ -174,8 +174,16 @@ def main():
         lines.append(f"  {kb:9.1f} KB  {d}/{f}   {shape}")
     lines += ["", "SHA-256 of every packed file:", ""]
     for p in sorted(PACK.glob("*")):
-        if p.name != "MANIFEST.txt":
-            lines.append(f"  {sha(p)}  {p.name}")
+        # The manifest cannot hash itself, and it cannot usefully hash this
+        # script's OWN log either: the log is still open and grows by a few
+        # lines after the manifest is written, so its recorded hash never
+        # matches the file that arrives. Naming it here would make every
+        # future verification report one spurious mismatch.
+        if p.name in ("MANIFEST.txt", "55_log.txt"):
+            continue
+        lines.append(f"  {sha(p)}  {p.name}")
+    lines += ["", "55_log.txt is deliberately unhashed: it is still being "
+              "written when this manifest is produced."]
     lines += ["", f"Budget note: 5 MB per file, {BUDGET_MB} MB per rolling "
               "seven days.",
               f"This pack is {total_mb:.2f} MB across {len(packed)} files; "

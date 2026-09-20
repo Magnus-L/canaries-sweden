@@ -1,0 +1,37 @@
+WITHIN-EMPLOYER TRIPLE DIFFERENCE, FIRM-MIX EXPOSURE
+============================================================
+Exposure: worker-weighted education mix of the firm's INCUMBENTS
+(aged 31+) in 2019, quartiles fixed, held for every year.
+Identification: young versus older workers WITHIN one employer in
+one month. Employer x month, employer x age and month x age are all
+absorbed, so no firm-time shock and no economy-wide age trend can
+enter. No young worker is ever classified; age comes from birth year.
+
+Estimand: the young-old gap inside exposed employers. A shock that
+hit every age equally within exposed firms would NOT appear here.
+
+Occupation design (45), 22-25: T2021 -0.3068  T2022 -0.1627
+Worker-level education (47b), 22-25: T2021 -0.3596  T2022 -0.2941
+
+OL_daioe:
+  young=22-25 T2021  true -0.0132  as-of -0.0081  ARTEFACT +0.0051
+  young=22-25 T2022  true -0.0132  as-of -0.0088  ARTEFACT +0.0044
+  young=26-30 T2021  true +nan  as-of +nan  ARTEFACT +nan
+  young=26-30 T2022  true +nan  as-of +nan  ARTEFACT +nan
+
+entrant:
+  young=22-25 T2021  true -0.0153  as-of -0.0144  ARTEFACT +0.0009
+  young=22-25 T2022  true -0.0153  as-of -0.0140  ARTEFACT +0.0013
+  young=26-30 T2021  true +nan  as-of +nan  ARTEFACT +nan
+  young=26-30 T2022  true +nan  as-of +nan  ARTEFACT +nan
+
+READ RULE (pre-committed, as 47b and 47i):
+  |artefact| < 0.05 at both truncations -> carries register evidence.
+  0.05 to half the occupation artefact (0.153 / 0.081) -> usable with
+    the artefact stated beside every estimate.
+  at or above half -> closed.
+
+NOT DONE HERE: the event study by half-year, the industry-reweighted
+contrast, and hires rather than employment as the outcome. Additions,
+not corrections.
+Runtime 152.0 min. memory available: 595.8 GB
