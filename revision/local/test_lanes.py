@@ -166,6 +166,9 @@ def test_parallel_lanes():
     another was reading would corrupt it silently, and the failure would
     surface as an estimate rather than as an error.
     """
+    # 13 is excluded on purpose: it is the one lane that pulls SQL and
+    # writes to the shared cache, so the no-writes invariant below does
+    # not apply to it and it must not be started beside another SQL job.
     stages = {}
     for n in (8, 9, 10, 11, 12):
         spec = importlib.util.spec_from_file_location(f"p{n}",
@@ -174,8 +177,10 @@ def test_parallel_lanes():
         sys.modules[f"p{n}"] = m
         spec.loader.exec_module(m)
         stages[n] = [x[0] for x in m.STAGES]
-        check(f"lane {n} is a single stage, so a slot holds one job",
-              len(m.STAGES) == 1, str(stages[n]))
+        # Not "one stage each": lane 12 gained a second, cheap stage. What
+        # has to hold is that a slot's work is independent of the others,
+        # which the no-shared-stage and no-cache-write checks below test.
+        check(f"lane {n} has work in it", len(m.STAGES) >= 1, str(stages[n]))
     flat = [x for v in stages.values() for x in v]
     check("the three parallel lanes share no stage", len(flat) == len(set(flat)))
     for f in flat:
@@ -193,6 +198,15 @@ def test_parallel_lanes():
     print(f"      parallel lane minutes: {tot}")
     check("each parallel lane is under six hours", max(tot.values()) < 360,
           str(tot))
+    spec = importlib.util.spec_from_file_location("p13", MONA / "run_lane13.py")
+    m = importlib.util.module_from_spec(spec)
+    sys.modules["p13"] = m
+    spec.loader.exec_module(m)
+    body = (MONA / m.STAGES[0][0]).read_text(errors="replace")
+    check("lane 13 is the SQL lane and says so in its own docstring",
+          "HAS SQL" in (MONA / "run_lane13.py").read_text()
+          and "mc.connect" in body,
+          "it writes caches, so it may not run beside another SQL job")
 
 
 if __name__ == "__main__":
