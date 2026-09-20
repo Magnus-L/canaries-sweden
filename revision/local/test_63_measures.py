@@ -172,11 +172,14 @@ def boom(*a, **k):
 mc.connect = boom
 s63.main()
 G = pd.read_csv(s63.OUT / "robustness_gradient.csv")
-check("every measure was estimated on both outcomes and both datings",
+check("every measure was estimated on all three outcomes and both datings",
       set(zip(G["measure"], G["outcome"], G["dating"])) ==
-      {(m, o, d) for m in SC for o in ("stock", "hires")
+      {(m, o, d) for m in SC for o in ("stock", "hires", "seps")
        for d, _ in s63.POST_DATES},
-      f"{len(set(zip(G['measure'], G['outcome'], G['dating'])))} of 12")
+      f"{len(set(zip(G['measure'], G['outcome'], G['dating'])))} of 18")
+check("separations are estimated, so a churn story can be told apart "
+      "from a jobs story",
+      "seps" in set(G["outcome"]))
 st = (G[(G.outcome == "stock") & (G.dating == "launch")]
       .pivot_table(index="age_group", columns="measure", values="coef"))
 check("main() recovers the planted decline on the stock, on daioe",
@@ -188,8 +191,8 @@ check("and finds nothing on the flow, where nothing was planted",
       abs(hi.loc["22-25", "daioe"]) < 0.10,
       f"{hi.loc['22-25', 'daioe']:+.4f}")
 H = pd.read_csv(s63.OUT / "horserace.csv")
-check("the horse race ran on both outcomes, specifications and datings",
-      set(H["outcome"]) == {"stock", "hires"}
+check("the horse race ran on every outcome, specification and dating",
+      set(H["outcome"]) == {"stock", "hires", "seps"}
       and set(H["spec"]) == {"pooled", "by_age"}
       and set(H["dating"]) == {d for d, _ in s63.POST_DATES})
 cor = pd.read_csv(s63.OUT / "measure_correlation.csv")

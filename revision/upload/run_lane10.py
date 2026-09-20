@@ -2,7 +2,7 @@
 """
 run_lane10.py -- LANE 10. Submit this file to BatchClient.
 
-  63  does the answer depend on the exposure measure?             ~3-4 h
+  63  does the answer depend on the exposure measure?             ~2-3 h
 
 Every design in this round assigns exposure from DAIOE at four-digit
 occupation. Four designs that fail differently still fail together if
@@ -40,8 +40,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402
 
 STAGES = [
-    ("63_measure_robustness.py", "output_63/63_summary.txt", 210),
+    ("63_measure_robustness.py", "output_63/63_summary.txt", 150),
 ]
+
+# NOTE FOR THE SECOND RUN (20 Sep, evening). The first run finished in 41.7
+# minutes and its answer was empty, because it dated the treatment at the
+# ChatGPT launch and at that dating the stock gradient at 22-25 is +0.008.
+# This version runs every fit at the launch AND at January 2024, and adds
+# separations so that a fall in hiring can be told apart from a fall in
+# churn. RENAME the existing output_63 folder before resubmitting, or the
+# lane sees 63_summary.txt and skips the stage.
 
 if __name__ == "__main__":
     _lane.run("10", STAGES)

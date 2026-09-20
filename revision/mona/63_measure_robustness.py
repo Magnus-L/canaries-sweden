@@ -61,7 +61,7 @@ only the exposure column changes. Three measures times two outcomes is
 six fits, and the expensive pulls never repeat.
 
 Output (output_63/):
-  robustness_gradient.csv   age band x measure x outcome
+  robustness_gradient.csv   age band x measure x outcome x dating
   horserace.csv             both measures in one regression
   measure_correlation.csv   how much the three measures agree at SSYK4
   63_summary.txt
@@ -282,75 +282,85 @@ def main():
             expos[key] = e
             print(f"  {key}: {len(e):,} firm-age cells scored")
 
+    # SEPARATIONS ARE HERE FOR A REASON. If hiring falls in exposed firms
+    # and the stock does not, the difference has to come out of
+    # separations, and a fall in both is reduced churn rather than reduced
+    # employment. That is the first thing a referee will say, so it is
+    # estimated rather than argued about. The flow panel is built once per
+    # measure and both flow outcomes are fitted on it.
+    SOURCES = (("stock", load_counts, (("stock", "n_emp"),)),
+               ("flows", load_flows, (("hires", "n_hire"),
+                                      ("seps", "n_sep"))))
+
     rows, hr_rows = [], []
-    for label, outcome in (("stock", "n_emp"), ("hires", "n_hire")):
-        src = load_counts() if label == "stock" else load_flows()
+    for sname, loader, outcomes in SOURCES:
+        src = loader()
         if src is None:
-            print(f"\n  {label}: no cache found, skipped")
+            print(f"\n  {sname}: no cache found, skipped")
             continue
-        print(f"\n  {label}: {len(src):,} rows loaded")
+        print(f"\n  {sname}: {len(src):,} rows loaded")
         for key, e in expos.items():
             t1 = time.time()
-            bal = (l47.build_panel(src, e) if label == "stock"
+            bal = (l47.build_panel(src, e) if sname == "stock"
                    else s54.build_panel(src, e))
             if bal is None or bal.empty:
                 continue
-            if outcome != "n_emp":
-                bal["n_emp"] = bal[outcome]
-            print(f"    {key} {label}: panel {len(bal):,} rows "
+            print(f"    {key} {sname}: panel {len(bal):,} rows "
                   f"({(time.time()-t1)/60:.1f} min to build)")
+            for label, outcome in outcomes:
+                bal["n_emp"] = bal[outcome]
 
-            for dname, dfrom in POST_DATES:
-                t2 = time.time()
-                redate(bal, l47, dfrom)
-                tag = f"{key}_{label}_{dname}"
-                gr = opt(tag, l47.fit_gradient, bal, f"m63_{tag}")
-                if gr is None or gr.empty:
-                    FAILURES.append(tag)
-                    print(f"      {dname}: FAILED, recorded and skipped")
-                else:
-                    gr = gr.copy()
-                    gr["measure"], gr["outcome"] = key, label
-                    gr["dating"], gr["post_from"] = dname, dfrom
-                    rows.append(gr)
-                    pd.concat(rows, ignore_index=True).to_csv(
-                        OUT / "robustness_gradient.csv", index=False)
-                    print(f"      {dname} (post from {dfrom}) "
-                          f"[{(time.time()-t2)/60:.1f} min]")
-                    for _, x in gr.iterrows():
-                        t = x["coef"] / max(x["se"], 1e-12)
-                        print(f"        {x['age_group']:<6} {x['coef']:+.4f} "
-                              f"(SE {x['se']:.4f}) t {t:+.2f}")
+                for dname, dfrom in POST_DATES:
+                    t2 = time.time()
+                    redate(bal, l47, dfrom)
+                    tag = f"{key}_{label}_{dname}"
+                    gr = opt(tag, l47.fit_gradient, bal, f"m63_{tag}")
+                    if gr is None or gr.empty:
+                        FAILURES.append(tag)
+                        print(f"      {dname}: FAILED, recorded and skipped")
+                    else:
+                        gr = gr.copy()
+                        gr["measure"], gr["outcome"] = key, label
+                        gr["dating"], gr["post_from"] = dname, dfrom
+                        rows.append(gr)
+                        pd.concat(rows, ignore_index=True).to_csv(
+                            OUT / "robustness_gradient.csv", index=False)
+                        print(f"      {dname} (post from {dfrom}) "
+                              f"[{(time.time()-t2)/60:.1f} min]")
+                        for _, x in gr.iterrows():
+                            t = x["coef"] / max(x["se"], 1e-12)
+                            print(f"        {x['age_group']:<6} {x['coef']:+.4f} "
+                                  f"(SE {x['se']:.4f}) t {t:+.2f}")
 
-                # the horse race rides on the panel we already have
-                if key != "daioe" or "telework" not in expos:
-                    continue
-                got = opt(f"horse race {tag}", horserace, bal,
-                          expos["telework"], l47, f"hr63_{tag}")
-                r, ncell = got if got is not None else (None, 0)
-                if r is None or r.empty:
-                    FAILURES.append(f"horserace/{tag}")
-                    continue
-                for _, x in r.iterrows():
-                    hr_rows.append({"outcome": label, "dating": dname,
-                                    "post_from": dfrom,
-                                    "spec": str(x["spec"]),
-                                    "term": x["term"],
-                                    "coef": float(x["coef"]),
-                                    "se": float(x["se"]),
-                                    "n_obs": int(x["n_obs"]),
-                                    "n_cells": ncell,
-                                    "status": str(x.get("status", "ok"))})
-                pd.DataFrame(hr_rows).to_csv(OUT / "horserace.csv",
-                                             index=False)
-                print(f"      horse race, {label}, {dname}, both measures:")
-                for h in hr_rows:
-                    if (h["outcome"] != label or h["dating"] != dname
-                            or h["term"].startswith("post_rb")):
+                    # the horse race rides on the panel we already have
+                    if key != "daioe" or "telework" not in expos:
                         continue
-                    print(f"        {h['spec']:<7} {h['term']:<18} "
-                          f"{h['coef']:+.4f} (SE {h['se']:.4f}) t "
-                          f"{h['coef']/max(h['se'],1e-12):+.2f}")
+                    got = opt(f"horse race {tag}", horserace, bal,
+                              expos["telework"], l47, f"hr63_{tag}")
+                    r, ncell = got if got is not None else (None, 0)
+                    if r is None or r.empty:
+                        FAILURES.append(f"horserace/{tag}")
+                        continue
+                    for _, x in r.iterrows():
+                        hr_rows.append({"outcome": label, "dating": dname,
+                                        "post_from": dfrom,
+                                        "spec": str(x["spec"]),
+                                        "term": x["term"],
+                                        "coef": float(x["coef"]),
+                                        "se": float(x["se"]),
+                                        "n_obs": int(x["n_obs"]),
+                                        "n_cells": ncell,
+                                        "status": str(x.get("status", "ok"))})
+                    pd.DataFrame(hr_rows).to_csv(OUT / "horserace.csv",
+                                                 index=False)
+                    print(f"      horse race, {label}, {dname}, both measures:")
+                    for h in hr_rows:
+                        if (h["outcome"] != label or h["dating"] != dname
+                                or h["term"].startswith("post_rb")):
+                            continue
+                        print(f"        {h['spec']:<7} {h['term']:<18} "
+                              f"{h['coef']:+.4f} (SE {h['se']:.4f}) t "
+                              f"{h['coef']/max(h['se'],1e-12):+.2f}")
             del bal
             gc.collect()
         del src
@@ -443,7 +453,12 @@ def main():
         "     different samples of firm-age cells; the log gives the counts.",
         "     The horse race uses only cells both measures score, which is",
         "     the comparison that holds the sample fixed.",
-        "  5. This still says nothing about whether DAIOE predicts actual",
+        "  5. READ HIRES AND SEPARATIONS TOGETHER. Hiring falling in",
+        "     exposed firms while the stock holds means separations fell",
+        "     too, and that is reduced churn rather than reduced",
+        "     employment. Only a fall in hiring WITHOUT a matching fall in",
+        "     separations is a fall in jobs.",
+        "  6. This still says nothing about whether DAIOE predicts actual",
         "     use of the technology. That needs a survey we do not hold.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "63_summary.txt").write_text("\n".join(lines))
