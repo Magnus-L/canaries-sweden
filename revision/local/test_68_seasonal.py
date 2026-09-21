@@ -221,19 +221,42 @@ PA = pd.read_csv(s68.OUT / "seasonal_path.csv")
 check("all three cleaned paths were estimated",
       set(PA["shape"]) == {"year", "quarter", "month"},
       " ".join(sorted(set(PA["shape"]))))
-check("the quarter path covers the post window only, against the pre-period",
-      PA[PA["shape"] == "quarter"]["period"].min() >= "2024Q1",
+# Nothing may assume the onset: the paths must start at the LAUNCH, with
+# the pre-ChatGPT window as the only baseline, so that a reader who thinks
+# the effect began in 2023 can read that off the path.
+check("the quarter path starts at the launch, not at the assumed onset",
+      PA[PA["shape"] == "quarter"]["period"].min() == "2022Q4",
       f"first {PA[PA['shape']=='quarter']['period'].min()}")
-check("the month path is monthly and starts at the treatment date",
-      PA[PA["shape"] == "month"]["period"].min() == "2024-01",
+check("the month path starts at the launch month",
+      PA[PA["shape"] == "month"]["period"].min() == mc.CHATGPT_YM,
       f"first {PA[PA['shape']=='month']['period'].min()}")
-# the planted decline is a step from 2024-01, so every cleaned post period
-# must be negative and none of them may be a seasonal echo
-for shape in ("quarter", "month"):
-    d = PA[PA["shape"] == shape]
-    check(f"the {shape} path is negative throughout the post window",
-          (d["coef"] < 0).mean() >= 0.8,
-          f"{int((d['coef'] < 0).sum())} of {len(d)} negative")
+# The fixture plants a step at 2024-01 and nothing before it, so the path
+# has to SEPARATE the two: quiet through 2023, negative from 2024. A
+# specification that assumed the onset could not fail this test, and one
+# that mis-dates it would.
+M = PA[PA["shape"] == "month"].set_index("period")
+mp, mse = M["coef"], M["se"]
+pre24 = mp[(mp.index >= "2023-01") & (mp.index < "2024-01")]
+in24 = mp[mp.index >= "2024-01"]
+# A single monthly coefficient in a fixture this size carries a standard
+# error near 0.1, so individual 2023 months scatter widely and their mean
+# absolute value says nothing. What must hold is that the block is
+# jointly indistinguishable from zero.
+se23 = float(mse[(mse.index >= "2023-01") & (mse.index < "2024-01")].mean())
+t23 = float(pre24.mean()) / (se23 / len(pre24) ** 0.5)
+check("the 2023 months, where nothing was planted, are jointly a zero",
+      abs(t23) < 2.0,
+      f"mean {pre24.mean():+.4f} over {len(pre24)} months, typical SE "
+      f"{se23:.3f}, t on the mean {t23:+.2f}")
+check("and every month from 2024 is negative",
+      (in24 < 0).mean() >= 0.9,
+      f"{int((in24 < 0).sum())} of {len(in24)}")
+check("so the path locates the onset instead of assuming it",
+      in24.mean() < pre24.mean() - 0.10,
+      f"2023 mean {pre24.mean():+.4f} against 2024/25 mean {in24.mean():+.4f}")
+check("the pooled specification estimates the interim rather than "
+      "assuming it is zero",
+      "interim_x_high_x_young" in set(P["term"]))
 check("the gender differential was re-estimated with the seasonal out",
       (s68.OUT / "seasonal_gender.csv").exists())
 summ = (s68.OUT / "68_summary.txt").read_text()

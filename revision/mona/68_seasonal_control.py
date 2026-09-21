@@ -89,8 +89,9 @@ OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 POST_FROM = "2024-01"
 REF_QUARTER = 4              # omitted, so the others read against Q4
-PATH_YEARS = [2021, 2022, 2023, 2024, 2025]
-REF_YEAR = 2022              # the last full pre-treatment year
+# The baseline for every specification: everything before the launch.
+# Nothing in this script assumes when the effect began.
+BASELINE = f"2021-01 to the month before {mc.CHATGPT_YM}"
 FAILURES = []
 
 
@@ -119,25 +120,35 @@ def add_seasonal_terms(bal: pd.DataFrame, extra: str = "post") -> tuple:
     """
     The treatment, the Riksbank control, and the calendar cycle.
 
-    `extra` chooses the shape of the treatment. All four shapes carry the
-    same seasonal block, so all four are cleaned of the cycle.
+    THE BASELINE IS THE PRE-CHATGPT WINDOW, and that is the point of this
+    version. An earlier draft compared the adoption window against
+    everything before January 2024, which assumes the onset is January
+    2024. If the effect in fact began in 2023 then part of the baseline is
+    treated and every estimate is attenuated. We do not know the onset,
+    only that it is later than November 2022 and earlier than 2025, so
+    nothing here may assume it.
 
-      post     one step from POST_FROM. The headline.
-      year     one coefficient per calendar year, REF_YEAR omitted.
-      quarter  one coefficient per calendar quarter IN THE POST WINDOW,
-               against the whole pre-period as the reference.
+    So the reference is always 2021-01 to 2022-11, and 2022-12 onward is
+    described rather than assumed:
+
+      post     two steps, an interim from the launch and the adoption
+               window from POST_FROM, both against the pre-ChatGPT
+               baseline. The interim is estimated, not set to zero.
+      year     2023, 2024 and 2025 against the same baseline.
+      quarter  every calendar quarter from 2022Q4 onward.
       month    the same, month by month.
 
-    Why the paths are built this way rather than by adding a control to
-    an ordinary event study. A full set of event-time dummies already
-    spans the calendar cycle, so a seasonal control alongside them is
-    perfectly collinear and there is nothing to add. What identifies the
-    cycle separately is the PRE-PERIOD, which spans three years and
-    therefore sees each calendar quarter three times. So the seasonal
-    block is estimated off the pre-period, the post periods get their own
-    dummies, and each post coefficient reads as that period against the
-    seasonally adjusted pre-period average. That is the object script 64
-    could not produce and the one the paper needs.
+    Any pooled estimate for a candidate date the reader prefers is a
+    weighted average of the quarter or month coefficients, so one path fit
+    answers every dating rather than one.
+
+    Why the paths are built this way rather than by adding a control to an
+    ordinary event study: a full set of event-time dummies spanning the
+    WHOLE panel already spans the calendar cycle, so a seasonal control
+    beside them is collinear. Here the dummies start at the launch, the
+    cycle is identified off the twenty-three pre-launch months, which see
+    each season twice, and each later period reads against the seasonally
+    adjusted baseline.
 
     The fourth quarter, and December, are the omitted seasons. That is a
     normalisation and not a claim about the world.
@@ -145,42 +156,43 @@ def add_seasonal_terms(bal: pd.DataFrame, extra: str = "post") -> tuple:
     ym = bal["year_month"].astype(str)
     hy = bal["high"] * bal["young"]
     q = quarter_of_year(ym)
+    post_any = ym >= mc.CHATGPT_YM              # the baseline is everything before
     terms = ["rb_x_high_x_young"]
     bal["rb_x_high_x_young"] = (ym >= mc.RIKSBANK_YM).astype(int) * hy
     if extra == "month":
         mo = ym.str.slice(5, 7).astype(int)
-        for mm in range(1, 12):                   # December omitted
+        for mm in range(1, 12):                 # December omitted
             col = f"m{mm:02d}_x_high_x_young"
             bal[col] = (mo == mm).astype(int) * hy
             terms.append(col)
     else:
-        for qq in (1, 2, 3):                      # Q4 omitted
+        for qq in (1, 2, 3):                    # Q4 omitted
             col = f"q{qq}_x_high_x_young"
             bal[col] = (q == qq).astype(int) * hy
             terms.append(col)
     if extra == "post":
+        bal["interim_x_high_x_young"] = (post_any & (ym < POST_FROM)).astype(int) * hy
         bal["post_x_high_x_young"] = (ym >= POST_FROM).astype(int) * hy
-        terms.append("post_x_high_x_young")
+        terms += ["interim_x_high_x_young", "post_x_high_x_young"]
     elif extra == "year":
         yr = ym.str.slice(0, 4).astype(int)
-        for y in PATH_YEARS:
-            if y == REF_YEAR:
-                continue
+        for y in (2023, 2024, 2025):
             col = f"y{y}_x_high_x_young"
-            bal[col] = (yr == y).astype(int) * hy
+            bal[col] = ((yr == y) & post_any).astype(int) * hy
             terms.append(col)
+        # 2022-12 is neither baseline nor a full year; give it its own term
+        bal["dec22_x_high_x_young"] = (ym == mc.CHATGPT_YM).astype(int) * hy
+        terms.append("dec22_x_high_x_young")
     elif extra == "quarter":
         lab = ym.str.slice(0, 4) + "Q" + q.astype(str)
-        post = ym >= POST_FROM
-        for qq in sorted(lab[post].unique()):
+        for qq in sorted(lab[post_any].unique()):
             col = f"pq_{qq}_x_high_x_young"
-            bal[col] = ((lab == qq) & post).astype(int) * hy
+            bal[col] = ((lab == qq) & post_any).astype(int) * hy
             terms.append(col)
     elif extra == "month":
-        post = ym >= POST_FROM
-        for mm in sorted(ym[post].unique()):
+        for mm in sorted(ym[post_any].unique()):
             col = f"pm_{mm.replace('-', '_')}_x_high_x_young"
-            bal[col] = ((ym == mm) & post).astype(int) * hy
+            bal[col] = ((ym == mm) & post_any).astype(int) * hy
             terms.append(col)
     return bal, terms
 
@@ -315,7 +327,7 @@ def main():
                             print(f"    {shape} path: FAILED, recorded")
                             continue
                         gp = rp.set_index("term")
-                        pref = {"year": "y", "quarter": "pq_",
+                        pref = {"year": "y2", "quarter": "pq_",
                                 "month": "pm_"}[shape]
                         got = [t_ for t_ in pterms
                                if t_.startswith(pref) and t_ in gp.index]
@@ -435,10 +447,11 @@ def main():
                       f"{float(a['coef'].iloc[0]) - float(t['coef'].iloc[0]):+.4f}",
                       ""]
     if path_rows:
-        lines += ["PATHS NET OF THE SEASONAL. The year path reads against",
-                  f"{REF_YEAR}; the quarter and month paths read against the",
-                  "whole pre-period, seasonally adjusted. These are what 64",
-                  "could not produce.", ""]
+        lines += ["PATHS NET OF THE SEASONAL. Every coefficient reads against",
+                  "the seasonally adjusted PRE-CHATGPT baseline, 2021-01 to",
+                  "2022-11. Nothing here assumes when the effect began; the",
+                  "path is what tells you. Note that 2022Q4 is part launch",
+                  "month and part baseline, so read it as neither.", ""]
         for shape in ("year", "quarter", "month"):
             for band in sorted({d["young_band"] for d in path_rows}):
                 rows = [d for d in path_rows
@@ -479,17 +492,21 @@ def main():
         "  4. The mechanism sentence depends on the hires and seps rows",
         "     here and on nothing else. 63's flow results use a different",
         "     exposure measure and cannot settle it.",
-        "  5. The annual path omits 2022, so every coefficient reads",
-        "     against the last full pre-treatment year, and 2025 is a",
-        "     half year.",
-        "  6. The quarter and month paths read against the seasonally",
-        "     adjusted PRE-PERIOD as a whole, not against an adjacent",
-        "     period, so they answer when the level shifted and not how",
-        "     fast it moved. A full event study cannot be cleaned this",
-        "     way: event-time dummies already span the calendar cycle, so",
-        "     a seasonal control beside them is collinear. What makes the",
-        "     cycle separately identified here is that the pre-period runs",
-        "     three years and sees each season three times.",
+        "  5. 2025 is a half year, and 2022Q4 straddles the launch, so",
+        "     neither should be read as a clean period.",
+        "  6. NOTHING HERE ASSUMES THE ONSET. The baseline is the",
+        "     pre-ChatGPT window and every later period is estimated, so a",
+        "     reader who thinks the effect began in mid-2023 can read that",
+        "     off the path rather than argue with our dating. The pooled",
+        "     estimate for any candidate date is a weighted average of the",
+        "     quarter or month coefficients.",
+        "  7. The paths read against the baseline as a whole, not against",
+        "     an adjacent period, so they answer when the level shifted and",
+        "     not how fast it moved. A full event study cannot be cleaned",
+        "     this way: event-time dummies spanning the whole panel already",
+        "     span the calendar cycle. What identifies the cycle separately",
+        "     is that the twenty-three pre-launch months see each season",
+        "     twice.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "68_summary.txt").write_text("\n".join(lines))
     print("\n" + "\n".join(lines))

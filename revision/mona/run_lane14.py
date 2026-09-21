@@ -22,6 +22,15 @@ EXPECT THE ESTIMATE TO SHRINK. Comparing like quarters by hand puts
 back far from -0.03, something other than the seasonal is at work and it
 needs chasing before publication.
 
+AND NOTHING HERE ASSUMES WHEN THE EFFECT BEGAN. The baseline is the
+pre-ChatGPT window in every specification, so a reader who thinks the
+onset was mid-2023 rather than January 2024 can read that off the path
+instead of arguing with our dating. The pooled specification estimates
+the interim from the launch to January 2024 rather than assuming it is
+zero, and the pooled estimate for any other candidate date is a weighted
+average of the quarter or month coefficients. We are not betting the
+paper on one month.
+
 It also produces the paths, all cleaned of the cycle: by year, by
 quarter and, at 22-25, by month. A full event study cannot be cleaned
 this way, because event-time dummies already span the calendar cycle and
