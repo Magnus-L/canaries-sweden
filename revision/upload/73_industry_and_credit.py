@@ -579,6 +579,35 @@ def add_ind_fe(b: pd.DataFrame, ind: pd.DataFrame) -> pd.DataFrame:
     return b
 
 
+def quarter_path_terms(b: pd.DataFrame) -> tuple:
+    """
+    Post-period quarter dummies plus the calendar cycle, exactly as 68
+    builds them, so the coefficients read against the same baseline and
+    the same omitted season.
+
+    The reference is the pre-ChatGPT window, and Q4 is the omitted
+    calendar quarter. Both are normalisations copied from 68 rather than
+    chosen here: the whole point is that these paths can be laid beside
+    68's on one axis.
+    """
+    ym = b["year_month"].astype(str)
+    hy = b["high"] * b["young"]
+    q = ((ym.str.slice(5, 7).astype(int) - 1) // 3) + 1
+    post_any = ym >= mc.CHATGPT_YM
+    terms = ["rb_x_high_x_young"]
+    b["rb_x_high_x_young"] = (ym >= mc.RIKSBANK_YM).astype(int) * hy
+    for qq in (1, 2, 3):                        # Q4 omitted, as in 68
+        col = f"q{qq}_x_high_x_young"
+        b[col] = (q == qq).astype(int) * hy
+        terms.append(col)
+    lab = ym.str.slice(0, 4) + "Q" + q.astype(str)
+    for qq in sorted(lab[post_any].unique()):
+        col = f"pq_{qq}_x_high_x_young"
+        b[col] = ((lab == qq) & post_any).astype(int) * hy
+        terms.append(col)
+    return b, terms
+
+
 def base_terms(b: pd.DataFrame) -> tuple:
     ym = b["year_month"].astype(str)
     hy = b["high"] * b["young"]
@@ -706,6 +735,40 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
                 sinks["ind"].append({"band": band, "spec": "industry_age_t",
                                      **dict(zip(("coef", "se"),
                                                 r["post_x_high_x_young"]))})
+
+            # THE QUARTERLY PATH WITH INDUSTRY ABSORBED.
+            #
+            # The pooled fit above answers "how much of the decline is an
+            # industry-specific age shock". It cannot answer the question
+            # the spreading claim rests on, which is about TIMING: 26-30
+            # is said to overtake 22-25 during 2025, and a pooled
+            # coefficient averaged over the whole post period cannot see
+            # a crossing inside it.
+            #
+            # Without this fit the position on 21 September was that the
+            # crossing is untested rather than refuted, which is an
+            # honest thing to write but a weak one. One more fit settles
+            # it: if the 26-30 path still deepens through 2025 with
+            # industry x age x month absorbed, the spreading pattern is
+            # real and the pooled attenuation only says the LEVEL is
+            # partly industry. If it flattens, the crossing was the
+            # industry shock arriving late at that band, and the claim
+            # comes out of the paper.
+            #
+            # Same fixed effects as the pooled fit, so the two are
+            # directly comparable, and the same Q4-omitted normalisation
+            # as 68 so the coefficients can be read beside its paths.
+            bq, qterms = quarter_path_terms(b)
+            rq = fit(bq, qterms, fes, f"indq_{band}")
+            if rq:
+                for t, (c, se) in rq.items():
+                    if t.startswith("pq_"):
+                        sinks["indq"].append(
+                            {"band": band,
+                             "period": t[3:].replace("_x_high_x_young", ""),
+                             "coef": c, "se": se})
+            del bq
+            gc.collect()
         del b
         gc.collect()
 
@@ -771,6 +834,42 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
         gc.collect()
     del b0
     gc.collect()
+
+
+def path_verdict(indq) -> list:
+    """
+    Does the 26-30 path still deepen through 2025 once industry x age x
+    month is absorbed?
+
+    This is the test the pooled fit cannot do. The spreading claim is
+    that 26-30 overtakes 22-25 during 2025; a coefficient averaged over
+    the whole post period cannot see a crossing inside it.
+    """
+    if not len(indq):
+        return ["industry path: not estimated"]
+    d = pd.DataFrame(indq)
+    out = []
+    piv = d.pivot_table(index="period", columns="band", values="coef")
+    for band in sorted(d["band"].unique()):
+        b = d[d.band == band].sort_values("period")
+        last = b.iloc[-1]
+        out.append(f"{band}: industry-absorbed path ends "
+                   f"{last['coef']:+.4f} ({last['se']:.4f}) at "
+                   f"{last['period']}")
+    if {"22-25", "26-30"} <= set(piv.columns):
+        late = piv[piv.index >= "2025Q1"]
+        if len(late):
+            crossed = (late["26-30"] < late["22-25"]).any()
+            out.append(
+                "CROSSING SURVIVES: 26-30 is below 22-25 in at least one "
+                "2025 quarter with industry absorbed, so the spreading "
+                "claim is not an industry shock arriving late."
+                if crossed else
+                "CROSSING DOES NOT SURVIVE: with industry absorbed 26-30 "
+                "no longer goes below 22-25 in 2025. The overtaking was "
+                "the industry shock reaching that band, and the claim "
+                "comes out of the paper.")
+    return out
 
 
 def verdict(ind, lev, bank) -> list:
@@ -878,7 +977,7 @@ def main():
     if last < POOLED_FROM:
         raise SystemExit(f"counts end at {last}, before {POOLED_FROM}.")
 
-    sinks = {"ind": [], "lev": [], "bank": []}
+    sinks = {"ind": [], "indq": [], "lev": [], "bank": []}
     print(f"  python holding {_rss_gb():.1f} GB before the first band")
     for band in YOUNG_BANDS:
         opt(f"band {band}", run_band, counts, expo, ind, lev, failed, band,
@@ -887,9 +986,11 @@ def main():
         print(f"  python holding {_rss_gb():.1f} GB after band {band}")
 
     dfi = pd.DataFrame(sinks["ind"])
+    dfq = pd.DataFrame(sinks["indq"])
     dfl = pd.DataFrame(sinks["lev"])
     dfb = pd.DataFrame(sinks["bank"])
-    for df, nm in ((dfi, "industry_fe.csv"), (dfl, "credit_test.csv"),
+    for df, nm in ((dfi, "industry_fe.csv"), (dfq, "industry_path.csv"),
+                   (dfl, "credit_test.csv"),
                    (dfb, "bankruptcy.csv")):
         if len(df):
             df.to_csv(OUT / nm, index=False)
@@ -899,6 +1000,8 @@ def main():
              "pre-shock: a later vintage would let a firm's own response "
              "into the treatment.", ""]
     lines += verdict(dfi, dfl, dfb)
+    lines.append("")
+    lines += path_verdict(sinks["indq"])
     lines += ["", "What this cannot do: leverage is a proxy for exposure to "
               "the rate cycle, not a measure of it, and surviving a credit "
               "test is not the same as identifying an AI effect.", ""]

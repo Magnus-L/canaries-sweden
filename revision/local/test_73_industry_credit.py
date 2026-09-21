@@ -304,7 +304,7 @@ s73.NOTES.clear()
 # "merge on float64 and object columns" and the lane produced nothing.
 _probe = counts("clean").copy()
 _probe["employer_id"] = _probe["employer_id"].astype(float)
-_sk = {"ind": [], "lev": [], "bank": []}
+_sk = {k: [] for k in ("ind", "indq", "lev", "bank")}
 s73.run_band(_probe, EXPO, ind, lev, failed, "22-25", j47, _sk)
 check("a float employer_id in the counts still merges against string "
       "exposure, which is what killed lane 19",
@@ -315,10 +315,12 @@ s73.NOTES.clear(); s73.FAILURES.clear()
 def run(world):
     s73.NOTES.clear(); s73.FAILURES.clear()
     cnt = counts(world)
-    sinks = {"ind": [], "lev": [], "bank": []}
+    # mirror main()'s sinks exactly; a fixture that builds its own dict
+    # silently diverges the moment a new arm is added
+    sinks = {k: [] for k in ("ind", "indq", "lev", "bank")}
     s73.run_band(cnt, EXPO, ind, lev, failed, "22-25", j47, sinks)
     return (pd.DataFrame(sinks["ind"]), pd.DataFrame(sinks["lev"]),
-            pd.DataFrame(sinks["bank"]))
+            pd.DataFrame(sinks["bank"]), pd.DataFrame(sinks["indq"]))
 
 
 def coef(df, **kw):
@@ -328,9 +330,18 @@ def coef(df, **kw):
     return float(d.iloc[0]["coef"]) if len(d) else None
 
 
+# ---- the quarterly industry path, added 21 Sep ------------------------
+# The pooled industry fit cannot see a crossing INSIDE the post period,
+# and the spreading claim is exactly that: 26-30 overtakes 22-25 during
+# 2025. This arm exists to settle it, so it has to actually produce a
+# path, and the verdict has to be able to go both ways.
+def _pathrows(q):
+    return sorted(q["period"].unique()) if len(q) else []
+
+
 # ---- industry: must kill a confound and spare a real effect ----------
-i_c, _, _ = run("clean")
-i_f, _, _ = run("confounded")
+i_c, _, _, q_c = run("clean")
+i_f, _, _, q_f = run("confounded")
 b_c, a_c = coef(i_c, spec="baseline"), coef(i_c, spec="industry_age_t")
 b_f, a_f = coef(i_f, spec="baseline"), coef(i_f, spec="industry_age_t")
 check("CLEAN world: the baseline sees the planted decline",
@@ -347,8 +358,8 @@ check("CONFOUNDED world: industry x age x month KILLS it, so the "
 
 
 # ---- leverage: must take a credit story and spare an AI one ----------
-_, l_ai, _ = run("clean")
-_, l_mo, _ = run("monetary")
+_, l_ai, _, _ = run("clean")
+_, l_mo, _, _ = run("monetary")
 
 
 def term(df, t):
@@ -455,6 +466,25 @@ if (s73.OUT / "73_summary.txt").exists():
           "frozen" in txt and "2019" in txt)
     check("the summary states what a credit test cannot do",
           "not the same as identifying an AI effect" in txt)
+
+check("the quarterly industry path is produced, not just the pooled fit",
+      len(q_c) > 0, f"{len(q_c)} quarter rows")
+check("and its periods are post-ChatGPT quarters",
+      all(p[:4].isdigit() and "Q" in p for p in _pathrows(q_c)),
+      ", ".join(_pathrows(q_c)[:4]))
+
+# the verdict must be able to say BOTH things, or it is not a test
+import pandas as _pd
+_cross = [{"band": "22-25", "period": "2025Q2", "coef": -0.05, "se": 0.01},
+          {"band": "26-30", "period": "2025Q2", "coef": -0.08, "se": 0.01}]
+_flat = [{"band": "22-25", "period": "2025Q2", "coef": -0.05, "se": 0.01},
+         {"band": "26-30", "period": "2025Q2", "coef": -0.02, "se": 0.01}]
+check("verdict detects a surviving crossing",
+      any("CROSSING SURVIVES" in v for v in s73.path_verdict(_cross)))
+check("verdict detects a crossing that does NOT survive",
+      any("DOES NOT SURVIVE" in v for v in s73.path_verdict(_flat)))
+check("and it says so rather than crashing when nothing was estimated",
+      s73.path_verdict([]) == ["industry path: not estimated"])
 
 print("\n" + "=" * 62)
 print(f"{'FAILED: ' + ', '.join(FAILS) if FAILS else 'all checks passed'}")
