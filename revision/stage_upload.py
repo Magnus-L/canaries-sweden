@@ -60,7 +60,7 @@ def main() -> int:
 
     if not drift:
         print("upload/ is identical to mona/ for every shared file.")
-        return 0
+        return manifest(check)
 
     for m, u in drift:
         if check:
@@ -72,6 +72,7 @@ def main() -> int:
     if check:
         print(f"\n{len(drift)} stale file(s) in upload/. "
               f"Run without --check to sync.")
+        manifest(check)
         return 1
     # copy2 preserves mtime, which _lane.py reads for staleness, so the
     # lane still sees a changed dependency and will not SKIP the stage.
@@ -80,6 +81,50 @@ def main() -> int:
         print(f"\nSYNC FAILED for: {bad}")
         return 1
     print(f"\n{len(drift)} file(s) staged; upload/ now matches mona/.")
+    return manifest(check)
+
+
+
+def manifest(check: bool) -> int:
+    """
+    Keep upload/MANIFEST.txt in step with upload/.
+
+    WHY. The manifest is the upload-integrity list: it is what says the
+    bytes that reached the share are the bytes we meant to send. Nothing
+    regenerated it, so on 21 September it was stale for ten files at
+    once, including all three r_fepois wrappers and mona_common.py.
+    That is the same class of defect this script was written to stop,
+    one layer down, so it is fixed here rather than by remembering.
+    """
+    listing = sorted(
+        (f for f in UP.iterdir()
+         if f.is_file() and f.name != "MANIFEST.txt" and f.suffix != ".pyc"),
+        key=lambda f: f.name)
+    lines = [f"{hashlib.sha256(f.read_bytes()).hexdigest()}  {f.name}"
+             for f in listing]
+    want = "\n".join(lines) + "\n"
+    man = UP / "MANIFEST.txt"
+    have = man.read_text() if man.exists() else ""
+    if have == want:
+        print("MANIFEST.txt is current.")
+        return 0
+    if check:
+        old = {l.split()[1]: l.split()[0] for l in have.split("\n")
+               if l.strip() and not l.startswith("#")}
+        new = {l.split()[1]: l.split()[0] for l in lines}
+        stale = sorted(n for n in new if n in old and old[n] != new[n])
+        added = sorted(set(new) - set(old))
+        gone = sorted(set(old) - set(new))
+        if stale:
+            print(f"  MANIFEST stale for: {stale}")
+        if added:
+            print(f"  MANIFEST missing:   {added}")
+        if gone:
+            print(f"  MANIFEST lists files no longer in upload/: {gone}")
+        print("\nMANIFEST.txt is out of date. Run without --check to rewrite.")
+        return 1
+    man.write_text(want, encoding="utf-8")
+    print(f"MANIFEST.txt rewritten: {len(lines)} files.")
     return 0
 
 

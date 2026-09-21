@@ -78,6 +78,31 @@ ATTEN_MAX = 0.50
 FAILURES = []
 
 
+# ──────────────────────────────────────────────────────────────────────
+# THE BAND LIST IS SET HERE, DELIBERATELY, AND PRINTED INTO THE SUMMARY.
+#
+# 74 used to read l70.CONTRAST_BANDS at runtime. When 70 went from three
+# bands to six on 21 September at 20:38, this script's sample would have
+# changed with it, silently, and nothing in the output would have said
+# which list produced the number. Set it here instead.
+#
+# Two configurations exist and they are not interchangeable:
+#
+#   THREE  ["22-25", "26-30", "41-49"]                  120,359 firms
+#          Produced the -0.0153 (0.0126) contrast the paper quotes.
+#          Use this to reproduce the published number.
+#
+#   SIX    all bands                                    172,396 firms
+#          Adds 31-34, 35-40 and 50+, none of which has ever been
+#          estimated with the calendar cycle removed. This is the
+#          exploratory run: it asks whether an age gradient survives the
+#          cycle control. The paper claims no gradient, so a null here
+#          changes nothing and a gradient is a finding.
+#
+BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
+# ──────────────────────────────────────────────────────────────────────
+
+
 def _mod(fname, name):
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, HERE / fname)
@@ -97,7 +122,7 @@ def build_terms(b: pd.DataFrame, l70, seasonal: bool):
     post_rb = (ym >= mc.RIKSBANK_YM).astype(int)
     q = quarter_of(ym)
     terms = []
-    for band in l70.CONTRAST_BANDS:
+    for band in BANDS:
         if band == l70.REF_BAND:
             continue
         d = (b["age_group"] == band).astype(int)
@@ -194,6 +219,15 @@ def main():
     print("=" * 70)
 
     l70 = _mod("70_respecifications.py", "l70")
+    # HARD GUARD. all_band_skeleton() builds the panel from
+    # l70.CONTRAST_BANDS, while the interaction terms below are built from
+    # BANDS. If the two ever disagree the terms and the panel describe
+    # different age sets and the fit is quietly wrong. Fail here instead.
+    if list(BANDS) != list(l70.CONTRAST_BANDS):
+        raise SystemExit(
+            f"BAND MISMATCH: 74 has {BANDS}, but 70 builds the skeleton from "
+            f"{l70.CONTRAST_BANDS}. The panel and the terms would not agree. "
+            f"Set them the same in both files before running.")
     j47 = _mod("47j_within_employer_triple.py", "j47")
 
     cnt = []
@@ -209,7 +243,7 @@ def main():
     last = str(counts["year_month"].max())
     if last < POOLED_FROM:
         raise SystemExit(f"counts end at {last}, before {POOLED_FROM}.")
-    print(f"  counts to {last}; bands {l70.CONTRAST_BANDS}, "
+    print(f"  counts to {last}; bands {BANDS} (set in 74, checked against 70), "
           f"reference {l70.REF_BAND}")
 
     expo = l70.edu_exposure(j47, l70.DESIGN, l70.ARM)
