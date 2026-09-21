@@ -97,7 +97,13 @@ def build_terms(b: pd.DataFrame, l70, seasonal: bool):
     post_rb = (ym >= mc.RIKSBANK_YM).astype(int)
     q = quarter_of(ym)
     terms = []
-    for band in l70.CONTRAST_BANDS:
+    # PINNED. 74 used to read l70.CONTRAST_BANDS live, so when 70 went from
+    # three bands to six on 21 Sep at 20:38 this script's sample would have
+    # changed silently, with nothing in its output recording which list
+    # produced the number. The published -0.0153 is the three-band panel,
+    # 120,359 firms. Change BANDS deliberately, and say so in the summary.
+    BANDS = ["22-25", "26-30", "41-49"]
+    for band in BANDS:
         if band == l70.REF_BAND:
             continue
         d = (b["age_group"] == band).astype(int)
@@ -209,7 +215,7 @@ def main():
     last = str(counts["year_month"].max())
     if last < POOLED_FROM:
         raise SystemExit(f"counts end at {last}, before {POOLED_FROM}.")
-    print(f"  counts to {last}; bands {l70.CONTRAST_BANDS}, "
+    print(f"  counts to {last}; bands {BANDS} (PINNED, not l70's), "
           f"reference {l70.REF_BAND}")
 
     expo = l70.edu_exposure(j47, l70.DESIGN, l70.ARM)
