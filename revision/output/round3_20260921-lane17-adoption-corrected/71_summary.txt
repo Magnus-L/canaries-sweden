@@ -1,0 +1,92 @@
+71 adoption validation
+======================================================================
+
+OVERLAP
+
+  ITFtg_Stora_2021     education   matched   4,173  with outcome   4,153  top quartile  1,191
+  ITFtg_Stora_2021     occupation  matched   3,972  with outcome   3,952  top quartile  1,347
+  ITFtg_Stora_2023     education   matched   3,611  with outcome   3,601  top quartile  1,030
+  ITFtg_Stora_2023     occupation  matched   3,305  with outcome   3,297  top quartile  1,076
+  ai_fouftg_2019_2021  education   matched  12,591  with outcome  12,591  top quartile  4,562
+  ai_fouftg_2019_2021  occupation  matched  12,014  with outcome  12,014  top quartile  4,841
+  ai_fouoff_2019_2021  education   matched   1,010  with outcome   1,010  top quartile    375
+  ai_fouoff_2019_2021  occupation  matched   1,004  with outcome   1,004  top quartile    335
+  ai_fufi_2019         education   matched   3,841  with outcome   3,840  top quartile  1,217
+  ai_fufi_2019         occupation  matched   3,716  with outcome   3,715  top quartile  1,360
+  ai_itftg_2019        education   matched   3,829  with outcome   3,829  top quartile  1,019
+  ai_itftg_2019        occupation  matched   3,658  with outcome   3,658  top quartile  1,203
+  BITA_2024            education   matched   2,321  with outcome   2,296  top quartile    723
+  BITA_2024            occupation  matched   2,131  with outcome   2,111  top quartile    648
+
+FIRST STAGE, FIRM LEVEL (ITFtg). Coefficient on `high` is the top-quartile difference in the probability of reporting AI use, controlling for log 2019 size.
+
+  ITFtg_Stora_2021     education   ai_any    +0.1979 (0.0141)  t +14.00  n 4,148
+  ITFtg_Stora_2021     education   ai_genai  +0.0755 (0.0088)  t +8.54  n 4,148
+  ITFtg_Stora_2021     occupation  ai_any    +0.1922 (0.0134)  t +14.37  n 3,952
+  ITFtg_Stora_2021     occupation  ai_genai  +0.0786 (0.0083)  t +9.42  n 3,952
+  ITFtg_Stora_2023     education   ai_any    +0.2154 (0.0155)  t +13.87  n 3,594
+  ITFtg_Stora_2023     education   ai_genai  +0.0974 (0.0111)  t +8.74  n 3,594
+  ITFtg_Stora_2023     occupation  ai_any    +0.2086 (0.0153)  t +13.67  n 3,297
+  ITFtg_Stora_2023     occupation  ai_genai  +0.1068 (0.0110)  t +9.69  n 3,297
+  ai_fouftg_2019_2021  education   ai_any    +0.0665 (0.0044)  t +15.08  n 12,545
+  ai_fouftg_2019_2021  education   ai_spend_pos +0.0665 (0.0044)  t +15.08  n 12,545
+  ai_fouftg_2019_2021  education   ai_spend_log +0.5187 (0.0337)  t +15.38  n 12,545
+  ai_fouftg_2019_2021  occupation  ai_any    +0.0563 (0.0042)  t +13.41  n 12,014
+  ai_fouftg_2019_2021  occupation  ai_spend_pos +0.0563 (0.0042)  t +13.41  n 12,014
+  ai_fouftg_2019_2021  occupation  ai_spend_log +0.4505 (0.0323)  t +13.96  n 12,014
+  ai_fouoff_2019_2021  education   ai_any    +0.2693 (0.0364)  t +7.41  n 1,006
+  ai_fouoff_2019_2021  education   ai_spend_pos +0.2237 (0.0349)  t +6.42  n 1,006
+  ai_fouoff_2019_2021  education   ai_spend_log +1.5992 (0.2393)  t +6.68  n 1,006
+  ai_fouoff_2019_2021  occupation  ai_any    +0.2833 (0.0383)  t +7.40  n 1,004
+  ai_fouoff_2019_2021  occupation  ai_spend_pos +0.2141 (0.0371)  t +5.78  n 1,004
+  ai_fouoff_2019_2021  occupation  ai_spend_log +1.5845 (0.2633)  t +6.02  n 1,004
+  ai_fufi_2019         education   ai_any    +0.0537 (0.0136)  t +3.96  n 3,827
+  ai_fufi_2019         education   ai_spend_pos +0.0537 (0.0136)  t +3.96  n 3,827
+  ai_fufi_2019         education   ai_spend_log +0.5657 (0.0876)  t +6.46  n 3,827
+  ai_fufi_2019         occupation  ai_any    +0.0483 (0.0131)  t +3.68  n 3,715
+  ai_fufi_2019         occupation  ai_spend_pos +0.0483 (0.0131)  t +3.68  n 3,715
+  ai_fufi_2019         occupation  ai_spend_log +0.5646 (0.0835)  t +6.76  n 3,715
+  ai_itftg_2019        education   ai_any    +0.2029 (0.0140)  t +14.50  n 3,817
+  ai_itftg_2019        occupation  ai_any    +0.1826 (0.0126)  t +14.51  n 3,658
+
+  READ: a positive, significant coefficient is the validation the paper lacks. Comparing the two routes on the SAME table also adjudicates which should be the headline classifier, on an external criterion rather than on coverage counts.
+
+FIRST STAGE, INDIVIDUAL LEVEL (BITA), survey-weighted.
+
+  BITA_2024    education   genai   +0.2350 (0.0246)  t +9.57  n 2,296
+  BITA_2024    occupation  genai   +0.2104 (0.0258)  t +8.16  n 2,111
+
+LIMITS, which belong in the paper and not only here:
+  Both sources are stratified sample surveys with weights, and ITFtg_Stora covers only firms with ten or more employees. This validates the measure on the larger-firm part of our panel, not on all of it.
+  A first stage says the score predicts reported adoption. It does not make adoption exogenous, and it does not turn the age contrast into a causal estimate of AI.
+
+NOTES:
+  ITFtg_Stora_2020: no AI columns found, skipped
+  ITFtg_Stora_2021: use built from ['E_AI_TAR', 'E_AI_TIR', 'E_AI_TML', 'E_AI_TNLG', 'E_AI_TPA', 'E_AI_TSR', 'E_AI_TTM']
+  ITFtg_Stora_2021/education: 4,173 of 4,254 keys matched (98.1%)
+  ITFtg_Stora_2021/occupation: 3,972 of 4,254 keys matched (93.4%)
+  ITFtg_Stora_2022: no AI columns found, skipped
+  ITFtg_Stora_2023: use built from ['E_AI_TAR', 'E_AI_TIR', 'E_AI_TML', 'E_AI_TNLG', 'E_AI_TPA', 'E_AI_TSR', 'E_AI_TTM']
+  ITFtg_Stora_2023/education: 3,611 of 3,789 keys matched (95.3%)
+  ITFtg_Stora_2023/occupation: 3,305 of 3,789 keys matched (87.2%)
+  ITftg_Stora_2013: no AI columns found, skipped
+  ITftg_Stora_2014: no AI columns found, skipped
+  ITftg_Stora_2015: no AI columns found, skipped
+  ITftg_Stora_2016: no AI columns found, skipped
+  ITftg_Stora_2017: no AI columns found, skipped
+  ITftg_Stora_2018: no AI columns found, skipped
+  ITftg_Stora_2019: no AI columns found, skipped
+  ai_fouftg_2019_2021/education: 8,870 of 9,082 keys matched (97.7%)
+  ai_fouftg_2019_2021/occupation: 8,349 of 9,082 keys matched (91.9%)
+  ai_fouoff_2019_2021: use built from ['AI_USE']
+  ai_fouoff_2019_2021/education: 500 of 500 keys matched (100.0%)
+  ai_fouoff_2019_2021/occupation: 497 of 500 keys matched (99.4%)
+  ai_fufi_2019/education: 3,841 of 3,846 keys matched (99.9%)
+  ai_fufi_2019/occupation: 3,716 of 3,846 keys matched (96.6%)
+  ai_itftg_2019: use built from ['AI_USE']
+  ai_itftg_2019/education: 3,829 of 3,847 keys matched (99.5%)
+  ai_itftg_2019/occupation: 3,658 of 3,847 keys matched (95.1%)
+  BITA_2024/persons: 2,708 of 5,277 keys matched (51.3%)
+  BITA_2024/education: 1,506 of 1,645 keys matched (91.6%)
+  BITA_2024/occupation: 1,316 of 1,645 keys matched (80.0%)
+  BITA_2025: no CH columns, skipped

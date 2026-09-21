@@ -1,0 +1,15 @@
+source,route,matched,with_outcome,high_with_outcome
+ITFtg_Stora_2021,education,4173,4153,1191
+ITFtg_Stora_2021,occupation,3972,3952,1347
+ITFtg_Stora_2023,education,3611,3601,1030
+ITFtg_Stora_2023,occupation,3305,3297,1076
+ai_fouftg_2019_2021,education,12591,12591,4562
+ai_fouftg_2019_2021,occupation,12014,12014,4841
+ai_fouoff_2019_2021,education,1010,1010,375
+ai_fouoff_2019_2021,occupation,1004,1004,335
+ai_fufi_2019,education,3841,3840,1217
+ai_fufi_2019,occupation,3716,3715,1360
+ai_itftg_2019,education,3829,3829,1019
+ai_itftg_2019,occupation,3658,3658,1203
+BITA_2024,education,2321,2296,723
+BITA_2024,occupation,2131,2111,648
