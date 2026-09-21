@@ -268,7 +268,17 @@ def firm_industry(conn, schema) -> pd.DataFrame:
 
     Arbst_<year> is the workplace file, keyed on the workplace but
     carrying the parent LopNr_PeOrgNr, so a firm with workplaces in
-    several industries takes the industry of its largest workplace.
+    several industries takes the industry of its largest workplace, IF
+    a size column is present, and in this delivery none is: Arbst_YYYY
+    carries no `Anst`, so the tie is broken arbitrarily by row order and
+    the note says "first workplace" rather than "largest". It
+    is NOT a fallback at BASE_YEAR 2019: the delivery carries Ast_Sni92
+    to 2001 and Ast_Sni2002 to 2010, and from Arbst_2011 there is no
+    industry column at all, only sector and municipality. (The
+    mona-dictionary page lists AstSNI2007; the database does not have
+    it.) The branch stays for an earlier base year and falls through
+    silently for a later one, which is the correct behaviour and is why
+    the 15:07 run went to Ftg_2019 as intended.
 
     Whichever source answers, the coverage it achieves is reported, and
     the gate below still applies: a source that cannot reach the match
@@ -306,7 +316,8 @@ def firm_industry(conn, schema) -> pd.DataFrame:
     if arb:
         c = cols_of(arb)
         key = pick(c, r"^LopNr_PeOrgNr$", r"PeOrgNr")
-        ind = pick(c, r"^AstSNI2007$", r"Sni2007", r"^Sni")
+        ind = pick(c, r"^AstSNI2007$", r"^Ast_Sni2007$", r"^Ast_Sni2002$",
+                   r"^Ast_Sni92$", r"Sni")
         size = pick(c, r"^Anst$", r"AntAnst", r"^Syss")
         if key and ind:
             sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
@@ -502,25 +513,57 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
 
 
 def firm_failed(conn, schema) -> set:
-    """Firms recorded as bankrupt or liquidated in Serrano's events."""
-    tab = next((t for t in sorted(schema["TABLE_NAME"].unique())
-                if re.search(r"serrano.*bol", t, re.I)), None)
-    if tab is None:
-        NOTES.append("no Serrano corporate-event table; Part C cannot run")
-        return set()
-    cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
-    key = pick(cols, r"^ORGNR$", r"ORGNR", r"PeOrgNr")
-    st = pick(cols, r"status")
-    if not (key and st):
-        NOTES.append(f"{tab}: key {key}, status {st}; Part C cannot run")
-        return set()
-    d = pd.read_sql(f"SELECT [{key}] AS employer_id, [{st}] AS status "
-                    f"FROM dbo.[{tab}]", conn)
-    bad = d["status"].astype(str).str.contains(
-        r"konkurs|likvid|bankrupt|liquidat", case=False, na=False)
-    out = set(norm_id(d.loc[bad, "employer_id"]))
-    print(f"  corporate events: {tab}, {len(out):,} failed firms")
-    return out
+    """
+    Firms recorded as bankrupt in Serrano.
+
+    NOT from `Serrano_bol_20230614`. That table holds only ORGNR, WORGNR,
+    `wstatdat`, `FUPLAN`, `FUTYP` and `status`, and matching `status` on
+    "Konkurs" returned 0 firms of 989,707 on 21 September: the literal is
+    not what that field contains. Rather than guess a second literal, use
+    the purpose-built flags in `Serrano_Serrano_20230614`, `bol_konkurs`
+    and `bol_kkfall`, which that table carries beside `ser_year` so the
+    year can be chosen directly.
+
+    A flag that is a count or a code, not a 0/1, still works here: any
+    non-zero, non-missing value marks the firm.
+    """
+    tabs = sorted(schema["TABLE_NAME"].unique())
+    tab = next((t for t in tabs
+                if re.search(r"serrano.*serrano", t, re.I)), None)
+    if tab:
+        cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
+        key = pick(cols, r"^P1207_Lopnr_ORGNR$", r"ORGNR")
+        flg = [c for c in cols
+               if re.search(r"^bol_(konkurs|kkfall)$", c, re.I)]
+        yrc = pick(cols, r"^ser_year$", r"^year$")
+        if key and flg:
+            sel = ", ".join(f"[{c}]" for c in flg)
+            q = f"SELECT [{key}] AS employer_id, {sel} FROM dbo.[{tab}]"
+            if yrc:
+                q += f" WHERE [{yrc}] <= {BASE_YEAR}"
+            d = pd.read_sql(q, conn)
+            bad = pd.Series(False, index=d.index)
+            for c in flg:
+                v = pd.to_numeric(d[c], errors="coerce")
+                hit = v.fillna(0) != 0
+                # a non-numeric flag is a code, not a number
+                if v.isna().all():
+                    hit = (d[c].astype(str).str.strip()
+                           .str.lower().isin(("", "nan", "0", "none")) == False)
+                bad |= hit
+            out = set(norm_id(d.loc[bad, "employer_id"]))
+            msg = (f"corporate events: {tab} via {'/'.join(flg)}"
+                   + (f", {yrc}<={BASE_YEAR}" if yrc else "")
+                   + f", {len(out):,} failed firms of {len(d):,} rows")
+            print(f"  {msg}"); NOTES.append(msg)
+            if out:
+                return out
+            NOTES.append(f"{tab}: the bankruptcy flags marked nobody; "
+                         f"Part C reports nothing rather than a false null")
+            return set()
+    NOTES.append("no Serrano_Serrano table with bol_konkurs/bol_kkfall; "
+                 "Part C cannot run")
+    return set()
 
 
 def add_ind_fe(b: pd.DataFrame, ind: pd.DataFrame) -> pd.DataFrame:

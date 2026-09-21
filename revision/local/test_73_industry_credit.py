@@ -154,9 +154,15 @@ def counts(world, beta=-0.35, seed=4):
 CATALOGUE = pd.DataFrame(
     [("Ftg_2019", c, "varchar") for c in
      ("LopNr_PeOrgNr", "Org_SateKommun", "Org_Sni2007")]
+    # Arbst_2019 as the database ACTUALLY has it: no industry column
+    # at all from 2011, whatever the mona-dictionary page says. Only the
+    # pre-2011 vintages carry one.
     + [("Arbst_2019", c, "varchar") for c in
-       ("LopNr_ArbstId", "LopNr_CfarNr", "LopNr_PeOrgNr", "AstNr",
-        "AstSNI2007", "Anst")]
+       ("P1207_LopNr_PeOrgNr", "P1207_LopNr_CfarNr", "P1207_LopNr_ArbstId",
+        "AstNr", "Ast_SektorKod", "Ast_Kommun")]
+    + [("Arbst_2010", c, "varchar") for c in
+       ("P1207_LopNr_PeOrgNr", "P1207_LopNr_CfarNr", "P1207_LopNr_ArbstId",
+        "AstNr", "Ast_SektorKod", "Ast_Kommun", "Ast_Sni2002")]
     + [("FDB_JE_1990_1993", c, "varchar") for c in
      ("P1207_Lopnr_peorgnr", "ar", "sni69ng1", "anst")]
     + [("FDB_JE_2014_2021", c, "varchar") for c in
@@ -169,7 +175,12 @@ CATALOGUE = pd.DataFrame(
                  "EKSU", "LSKSU", "KSKSU", "EKSKSU", "RTEKOEXT",
                  "BSLSTART", "BSLSLUT")]
     + [("Serrano_bol_20230614", c, "varchar")
-       for c in ("P1207_Lopnr_ORGNR", "status")],
+       for c in ("P1207_Lopnr_ORGNR", "P1207_Lopnr_WORGNR", "wstatdat",
+                 "FUPLAN", "FUTYP", "status")]
+    + [("Serrano_Serrano_20230614", c, "varchar")
+       for c in ("P1207_Lopnr_ORGNR", "P1207_Lopnr_knc_orgnrk", "ser_year",
+                 "bol_kkfall", "bol_konkurs", "ser_aktiv", "ny_skuldgrd",
+                 "ny_solid", "bransch_sni073")],
     columns=["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"])
 FAILED = set(FIRMS[:40])
 
@@ -185,7 +196,7 @@ def fake_read_sql(q, conn=None, *a, **kw):
         # LISA's firm table: every employer, full five-digit SNI2007
         return pd.DataFrame({"employer_id": FIRMS,
                              "ind": [IND[f] + "42" for f in FIRMS]})
-    if "arbst_2019" in ql:
+    if "arbst_2019" in ql or "arbst_2010" in ql:
         # workplace file: two workplaces for the first firm, the larger
         # one in the industry the firm should end up with
         ids = list(FIRMS) + [FIRMS[0]]
@@ -205,9 +216,17 @@ def fake_read_sql(q, conn=None, *a, **kw):
                              "equity": [1.0 - LEV[f] for f in FIRMS],
                              "dlong": [LEV[f] * 0.6 for f in FIRMS],
                              "dshort": [LEV[f] * 0.4 for f in FIRMS]})
+    if "serrano_serrano" in ql:
+        # the purpose-built flags: 1 for the failed firms, 0 otherwise
+        return pd.DataFrame(
+            {"employer_id": FIRMS,
+             "bol_kkfall": [0] * len(FIRMS),
+             "bol_konkurs": [1 if f in FAILED else 0 for f in FIRMS]})
     if "serrano_bol" in ql:
-        return pd.DataFrame({"employer_id": list(FAILED),
-                             "status": ["Konkurs"] * len(FAILED)})
+        # THE DEFECT: `status` does not contain the word "Konkurs", so
+        # the old loader returned nobody out of 989,707 firms.
+        return pd.DataFrame({"employer_id": FIRMS,
+                             "status": ["A"] * len(FIRMS)})
     raise AssertionError(f"unexpected query: {q[:100]}")
 
 
@@ -220,6 +239,7 @@ SCHEMA = s73.discover(None)
 ind = s73.firm_industry(None, SCHEMA)
 lev = s73.firm_leverage(None, SCHEMA)
 failed = s73.firm_failed(None, SCHEMA)
+LOADER_NOTES = list(s73.NOTES)
 check("industry is found and reduced to three digits",
       len(ind) and set(ind["ind3"].str.len()) == {3}, f"{len(ind)} firms")
 check("leverage is found", len(lev) and lev["lev"].between(0, 3).all(),
@@ -238,27 +258,44 @@ check("the five-digit SNI2007 is cut to the three-digit group",
 # With Ftg absent the workplace file answers, largest workplace winning;
 # with both absent FDB_JE is the last resort and its thin coverage shows.
 _full = SCHEMA
-for drop, expect, label in (
-        (["Ftg_2019"], "Arbst_2019", "workplace file"),
-        (["Ftg_2019", "Arbst_2019"], "FDB_JE_2014_2021", "FDB_JE")):
-    s73.NOTES.clear()
-    sub = _full[~_full["TABLE_NAME"].isin(drop)]
-    alt = s73.firm_industry(None, sub)
-    check(f"with {' and '.join(drop)} absent the {label} answers",
-          any(expect in n for n in s73.NOTES), f"{len(alt)} firms")
-    if label == "workplace file":
-        check("and the firm takes its LARGEST workplace's industry",
-              alt.set_index("employer_id").loc[FIRMS[0], "ind3"]
-              == IND[FIRMS[0]])
-    else:
-        check("and FDB_JE's thin coverage is visible, not silent",
-              len(alt) < len(FIRMS) // 4, f"{len(alt)} of {len(FIRMS)}")
+s73.NOTES.clear()
+alt = s73.firm_industry(None, _full[_full["TABLE_NAME"] != "Ftg_2019"])
+check("with Ftg_2019 absent the workplace file CANNOT answer for 2019, "
+      "because Arbst carries no industry column from 2011, so FDB_JE "
+      "takes it",
+      any("FDB_JE_2014_2021" in n for n in s73.NOTES)
+      and not any("Arbst_2019" in n for n in s73.NOTES),
+      next((n for n in s73.NOTES if "industry:" in n), "")[:90])
+check("and FDB_JE's thin coverage is visible, not silent",
+      len(alt) < len(FIRMS) // 4, f"{len(alt)} of {len(FIRMS)}")
+
+# an early base year is the case the workplace branch exists for
+s73.NOTES.clear()
+_by = s73.BASE_YEAR
+s73.BASE_YEAR = 2010
+try:
+    early = s73.firm_industry(
+        None, _full[~_full["TABLE_NAME"].isin(["Ftg_2019", "Ftg_2010"])])
+    check("at an early base year the workplace file DOES answer, on the "
+          "vintage column the delivery actually has",
+          any("Arbst_2010" in n and "Ast_Sni2002" in n for n in s73.NOTES),
+          next((n for n in s73.NOTES if "industry:" in n), "")[:90])
+    check("and it says 'first workplace', not 'largest', because this "
+          "delivery's Arbst carries no size column to rank by",
+          any("first workplace" in n for n in s73.NOTES)
+          and len(early) == len(FIRMS), f"{len(early)} firms")
+finally:
+    s73.BASE_YEAR = _by
 s73.NOTES.clear()
 ind = s73.firm_industry(None, _full)
 check("leverage reproduces 1 - equity/assets",
       abs(float(lev.set_index("employer_id").loc[FIRMS[0], "lev"])
           - LEV[FIRMS[0]]) < 1e-9)
-check("failed firms are found", len(failed) == len(FAILED))
+check("failed firms come from Serrano_Serrano's bol_konkurs, not from "
+      "Serrano_bol's status, which matches nobody",
+      len(failed) == len(FAILED)
+      and any("Serrano_Serrano" in n for n in LOADER_NOTES),
+      next((n for n in LOADER_NOTES if "corporate events" in n), "")[:90])
 s73.NOTES.clear()
 
 
