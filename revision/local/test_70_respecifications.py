@@ -124,18 +124,31 @@ def counts(decline_bands, beta=-0.30, seed=5):
 # ---- the skeleton ----------------------------------------------------
 c_equal = counts(("22-25", "41-49"))
 skel = s70.all_band_skeleton(c_equal)
-check("the skeleton carries all six bands",
-      sorted(skel["age_group"].unique()) == sorted(s70.ALL_BANDS))
+check("the skeleton carries only the contrast bands, not all six",
+      sorted(skel["age_group"].unique()) == sorted(s70.CONTRAST_BANDS),
+      str(sorted(skel["age_group"].unique())))
+check("the reference band is among them, or nothing is identified",
+      s70.REF_BAND in s70.CONTRAST_BANDS)
+check("both young bands are kept",
+      {"22-25", "26-30"} <= set(s70.CONTRAST_BANDS))
 n_emp = skel["employer_id"].nunique()
 n_ym = skel["year_month"].nunique()
 check("the skeleton is balanced",
-      len(skel) == n_emp * n_ym * len(s70.ALL_BANDS),
-      f"{len(skel):,} vs {n_emp * n_ym * len(s70.ALL_BANDS):,}")
+      len(skel) == n_emp * n_ym * len(s70.CONTRAST_BANDS),
+      f"{len(skel):,} vs {n_emp * n_ym * len(s70.CONTRAST_BANDS):,}")
 check("the fixed effects are integers, not pasted strings",
       all(str(skel[c].dtype).startswith("int")
           for c in ("fe_emp_t", "fe_emp_age", "fe_t_age")))
 check("the panel starts where the script says it does",
       skel["year_month"].min() >= s70.PANEL_FROM)
+# The 21 September failure: six bands x 172,396 firms x 54 months is
+# 55.9M rows and about 9.3M employer-month levels, and fepois took an
+# access violation. Three bands is the fix, so the panel must actually
+# be smaller rather than merely relabelled.
+check("three bands really halve the panel",
+      len(skel) < 0.6 * n_emp * n_ym * len(s70.ALL_BANDS),
+      f"{len(skel):,} vs six-band {n_emp * n_ym * len(s70.ALL_BANDS):,}")
+
 
 no_ref = c_equal[~((c_equal["employer_id"] == c_equal["employer_id"].iloc[0])
                    & (c_equal["age_group"] == s70.REF_BAND))]
@@ -177,8 +190,8 @@ check("the two worlds are separated, which is the point of Part A",
 adf = pd.read_csv(TMP / "a_equal.csv")
 check(f"{s70.REF_BAND} is the omitted band and reports no coefficient",
       s70.REF_BAND.replace("-", "_") not in set(adf["band_vs_ref"]))
-check("every other band reports a contrast", len(adf) == len(s70.ALL_BANDS) - 1,
-      f"{len(adf)} rows")
+check("every other band reports a contrast",
+      len(adf) == len(s70.CONTRAST_BANDS) - 1, f"{len(adf)} rows")
 check("the reference is recorded in the output",
       set(adf["reference"]) == {s70.REF_BAND})
 
@@ -208,12 +221,14 @@ if csink:
     check("Part C reports the intersection rungs as a subset of the full one",
           all(v <= n_of.get("A_edu_full", 0) for v in n_of.values()),
           ", ".join(f"{r}:{n_of[r]}" for r in sorted(n_of)))
+    check("the duplicate C rung is gone, it was B re-run",
+          "C_edu_joint" not in n_of, str(sorted(n_of)))
     check("the coverage rung is STRICTLY smaller, so A-vs-B is not vacuous",
           n_of.get("B_edu_intersect", 0) < n_of.get("A_edu_full", 0),
           f"A {n_of.get('A_edu_full')} vs B {n_of.get('B_edu_intersect')}")
     check("the occupation rung sits on the same firms as its education twin",
-          n_of.get("D_occ_joint") == n_of.get("C_edu_joint"),
-          f"C {n_of.get('C_edu_joint')} vs D {n_of.get('D_occ_joint')}")
+          n_of.get("D_occ_joint") == n_of.get("B_edu_intersect"),
+          f"B {n_of.get('B_edu_intersect')} vs D {n_of.get('D_occ_joint')}")
 
 
 # ---- end to end ------------------------------------------------------

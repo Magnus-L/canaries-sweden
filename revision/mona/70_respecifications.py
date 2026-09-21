@@ -103,6 +103,20 @@ OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 
 ALL_BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
+# The bands Part A and Part C actually put in the panel.
+#
+# The 21 September run asked for all six and died: 172,396 firms x 54
+# months x 6 bands is 55.9 million rows and about 9.3 million
+# employer-by-month fixed-effect levels, and fepois took an access
+# violation inside garbage collection. 61 fitted 36.5M rows, and this
+# script's own intersection rungs fitted 19.7M, so the ceiling sits
+# between. Machine memory was never the constraint: 680 GB was free.
+#
+# Three bands give the contrast the paper needs, 22-25 and 26-30 each
+# against the 41-49 reference, on a panel of about 28 million rows. The
+# other three bands bought secondary rows at twice the size.
+CONTRAST_BANDS = ["22-25", "26-30", "41-49"]
+MAX_ROWS_WARN = 40_000_000
 # The reference band for Part A. 41-49 and not 50+: the comparison the
 # paper's framing rests on is young against prime-age, and 41-49 is the
 # band that contradicted it. Fixed before the run.
@@ -190,7 +204,7 @@ def all_band_skeleton(counts: pd.DataFrame) -> pd.DataFrame:
     design is a single young-versus-older contrast. Part A needs the whole
     age profile in one fit, so the panel has to carry every band.
     """
-    p = counts[counts["age_group"].astype(str).isin(ALL_BANDS)]
+    p = counts[counts["age_group"].astype(str).isin(CONTRAST_BANDS)]
     p = p[p["year_month"].astype(str) >= PANEL_FROM]
     p = (p.groupby(["employer_id", "age_group", "year_month"], observed=True)
          ["n_emp"].sum().reset_index())
@@ -205,7 +219,7 @@ def all_band_skeleton(counts: pd.DataFrame) -> pd.DataFrame:
         return p
     months = sorted(p["year_month"].unique())
     emp = p["employer_id"].drop_duplicates().to_numpy()
-    full = pd.MultiIndex.from_product([emp, ALL_BANDS, months],
+    full = pd.MultiIndex.from_product([emp, CONTRAST_BANDS, months],
                                       names=["employer_id", "age_group",
                                              "year_month"])
     bal = (p.groupby(["employer_id", "age_group", "year_month"], observed=True)
@@ -218,6 +232,10 @@ def all_band_skeleton(counts: pd.DataFrame) -> pd.DataFrame:
     bal["fe_emp_t"] = ec * n_t + tc
     bal["fe_emp_age"] = ec * n_a + ac
     bal["fe_t_age"] = tc * n_a + ac
+    if len(bal) > MAX_ROWS_WARN:
+        print(f"  WARNING: {len(bal):,} rows and "
+              f"{bal['fe_emp_t'].nunique():,} employer-month levels. The "
+              f"21 September failure was at 55.9M rows and 9.3M levels.")
     return bal
 
 
@@ -239,7 +257,7 @@ def part_a(counts, expo, j47, sink):
     # firm-level exposure, an un-interacted post x high is absorbed by the
     # employer-by-month effects, so a pooled Riksbank control would silently
     # contribute nothing and would not actually control for anything.
-    for band in ALL_BANDS:
+    for band in CONTRAST_BANDS:
         if band == REF_BAND:
             continue
         d = (b["age_group"] == band).astype(int)
@@ -318,9 +336,13 @@ def part_c(counts, j47, l65, sink):
     both = set(edu["employer_id"]) & set(occ["employer_id"])
     print(f"  C: education {len(edu):,} firms, occupation {len(occ):,}, "
           f"intersection {len(both):,}")
+    # C is gone. It was given the SAME restriction as B, so it was the
+    # same regression, and the 21 September run returned -0.0254 (0.0140)
+    # on 60,704 firms for both. A worker-level joint-support restriction
+    # is what C was meant to be and the pre-aggregated frames cannot
+    # express it, so the rung is dropped rather than duplicated.
     rungs = [("A_edu_full", edu, None),
              ("B_edu_intersect", edu, both),
-             ("C_edu_joint", edu, both),
              ("D_occ_joint", occ, both)]
     # The skeleton does not depend on which route scored the firm, only
     # the quartile does. 61 learned this the expensive way: rebuilding a
@@ -341,7 +363,7 @@ def part_c(counts, j47, l65, sink):
         post = (ym >= POOLED_FROM).astype(int)
         post_rb = (ym >= mc.RIKSBANK_YM).astype(int)
         terms = []
-        for band in ALL_BANDS:
+        for band in CONTRAST_BANDS:
             if band == REF_BAND:
                 continue
             d = (b["age_group"] == band).astype(int)
@@ -457,15 +479,14 @@ def main():
         df.to_csv(OUT / "route_ladder.csv", index=False)
         lines += ["PART C. Education to occupation, one rung at a time.",
                   f"Coefficients are differences from {REF_BAND}.", ""]
-        for rung in ["A_edu_full", "B_edu_intersect", "C_edu_joint",
-                     "D_occ_joint"]:
+        for rung in ["A_edu_full", "B_edu_intersect", "D_occ_joint"]:
             s = df[(df.rung == rung) & (df.band_vs_ref == "22_25")]
             if len(s):
                 r = s.iloc[0]
                 lines.append(f"  {rung:<18} 22-25 vs {REF_BAND}: "
                              f"{r['coef']:+.4f} ({r['se']:.4f}), "
                              f"{int(r['n_firms']):,} firms")
-        lines += ["", "  READ: A to B is employer coverage. C to D is the "
+        lines += ["", "  READ: A to B is employer coverage. B to D is the "
                   "register AND the incumbent pool together, not the "
                   "register alone, because the cached frames are "
                   "pre-aggregated and a worker-level joint-support "
