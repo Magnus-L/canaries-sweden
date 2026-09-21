@@ -119,34 +119,68 @@ def add_seasonal_terms(bal: pd.DataFrame, extra: str = "post") -> tuple:
     """
     The treatment, the Riksbank control, and the calendar cycle.
 
-    `extra` selects what the treatment looks like: "post" gives a single
-    step from POST_FROM, "year" gives one coefficient per calendar year
-    with REF_YEAR omitted, which is the path net of the seasonal.
+    `extra` chooses the shape of the treatment. All four shapes carry the
+    same seasonal block, so all four are cleaned of the cycle.
 
-    The fourth quarter is the omitted season. That is a normalisation and
-    not a choice about the world: with three quarter terms present, the
-    treatment coefficient is identified from variation within calendar
-    quarter across years, which is the whole point.
+      post     one step from POST_FROM. The headline.
+      year     one coefficient per calendar year, REF_YEAR omitted.
+      quarter  one coefficient per calendar quarter IN THE POST WINDOW,
+               against the whole pre-period as the reference.
+      month    the same, month by month.
+
+    Why the paths are built this way rather than by adding a control to
+    an ordinary event study. A full set of event-time dummies already
+    spans the calendar cycle, so a seasonal control alongside them is
+    perfectly collinear and there is nothing to add. What identifies the
+    cycle separately is the PRE-PERIOD, which spans three years and
+    therefore sees each calendar quarter three times. So the seasonal
+    block is estimated off the pre-period, the post periods get their own
+    dummies, and each post coefficient reads as that period against the
+    seasonally adjusted pre-period average. That is the object script 64
+    could not produce and the one the paper needs.
+
+    The fourth quarter, and December, are the omitted seasons. That is a
+    normalisation and not a claim about the world.
     """
     ym = bal["year_month"].astype(str)
     hy = bal["high"] * bal["young"]
     q = quarter_of_year(ym)
     terms = ["rb_x_high_x_young"]
     bal["rb_x_high_x_young"] = (ym >= mc.RIKSBANK_YM).astype(int) * hy
-    for qq in (1, 2, 3):
-        col = f"q{qq}_x_high_x_young"
-        bal[col] = (q == qq).astype(int) * hy
-        terms.append(col)
+    if extra == "month":
+        mo = ym.str.slice(5, 7).astype(int)
+        for mm in range(1, 12):                   # December omitted
+            col = f"m{mm:02d}_x_high_x_young"
+            bal[col] = (mo == mm).astype(int) * hy
+            terms.append(col)
+    else:
+        for qq in (1, 2, 3):                      # Q4 omitted
+            col = f"q{qq}_x_high_x_young"
+            bal[col] = (q == qq).astype(int) * hy
+            terms.append(col)
     if extra == "post":
         bal["post_x_high_x_young"] = (ym >= POST_FROM).astype(int) * hy
         terms.append("post_x_high_x_young")
-    else:
+    elif extra == "year":
         yr = ym.str.slice(0, 4).astype(int)
         for y in PATH_YEARS:
             if y == REF_YEAR:
                 continue
             col = f"y{y}_x_high_x_young"
             bal[col] = (yr == y).astype(int) * hy
+            terms.append(col)
+    elif extra == "quarter":
+        lab = ym.str.slice(0, 4) + "Q" + q.astype(str)
+        post = ym >= POST_FROM
+        for qq in sorted(lab[post].unique()):
+            col = f"pq_{qq}_x_high_x_young"
+            bal[col] = ((lab == qq) & post).astype(int) * hy
+            terms.append(col)
+    elif extra == "month":
+        post = ym >= POST_FROM
+        for mm in sorted(ym[post].unique()):
+            col = f"pm_{mm.replace('-', '_')}_x_high_x_young"
+            bal[col] = ((ym == mm) & post).astype(int) * hy
             terms.append(col)
     return bal, terms
 
@@ -261,33 +295,47 @@ def main():
                         c = g.loc[f"q{qq}_x_high_x_young"]
                         print(f"          Q{qq} against Q4 "
                               f"{float(c['coef']):+.4f} ({float(c['se']):.4f})")
-                # the annual path, net of the cycle, on the stock only
+                # the paths, all cleaned of the cycle, on the stock only.
+                # Monthly is run at 22-25 alone: it carries thirty terms on
+                # a thirty-six-million-row panel, which is the largest fit
+                # of the round, and 22-25 is the cell the claim is about.
                 if label == "stock" and arm == "true":
-                    b, pterms = add_seasonal_terms(b, "year")
-                    t3 = time.time()
-                    rp = mc.run_fepois_multi(
-                        b, OUT, tag=f"p68_{band.replace('-','_')}",
-                        terms=pterms, fes=j47.FES)
-                    if rp.empty:
-                        FAILURES.append(f"path/{band}")
-                    else:
+                    shapes = ["year", "quarter"]
+                    if band == "22-25":
+                        shapes.append("month")
+                    for shape in shapes:
+                        b, pterms = add_seasonal_terms(b, shape)
+                        t3 = time.time()
+                        rp = mc.run_fepois_multi(
+                            b, OUT,
+                            tag=f"p68_{shape}_{band.replace('-','_')}",
+                            terms=pterms, fes=j47.FES)
+                        if rp.empty:
+                            FAILURES.append(f"path/{shape}/{band}")
+                            print(f"    {shape} path: FAILED, recorded")
+                            continue
                         gp = rp.set_index("term")
-                        for y in PATH_YEARS:
-                            col = f"y{y}_x_high_x_young"
-                            if col not in gp.index:
-                                continue
+                        pref = {"year": "y", "quarter": "pq_",
+                                "month": "pm_"}[shape]
+                        got = [t_ for t_ in pterms
+                               if t_.startswith(pref) and t_ in gp.index]
+                        for t_ in got:
+                            lab = (t_.split("_x_high")[0]
+                                   .removeprefix("pq_").removeprefix("pm_")
+                                   .removeprefix("y"))
                             path_rows.append(
-                                {"young_band": band, "year": y,
-                                 "coef": float(gp.loc[col, "coef"]),
-                                 "se": float(gp.loc[col, "se"]),
-                                 "status": str(gp.loc[col].get("status", "ok"))})
+                                {"young_band": band, "shape": shape,
+                                 "period": lab.replace("_", "-"),
+                                 "coef": float(gp.loc[t_, "coef"]),
+                                 "se": float(gp.loc[t_, "se"]),
+                                 "status": str(gp.loc[t_].get("status", "ok"))})
                         pd.DataFrame(path_rows).to_csv(
                             OUT / "seasonal_path.csv", index=False)
-                        print(f"    annual path, {REF_YEAR} omitted "
+                        print(f"    {shape} path, cycle removed "
                               f"[{(time.time()-t3)/60:.1f} min]:")
                         for d in path_rows:
-                            if d["young_band"] == band:
-                                print(f"          {d['year']} "
+                            if d["young_band"] == band and d["shape"] == shape:
+                                print(f"          {d['period']:<8} "
                                       f"{d['coef']:+.4f} ({d['se']:.4f})")
                 del b
                 gc.collect()
@@ -387,12 +435,22 @@ def main():
                       f"{float(a['coef'].iloc[0]) - float(t['coef'].iloc[0]):+.4f}",
                       ""]
     if path_rows:
-        lines += [f"ANNUAL PATH net of the seasonal, {REF_YEAR} omitted:"]
-        for band in sorted({d["young_band"] for d in path_rows}):
-            bits = "  ".join(f"{d['year']} {d['coef']:+.4f}"
-                             for d in path_rows if d["young_band"] == band)
-            lines.append(f"  {band:<6} {bits}")
-        lines.append("")
+        lines += ["PATHS NET OF THE SEASONAL. The year path reads against",
+                  f"{REF_YEAR}; the quarter and month paths read against the",
+                  "whole pre-period, seasonally adjusted. These are what 64",
+                  "could not produce.", ""]
+        for shape in ("year", "quarter", "month"):
+            for band in sorted({d["young_band"] for d in path_rows}):
+                rows = [d for d in path_rows
+                        if d["young_band"] == band and d["shape"] == shape]
+                if not rows:
+                    continue
+                lines.append(f"  {shape}, {band}:")
+                for d in rows:
+                    star = "" if abs(d["coef"]) < 2 * d["se"] else "  *"
+                    lines.append(f"    {d['period']:<8} {d['coef']:+.4f} "
+                                 f"({d['se']:.4f}){star}")
+                lines.append("")
     if gender_rows:
         lines += ["GENDER at 22-25 on the stock, seasonal removed:"]
         for d in gender_rows:
@@ -424,6 +482,14 @@ def main():
         "  5. The annual path omits 2022, so every coefficient reads",
         "     against the last full pre-treatment year, and 2025 is a",
         "     half year.",
+        "  6. The quarter and month paths read against the seasonally",
+        "     adjusted PRE-PERIOD as a whole, not against an adjacent",
+        "     period, so they answer when the level shifted and not how",
+        "     fast it moved. A full event study cannot be cleaned this",
+        "     way: event-time dummies already span the calendar cycle, so",
+        "     a seasonal control beside them is collinear. What makes the",
+        "     cycle separately identified here is that the pre-period runs",
+        "     three years and sees each season three times.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "68_summary.txt").write_text("\n".join(lines))
     print("\n" + "\n".join(lines))

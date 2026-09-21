@@ -217,7 +217,23 @@ check("and it runs all three margins", set(P["outcome"]) ==
       {"stock", "hires", "seps"}, " ".join(sorted(set(P["outcome"]))))
 check("the as-of arm ran, so the artefact is measured",
       "asof" in set(P["arm"]))
-check("the annual path was estimated", (s68.OUT / "seasonal_path.csv").exists())
+PA = pd.read_csv(s68.OUT / "seasonal_path.csv")
+check("all three cleaned paths were estimated",
+      set(PA["shape"]) == {"year", "quarter", "month"},
+      " ".join(sorted(set(PA["shape"]))))
+check("the quarter path covers the post window only, against the pre-period",
+      PA[PA["shape"] == "quarter"]["period"].min() >= "2024Q1",
+      f"first {PA[PA['shape']=='quarter']['period'].min()}")
+check("the month path is monthly and starts at the treatment date",
+      PA[PA["shape"] == "month"]["period"].min() == "2024-01",
+      f"first {PA[PA['shape']=='month']['period'].min()}")
+# the planted decline is a step from 2024-01, so every cleaned post period
+# must be negative and none of them may be a seasonal echo
+for shape in ("quarter", "month"):
+    d = PA[PA["shape"] == shape]
+    check(f"the {shape} path is negative throughout the post window",
+          (d["coef"] < 0).mean() >= 0.8,
+          f"{int((d['coef'] < 0).sum())} of {len(d)} negative")
 check("the gender differential was re-estimated with the seasonal out",
       (s68.OUT / "seasonal_gender.csv").exists())
 summ = (s68.OUT / "68_summary.txt").read_text()
