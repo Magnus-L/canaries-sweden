@@ -200,8 +200,8 @@ def discover(conn) -> pd.DataFrame:
     SELECT t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE
     FROM INFORMATION_SCHEMA.TABLES t
     JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME
-    WHERE t.TABLE_NAME LIKE 'ITFtg%' OR t.TABLE_NAME LIKE 'ai_itftg%'
-       OR t.TABLE_NAME LIKE 'BITA%'
+    WHERE t.TABLE_NAME LIKE 'ITFtg%' OR t.TABLE_NAME LIKE 'ai_%'
+       OR t.TABLE_NAME LIKE 'BITA%' OR t.TABLE_NAME LIKE 'FUFI%'
     ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION
     """
     return pd.read_sql(q, conn)
@@ -231,9 +231,9 @@ def report_match(left: pd.Series, right: pd.Series, label: str) -> float:
     msg = (f"{label}: {len(l & r):,} of {len(l):,} keys matched "
            f"({rate:.1%})")
     print(f"    {msg}")
-    if rate == 0.0:
-        NOTES.append(f"{msg} -- ZERO overlap. Check the identifier, not "
-                     f"the sample: this is what a key mismatch looks like.")
+    NOTES.append(msg + (" -- ZERO overlap. Check the identifier, not the "
+                        "sample: this is what a key mismatch looks like."
+                        if rate == 0.0 else ""))
     return rate
 
 
@@ -257,10 +257,34 @@ def to01(s: pd.Series) -> pd.Series:
     silently read as a no.
     """
     v = s.astype(str).str.strip().str.upper()
+    # A column that reaches pandas as float, which is what pyodbc returns
+    # for any numeric survey flag that has NULLs in it, stringifies as
+    # "1.0" and not "1". That matched neither list on 21 September 2026
+    # and turned every value into a missing, which the gate then read as
+    # a thin sample and refused. Strip the decimal tail first.
+    v = v.str.replace(r"\.0+$", "", regex=True)
     out = pd.Series(np.nan, index=s.index, dtype="float64")
-    out[v.isin(["1", "J", "JA", "Y", "YES", "TRUE"])] = 1.0
+    out[v.isin(["1", "J", "JA", "Y", "YES", "TRUE", "X"])] = 1.0
     out[v.isin(["0", "N", "NEJ", "NO", "FALSE", "2"])] = 0.0
     return out
+
+
+def parse_report(raw: pd.Series, parsed: pd.Series, label: str) -> None:
+    """
+    Say what a column actually contained when none of it parsed.
+
+    Guessing a survey codebook twice costs two MONA rounds. If a column
+    yields nothing, print its distinct raw values so the next version is
+    written against the data rather than against another guess. Distinct
+    codes of a survey flag are not disclosive; no counts are printed.
+    """
+    if parsed.notna().any():
+        return
+    vals = sorted({str(x)[:12] for x in raw.dropna().unique()})[:12]
+    msg = (f"{label}: every value parsed as missing. Distinct raw codes "
+           f"seen: {vals}")
+    print(f"    {msg}")
+    NOTES.append(msg)
 
 
 def lpm(df: pd.DataFrame, y: str, xs: list, weights=None):
@@ -295,40 +319,78 @@ def firm_size(base: pd.DataFrame) -> pd.DataFrame:
 
 
 def itftg_arm(conn, schema, routes, size, sink, counts_sink):
+    # Every firm- or organisation-level AI table in the delivery, not
+    # only ITFtg. ai_fufi_2019 and ai_itftg_2019 are CONTEMPORANEOUS with
+    # our frozen 2019 exposure, which is the cleanest first stage
+    # available: it asks whether the measure identifies firms already
+    # doing AI at the moment we measured them, with no timing confound.
+    # ai_fouoff is public-sector organisations, which the firm tables
+    # miss entirely and which employ a large share of our panel.
     tabs = sorted(t for t in schema["TABLE_NAME"].unique()
-                  if t.lower().startswith("itftg_stora")
-                  or t.lower().startswith("ai_itftg"))
+                  if t.lower().startswith(("itftg_stora", "ai_itftg",
+                                           "ai_fufi", "ai_fouftg",
+                                           "ai_fouoff")))
     if not tabs:
         NOTES.append("no ITFtg tables found in the catalogue")
         return
     for tab in tabs:
-        yr = re.search(r"(\d{4})", tab)
-        yr = int(yr.group(1)) if yr else None
-        if yr is not None and yr not in ITFTG_YEARS:
-            continue
         cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
         key = pick(cols, r"PeOrgNr", r"PEORGNR", r"foretag.*id", r"\bfirm")
         if key is None:
             NOTES.append(f"{tab}: no firm identifier found, skipped")
             continue
-        have_any = [c for c in AI_ANY_COLS if c in cols]
+        # Pattern, not whitelist. Three ITFtg years reported "no AI
+        # columns found" on 21 September because the delivered names do
+        # not match the reference's for every year.
+        # Continuous first. AI_COST_T and AI_IRD_T are dedicated
+        # expenditure measures, and a continuous outcome carries far more
+        # power at the same sample size than a binary flag, which is what
+        # refused every arm on 21 September.
+        cost_cols = [c for c in cols
+                     if re.search(r"AI_(COST|IRD)", c, re.I)]
+        have_any = [c for c in cols if re.search(r"AI", c, re.I)
+                    and c not in cost_cols
+                    and not re.search(r"HAMP|BARRIER|_TXT$|_OTH_", c, re.I)]
         have_2019 = AI_2019_COL if AI_2019_COL in cols else None
-        if not have_any and have_2019 is None:
+        if have_2019 and have_2019 in have_any:
+            have_any.remove(have_2019)
+        if not (have_any or have_2019 or cost_cols):
             NOTES.append(f"{tab}: no AI columns found, skipped")
             continue
-        want = [key] + have_any + ([have_2019] if have_2019 else [])
+        want = ([key] + have_any + cost_cols
+                + ([have_2019] if have_2019 else []))
         sel = ", ".join(f"[{c}]" for c in dict.fromkeys(want))
         df = pd.read_sql(f"SELECT {sel} FROM dbo.[{tab}]", conn)
         df = df.rename(columns={key: "employer_id"})
         df["employer_id"] = norm_id(df["employer_id"])
         df = df[~df["employer_id"].isin(["", "****", "NULL", "None", "nan"])]
         if have_any:
-            parts = [to01(df[c]) for c in have_any]
+            parts = []
+            for c in have_any:
+                pc = to01(df[c])
+                parse_report(df[c], pc, f"{tab}.{c}")
+                parts.append(pc)
             df["ai_any"] = pd.concat(parts, axis=1).max(axis=1)
         elif have_2019:
             df["ai_any"] = to01(df[have_2019])
-        df["ai_genai"] = (to01(df[AI_GENAI_COL])
-                          if AI_GENAI_COL in df.columns else np.nan)
+            parse_report(df[have_2019], df["ai_any"], f"{tab}.{have_2019}")
+        gcol = pick(list(df.columns), r"TNLG", r"NLG", r"GENER")
+        df["ai_genai"] = to01(df[gcol]) if gcol else np.nan
+        tot = pick(cost_cols, r"AI_COST_T$", r"AI_IRD_T$") or (
+            cost_cols[0] if cost_cols else None)
+        if tot:
+            v = pd.to_numeric(df[tot].astype(str).str.replace(",", ".",
+                                                              regex=False),
+                              errors="coerce")
+            df["ai_spend_log"] = np.log1p(v.clip(lower=0))
+            # spending is also the cleanest available "uses AI" flag: a
+            # firm with positive AI expenditure is using AI, whatever it
+            # ticked on the technology questions
+            df["ai_spend_pos"] = (v > 0).astype(float).where(v.notna())
+            if df["ai_any"].isna().all() if "ai_any" in df else True:
+                df["ai_any"] = df["ai_spend_pos"]
+            print(f"    continuous outcome {tot}: "
+                  f"{int(v.notna().sum()):,} non-missing")
         print(f"  {tab}: {len(df):,} rows, key {key}, "
               f"AI cols {have_any or [have_2019]}")
 
@@ -342,8 +404,12 @@ def itftg_arm(conn, schema, routes, size, sink, counts_sink):
                 continue
             m["high"] = (m["fq"] == 4).astype(int)
             m = m.merge(size, on="employer_id", how="left")
-            n_ok = int(m["ai_any"].notna().sum())
-            n_high = int(((m["ai_any"].notna()) & (m["high"] == 1)).sum())
+            best = "ai_any"
+            for c in ("ai_any", "ai_spend_log", "ai_genai"):
+                if c in m and m[c].notna().sum() > m[best].notna().sum():
+                    best = c
+            n_ok = int(m[best].notna().sum())
+            n_high = int(((m[best].notna()) & (m["high"] == 1)).sum())
             counts_sink.append({"source": tab, "route": route,
                                 "matched": len(m), "with_outcome": n_ok,
                                 "high_with_outcome": n_high})
@@ -355,7 +421,8 @@ def itftg_arm(conn, schema, routes, size, sink, counts_sink):
                     f"{MIN_ITFTG_FIRMS} or {n_high} < {MIN_ITFTG_HIGH}); "
                     f"no estimate reported, by the rule fixed before the run")
                 continue
-            for out_col in ("ai_any", "ai_genai"):
+            for out_col in ("ai_any", "ai_genai", "ai_spend_pos",
+                            "ai_spend_log"):
                 if out_col not in m or m[out_col].notna().sum() < 100:
                     continue
                 r = lpm(m, out_col, ["high", "log_size"])
@@ -381,7 +448,7 @@ def bita_arm(conn, schema, routes, sink, counts_sink):
         if pkey is None:
             NOTES.append(f"{tab}: no person identifier, skipped")
             continue
-        have = [c for c in BITA_COLS if c in cols]
+        have = [c for c in cols if re.match(r"^CH\d", c, re.I)]
         if not have:
             NOTES.append(f"{tab}: no CH columns, skipped")
             continue
@@ -429,7 +496,10 @@ def bita_arm(conn, schema, routes, sink, counts_sink):
                 NOTES.append(f"{tab}/{route}: zero matched respondents")
                 continue
             m["high"] = (m["fq"] == 4).astype(int)
-            m["genai"] = to01(m["CH1"]) if "CH1" in m else np.nan
+            c1 = pick(list(m.columns), r"^CH1")
+            m["genai"] = to01(m[c1]) if c1 else np.nan
+            if c1:
+                parse_report(m[c1], m["genai"], f"{tab}.{c1}")
             n_ok = int(m["genai"].notna().sum())
             n_high = int(((m["genai"].notna()) & (m["high"] == 1)).sum())
             counts_sink.append({"source": tab, "route": route,
@@ -446,9 +516,10 @@ def bita_arm(conn, schema, routes, sink, counts_sink):
             w = m[BITA_WEIGHT].astype(float) if BITA_WEIGHT in m else None
             for out_col in ("genai", "prof"):
                 if out_col == "prof":
-                    if "CH2b" not in m:
+                    c2 = pick(list(m.columns), r"^CH2B", r"^CH2_B")
+                    if not c2:
                         continue
-                    m["prof"] = to01(m["CH2b"])
+                    m["prof"] = to01(m[c2])
                 if m[out_col].notna().sum() < 100:
                     continue
                 r = lpm(m, out_col, ["high"], weights=w)

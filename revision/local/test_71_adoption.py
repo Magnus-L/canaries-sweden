@@ -81,6 +81,23 @@ check("an empty string is missing, NOT a no", bool(np.isnan(v[7])))
 check("an unrecognised code is missing, NOT a no", bool(np.isnan(v[8])))
 check("a NULL is missing", bool(np.isnan(v[11])))
 check("case does not matter", s71.to01(pd.Series(["ja"]))[0] == 1.0)
+# THE 21 SEPTEMBER MONA FAILURE. pyodbc returns a numeric survey flag that
+# has NULLs as float, so it stringifies as "1.0". Every ITFtg value parsed
+# as missing, the gate read that as a thin sample and refused, and the run
+# came back in 2.4 minutes looking like a clean exit.
+fl = s71.to01(pd.Series([1.0, 0.0, np.nan, 2.0]))
+check("a float column parses, which it did not on MONA",
+      list(fl[[0, 1, 3]]) == [1.0, 0.0, 0.0] and bool(np.isnan(fl[2])),
+      str(list(fl)))
+check("'1.0' as text parses too", s71.to01(pd.Series(["1.0"]))[0] == 1.0)
+# and if a column still yields nothing, the codes must be reported rather
+# than left to another guess and another MONA round
+s71.NOTES.clear()
+s71.parse_report(pd.Series(["Q", "Z"]), pd.Series([np.nan, np.nan]), "T.C")
+check("an unparseable column reports its raw codes",
+      any("distinct raw codes" in n.lower() for n in s71.NOTES),
+      "; ".join(s71.NOTES)[:70])
+s71.NOTES.clear()
 
 cols = ["P1207_LopNr_PeOrgNr", "E_AI_TNLG", "foo"]
 check("the firm key is found by pattern",
@@ -128,9 +145,25 @@ def survey(cover: str, seed=3):
 CATALOGUE = pd.DataFrame(
     [("ITFtg_Stora_2023", c, "varchar") for c in
      ("P1207_LopNr_PeOrgNr", "E_AI_TML", "E_AI_TNLG")]
+    + [("ai_fufi_2019", c, "varchar") for c in
+       ("P1207_LopNr_PeOrgNr", "AI_COST_T", "AI_COST_GOODS")]
     + [("BITA_2024", c, "varchar") for c in
        ("P1207_LopNr_PersonNr", "CH1", "CH2b", "vikt_ind_SE")],
     columns=["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"])
+
+
+def spend(cover: str, seed=8):
+    """ai_fufi-shaped rows: a CONTINUOUS AI expenditure outcome."""
+    rng = np.random.default_rng(seed)
+    firms = [f for f in ALLF if rng.random() < COVER[cover]]
+    rows = []
+    for f in firms:
+        base = 8.0 + (1.2 if f in HIGH else 0.0)
+        v = float(np.exp(base + rng.normal(0, 0.5))) if rng.random() < 0.6 \
+            else 0.0
+        rows.append((f, v, v * 0.4))
+    return pd.DataFrame(rows, columns=["P1207_LopNr_PeOrgNr",
+                                       "AI_COST_T", "AI_COST_GOODS"])
 
 
 def bita(seed=4, multi=30):
@@ -165,6 +198,8 @@ def fake_read_sql(q, conn=None, *a, **kw):
     ql = str(q).lower()
     if "information_schema" in ql:
         return STATE["catalogue"].copy()
+    if "ai_fufi" in ql:
+        return spend(STATE["cover"]).copy()
     if "itftg" in ql:
         return survey(STATE["cover"]).copy()
     if "bita" in ql:
@@ -213,6 +248,17 @@ if (s71.OUT / "itftg_firststage.csv").exists():
           set(fs["route"]) >= {"education"}, str(sorted(set(fs["route"]))))
     check("the genAI-specific outcome is reported separately",
           "ai_genai" in set(fs["outcome"]))
+    check("the CONTINUOUS expenditure outcome is estimated too, which is "
+          "where the power is",
+          "ai_spend_log" in set(fs["outcome"]),
+          str(sorted(set(fs["outcome"]))))
+    sp = fs[(fs.term == "high") & (fs.outcome == "ai_spend_log")]
+    check("and it recovers a positive exposure gradient in AI spending",
+          len(sp) and float(sp.iloc[0]["coef"]) > 0,
+          f"{float(sp.iloc[0]['coef']):+.3f}" if len(sp) else "no row")
+    check("the 2019 expenditure table is used, not only the 2023 survey",
+          any("fufi" in str(x).lower() for x in fs["source"]),
+          str(sorted(set(fs["source"]))))
 
 check("the overlap counts are written", (s71.OUT / "overlap_counts.csv").exists())
 check("the schema it found is written down",
