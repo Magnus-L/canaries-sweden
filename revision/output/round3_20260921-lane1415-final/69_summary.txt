@@ -1,0 +1,11 @@
+69 cohort basis
+======================================================================
+
+cohorts fixed on ages in 2022; panel 2021-01 to 2025-06; pooled from 2024-01; seasonal fitted on the pre-launch window to 2022-11.
+
+22-25: largest pre-period calendar coefficient 0.0916 on age bands, 0.0665 on cohorts, ratio 0.73. AMBIGUOUS. Report both bases, settle neither, and say in the paper that they disagree.
+22-25: pooled -0.0509 (0.0122) on age bands, +0.2263 on cohorts. HEADLINE MOVES: the cohort estimate is outside the age-band 95 per cent interval, so the result depends on the window moving. This is itself a finding.
+26-30: largest pre-period calendar coefficient 0.0409 on age bands, 0.0411 on cohorts, ratio 1.01. SEASONAL REAL. Not an artefact of the moving window. 68 is the right response and should run as written.
+26-30: pooled -0.0437 (0.0079) on age bands, +0.0504 on cohorts. HEADLINE MOVES: the cohort estimate is outside the age-band 95 per cent interval, so the result depends on the window moving. This is itself a finding.
+
+Cost of this design, stated rather than hidden: the cohort follows one group of people as they age, from 21-24 in 2021 to 25-28 in 2025. It cannot speak about whoever is 22-25 at each date. It is a diagnostic about whether the seasonal is mechanical, and a robustness check on the headline, not a replacement estimand.
