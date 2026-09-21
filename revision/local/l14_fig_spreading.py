@@ -26,6 +26,16 @@ READ RULES CARRIED INTO THE FIGURE.
     and the figures it would have produced were never estimated.
 
     python3 revision/local/l14_fig_spreading.py [export_dir]
+    python3 revision/local/l14_fig_spreading.py --monthly [export_dir]
+
+THE MONTHLY VARIANT exists to let the 2025 endpoint be judged rather
+than taken on trust. The quarterly figure shows 22-25 at -0.0629 in
+2024Q4, -0.0031 in 2025Q1 and -0.0518 in 2025Q2, which reads as one
+inexplicable point. Monthly shows what is behind it: February 2025 at
++0.0208 and June at -0.1003, a range of 0.121 log points across the six
+preliminary months against 0.074 across all of complete 2024. Only
+22-25 has a monthly path -- 26-30 was estimated at quarterly and yearly
+frequency only -- so the monthly chart mixes frequencies and says so.
 """
 import sys
 from pathlib import Path
@@ -57,13 +67,78 @@ def find_path_csv(argv) -> Path | None:
     return best
 
 
+def _to_date(period: str):
+    """'2025-01' and '2025Q1' onto one axis; a quarter sits at its middle."""
+    p = str(period)
+    if "Q" in p:
+        y, qq = p.split("Q")
+        return pd.Timestamp(int(y), 3 * int(qq) - 1, 15)
+    return pd.Timestamp(int(p[:4]), int(p[5:7]), 15)
+
+
+def monthly_figure(d: pd.DataFrame) -> int:
+    m = d[(d["shape"] == "month") & (d.get("status", "ok") == "ok")].copy()
+    q = d[(d["shape"] == "quarter") & (d.get("status", "ok") == "ok")].copy()
+    if m.empty:
+        print("  no monthly rows in this export")
+        return 1
+    for f in (m, q):
+        f["t"] = f["period"].map(_to_date)
+
+    fig, ax = plt.subplots(figsize=(7.8, 4.4))
+    mb = m[m["young_band"] == "22-25"].sort_values("t")
+    ax.fill_between(mb["t"], mb["coef"] - 1.96 * mb["se"],
+                    mb["coef"] + 1.96 * mb["se"], alpha=0.13,
+                    color=ORANGE, lw=0, zorder=2)
+    ax.plot(mb["t"], mb["coef"], "-o", color=ORANGE, lw=1.5, ms=3.6,
+            label="22-25, monthly", zorder=3)
+
+    qb = q[q["young_band"] == "26-30"].sort_values("t")
+    if not qb.empty:
+        ax.plot(qb["t"], qb["coef"], "--s", color=DARK_BLUE, lw=1.6,
+                ms=4.5, label="26-30, quarterly (no monthly path)",
+                zorder=3)
+
+    ax.axhline(0, color=DARK_TEXT, lw=0.8, zorder=1)
+    ax.axvline(pd.Timestamp(2022, 11, 30), color=GRAY, ls="--", lw=0.9)
+    ax.text(pd.Timestamp(2022, 12, 5), ax.get_ylim()[1], " ChatGPT",
+            fontsize=8, color=GRAY, va="top")
+
+    # the preliminary half-year, shaded so the reader cannot miss it
+    lo = pd.Timestamp(2025, 1, 1)
+    hi = max(mb["t"].max(), qb["t"].max() if not qb.empty else lo)
+    ax.axvspan(lo, hi + pd.Timedelta(days=20), color=LIGHT_GRAY,
+               alpha=0.45, zorder=0)
+    ax.text(lo + pd.Timedelta(days=20), ax.get_ylim()[0],
+            " 2025: six months of preliminary AGI data",
+            fontsize=8, color=GRAY, va="bottom")
+
+    ax.set_ylabel("Employment, log points, cycle removed", fontsize=9.5)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.legend(frameon=False, fontsize=8.5, loc="lower left")
+    ax.tick_params(labelsize=8.5)
+    fig.autofmt_xdate(rotation=45, ha="right")
+    for ext, kw in ((".pdf", {}), (".png", {"dpi": 300})):
+        fig.savefig(V2_FIG / f"fig2_spreading_monthly{ext}",
+                    bbox_inches="tight", **kw)
+    plt.close(fig)
+    print(f"    saved fig2_spreading_monthly.pdf/.png "
+          f"({len(mb)} months 22-25, {len(qb)} quarters 26-30)")
+    return 0
+
+
 def main() -> int:
+    monthly = "--monthly" in sys.argv
+    if monthly:
+        sys.argv.remove("--monthly")
     src = find_path_csv(sys.argv)
     if src is None:
         print("  no seasonal_path.csv found; run lane 14 and export it")
         return 1
     print(f"  reading {src}")
     d = pd.read_csv(src)
+    if monthly:
+        return monthly_figure(d)
     q = d[(d["shape"] == "quarter") & (d.get("status", "ok") == "ok")].copy()
     if q.empty:
         print("  seasonal_path.csv has no quarterly rows")
