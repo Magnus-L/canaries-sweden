@@ -714,13 +714,32 @@ def _r_workdir(workdir: Path) -> Path:
     global _R_WORKDIR_SWEPT
     if not _R_WORKDIR_SWEPT:
         _R_WORKDIR_SWEPT = True
-        freed = 0
-        for f in list(d.glob("_rin_*")) + list(d.glob("_rout_*")) + list(d.glob("_rerr_*")):
+        # SAME SCRIPT TWICE. The per-script subdirectory stopped two
+        # DIFFERENT scripts colliding; it does nothing when one script is
+        # submitted twice, which happened to lane 19 at 16:05 and 16:20 on
+        # 21 September. The second job's first act was this sweep, which
+        # deletes the first job's live input between the write and R
+        # reading it. Leave anything modified in the last hour alone: a
+        # crashed run's leftovers are older than that, and a live run's
+        # are not.
+        import time as _t
+        cutoff = _t.time() - 3600
+        freed = skipped = 0
+        for f in (list(d.glob("_rin_*")) + list(d.glob("_rout_*"))
+                  + list(d.glob("_rerr_*"))):
             try:
+                if f.stat().st_mtime > cutoff:
+                    skipped += 1
+                    continue
                 freed += f.stat().st_size
                 f.unlink()
             except OSError:
                 pass
+        if skipped:
+            print(f"  WARNING: {skipped} exchange file(s) in {d} were "
+                  f"written in the last hour and were NOT swept. Another "
+                  f"copy of this script is probably running. Two jobs "
+                  f"sharing this directory will corrupt each other's fits.")
         try:
             free_gb = shutil.disk_usage(d).free / 1e9
             print(f"  R exchange dir {d}: swept {freed/1e6:,.0f} MB, "
