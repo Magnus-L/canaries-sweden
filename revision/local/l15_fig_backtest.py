@@ -30,6 +30,8 @@ import matplotlib.pyplot as plt
 
 REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _figsafe import save  # noqa: E402
 from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, DARK_TEXT
 
 
@@ -91,9 +93,7 @@ def main() -> int:
     ax.legend(frameon=False, fontsize=9, loc="upper left",
               bbox_to_anchor=(0.005, 0.72))
 
-    for ext, kw in ((".pdf", {}), (".png", {"dpi": 300})):
-        fig.savefig(V2_FIG / f"figA1_asof_backtest{ext}",
-                    bbox_inches="tight", **kw)
+    save(fig, "figA1_asof_backtest", __file__)
     plt.close(fig)
     print(f"    saved figA1_asof_backtest.pdf/.png ({len(truncs)} truncations)")
     return 0

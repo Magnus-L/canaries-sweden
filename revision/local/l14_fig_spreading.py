@@ -53,6 +53,8 @@ import matplotlib.pyplot as plt
 
 REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _figsafe import save  # noqa: E402
 from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT
 
 # SCB's firm AI-use series, the thing the timing is read against.
@@ -122,9 +124,7 @@ def monthly_figure(d: pd.DataFrame) -> int:
     ax.legend(frameon=False, fontsize=8.5, loc="lower left")
     ax.tick_params(labelsize=8.5)
     fig.autofmt_xdate(rotation=45, ha="right")
-    for ext, kw in ((".pdf", {}), (".png", {"dpi": 300})):
-        fig.savefig(V2_FIG / f"fig2_spreading_monthly{ext}",
-                    bbox_inches="tight", **kw)
+    save(fig, "fig2_spreading_monthly", __file__)
     plt.close(fig)
     print(f"    saved fig2_spreading_monthly.pdf/.png "
           f"({len(mb)} months 22-25, {len(qb)} quarters 26-30)")
@@ -203,9 +203,7 @@ def main() -> int:
     axb.set_xticks(range(len(order)))
     axb.set_xticklabels(order, rotation=45, ha="right", fontsize=8.5)
 
-    for ext, kw in ((".pdf", {}), (".png", {"dpi": 300})):
-        fig.savefig(V2_FIG / f"fig2_spreading{ext}", bbox_inches="tight",
-                    **kw)
+    save(fig, "fig2_spreading", __file__)
     plt.close(fig)
     print(f"    saved fig2_spreading.pdf/.png "
           f"({len(order)} quarters, bands "

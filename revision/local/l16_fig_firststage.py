@@ -36,6 +36,8 @@ import matplotlib.pyplot as plt
 
 REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _figsafe import save  # noqa: E402
 from config import V2_FIG  # noqa: E402
 
 plt.rcParams.update({"font.family": "serif", "font.size": 11})
@@ -140,9 +142,7 @@ def main() -> int:
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=3)
 
-    for ext, kw in ((".pdf", {}), (".png", {"dpi": 300})):
-        fig.savefig(V2_FIG / f"figA2_first_stage{ext}",
-                    bbox_inches="tight", **kw)
+    save(fig, "figA2_first_stage", __file__)
     plt.close(fig)
     print(f"    saved figA2_first_stage.pdf/.png ({n} rows)")
     return 0
