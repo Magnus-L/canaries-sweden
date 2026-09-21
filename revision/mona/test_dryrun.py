@@ -193,6 +193,36 @@ def stage_entrypoints():
         print(f"      now tested, remove from BASELINE: {fixed}")
 
 
+def stage_twins():
+    """
+    The .R files travel to MONA as .txt, because .R is not an allowed
+    portal format. That makes every R wrapper two files, and on
+    21 September 2026 the pair drifted: r_fepois*.R carried the fread
+    fix for the recursive-gc crash and r_fepois*.txt still carried the
+    read.csv that caused it. The .txt is the one that actually uploads,
+    so the fix would have shipped as a no-op and the batch would have
+    died the same way a second time.
+
+    Nothing about that is detectable from the .R file, which is why it
+    needs its own check rather than more care.
+    """
+    print("\n7. UPLOAD TWINS (.R must equal its .txt)")
+    up = REPO / "revision/upload"
+    twins = sorted(up.glob("*.R"))
+    if not twins:
+        record("twins", "there is at least one R wrapper to check", False,
+               "no .R found in upload/")
+        return
+    for r in twins:
+        t = r.with_suffix(".txt")
+        if not t.exists():
+            record("twins", f"{r.name} has a .txt twin", False, "missing")
+            continue
+        same = r.read_bytes() == t.read_bytes()
+        record("twins", f"{r.name} == {t.name}", same,
+               "" if same else "STALE: the .txt is what uploads")
+
+
 def stage_import(work: Path, env: dict):
     print("\n2. IMPORT (CANARIES_DRYRUN=1)")
     for f in PY_FILES:
@@ -470,6 +500,7 @@ def main():
 
     stage_compile()
     stage_entrypoints()
+    stage_twins()
 
     work = Path(tempfile.mkdtemp(prefix="canaries_dryrun_"))
     share = work / "share"; share.mkdir()

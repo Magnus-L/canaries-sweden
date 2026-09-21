@@ -56,7 +56,37 @@ cat(sprintf("fixest version: %s\n", as.character(packageVersion("fixest"))))
 if (!file.exists(input_path)) {
     write_failure(sprintf("input_missing: %s", input_path)); quit(status = 1)
 }
-df <- tryCatch(read.csv(input_path, stringsAsFactors = FALSE),
+# READING THE EXCHANGE FILE IS WHERE THIS KEPT DYING.
+#
+# base read.csv parses every field as character first and then converts,
+# and it grows the frame by reallocation, so peak memory runs many times
+# the size of the finished object. On 21 Sep 2026 a twenty-six-million-row
+# input killed R with "*** recursive gc invocation", which is the
+# allocator giving up during garbage collection, on a node with 733 GB
+# free. Eight fits across this round died the same way and we blamed the
+# panel size.
+#
+# Two fixes, in order of preference. data.table::fread reads a gzipped
+# file directly, in parallel, at roughly the size of the result. If it is
+# not installed, read.csv with explicit colClasses skips the character
+# intermediate, which is most of the cost; every column we write is
+# numeric by construction, since mona_common factorises the fixed effects
+# to integer codes before writing.
+read_exchange <- function(path) {
+    if (requireNamespace("data.table", quietly = TRUE)) {
+        cat("reader: data.table::fread\n")
+        return(as.data.frame(data.table::fread(path, showProgress = FALSE)))
+    }
+    cat("reader: read.csv with inferred colClasses\n")
+    # Infer from a sample rather than assuming: run_fepois and
+    # run_fepois_es hand over STRING fixed effects, and forcing those to
+    # numeric turns every coefficient into NA, which the harness caught.
+    hdr <- read.csv(path, nrows = 1000, stringsAsFactors = FALSE)
+    cls <- vapply(hdr, function(x) if (is.numeric(x)) "numeric" else
+                  "character", character(1))
+    read.csv(path, stringsAsFactors = FALSE, colClasses = cls)
+}
+df <- tryCatch(read_exchange(input_path),
                error = function(e) { write_failure(sprintf("read_csv_failed: %s",
                    conditionMessage(e))); quit(status = 1) })
 

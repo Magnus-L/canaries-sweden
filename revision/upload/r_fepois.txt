@@ -95,8 +95,23 @@ if (!file.exists(input_path)) {
     quit(status = 1)
 }
 
+read_exchange <- function(path) {
+    if (requireNamespace("data.table", quietly = TRUE)) {
+        cat("reader: data.table::fread\n")
+        return(as.data.frame(data.table::fread(path, showProgress = FALSE)))
+    }
+    cat("reader: read.csv with inferred colClasses\n")
+    # Infer from a sample rather than assuming: run_fepois and
+    # run_fepois_es hand over STRING fixed effects, and forcing those to
+    # numeric turns every coefficient into NA, which the harness caught.
+    hdr <- read.csv(path, nrows = 1000, stringsAsFactors = FALSE)
+    cls <- vapply(hdr, function(x) if (is.numeric(x)) "numeric" else
+                  "character", character(1))
+    read.csv(path, stringsAsFactors = FALSE, colClasses = cls)
+}
+
 df <- tryCatch(
-    read.csv(input_path, stringsAsFactors = FALSE),
+    read_exchange(input_path),
     error = function(e) {
         write_failure(output_path, sprintf("read_csv_failed: %s", conditionMessage(e)))
         quit(status = 1)
