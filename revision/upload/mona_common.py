@@ -884,6 +884,69 @@ def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
     return inp
 
 
+# Windows STATUS_ACCESS_VIOLATION. R's allocator failing inside the job,
+# not the machine running out: the node reports hundreds of GB free at
+# the time. fixest gives every thread its own demeaning workspace, so
+# peak memory scales with the core count while the per-job cap does not.
+R_MEMORY_DEATH = 3221225477
+R_RETRY_THREADS = 2
+
+
+def _looks_like_memory_death(r) -> bool:
+    txt = (r.stderr or "") + (r.stdout or "")
+    return (r.returncode == R_MEMORY_DEATH
+            or "recursive gc invocation" in txt
+            or "cannot allocate" in txt)
+
+
+def _threads_in(cmd: list) -> int:
+    if "--nthreads" in cmd:
+        try:
+            return int(cmd[cmd.index("--nthreads") + 1])
+        except (IndexError, ValueError):
+            return 0
+    return 0
+
+
+def _run_r(cmd: list, workdir: Path, tag: str, kind: str):
+    """
+    Run one R fit, and retry ONCE at a low thread count if it died the
+    way an over-threaded fixest dies.
+
+    On 21 September three fits in script 68 and every fit in 73 died
+    with rc=3221225477 and "*** recursive gc invocation" while the node
+    reported over 500 GB free. Lowering the thread count fixes it, and
+    nothing could lower it: the count was read from an environment
+    variable that the MONA batch submitter cannot set. Retrying here
+    costs nothing when a fit succeeds, which is almost always, and it
+    recovers the handful that do not without a second trip to the lab.
+    """
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       cwd=str(workdir))
+    _report_reader(r.stdout)
+    if r.returncode == 0 or not _looks_like_memory_death(r):
+        return r
+    had = _threads_in(cmd)
+    if had and had <= R_RETRY_THREADS:
+        print(f"  {kind} ({tag}) died at {had} threads; no lower retry left")
+        return r
+    print(f"  {kind} ({tag}) died with rc={r.returncode} "
+          f"(fixest memory, not the node); retrying at "
+          f"{R_RETRY_THREADS} threads")
+    retry = [c for c in cmd]
+    if had:
+        retry[retry.index("--nthreads") + 1] = str(R_RETRY_THREADS)
+    else:
+        retry += ["--nthreads", str(R_RETRY_THREADS)]
+    r2 = subprocess.run(retry, capture_output=True, text=True,
+                        cwd=str(workdir))
+    _report_reader(r2.stdout)
+    if r2.returncode == 0:
+        print(f"  {kind} ({tag}) SUCCEEDED on the {R_RETRY_THREADS}-thread "
+              f"retry")
+    return r2
+
+
 def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
                cluster: str = "employer_id") -> pd.DataFrame:
     """Pooled Poisson DiD via r_fepois.R. Returns the coefficient table."""
@@ -898,9 +961,7 @@ def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
     cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster,
            "--nrows", str(len(panel))]
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       cwd=str(workdir))
-    _report_reader(r.stdout)
+    r = _run_r(cmd, workdir, tag, "fepois")
     if r.returncode != 0:
         _r_failed(tag, "fepois", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -924,9 +985,7 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     cmd = [_rscript(), str(R_FEPOIS_ES), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster, "--ref", ref,
            "--nrows", str(len(panel))]
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       cwd=str(workdir))
-    _report_reader(r.stdout)
+    r = _run_r(cmd, workdir, tag, "fepois_es")
     if r.returncode != 0:
         _r_failed(tag, "fepois_es", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -951,9 +1010,7 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
            *(["--nthreads", str(nthreads)] if nthreads else []),
            "--terms", ",".join(terms), "--cluster", cluster,
            "--fe", ",".join(fes)]
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       cwd=str(workdir))
-    _report_reader(r.stdout)
+    r = _run_r(cmd, workdir, tag, "fepois_multi")
     if r.returncode != 0:
         _r_failed(tag, "fepois_multi", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
