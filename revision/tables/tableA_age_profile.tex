@@ -1,0 +1,32 @@
+\begin{table}[ht!]
+\centering
+\caption{The headline design by age, and the age profile on a different exposure construction.}
+\label{tab:age_profile_rebuilt}
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+\multicolumn{4}{l}{\textit{Panel A. Headline route: top-quartile 2019 education mix of incumbents aged 31+}} \\
+\addlinespace[2pt]
+ & Estimate (SE) & Artefact & \\
+\midrule
+22-25, cycle removed & $-0.0408^{*}$ (0.0150) & $+0.0113$ & \\
+26-30, cycle removed & $-0.0394^{*}$ (0.0102) & -- & \\
+22-25, before the cycle & $-0.0509^{*}$ (0.0122) & $+0.0067$ & \\
+26-30, before the cycle & $-0.0437^{*}$ (0.0079) & $+0.0006$ & \\
+\addlinespace[6pt]
+\multicolumn{4}{l}{\textit{Panel B. Continuous occupation-scaled measures, per standard deviation}} \\
+\addlinespace[2pt]
+Age band & DAIOE & Eloundou & Teleworkable \\
+\midrule
+22-25 & $-0.0132$ (0.0112) & $-0.0132$ (0.0085) & $+0.0069$ (0.0101) \\
+26-30 & $-0.0016$ (0.0077) & $-0.0054$ (0.0061) & $+0.0051$ (0.0069) \\
+31-34 & $+0.0039$ (0.0073) & $-0.0028$ (0.0057) & $+0.0063$ (0.0065) \\
+35-40 & $-0.0028$ (0.0067) & $-0.0106$ (0.0055) & $+0.0040$ (0.0060) \\
+41-49 & $-0.0208^{*}$ (0.0073) & $-0.0311^{*}$ (0.0059) & $-0.0034$ (0.0068) \\
+50+ & $+0.0316^{*}$ (0.0110) & $+0.0152$ (0.0101) & $+0.0379^{*}$ (0.0096) \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}
+Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, employer-by-month, employer-by-age and month-by-age effects, treatment dated January 2024, standard errors clustered by employer, $^{*}$ denotes $p<0.05$. Exposure is frozen in 2019 throughout and no occupation code recorded after 2019 enters the exposure, the outcome or the sample. \textbf{The two panels are not comparable.} Panel A is a top-quartile indicator built from the education mix of a firm's incumbents, and it is the estimand the paper reports; it exists for the two young bands only. Panel B scores occupations continuously, so a coefficient is the effect of a one standard deviation more exposed occupation on that measure's own scale. The artefact column gives what the as-of backtest returns on the same specification when the register's lag is imposed on years whose true gap is zero; the threshold fixed before the test was 0.05. Employment at 41--49 declines on both AI measures in Panel B. The paper does not claim the young were hit harder than the prime-aged: tested directly with the calendar cycle removed, that contrast is $-0.0153$ (0.0126), a null.
+\end{minipage}
+\end{table}

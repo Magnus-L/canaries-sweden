@@ -20,22 +20,30 @@ between a seasonally adjusted series and a raw one.
 READ RULES CARRIED INTO THE FIGURE.
   * 2022Q4 straddles the ChatGPT launch and is neither pre nor post. It
     is drawn hollow and excluded from any statement about the pre-period.
-  * 2025 is a half year of preliminary AGI data, so the last points rest
-    on less than the rest.
-  * There is no yearly series here on purpose. `path/year/22-25` crashed
-    and the figures it would have produced were never estimated.
+  * 2025 is half a year of AGI data, so the last points rest on fewer
+    months than the rest. They are NOT preliminary; see below.
+  * No yearly series is plotted, because the quarterly one is strictly
+    finer. The 22-25 yearly path did land in the end (-0.0178, -0.0414,
+    -0.0403); the note that it "was never estimated" described the
+    13:23 export, whose fit had crashed, and is withdrawn.
 
     python3 revision/local/l14_fig_spreading.py [export_dir]
     python3 revision/local/l14_fig_spreading.py --monthly [export_dir]
 
-THE MONTHLY VARIANT exists to let the 2025 endpoint be judged rather
-than taken on trust. The quarterly figure shows 22-25 at -0.0629 in
-2024Q4, -0.0031 in 2025Q1 and -0.0518 in 2025Q2, which reads as one
-inexplicable point. Monthly shows what is behind it: February 2025 at
-+0.0208 and June at -0.1003, a range of 0.121 log points across the six
-preliminary months against 0.074 across all of complete 2024. Only
-22-25 has a monthly path -- 26-30 was estimated at quarterly and yearly
-frequency only -- so the monthly chart mixes frequencies and says so.
+THE MONTHLY VARIANT IS A DIAGNOSTIC, NOT AN ESTIMATE, and must not be
+the paper's figure. The design controls quarter-of-year (q1/q2/q3 x
+high x young), so a quarterly coefficient is measured against a control
+at its own frequency and a monthly one is not: each month keeps
+whatever separates it from its own quarter's mean. That residual is
+large in 22-25 and small in 26-30. The within-Q1 spread of the monthly
+coefficients runs 0.0152, 0.0112 and 0.0404 across 2023-25 for 22-25,
+the last of these wider than the 2025Q1 coefficient itself, against
+0.0087, 0.0093 and 0.0104 for 26-30. So February 2025 at +0.0208 and
+June at -0.1003 are the artefact, not the signal, and they are not a
+reason to prefer monthly. What the chart is good for is showing how
+much the 2025 endpoint moves month to month. Both bands have a monthly
+path since the 21:52 export of 21 September; before that only 22-25
+did, and the chart mixed frequencies.
 
 2025 IS NOT PRELIMINARY. SCB confirmed to ML on 21 September 2026 that
 the AGI monthly figures are not revised after delivery. Earlier notes
@@ -94,18 +102,29 @@ def monthly_figure(d: pd.DataFrame) -> int:
         f["t"] = f["period"].map(_to_date)
 
     fig, ax = plt.subplots(figsize=(7.8, 4.4))
-    mb = m[m["young_band"] == "22-25"].sort_values("t")
-    ax.fill_between(mb["t"], mb["coef"] - 1.96 * mb["se"],
-                    mb["coef"] + 1.96 * mb["se"], alpha=0.13,
-                    color=ORANGE, lw=0, zorder=2)
-    ax.plot(mb["t"], mb["coef"], "-o", color=ORANGE, lw=1.5, ms=3.6,
-            label="22-25, monthly", zorder=3)
-
-    qb = q[q["young_band"] == "26-30"].sort_values("t")
-    if not qb.empty:
-        ax.plot(qb["t"], qb["coef"], "--s", color=DARK_BLUE, lw=1.6,
-                ms=4.5, label="26-30, quarterly (no monthly path)",
-                zorder=3)
+    drawn = {}
+    for band, colour, mk in (("22-25", ORANGE, "o"),
+                             ("26-30", DARK_BLUE, "s")):
+        mb = m[m["young_band"] == band].sort_values("t")
+        if mb.empty:
+            # Before the 21:52 export of 21 Sep only 22-25 had a monthly
+            # path. Fall back to the quarterly series and SAY SO in the
+            # legend rather than silently mixing frequencies.
+            qb = q[q["young_band"] == band].sort_values("t")
+            if qb.empty:
+                continue
+            ax.plot(qb["t"], qb["coef"], "--", color=colour, lw=1.6,
+                    marker=mk, ms=4.5,
+                    label=f"{band}, QUARTERLY (no monthly path)",
+                    zorder=3)
+            drawn[band] = "quarterly"
+            continue
+        ax.fill_between(mb["t"], mb["coef"] - 1.96 * mb["se"],
+                        mb["coef"] + 1.96 * mb["se"], alpha=0.13,
+                        color=colour, lw=0, zorder=2)
+        ax.plot(mb["t"], mb["coef"], "-", color=colour, lw=1.5,
+                marker=mk, ms=3.4, label=f"{band}, monthly", zorder=3)
+        drawn[band] = "monthly"
 
     ax.axhline(0, color=DARK_TEXT, lw=0.8, zorder=1)
     ax.axvline(pd.Timestamp(2022, 11, 30), color=GRAY, ls="--", lw=0.9)
@@ -126,8 +145,10 @@ def monthly_figure(d: pd.DataFrame) -> int:
     fig.autofmt_xdate(rotation=45, ha="right")
     save(fig, "fig2_spreading_monthly", __file__)
     plt.close(fig)
-    print(f"    saved fig2_spreading_monthly.pdf/.png "
-          f"({len(mb)} months 22-25, {len(qb)} quarters 26-30)")
+    print(f"    saved fig2_spreading_monthly.pdf/.png  {drawn}")
+    if any(v == "quarterly" for v in drawn.values()):
+        print("    WARNING: a band fell back to quarterly; the chart "
+              "mixes frequencies")
     return 0
 
 
