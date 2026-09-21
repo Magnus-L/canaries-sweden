@@ -7,6 +7,12 @@
 > that uploaded was the stale one. Any instruction below that still says "upload as
 > .txt, rename to .py/.R" is obsolete. `.csv` is still not accepted; ship data as
 > `.dta` parts under ~8 MB.
+>
+> **`upload/` holds COPIES of `mona/`, not links.** A script fixed in
+> `mona/` is still stale here until it is staged, which is how the broken
+> 73 sat in this folder for an afternoon after the fix was written. Run
+> `python3 revision/stage_upload.py` after editing anything in `mona/`,
+> and `--check` before any trip; it exits 1 on drift.
 
 
 Staged 3 Sep; destination rebuilt 4 Sep. **16 uploadable files**; `UPLOAD.md` stays local
