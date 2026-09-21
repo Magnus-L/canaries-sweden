@@ -225,6 +225,19 @@ seas = pd.DataFrame([
      "coef": 0.02, "se": 0.01}])
 check("a cohort estimate outside the interval reads HEADLINE MOVES",
       "HEADLINE MOVES" in " ".join(s69.verdict(far, seas)))
+# 21 September: six of eight fits died on size, the two survivors were
+# the seasonal pair the script exists to compare, and the summary still
+# said NO VERDICT because the gate demanded a pooled fit too.
+season_only = pd.DataFrame([
+    {"basis": "ageband", "young_band": "22-25", "term": "hy_q4",
+     "coef": 0.10, "se": 0.01},
+    {"basis": "cohort", "young_band": "22-25", "term": "hy_q4",
+     "coef": 0.02, "se": 0.01}])
+v = " ".join(s69.verdict(pd.DataFrame(), season_only))
+check("a seasonal verdict is reached with NO pooled fit at all",
+      "SEASONAL MECHANICAL" in v, v[:80])
+check("and the pooled arm is reported as unavailable, not silently gone",
+      "UNAVAILABLE" in v)
 check("a missing basis does not crash the verdict",
       "UNAVAILABLE" in " ".join(s69.verdict(
           far[far.basis == "ageband"], seas[seas.basis == "ageband"])))

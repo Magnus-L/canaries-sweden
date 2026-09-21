@@ -118,6 +118,12 @@ INCUMBENT_BANDS = ["31-34", "35-40", "41-49", "50+"]
 
 PANEL_FROM = "2021-01"
 PANEL_YEARS = list(range(2021, 2026))
+# Size guard. 61's five-band panel is ~36.5M rows at 22-25 and ~44.2M at
+# 26-30 after dead cells are dropped. On 21 September every pooled fit
+# died with rc=3221225477 while three other lanes were running, and the
+# seasonal fits, a third the size, came back. Fit sizes are printed so a
+# failure can be read against them rather than guessed at.
+MAX_ROWS_WARN = 40_000_000
 POOLED_FROM = "2024-01"          # 61's adoption dating, unchanged
 PRE_TO = "2022-11"               # last month before the ChatGPT launch
 TRUNC = 2021
@@ -289,7 +295,12 @@ def run_basis(counts: pd.DataFrame, basis: str, young: str, expo, j47,
         return
     b["high"] = (b["fq"] == 4).astype(int)
     print(f"  {basis} {young}: panel {len(b):,} rows, "
-          f"{b['employer_id'].nunique():,} firms{mc.mem_line(' | ')}")
+          f"{b['employer_id'].nunique():,} firms, "
+          f"{b['fe_emp_t'].nunique():,} employer-month levels"
+          f"{mc.mem_line(' | ')}")
+    if len(b) > MAX_ROWS_WARN:
+        print(f"    WARNING: above {MAX_ROWS_WARN:,} rows; every pooled "
+              f"fit at this size failed on 21 September")
 
     bs, sterms = season_terms(b)
     if sterms and len(bs):
@@ -322,10 +333,22 @@ def run_basis(counts: pd.DataFrame, basis: str, young: str, expo, j47,
 
 
 def verdict(pooled: pd.DataFrame, season: pd.DataFrame) -> list:
-    """The pre-committed read rule, evaluated. No thresholds are set here."""
+    """
+    The pre-committed read rule, evaluated. No thresholds are set here.
+
+    Either arm can be missing without invalidating the other, so each
+    frame is probed for its column before being filtered: an empty
+    DataFrame has no `young_band` attribute and would take the whole
+    summary down with an AttributeError. Same guard as 72; 69 needed it
+    for the same reason and did not have it.
+    """
+    def has(df, col="young_band"):
+        return df is not None and len(df) and col in df.columns
+
     out = []
     for young in YOUNG_BANDS:
-        s = season[season.young_band == young]
+        s = (season[season.young_band == young] if has(season)
+             else pd.DataFrame(columns=["basis", "coef"]))
         ab = s[s.basis == "ageband"]["coef"].abs().max() if len(
             s[s.basis == "ageband"]) else np.nan
         co = s[s.basis == "cohort"]["coef"].abs().max() if len(
@@ -349,7 +372,8 @@ def verdict(pooled: pd.DataFrame, season: pd.DataFrame) -> list:
                        f"{ab:.4f} on age bands, {co:.4f} on cohorts, "
                        f"ratio {ratio:.2f}. {v}")
 
-        p = pooled[pooled.young_band == young]
+        p = (pooled[pooled.young_band == young] if has(pooled)
+             else pd.DataFrame(columns=["basis", "coef", "se"]))
         pa = p[p.basis == "ageband"]
         pc = p[p.basis == "cohort"]
         if len(pa) and len(pc):
@@ -456,10 +480,16 @@ def main():
              f"cohorts fixed on ages in {REF_YEAR}; panel {PANEL_FROM} to "
              f"{last}; pooled from {POOLED_FROM}; seasonal fitted on the "
              f"pre-launch window to {PRE_TO}.", ""]
-    if len(pooled) and len(season):
+    # The seasonal verdict does NOT need the pooled fit, and gating on
+    # both threw away the answer on 21 September: six of eight fits
+    # failed on size, the two surviving ones were exactly the 22-25
+    # seasonal pair this script exists to compare, and the summary still
+    # printed NO VERDICT. verdict() reports each arm separately and says
+    # UNAVAILABLE for whichever is missing.
+    if len(pooled) or len(season):
         lines += verdict(pooled, season)
     else:
-        lines.append("NO VERDICT: one or both bases produced no fit.")
+        lines.append("NO VERDICT: no fit of any kind came back.")
     if FAILURES:
         lines += ["", "FAILED FITS:"] + [f"  {f}" for f in FAILURES]
     lines += ["", "Cost of this design, stated rather than hidden: the "
