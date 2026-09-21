@@ -1,23 +1,42 @@
-# Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring
+# Same Storm, Different Boats: Generative AI and Young Workers Within Firms
 
-Replication package for Lodefalk, Löthman, Koch, and Engberg (2026), "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring."
+Replication package for Lodefalk, Löthman, Koch, and Engberg (2026), "Same Storm, Different Boats: Generative AI and Young Workers Within Firms."
 
-**[Working paper (PDF)](paper/main.pdf)** · **[Online appendix (PDF)](paper/appendix.pdf)** · Örebro University WP 2026:2 / Ratio WP 388
+Örebro University WP 2026:2 / Ratio WP 388. The manuscript and appendices live in the sibling
+repository `Magnus-L/canaries-sweden-paper`; `paper/` here holds the frozen submitted version only.
 
 ## Status
 
-**In review at *Economics Letters*** (submitted ~May 2026; 3–4 month turnaround, so a decision
-is due around now). Authors: **Lodefalk, Löthman, Koch, Engberg** — Lodefalk first, and Koch
-not Kock; an earlier ordering circulated and reached two slide decks before it was corrected.
+**Revise and resubmit at *Economics Letters*** (R&R received 2 August 2026; editor Eric Chyn).
+Authors: **Lodefalk, Löthman, Koch, Engberg** — Lodefalk first, and Koch not Kock; an earlier
+ordering circulated and reached two slide decks before it was corrected.
 
-This file otherwise reads as a replication package, which it also is. Nothing below describes
-the submission; if the paper comes back, the revision notes are in the project root and the
-Economics Letters fixes prepared earlier are in commit `9249980`, which should be ported into
-any R&R.
+**The revision withdrew the submitted employment design, and this README describes the
+replacement.** The submitted version compared young workers in AI-exposed occupations with
+young workers in less exposed occupations inside the same firm. That needs a current
+occupation code on every young worker in every month, and Sweden's occupation register is
+published with a two-year lag. An as-of backtest, which imposes the 2024–25 staleness on years
+where the truth is observable, showed the lag alone moves the coefficient from +0.019 to −0.288
+— more than the whole of the −0.174 we had reported. We withdrew the design rather than defend
+it. The revision code lives in `revision/`; the manuscript is in the sibling repository
+`Magnus-L/canaries-sweden-paper`.
 
 ## Overview
 
-We examine whether the widely discussed divergence between stock prices and job postings (the "scary chart") reflects AI displacement of labour demand, or macroeconomic tightening. Using 4.6 million job ads from Sweden's Platsbanken (2020–2026) matched to the DAIOE generative AI exposure index, we find that the posting decline aligns with the Riksbank's rate hike rather than AI. However, an employer-level difference-in-differences using full-population register data reveals an accelerating age gradient: employment of 22–25 year olds in AI-exposed occupations declined progressively after ChatGPT, reaching 5.5% by early 2025 relative to less exposed occupations, while employment of workers over 50 rose by 1.3%.
+We ask whether the divergence between stock prices and job postings after 2022 reflects
+generative AI displacing labour demand, or monetary tightening. Sweden separates the two
+because the Riksbank's first rate rise (April 2022) preceded ChatGPT (November 2022).
+
+Using 4.9 million Platsbanken advertisements (2020 to June 2026) matched to the DAIOE
+generative-AI exposure index, the aggregate posting decline tracks the rate hike and not
+ChatGPT. Employment behaves differently. Comparing young workers with their older colleagues
+inside the same employer, with exposure scored once in 2019 from the education mix of
+incumbents aged 31 and over, employment of workers aged 22–25 falls about 4 per cent once
+firms adopt AI, and the same shortfall reaches 26–30 a year later. The adjustment runs through
+separations rather than reduced hiring, and is about twice as large for young women. Against
+41–49 alone the contrast is not statistically distinguishable, so the finding is a shortfall of
+the under-31s against the older workforce as a whole rather than the young against the
+prime-aged.
 
 ## Data availability
 
@@ -61,6 +80,21 @@ python src/run_all.py --from-step 4
 The master script (`run_all.py`) executes steps 1–13 sequentially. MONA scripts (14–19) must be run separately at SCB.
 
 ## Pipeline steps
+
+> **Which pipeline reproduces which paper.** The numbered steps below are the
+> ORIGINAL pipeline and they reproduce the **submitted** version, including the
+> employment results the revision withdrew. They are kept because the posting
+> analysis is unchanged and because a reader may want to see what the closed
+> design produced. Step 12 is named `12_create_figure2_age_gradient.py` for the
+> same historical reason.
+>
+> **The revision's code is in `revision/`**: `revision/mona/` for the scripts
+> that run inside SCB's MONA environment, `revision/local/` for the figures and
+> tables built from their exports, and `revision/output/` for the exports
+> themselves, which are aggregate coefficients and contain no microdata. The
+> employment results in the current manuscript come from there, not from the
+> steps below.
+
 
 ### Local pipeline (public data)
 
@@ -134,7 +168,7 @@ Code: MIT License. Data: see individual source licences.
 
 ```bibtex
 @techreport{lodefalk2026samestorm,
-  title={Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring},
+  title={Same Storm, Different Boats: Generative AI and Young Workers Within Firms},
   author={Lodefalk, Magnus and L{\"o}thman, Lydia and Koch, Michael and Engberg, Erik},
   year={2026},
   type={Working Paper}
