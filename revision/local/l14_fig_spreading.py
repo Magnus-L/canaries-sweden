@@ -36,6 +36,12 @@ inexplicable point. Monthly shows what is behind it: February 2025 at
 preliminary months against 0.074 across all of complete 2024. Only
 22-25 has a monthly path -- 26-30 was estimated at quarterly and yearly
 frequency only -- so the monthly chart mixes frequencies and says so.
+
+2025 IS NOT PRELIMINARY. SCB confirmed to ML on 21 September 2026 that
+the AGI monthly figures are not revised after delivery. Earlier notes
+in this project hedged the 2025 endpoint as preliminary; that hedge is
+withdrawn. The endpoint still rests on six months rather than twelve,
+which is a different and much weaker caveat.
 """
 import sys
 from pathlib import Path
@@ -104,14 +110,12 @@ def monthly_figure(d: pd.DataFrame) -> int:
     ax.text(pd.Timestamp(2022, 12, 5), ax.get_ylim()[1], " ChatGPT",
             fontsize=8, color=GRAY, va="top")
 
-    # the preliminary half-year, shaded so the reader cannot miss it
-    lo = pd.Timestamp(2025, 1, 1)
-    hi = max(mb["t"].max(), qb["t"].max() if not qb.empty else lo)
-    ax.axvspan(lo, hi + pd.Timedelta(days=20), color=LIGHT_GRAY,
-               alpha=0.45, zorder=0)
-    ax.text(lo + pd.Timedelta(days=20), ax.get_ylim()[0],
-            " 2025: six months of preliminary AGI data",
-            fontsize=8, color=GRAY, va="bottom")
+    # NO SHADING ON 2025. SCB confirmed to ML that the AGI months are not
+    # revised after delivery, so 2025 is definitive and not preliminary.
+    # What remains true is only that it is half a year, which is a
+    # statement about how many months the endpoint rests on, not about
+    # whether those months will change. That belongs in the caption, not
+    # in a grey box that reads as a health warning.
 
     ax.set_ylabel("Employment, log points, cycle removed", fontsize=9.5)
     ax.spines[["top", "right"]].set_visible(False)
