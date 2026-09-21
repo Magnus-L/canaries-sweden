@@ -27,7 +27,8 @@ from config import (
     DARK_TEXT, CREAM, Q_COLORS,
     RIKSBANKEN_HIKE, CHATGPT_LAUNCH, BASE_MONTH,
     DAIOE_REF_YEAR, set_rcparams,
-)
+                    load_postings_merged, load_postings_indexed,
+                    POSTINGS_END)
 
 import pandas as pd
 import numpy as np
@@ -99,7 +100,7 @@ def fig_scary_chart():
 
     # Load data
     omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
-    quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
+    quartile = load_postings_indexed(by_quartile=True)
     quartile["date"] = pd.to_datetime(quartile["date"])
 
     # ── Fix 1: Trim to Jan 2020 onward ──
@@ -183,7 +184,7 @@ def fig_scary_chart():
 
     # Title
     ax1.set_title(
-        "Stock market vs job postings by AI exposure, Sweden 2020–2025",
+        f"Stock market vs job postings by AI exposure, Sweden 2020–{POSTINGS_END[:4]}",
         fontsize=14, fontweight="bold", pad=12,
     )
 
@@ -218,7 +219,7 @@ def fig_exposure_gap():
     """
     print("Generating Figure 2: Exposure gap...")
 
-    quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
+    quartile = load_postings_indexed(by_quartile=True)
     quartile["date"] = pd.to_datetime(quartile["date"])
 
     # Trim to Jan 2020 onward
@@ -273,7 +274,7 @@ def fig_exposure_gap():
 
     ax.set_ylabel("Q4 – Q1 posting index gap (percentage points)", fontsize=12)
     ax.set_title(
-        "High vs low AI-exposure: posting gap, Sweden 2020–2025",
+        f"High vs low AI-exposure: posting gap, Sweden 2020–{POSTINGS_END[:4]}",
         fontsize=14, fontweight="bold", pad=12,
     )
 
@@ -300,7 +301,7 @@ def fig_sweden_vs_us():
     print("Generating Figure A1: Sweden vs US comparison...")
 
     omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
-    postings = pd.read_csv(PROCESSED / "postings_total_indexed.csv")
+    postings = load_postings_indexed(by_quartile=False)
     postings["date"] = pd.to_datetime(postings["date"])
     postings = postings.set_index("date")
 
@@ -389,7 +390,7 @@ def fig_quartile_panels():
     """Four-panel figure showing each quartile's posting trend individually."""
     print("Generating Figure A2: Quartile panels...")
 
-    quartile = pd.read_csv(PROCESSED / "postings_quartile_indexed.csv")
+    quartile = load_postings_indexed(by_quartile=True)
     quartile["date"] = pd.to_datetime(quartile["date"])
 
     # Trim to Jan 2020 onward
@@ -442,7 +443,7 @@ def fig_omxspi_scary_chart():
 
     omxspi = pd.read_csv(omxspi_path, index_col=0, parse_dates=True)
     omxs30 = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
-    postings = pd.read_csv(PROCESSED / "postings_total_indexed.csv")
+    postings = load_postings_indexed(by_quartile=False)
     postings["date"] = pd.to_datetime(postings["date"])
     postings = postings.set_index("date")
 

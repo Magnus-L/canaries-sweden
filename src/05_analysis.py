@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import PROCESSED, TABDIR, RIKSBANKEN_HIKE, CHATGPT_LAUNCH
+from config import PROCESSED, TABDIR, RIKSBANKEN_HIKE, CHATGPT_LAUNCH, load_postings_merged, load_postings_indexed
 
 import pandas as pd
 import numpy as np
@@ -381,7 +381,7 @@ def main():
     print("=" * 70)
 
     # Load merged data
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     daioe = pd.read_csv(PROCESSED / "daioe_quartiles.csv")
 
     # Summary statistics

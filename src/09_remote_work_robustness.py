@@ -36,7 +36,7 @@ from config import (
     RIKSBANKEN_HIKE, CHATGPT_LAUNCH,
     DARK_BLUE, ORANGE, TEAL, GRAY, LIGHT_GRAY,
     Q_COLORS, set_rcparams,
-)
+                    load_postings_merged, load_postings_indexed)
 
 import pandas as pd
 import numpy as np
@@ -346,7 +346,7 @@ def main():
 
     # Load project data
     print("\n5. Loading Platsbanken + DAIOE data...")
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     daioe = pd.read_csv(PROCESSED / "daioe_quartiles.csv")
     print(f"  {len(merged):,} occupation×month rows")
 

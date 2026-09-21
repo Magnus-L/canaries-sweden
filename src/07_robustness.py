@@ -24,7 +24,7 @@ from config import (
     RAW, PROCESSED, TABDIR, FIGDIR,
     RIKSBANKEN_HIKE, CHATGPT_LAUNCH, DAIOE_REF_YEAR,
     DARK_BLUE, ORANGE, TEAL, GRAY, set_rcparams,
-)
+                    load_postings_merged, load_postings_indexed, load_postings_ssyk4)
 
 import pandas as pd
 import numpy as np
@@ -35,7 +35,7 @@ set_rcparams()
 
 def load_data():
     """Load the main datasets needed for robustness checks."""
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     daioe_raw = pd.read_csv(RAW / "daioe_ssyk2012.csv", sep="\t")
     return merged, daioe_raw
 
@@ -124,7 +124,7 @@ def robustness_allapps(merged, daioe_raw):
     daioe_ref["high_allapps"] = (daioe_ref["pctl_rank_allapps"] > q75).astype(int)
 
     # Re-merge
-    postings = pd.read_csv(PROCESSED / "postings_ssyk4_monthly.csv")
+    postings = load_postings_ssyk4()
     postings["ssyk4"] = postings["ssyk4"].astype(str).str.zfill(4)
     daioe_ref["ssyk4"] = daioe_ref["ssyk4"].astype(str).str.zfill(4)
     m = postings.merge(daioe_ref, on="ssyk4", how="inner")
@@ -246,7 +246,7 @@ def robustness_language_modelling(merged, daioe_raw):
     q75 = daioe_ref["pctl_rank_lngmod"].quantile(0.75)
     daioe_ref["high_lngmod"] = (daioe_ref["pctl_rank_lngmod"] > q75).astype(int)
 
-    postings = pd.read_csv(PROCESSED / "postings_ssyk4_monthly.csv")
+    postings = load_postings_ssyk4()
     postings["ssyk4"] = postings["ssyk4"].astype(str).str.zfill(4)
     daioe_ref["ssyk4"] = daioe_ref["ssyk4"].astype(str).str.zfill(4)
     m = postings.merge(daioe_ref, on="ssyk4", how="inner")

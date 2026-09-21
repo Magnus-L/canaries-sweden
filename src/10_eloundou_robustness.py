@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import RAW, PROCESSED, TABDIR, RIKSBANKEN_HIKE, CHATGPT_LAUNCH
+from config import RAW, PROCESSED, TABDIR, RIKSBANKEN_HIKE, CHATGPT_LAUNCH, load_postings_merged, load_postings_indexed
 
 import pandas as pd
 import numpy as np
@@ -361,7 +361,7 @@ def load_daioe_results() -> dict:
     from importlib import import_module
     analysis = import_module("05_analysis")
 
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     panel = analysis.prepare_panel(merged)
     results = analysis.run_did_regressions(panel)
 
@@ -542,7 +542,7 @@ def main():
 
     # Step 4: Re-run DiD
     print("\n--- Step 4a: Eloundou DiD regressions ---")
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     el_panel = prepare_eloundou_panel(merged, ssyk_scores)
     el_results = run_eloundou_regressions(el_panel)
 

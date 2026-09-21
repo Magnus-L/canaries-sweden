@@ -137,3 +137,96 @@ def set_rcparams():
 
 # Apply on import
 set_rcparams()
+
+
+# ----------------------------------------------------------------------
+# POSTINGS SOURCE AND CUTOFF (added 21 Sep 2026)
+#
+# Two defects made the manuscript's own figures carry a false 2026
+# collapse, and both are fixed here rather than in nine call sites.
+#
+# SOURCE. 01_download fetches a JobStream /v2/snapshot and 02_process
+# splices it onto the bulk series. JobStream returns ads CURRENTLY
+# PUBLISHED, not everything ever published, so a recent month is
+# undercounted as its ads expire: the 24 February build shows 40,733 ads
+# in December 2025 and 10,790 in January 2026, an 85 per cent drop no
+# labour market produces. JobTech now publishes closed-quarter bulk
+# files, and the revision rebuilt the merged panel from them as
+# postings_daioe_merged_extended.csv, which runs to 2026-06 with
+# sensible volumes. Prefer it wherever it exists.
+#
+# CUTOFF. 06_figures_tables applied a 2020-01-01 lower bound in three
+# places and NO upper bound, so any stale input reached the right edge
+# of a figure. POSTINGS_END is now enforced by the loaders below.
+# ----------------------------------------------------------------------
+
+POSTINGS_END = "2026-06"          # last month any posting series may show
+
+_MERGED_PREFERRED = "postings_daioe_merged_extended.csv"
+_MERGED_FALLBACK = "postings_daioe_merged.csv"
+
+
+def load_postings_merged(end: str = None):
+    """The merged SSYK4 x month panel, bulk-sourced where available."""
+    import pandas as pd
+    path = PROCESSED / _MERGED_PREFERRED
+    if not path.exists():
+        path = PROCESSED / _MERGED_FALLBACK
+        print(f"  WARNING: {_MERGED_PREFERRED} missing; falling back to "
+              f"{_MERGED_FALLBACK}, which may carry a JobStream tail")
+    df = pd.read_csv(path)
+    end = end or POSTINGS_END
+    return df[df["year_month"] <= end].copy()
+
+
+def _index_to_base(df, group_cols, base_month="2020-01"):
+    """n_ads indexed to 100 at base_month, matching 04's own construction."""
+    import pandas as pd
+    out = df.copy()
+    out["date"] = pd.to_datetime(out["year_month"] + "-01")
+    keys = group_cols + ["year_month", "date"]
+    agg = (out.groupby(keys, as_index=False)
+           .agg(n_ads=("n_ads", "sum"),
+                n_vacancies=("n_vacancies", "sum"))
+           if "n_vacancies" in out.columns else
+           out.groupby(keys, as_index=False).agg(n_ads=("n_ads", "sum")))
+    if group_cols:
+        base = (agg[agg["year_month"] == base_month]
+                .set_index(group_cols)["n_ads"])
+        agg["ads_idx"] = agg.apply(
+            lambda r: 100.0 * r["n_ads"] / base.loc[tuple(r[c] for c in
+                                                          group_cols)
+                                                    if len(group_cols) > 1
+                                                    else r[group_cols[0]]],
+            axis=1)
+    else:
+        b = float(agg.loc[agg["year_month"] == base_month, "n_ads"].iloc[0])
+        agg["ads_idx"] = 100.0 * agg["n_ads"] / b
+    return agg.sort_values("date").reset_index(drop=True)
+
+
+def load_postings_indexed(by_quartile: bool = True, end: str = None):
+    """
+    The indexed posting series, DERIVED from the merged panel.
+
+    The stored postings_quartile_indexed.csv and postings_total_indexed.csv
+    are the 24 February build and were never regenerated from the bulk
+    quarters, so they still end at the JobStream tail. Deriving them here
+    keeps one source of truth.
+    """
+    m = load_postings_merged(end=end)
+    return _index_to_base(m, ["exposure_quartile"] if by_quartile else [])
+
+
+def load_postings_ssyk4(end: str = None):
+    """
+    The pre-merge SSYK4 x month counts, with the same cutoff.
+
+    This file is also a 24 February build and has no extended twin, so
+    the cutoff is the only protection available until 02_process stops
+    splicing the JobStream snapshot.
+    """
+    import pandas as pd
+    df = pd.read_csv(PROCESSED / "postings_ssyk4_monthly.csv")
+    end = end or POSTINGS_END
+    return df[df["year_month"] <= end].copy()

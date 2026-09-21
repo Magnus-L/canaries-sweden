@@ -23,7 +23,7 @@ from config import (
     PROCESSED, FIGDIR, TABDIR,
     RIKSBANKEN_HIKE, CHATGPT_LAUNCH,
     DARK_BLUE, ORANGE, TEAL, GRAY, DARK_TEXT, set_rcparams,
-)
+                    load_postings_merged, load_postings_indexed)
 
 import pandas as pd
 import numpy as np
@@ -60,7 +60,7 @@ def run_halfyear_event_study():
     print("Running half-year event study for postings...")
 
     # Load merged panel
-    merged = pd.read_csv(PROCESSED / "postings_daioe_merged.csv")
+    merged = load_postings_merged()
     merged["date"] = pd.to_datetime(merged["year_month"] + "-01")
     merged["halfyear"] = assign_halfyear(merged["date"])
 
