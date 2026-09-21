@@ -243,6 +243,17 @@ def mem_available_gb():
         return None
 
 
+# BatchClient reports "Max mem. 100 GB" per job against ~519 GB free on
+# the node, but the cap is SOFT: ML has run ~150 GB at weekends and no
+# job was terminated by a supervisor on 21 September, so the fits that
+# died were R's own allocator failing rather than a process being
+# killed. "*** recursive gc invocation" is the collector re-entered
+# during a collection. The number below is therefore a planning figure,
+# not a line the system enforces, and the right response is to cut R's
+# peak rather than to bet on where the ceiling sits.
+JOB_MEM_CAP_GB = 100
+
+
 def mem_line(prefix: str = "") -> str:
     g = mem_available_gb()
     return f"{prefix}memory available: {g:.1f} GB" if g is not None else ""
@@ -719,6 +730,39 @@ def _r_workdir(workdir: Path) -> Path:
     return d
 
 
+_READER_REPORTED = False
+
+
+def _report_reader(stdout: str) -> None:
+    """
+    Echo R's reader choice into the Python log, once per process.
+
+    The R scripts have always printed which reader they used, but only
+    into their own stdout, which is captured and written out ONLY when a
+    fit fails. So on 21 September every successful fit silently used the
+    read.csv fallback, because data.table was not installed on MONA, and
+    the fix shipped that morning never ran. A line nobody sees is not a
+    diagnostic.
+    """
+    global _READER_REPORTED
+    if _READER_REPORTED or not stdout:
+        return
+    for line in stdout.splitlines():
+        if line.startswith("reader:"):
+            print(f"  R {line}")
+            if "pre-allocated" in line:
+                print(f"  R   (base reader, ~{JOB_MEM_CAP_GB} GB soft job cap; "
+                      f"data.table is absent from MONA and cannot be "
+                      f"installed, so the row count is passed instead)")
+            elif "read.csv" in line:
+                print("  R WARNING: reading WITHOUT a row count, so the "
+                      "frame grows by reallocation. That is what killed "
+                      "fits on 21 September: R's allocator failed, no "
+                      "supervisor killed them.")
+            _READER_REPORTED = True
+            return
+
+
 def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
     """
     Report an R failure so it can be DIAGNOSED, not just noticed.
@@ -833,9 +877,11 @@ def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = _write_r_input(panel, cols, inp,
                          recode=("fe_emp_bin", "fe_emp_t"))
     cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
-           "--output", str(outp), "--cluster", cluster]
+           "--output", str(outp), "--cluster", cluster,
+           "--nrows", str(len(panel))]
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
+    _report_reader(r.stdout)
     if r.returncode != 0:
         _r_failed(tag, "fepois", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -856,9 +902,11 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = _write_r_input(panel, cols, inp,
                          recode=("fe_emp_bin", "fe_emp_t"))
     cmd = [_rscript(), str(R_FEPOIS_ES), "--input", str(inp),
-           "--output", str(outp), "--cluster", cluster, "--ref", ref]
+           "--output", str(outp), "--cluster", cluster, "--ref", ref,
+           "--nrows", str(len(panel))]
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
+    _report_reader(r.stdout)
     if r.returncode != 0:
         _r_failed(tag, "fepois_es", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
@@ -877,10 +925,12 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = _write_r_input(panel, cols, inp, recode=tuple(fes))
     cmd = [_rscript(), str(_THIS_DIR / "r_fepois_multi.R"),
            "--input", str(inp), "--output", str(outp),
+           "--nrows", str(len(panel)),
            "--terms", ",".join(terms), "--cluster", cluster,
            "--fe", ",".join(fes)]
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
+    _report_reader(r.stdout)
     if r.returncode != 0:
         _r_failed(tag, "fepois_multi", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()

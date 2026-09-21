@@ -1,0 +1,28 @@
+returncode 3221225477
+
+=== stderr ===
++----------------------------------------------------------+
+|                        __              __                |
+|       /\ |_  _    |_  |__)  . _   |\/|/  \|\ | /\        |
+|      /--\|_)(_)|_||_  | \   || )  |  |\__/| \|/--\       |
+|                                                          |
+|   MONA has a local CRAN-mirror that is used by default.  |
+|    You can install packages with install.packages();     |
+|  Packages you install remain installed for your account  |
+|        across R sessions (batch or interactive).         |
+|                                                          |
+| Reinstalling a package that is loaded by another of your |
+|  R sessions (batch or interactive) may cause an error.   |
+|    If that happens you must close all your R sessions    |
+|             and reinstall the package again.             |
+|                                                          |
++----------------------------------------------------------+
+
+*** recursive gc invocation
+*** recursive gc invocation
+
+=== stdout ===
+fixest version: 0.13.2
+reader: read.csv with inferred colClasses
+rows: 26410806, sum(n_emp): 223202914, terms: 8
+threads: 8

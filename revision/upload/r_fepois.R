@@ -95,23 +95,49 @@ if (!file.exists(input_path)) {
     quit(status = 1)
 }
 
-read_exchange <- function(path) {
+nrows_arg <- {
+    k <- which(args == "--nrows")
+    if (length(k) && length(args) > k[1])
+        as.integer(args[k[1] + 1L]) else -1L
+}
+
+read_exchange <- function(path, nrows = -1L) {
     if (requireNamespace("data.table", quietly = TRUE)) {
         cat("reader: data.table::fread\n")
         return(as.data.frame(data.table::fread(path, showProgress = FALSE)))
     }
-    cat("reader: read.csv with inferred colClasses\n")
-    # Infer from a sample rather than assuming: run_fepois and
-    # run_fepois_es hand over STRING fixed effects, and forcing those to
-    # numeric turns every coefficient into NA, which the harness caught.
-    hdr <- read.csv(path, nrows = 1000, stringsAsFactors = FALSE)
+    # data.table is NOT installed on MONA and cannot be installed, so
+    # this is the path that actually runs. Three things make base R's
+    # reader survive a thirty-million-row frame:
+    #
+    #   nrows       the documented cause of "*** recursive gc invocation"
+    #               is that read.csv GROWS the frame by reallocation when
+    #               it does not know the length. Python knows the row
+    #               count exactly and passes it, so R allocates once.
+    #   colClasses  skips the character-first pass. Inferred from a
+    #               sample rather than assumed, because run_fepois and
+    #               run_fepois_es hand over STRING fixed effects and
+    #               forcing those to numeric returns NA coefficients,
+    #               which the harness caught on 21 September.
+    #   quote/comment  disabling both removes per-field scanning that
+    #               cannot match anything in a file we wrote ourselves.
+    cat("reader: read.csv, pre-allocated\n")
+    if (nrows <= 0L) {
+        cat("WARNING: row count unknown, so read.csv must grow the frame\n")
+        cat("  by reallocation. That is what produced *** recursive gc\n")
+        cat("  invocation on 21 September 2026.\n")
+    }
+    hdr <- read.csv(path, nrows = 1000, stringsAsFactors = FALSE,
+                    quote = "", comment.char = "")
     cls <- vapply(hdr, function(x) if (is.numeric(x)) "numeric" else
                   "character", character(1))
-    read.csv(path, stringsAsFactors = FALSE, colClasses = cls)
+    rm(hdr); gc()
+    read.csv(path, stringsAsFactors = FALSE, colClasses = cls,
+             nrows = nrows, quote = "", comment.char = "")
 }
 
 df <- tryCatch(
-    read_exchange(input_path),
+    read_exchange(input_path, nrows_arg),
     error = function(e) {
         write_failure(output_path, sprintf("read_csv_failed: %s", conditionMessage(e)))
         quit(status = 1)
