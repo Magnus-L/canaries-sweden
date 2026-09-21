@@ -307,14 +307,27 @@ def main():
                         c = g.loc[f"q{qq}_x_high_x_young"]
                         print(f"          Q{qq} against Q4 "
                               f"{float(c['coef']):+.4f} ({float(c['se']):.4f})")
-                # the paths, all cleaned of the cycle, on the stock only.
-                # Monthly is run at 22-25 alone: it carries thirty terms on
-                # a thirty-six-million-row panel, which is the largest fit
-                # of the round, and 22-25 is the cell the claim is about.
+                # The paths, all cleaned of the cycle, on the stock only.
+                #
+                # MONTHLY NOW RUNS AT 26-30 TOO. It was 22-25 alone,
+                # because monthly carries thirty terms on a thirty-plus
+                # million row panel and 22-25 was "the cell the claim is
+                # about". The claim has since become the SPREADING
+                # pattern, so 26-30 is half of it, and the lead figure
+                # has to mix a monthly series with a quarterly one to
+                # show two bands at all.
+                #
+                # The memory reasoning has also moved on. What kills a
+                # fit is the number of FIXED EFFECTS, not the number of
+                # terms: 30.5M rows with three effects fitted on
+                # 21 September while 28.5M with four died. Terms are
+                # columns in X, not demeaned dimensions. And every fit
+                # now falls 8 -> 2 -> 1 threads before giving up, so a
+                # squeeze costs wall-clock rather than the coefficient.
+                # If it still dies it is recorded and the rest of the
+                # lane is unaffected.
                 if label == "stock" and arm == "true":
-                    shapes = ["year", "quarter"]
-                    if band == "22-25":
-                        shapes.append("month")
+                    shapes = ["year", "quarter", "month"]
                     for shape in shapes:
                         b, pterms = add_seasonal_terms(b, shape)
                         t3 = time.time()
