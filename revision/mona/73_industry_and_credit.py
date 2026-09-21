@@ -857,18 +857,36 @@ def path_verdict(indq) -> list:
                    f"{last['coef']:+.4f} ({last['se']:.4f}) at "
                    f"{last['period']}")
     if {"22-25", "26-30"} <= set(piv.columns):
-        late = piv[piv.index >= "2025Q1"]
-        if len(late):
-            crossed = (late["26-30"] < late["22-25"]).any()
-            out.append(
-                "CROSSING SURVIVES: 26-30 is below 22-25 in at least one "
-                "2025 quarter with industry absorbed, so the spreading "
-                "claim is not an industry shock arriving late."
-                if crossed else
-                "CROSSING DOES NOT SURVIVE: with industry absorbed 26-30 "
-                "no longer goes below 22-25 in 2025. The overtaking was "
-                "the industry shock reaching that band, and the claim "
-                "comes out of the paper.")
+        # THE TEST, AND WHY THE FIRST VERSION OF IT WAS WORTHLESS.
+        # It asked whether 26-30 sits below 22-25 in ANY 2025 quarter, of
+        # any size. On 21 September that returned CROSSING SURVIVES on a
+        # gap of -0.0071 against a standard error of 0.0204, t -0.35,
+        # in one of two quarters, while the other went the other way. A
+        # test that a coin flip passes is not a test. It now asks
+        # whether the gap is SIGNIFICANT, and reports the t so a reader
+        # can see how close it was.
+        sep = d.pivot_table(index="period", columns="band", values="se")
+        late = [q for q in piv.index if q >= "2025Q1"]
+        best = None
+        for q in late:
+            g = piv.loc[q, "26-30"] - piv.loc[q, "22-25"]
+            se = (sep.loc[q, "26-30"] ** 2 + sep.loc[q, "22-25"] ** 2) ** 0.5
+            t = g / se if se else 0.0
+            out.append(f"  {q}: 26-30 minus 22-25 = {g:+.4f} "
+                       f"(SE {se:.4f}, t {t:+.2f})")
+            if best is None or t < best[1]:
+                best = (q, t)
+        if best and best[1] <= -1.96:
+            out.append(f"CROSSING SURVIVES: with industry absorbed, 26-30 "
+                       f"is significantly below 22-25 at {best[0]} "
+                       f"(t {best[1]:+.2f}). The spreading claim is not an "
+                       f"industry shock arriving late.")
+        elif best:
+            out.append(f"CROSSING DOES NOT SURVIVE: with industry absorbed "
+                       f"the largest 2025 gap is t {best[1]:+.2f} at "
+                       f"{best[0]}, indistinguishable from zero. The "
+                       f"overtaking was the industry shock reaching that "
+                       f"band, and the claim comes out of the paper.")
     return out
 
 

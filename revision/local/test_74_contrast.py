@@ -89,7 +89,10 @@ def counts(world, seed=3):
     as an effect.
     """
     rng = np.random.default_rng(seed)
-    lam0 = {"22-25": 10, "26-30": 11, "41-49": 13}
+    # one intensity per band in l70.CONTRAST_BANDS, which went from
+    # three to six on 21 September; a missing key used to raise here
+    lam0 = {"22-25": 10, "26-30": 11, "31-34": 12, "35-40": 12,
+            "41-49": 13, "50+": 12}
     rows = []
     for emp in EXPO["employer_id"]:
         hi = emp in HIGH
@@ -98,7 +101,7 @@ def counts(world, seed=3):
                 ym = f"{y}-{m:02d}"
                 q = (m - 1) // 3 + 1
                 for age in l70.CONTRAST_BANDS:
-                    lam = float(lam0[age])
+                    lam = float(lam0.get(age, 12))
                     if hi and age == "22-25":
                         if world == "real" and ym >= s74.POOLED_FROM:
                             lam *= float(np.exp(-0.30))

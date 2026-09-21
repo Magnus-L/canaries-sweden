@@ -124,7 +124,7 @@ def counts(decline_bands, beta=-0.30, seed=5):
 # ---- the skeleton ----------------------------------------------------
 c_equal = counts(("22-25", "41-49"))
 skel = s70.all_band_skeleton(c_equal)
-check("the skeleton carries only the contrast bands, not all six",
+check("the skeleton carries exactly the contrast bands",
       sorted(skel["age_group"].unique()) == sorted(s70.CONTRAST_BANDS),
       str(sorted(skel["age_group"].unique())))
 check("the reference band is among them, or nothing is identified",
@@ -133,21 +133,40 @@ check("both young bands are kept",
       {"22-25", "26-30"} <= set(s70.CONTRAST_BANDS))
 n_emp = skel["employer_id"].nunique()
 n_ym = skel["year_month"].nunique()
-check("the skeleton is balanced",
-      len(skel) == n_emp * n_ym * len(s70.CONTRAST_BANDS),
-      f"{len(skel):,} vs {n_emp * n_ym * len(s70.CONTRAST_BANDS):,}")
+check("the skeleton is balanced WITHIN each surviving firm-band cell",
+      skel.groupby(["employer_id", "age_group"], observed=True).size()
+      .eq(n_ym).all(),
+      "every firm-band that survives has all months")
 check("the fixed effects are integers, not pasted strings",
       all(str(skel[c].dtype).startswith("int")
           for c in ("fe_emp_t", "fe_emp_age", "fe_t_age")))
 check("the panel starts where the script says it does",
       skel["year_month"].min() >= s70.PANEL_FROM)
-# The 21 September failure: six bands x 172,396 firms x 54 months is
-# 55.9M rows and about 9.3M employer-month levels, and fepois took an
-# access violation. Three bands is the fix, so the panel must actually
-# be smaller rather than merely relabelled.
-check("three bands really halve the panel",
-      len(skel) < 0.6 * n_emp * n_ym * len(s70.ALL_BANDS),
-      f"{len(skel):,} vs six-band {n_emp * n_ym * len(s70.ALL_BANDS):,}")
+# The 21 September failure was six bands x 172,396 firms x 54 months,
+# 55.9M rows, and fepois took an access violation. Cutting to three
+# bands was the first fix; the real one is that most of those rows were
+# firm-band cells with nobody in them for 54 straight months, which a
+# within-employer age contrast cannot use and which fixest separates and
+# drops anyway. Six bands are back, so the fixture must plant a firm
+# that employs nobody in some bands and check they are gone.
+c_sparse = counts(("22-25", "41-49"))
+lone = c_sparse["employer_id"].iloc[0]
+# keep the reference band AND one other, or the firm is correctly
+# dropped whole: it could not contribute to an age contrast at all
+keep_two = {s70.REF_BAND, "22-25"}
+c_sparse = c_sparse[~((c_sparse.employer_id == lone)
+                      & (~c_sparse.age_group.isin(keep_two)))]
+sk_sparse = s70.all_band_skeleton(c_sparse)
+got = set(sk_sparse.loc[sk_sparse.employer_id == lone, "age_group"])
+check("all six bands are back in the contrast set",
+      len(s70.CONTRAST_BANDS) == 6, str(s70.CONTRAST_BANDS))
+check("a firm-band that is empty in every month is DROPPED, not "
+      "materialised as zeros",
+      got == keep_two, f"kept {sorted(got)} for that firm")
+check("and the drop is what makes six bands affordable",
+      len(sk_sparse) < n_emp * n_ym * len(s70.CONTRAST_BANDS),
+      f"{len(sk_sparse):,} vs full product "
+      f"{n_emp * n_ym * len(s70.CONTRAST_BANDS):,}")
 
 
 no_ref = c_equal[~((c_equal["employer_id"] == c_equal["employer_id"].iloc[0])

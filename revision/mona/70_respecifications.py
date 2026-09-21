@@ -80,6 +80,7 @@ is not worth a MONA round for this revision.
 
 Output (output_70/):
   age_contrast.csv     Part A, differences from the 41-49 band
+  age_path.csv         Part A, quarterly path per band, 68's normalisation
   payroll_tax.csv      Part B
   route_ladder.csv     Part C, the four variants
   70_summary.txt
@@ -115,7 +116,14 @@ ALL_BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 # Three bands give the contrast the paper needs, 22-25 and 26-30 each
 # against the 41-49 reference, on a panel of about 28 million rows. The
 # other three bands bought secondary rows at twice the size.
-CONTRAST_BANDS = ["22-25", "26-30", "41-49"]
+# ALL SIX BANDS, restored 21 September. It was cut to three on 20 September
+# when the six-band panel hit 55.9M rows and died. That was read as a size
+# ceiling; it was the FE-count ceiling plus an unnecessary panel. Both are
+# addressed below, so the profile the paper is actually about can be
+# estimated in one fit.
+AGE_PATH = []        # six-band quarterly path, written to age_path.csv
+A_THREADS = 2        # start where the retry ladder ends; see 73
+CONTRAST_BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 MAX_ROWS_WARN = 40_000_000
 # The reference band for Part A. 41-49 and not 50+: the comparison the
 # paper's framing rests on is young against prime-age, and 41-49 is the
@@ -225,6 +233,24 @@ def all_band_skeleton(counts: pd.DataFrame) -> pd.DataFrame:
     bal = (p.groupby(["employer_id", "age_group", "year_month"], observed=True)
            ["n_emp"].sum().reindex(full, fill_value=0).reset_index())
     bal["n_emp"] = bal["n_emp"].astype(int)
+
+    # THE ROWS THAT KILLED THIS FIT. The balanced panel above gives every
+    # firm all six bands, and most firms employ nobody at all in most of
+    # them: a 12-person firm carries four all-zero bands for 54 months
+    # each. Those rows cannot inform a within-employer age contrast.
+    # Under employer x age effects a firm-band that is zero in every
+    # month is perfectly predicted by its own effect, so fixest separates
+    # and drops it regardless; dropping it here costs nothing and is the
+    # difference between a panel that fits and one that does not. Script
+    # 73 does the same on its own skeleton.
+    alive = (bal.groupby(["employer_id", "age_group"], observed=True)["n_emp"]
+             .transform("max") > 0)
+    before = len(bal)
+    bal = bal[alive].reset_index(drop=True)
+    print(f"  A: dropped {before - len(bal):,} of {before:,} rows in "
+          f"firm-band cells that are zero in every month "
+          f"({(before - len(bal)) / max(before, 1):.0%}); this is what "
+          f"fixest would separate and drop anyway")
     ec = pd.factorize(bal["employer_id"], sort=False)[0].astype("int64")
     tc = pd.factorize(bal["year_month"], sort=False)[0].astype("int64")
     ac = pd.factorize(bal["age_group"], sort=False)[0].astype("int64")
@@ -269,7 +295,7 @@ def part_a(counts, expo, j47, sink):
     print(f"  A: panel {len(b):,} rows, {b['employer_id'].nunique():,} firms"
           f"{mc.mem_line(' | ')}")
     r = mc.run_fepois_multi(b, OUT, tag="r70_age_contrast", terms=terms,
-                            fes=j47.FES)
+                            fes=j47.FES, nthreads=A_THREADS)
     if r.empty:
         FAILURES.append("A/age_contrast")
     else:
@@ -280,6 +306,47 @@ def part_a(counts, expo, j47, sink):
                          "reference": REF_BAND, "coef": row["coef"],
                          "se": row["se"],
                          "t": row["coef"] / row["se"] if row["se"] else np.nan})
+    # ---- the quarterly path, per band, so this is comparable to Figure 2
+    # The pooled contrasts above answer "which ages", not "when". Figure 2
+    # is a quarterly path, so a pooled coefficient cannot be laid beside
+    # it. Same normalisation as 68 and 73: the reference is the
+    # pre-ChatGPT window and Q4 is the omitted calendar season, so two of
+    # these six lines can be read directly against 68's own paths.
+    # Quarterly rather than monthly on purpose: six monthly series are
+    # unreadable, and 186 terms on a panel this size is where terms stop
+    # being cheap.
+    ymq = b["year_month"].astype(str)
+    q = ((ymq.str.slice(5, 7).astype(int) - 1) // 3) + 1
+    lab = ymq.str.slice(0, 4) + "Q" + q.astype(str)
+    post_any = ymq >= mc.CHATGPT_YM
+    qterms = []
+    for qq in (1, 2, 3):                       # Q4 omitted, as in 68
+        col = f"q{qq}_x_high"
+        b[col] = (q == qq).astype(int) * b["high"]
+        qterms.append(col)
+    for band in CONTRAST_BANDS:
+        if band == REF_BAND:
+            continue
+        d = (b["age_group"] == band).astype(int)
+        for pq in sorted(lab[post_any].unique()):
+            col = band_col(f"pq_{pq}", band)
+            b[col] = ((lab == pq) & post_any).astype(int) * b["high"] * d
+            qterms.append(col)
+    print(f"  A: quarterly path, {len(qterms)} terms on {len(b):,} rows")
+    rq = mc.run_fepois_multi(b, OUT, tag="r70_age_path", terms=qterms,
+                             fes=j47.FES, nthreads=A_THREADS)
+    if rq.empty:
+        FAILURES.append("A/age_path")
+    else:
+        for _, row in rq.iterrows():
+            t = str(row["term"])
+            if not t.startswith("pq_"):
+                continue
+            period, band = t[3:].split("_x_high_", 1) if "_x_high_" in t \
+                else (t[3:], "")
+            AGE_PATH.append({"band": band, "reference": REF_BAND,
+                             "period": period, "coef": row["coef"],
+                             "se": row["se"]})
     del b; gc.collect()
 
 
@@ -426,6 +493,23 @@ def main():
     opt("part C", part_c, cnt, j47, l65, c_sink)
 
     lines = ["70 respecifications", "=" * 70, ""]
+
+    if AGE_PATH:
+        dp = pd.DataFrame(AGE_PATH)
+        dp.to_csv(OUT / "age_path.csv", index=False)
+        lines += [f"PART A PATH. Quarterly, each band against {REF_BAND}, "
+                  f"same normalisation as 68: pre-ChatGPT reference, Q4 the "
+                  f"omitted calendar season, so these can be laid beside "
+                  f"68's own paths.",
+                  f"  {len(dp)} coefficients over "
+                  f"{dp['period'].nunique()} quarters and "
+                  f"{dp['band'].nunique()} bands.", ""]
+        for band in sorted(dp["band"].unique()):
+            bb = dp[dp.band == band].sort_values("period")
+            last = bb.iloc[-1]
+            lines.append(f"  {band}: ends {last['coef']:+.4f} "
+                         f"({last['se']:.4f}) at {last['period']}")
+        lines.append("")
 
     if a_sink:
         df = pd.DataFrame(a_sink)

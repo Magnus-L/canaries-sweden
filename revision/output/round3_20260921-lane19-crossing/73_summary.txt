@@ -1,0 +1,33 @@
+73 industry and credit
+======================================================================
+
+Industry and leverage are both taken from 2019, frozen pre-shock: a later vintage would let a firm's own response into the treatment.
+
+22-25: baseline -0.0509 (0.0122)
+22-25: with industry x age x month -0.0448 (0.0112). SURVIVES: an age shock common to the industry does not explain it.
+22-25: with leverage in, exposure -0.0770 (0.0135), leverage x young -0.0125 (0.0093)
+22-25: AI SURVIVES the credit test, which answers R1.2, R1.3 and R2.1 with evidence rather than with a date.
+22-25: dropping 4 failed firms gives -0.0509. Separations are not bankruptcies.
+26-30: baseline -0.0437 (0.0079)
+26-30: with industry x age x month -0.0208 (0.0072). DOES NOT SURVIVE: most of the effect is an industry-specific age shock, and the paper must say so.
+26-30: with leverage in, exposure -0.0683 (0.0089), leverage x young -0.0225 (0.0074)
+26-30: AI SURVIVES the credit test, which answers R1.2, R1.3 and R2.1 with evidence rather than with a date.
+26-30: dropping 4 failed firms gives -0.0438. Separations are not bankruptcies.
+
+22-25: industry-absorbed path ends -0.0353 (0.0178) at 2025Q2
+26-30: industry-absorbed path ends -0.0268 (0.0120) at 2025Q2
+CROSSING SURVIVES: 26-30 is below 22-25 in at least one 2025 quarter with industry absorbed, so the spreading claim is not an industry shock arriving late.
+
+What this cannot do: leverage is a proxy for exposure to the rate cycle, not a measure of it, and surviving a credit test is not the same as identifying an AI effect.
+
+NOTES:
+  industry: Ftg_2019 via Org_Sni2007 (LISA firm table, the employer population), 552,099 firms, 265 three-digit groups
+  no FEK table answered the probe; using Serrano
+  leverage built from Serrano_bokslut_20230614: 1 - EKSU/TILLGSU, keyed on P1207_Lopnr_ORGNR
+  corporate events: Serrano_Serrano_20230614 via bol_kkfall/bol_konkurs, ser_year<=2019, 126,566 failed firms of 12,419,495 rows
+  industry/22-25: 106,174 of 111,459 panel firms carry the covariate (95.3%)
+  leverage/22-25: 95,871 of 111,459 panel firms carry the covariate (86.0%)
+  leverage/22-25: split at 0.684 (ge), 50.0% high
+  industry/26-30: 119,087 of 128,193 panel firms carry the covariate (92.9%)
+  leverage/26-30: 109,534 of 128,193 panel firms carry the covariate (85.4%)
+  leverage/26-30: split at 0.680 (ge), 50.0% high
