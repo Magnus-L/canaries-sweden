@@ -102,10 +102,19 @@ WANTED = {
 }
 
 
-def find(dirs: list) -> dict:
-    """Newest file wins; returns {key: (path, mtime)}."""
+def find(dirs: list, include_default: bool = True) -> dict:
+    """
+    Newest file wins; returns {key: path}.
+
+    The canonical export tree is always searched as well, which is what
+    you want in production and what makes the "Pending" branches
+    untestable: a caller that passes one temp directory still sees every
+    real export. Pass include_default=False to search only what is
+    given, which is the only way to check that a missing input renders
+    as a flagged gap rather than as silence.
+    """
     found = {}
-    roots = [Path(d) for d in dirs] + [OUTPUT]
+    roots = [Path(d) for d in dirs] + ([OUTPUT] if include_default else [])
     for key, name in WANTED.items():
         best = None
         for root in roots:
@@ -615,12 +624,15 @@ def main():
     ap.add_argument("--sim", action="store_true", help="also run the simulation study (~3 h)")
     ap.add_argument("--file", action="store_true", help="copy the exports into revision/output")
     ap.add_argument("--out", default=str(HERE / "EVIDENCE"))
+    ap.add_argument("--only-given", action="store_true",
+                    help="search only the directories named, not the "
+                         "canonical revision/output tree as well")
     a = ap.parse_args()
 
     print("assemble: scanning")
     if a.file:
         file_copies(a.dirs)
-    found = find(a.dirs)
+    found = find(a.dirs, include_default=not a.only_given)
     for k in sorted(WANTED):
         print(f"  {k:<5} {'found  ' + found[k].name if k in found else 'PENDING'}")
 

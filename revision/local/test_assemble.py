@@ -225,7 +225,10 @@ def test_the_three_jobs_are_read_correctly():
         # the OLD shape, with no dating column: a stale export must still
         # read rather than crash the assembler
         fake_63(d2, placebo_fires=True, datings=("launch",))
-        md2 = asm.build_report(asm.find([str(d2)]), False, "")
+        # include_default=False or the real export tree is searched too,
+        # 61 is always found, and the Pending branch can never fire.
+        md2 = asm.build_report(asm.find([str(d2)], include_default=False),
+                               False, "")
         check("a unit step that is only a change of base reads as zero",
               "UNIT alone moves 22-25 by +0.0000" in md2,
               "the trap that caught me on 20 Sep, caught by the assembler")
@@ -255,7 +258,8 @@ def test_cli_end_to_end():
         d = Path(t); fake_47h(d); fake_47j(d)
         out = Path(t) / "EV"
         r = subprocess.run([sys.executable, str(REV / "assemble.py"), str(d),
-                            "--out", str(out)], capture_output=True, text=True)
+                            "--only-given", "--out", str(out)],
+                           capture_output=True, text=True)
         check("the command runs", r.returncode == 0, r.stderr[-300:])
         check("it writes the markdown", (Path(str(out) + ".md")).exists())
         check("it lists pending inputs on stdout", "PENDING" in r.stdout)
