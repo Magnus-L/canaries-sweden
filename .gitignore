@@ -84,3 +84,11 @@ paper/em-main-only.zip
 # Interview briefs are local + iCloud only (one version held a reporter's mobile number)
 *_intervjuunderlag_*.md
 *_interview_brief_*.md
+
+# Erik Engberg's hand-built Utbildningsgrupp -> SUN 2020 crosswalk.
+# His unpublished work for the ESO project, not SCB's and not ours to
+# publish. It was moved to the private Magnus-L/data-notes mirror on
+# 2 Sep 2026 and a copy was re-committed here on 4 Sep. This repo is
+# PUBLIC and the paper's data-availability statement points at it.
+# The file stays on disk for the MONA upload; it must not be tracked.
+revision/upload/utb_grupp2_sun2020_niva3_inr4_nyckel.dta
