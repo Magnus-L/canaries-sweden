@@ -178,29 +178,49 @@ def edu_exposure(j47):
 
 def firm_industry(conn, schema) -> pd.DataFrame:
     """employer_id -> frozen 2019 industry, from FDB_JE_2019."""
-    tab = next((t for t in schema["TABLE_NAME"].unique()
-                if t.lower() == f"fdb_je_{BASE_YEAR}"), None)
+    # FDB_JE tables are year RANGES with a year column, not one table
+    # per year: FDB_JE_2014_2021 covers 2019 and FDB_JE_2019 does not
+    # exist. Taking the first FDB_JE% alphabetically, as this did on
+    # 21 September, lands on FDB_JE_1990_1993 and its sni69ng1 column,
+    # which is the 1969 industry classification.
+    def _covers(t):
+        yrs = [int(x) for x in re.findall(r"(19|20)\d{2}", t)] or []
+        yrs = [int(x) for x in re.findall(r"((?:19|20)\d{2})", t)]
+        if len(yrs) == 2:
+            return yrs[0] <= BASE_YEAR <= yrs[1]
+        return len(yrs) == 1 and yrs[0] == BASE_YEAR
+
+    cands = [t for t in sorted(schema["TABLE_NAME"].unique())
+             if t.lower().startswith("fdb_je")]
+    tab = next((t for t in cands if _covers(t)), None)
     if tab is None:
-        tab = next((t for t in sorted(schema["TABLE_NAME"].unique())
-                    if t.lower().startswith("fdb_je")), None)
+        tab = next((t for t in cands if "all_years" in t.lower()), None)
     if tab is None:
-        NOTES.append("no FDB_JE table visible; Part A cannot run")
+        NOTES.append(f"no FDB_JE table covers {BASE_YEAR}; saw {cands}")
         return pd.DataFrame()
     cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
-    key = pick(cols, r"PeOrgNr", r"PEORGNR", r"LopNr.*Org")
-    ind = pick(cols, r"^NgS$", r"^Ng$", r"SNI", r"naringsgren")
+    key = pick(cols, r"^P1207_Lopnr_peorgnr$", r"PeOrgNr", r"PEORGNR")
+    # ng1..ng5 are SNI at one to five digits. ng3 IS the three-digit
+    # level, so take it directly rather than truncating a finer code.
+    ind = pick(cols, r"^ng3$", r"^ngs1$", r"^ng2$", r"^NgS$", r"^Ng$")
+    yrc = pick(cols, r"^ar$", r"^year$")
     if key is None or ind is None:
         NOTES.append(f"{tab}: key {key}, industry {ind}; Part A cannot run. "
                      f"Columns seen: {cols[:20]}")
         return pd.DataFrame()
-    d = pd.read_sql(f"SELECT [{key}] AS employer_id, [{ind}] AS ind "
-                    f"FROM dbo.[{tab}]", conn)
+    sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
+    if yrc:
+        sel += f", [{yrc}] AS yr"
+    d = pd.read_sql(sel + f" FROM dbo.[{tab}]"
+                    + (f" WHERE [{yrc}] = {BASE_YEAR}" if yrc else ""), conn)
     d["employer_id"] = norm_id(d["employer_id"])
+    NOTES.append(f"industry from {tab} column {ind}"
+                 + (f", filtered to {yrc}={BASE_YEAR}" if yrc
+                    else " (NO YEAR COLUMN, vintage unverified)"))
     # three digits: finer splits the sample thin, coarser stops absorbing
     # the age shocks this exists to absorb. Stated, not tuned.
-    d["ind3"] = d["ind"].astype(str).str.replace(r"\D", "", regex=True
-                                                 ).str[:3]
-    d = d[d["ind3"].str.len() == 3].drop_duplicates("employer_id")
+    d["ind3"] = d["ind"].astype(str).str.replace(r"\D", "", regex=True)
+    d = d[d["ind3"].str.len().between(2, 3)].drop_duplicates("employer_id")
     print(f"  industry: {tab} via {ind}, {len(d):,} firms, "
           f"{d['ind3'].nunique()} three-digit groups")
     return d[["employer_id", "ind3"]]
@@ -267,29 +287,54 @@ def leverage_from_fek(conn, schema) -> pd.DataFrame:
 
 
 def firm_leverage(conn, schema) -> pd.DataFrame:
-    """Frozen 2019 leverage: FEK first, Serrano only as a fallback."""
+    """
+    Frozen 2019 leverage.
+
+    FEK would be the better source, being SCB's own and population
+    level, but no FE_YYYY table answered a LIKE 'FE[_]%' probe on
+    21 September, so it may simply not be in this delivery. Serrano
+    carries the full balance sheet and is what actually runs; FEK stays
+    first in case it appears.
+    """
     fek = leverage_from_fek(conn, schema)
     if len(fek):
         return fek
-    NOTES.append("FEK leverage unavailable; falling back to Serrano")
+    NOTES.append("no FEK table answered the probe; using Serrano")
     tab = next((t for t in sorted(schema["TABLE_NAME"].unique())
                 if "bokslut" in t.lower()), None)
     if tab is None:
         NOTES.append("no Serrano bokslut table either; Part B cannot run")
         return pd.DataFrame()
     cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
-    key = pick(cols, r"ORGNR", r"PeOrgNr", r"LopNr")
-    debt = pick(cols, r"skuld.*summa|summa.*skuld", r"^skulder", r"skuld",
-                r"debt", r"liabilit")
-    asset = pick(cols, r"summa.*tillgang|tillgang.*summa", r"^tillgang",
-                 r"balansoml", r"asset", r"totalt_kapital")
-    yr = pick(cols, r"^ar$", r"year", r"rakenskaps", r"bokslutsar")
-    if not (key and debt and asset):
+    # Serrano uses abbreviated Swedish codes: no column contains the
+    # words skuld or tillgang, which is why the 21 September patterns
+    # found nothing. Verified names, from the live catalogue:
+    #   TILLGSU total assets      EKSU   total equity
+    #   LSKSU   long-term debt    KSKSU  short-term debt
+    #   EKSKSU  equity+liabilities   NTOMS turnover
+    key = pick(cols, r"^P1207_Lopnr_ORGNR$", r"ORGNR", r"PeOrgNr")
+    asset = pick(cols, r"^TILLGSU$", r"^EKSKSU$")
+    equity = pick(cols, r"^EKSU$")
+    dlong, dshort = pick(cols, r"^LSKSU$"), pick(cols, r"^KSKSU$")
+    yr = pick(cols, r"^BSLSLUT$", r"^ar$", r"year", r"bokslutsar")
+    if asset and equity:
+        debt = None            # leverage as 1 - equity/assets
+    else:
+        debt = dlong or dshort
+    if not (key and asset and (equity or debt or (dlong and dshort))):
         NOTES.append(
-            f"{tab}: could not identify debt and assets (key {key}, debt "
-            f"{debt}, assets {asset}). Columns seen: {cols[:30]}")
+            f"{tab}: could not identify the balance sheet (key {key}, "
+            f"assets {asset}, equity {equity}, debt {dlong}/{dshort}). "
+            f"Columns seen: {cols[:40]}")
         return pd.DataFrame()
-    sel = f"[{key}] AS employer_id, [{debt}] AS debt, [{asset}] AS assets"
+    parts = [f"[{key}] AS employer_id", f"[{asset}] AS assets"]
+    if equity:
+        parts.append(f"[{equity}] AS equity")
+    if dlong:
+        parts.append(f"[{dlong}] AS dlong")
+    if dshort:
+        parts.append(f"[{dshort}] AS dshort")
+    sel = ", ".join(parts)
     if yr:
         sel += f", [{yr}] AS yr"
     d = pd.read_sql(f"SELECT {sel} FROM dbo.[{tab}]", conn)
@@ -298,16 +343,23 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
         if (y == BASE_YEAR).any():
             d = d[y == BASE_YEAR]
     d["employer_id"] = norm_id(d["employer_id"])
-    for c in ("debt", "assets"):
+    for c in [c for c in ("assets", "equity", "dlong", "dshort")
+              if c in d.columns]:
         d[c] = pd.to_numeric(d[c].astype(str).str.replace(",", ".",
                                                           regex=False),
                              errors="coerce")
-    d = d[(d["assets"] > 0) & d["debt"].notna()]
-    d["lev"] = (d["debt"] / d["assets"]).clip(0, 3)
-    d = d.drop_duplicates("employer_id")
-    print(f"  leverage: {tab} via {debt}/{asset}, {len(d):,} firms, "
+    d = d[d["assets"] > 0]
+    if "equity" in d.columns and d["equity"].notna().any():
+        d["lev"] = (1.0 - d["equity"] / d["assets"]).clip(0, 3)
+        how = f"1 - {equity}/{asset}"
+    else:
+        dd = d.get("dlong", 0).fillna(0) + d.get("dshort", 0).fillna(0)
+        d["lev"] = (dd / d["assets"]).clip(0, 3)
+        how = f"({dlong}+{dshort})/{asset}"
+    d = d[d["lev"].notna()].drop_duplicates("employer_id")
+    print(f"  leverage: {tab} via {how}, {len(d):,} firms, "
           f"median {d['lev'].median():.2f}")
-    NOTES.append(f"leverage built from {tab}: {debt} / {asset}")
+    NOTES.append(f"leverage built from {tab}: {how}, keyed on {key}")
     return d[["employer_id", "lev"]]
 
 
@@ -387,6 +439,11 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     skel = l61.build_skeleton(counts, band, j47)
     if skel.empty:
         print(f"  {band}: skeleton empty"); return
+    # Normalise BEFORE the merge, not after. On 21 September both bands
+    # died here with "merge on float64 and object columns": main() had
+    # normalised expo to string while the skeleton still carried the
+    # float employer_id that L_counts supplies.
+    skel["employer_id"] = norm_id(skel["employer_id"])
     b0 = skel.merge(expo[["employer_id", "fq"]], on="employer_id",
                     how="inner")
     del skel
@@ -394,7 +451,6 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     if b0.empty:
         print(f"  {band}: no firms matched exposure"); return
     b0["high"] = (b0["fq"] == 4).astype(int)
-    b0["employer_id"] = norm_id(b0["employer_id"])
 
     # the baseline every comparison below is read against
     b, terms = base_terms(b0.copy())

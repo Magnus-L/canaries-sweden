@@ -1,0 +1,17 @@
+73 industry and credit
+======================================================================
+
+Industry and leverage are both taken from 2019, frozen pre-shock: a later vintage would let a firm's own response into the treatment.
+
+22-25: no baseline fit, nothing to compare
+26-30: no baseline fit, nothing to compare
+
+What this cannot do: leverage is a proxy for exposure to the rate cycle, not a measure of it, and surviving a credit test is not the same as identifying an AI effect.
+
+NOTES:
+  FEK leverage unavailable; falling back to Serrano
+  Serrano_bokslut_20230614: could not identify debt and assets (key P1207_Lopnr_ORGNR, debt None, assets None). Columns seen: ['P1207_Lopnr_ORGNR', 'P1207_Lopnr_KOMORGNR', 'MODDTM', 'BSLSTART', 'BSLSLUT', 'BSTYP', 'STATUS', 'REDTYP', 'BELKOD', 'UTDBEL', 'NTOMS', 'LAGERF', 'AKTARB', 'ROINTOV1', 'RAVAR', 'HANDVAR', 'EXTKOSOV', 'PERSKOS', 'AVSKRIV', 'JFRST1', 'RORKOOV1', 'RORRESUL', 'RESAND', 'RTEINKNC', 'RTEINEXT', 'RTEINOV', 'RTEKOKNC', 'RTEKOEXT', 'RTEKOOV', 'JFRSTFIN']
+
+FAILED:
+  band 22-25
+  band 26-30

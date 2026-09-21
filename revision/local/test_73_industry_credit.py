@@ -138,14 +138,27 @@ def counts(world, beta=-0.35, seed=4):
                                        "age_group", "n_emp"])
 
 
+# The REAL P1207 catalogue, as the 21 September probe returned it, with
+# every trap that broke the guessed version:
+#   * FDB_JE tables are year RANGES with an `ar` column, and the
+#     alphabetically first one is 1990-1993 carrying sni69ng1, the 1969
+#     industry classification;
+#   * no FE_ table exists at all, so the FEK path must fall through;
+#   * Serrano_bokslut names carry no `skuld` or `tillgang` anywhere.
 CATALOGUE = pd.DataFrame(
-    [("FDB_JE_2019", c, "varchar") for c in ("PeOrgNr", "NgS", "Anst")]
-    + [("FE_2019", c, "varchar") for c in
-       ("LopNr_PeOrgNrHE", "SummaTillgangar", "SummaEgetKapital",
-        "Nettoomsattning")]
+    [("FDB_JE_1990_1993", c, "varchar") for c in
+     ("P1207_Lopnr_peorgnr", "ar", "sni69ng1", "anst")]
+    + [("FDB_JE_2014_2021", c, "varchar") for c in
+       ("P1207_Lopnr_peorgnr", "ar", "ng1", "ng2", "ng3", "ng5", "ngs1",
+        "anst", "sektor")]
+    + [("FDB_JE_ALL_YEARS", c, "varchar") for c in
+       ("P1207_Lopnr_peorgnr", "ar", "ng3")]
     + [("Serrano_bokslut_20230614", c, "varchar")
-       for c in ("ORGNR", "summa_skulder", "summa_tillgangar", "ar")]
-    + [("Serrano_bol_20230614", c, "varchar") for c in ("ORGNR", "status")],
+       for c in ("P1207_Lopnr_ORGNR", "NTOMS", "RORRESUL", "TILLGSU",
+                 "EKSU", "LSKSU", "KSKSU", "EKSKSU", "RTEKOEXT",
+                 "BSLSTART", "BSLSLUT")]
+    + [("Serrano_bol_20230614", c, "varchar")
+       for c in ("P1207_Lopnr_ORGNR", "status")],
     columns=["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"])
 FAILED = set(FIRMS[:40])
 
@@ -154,19 +167,19 @@ def fake_read_sql(q, conn=None, *a, **kw):
     ql = str(q).lower()
     if "information_schema" in ql:
         return CATALOGUE.copy()
+    if "fdb_je_1990_1993" in ql:
+        raise AssertionError("queried the 1990-1993 table, which carries "
+                             "the 1969 industry classification")
     if "fdb_je" in ql:
         return pd.DataFrame({"employer_id": FIRMS,
-                             "ind": [IND[f] for f in FIRMS]})
-    if "fe_2019" in ql:
-        # equity/assets chosen so that 1 - equity/assets reproduces LEV
-        return pd.DataFrame({"employer_id": FIRMS,
-                             "assets": [1.0] * len(FIRMS),
-                             "equity": [1.0 - LEV[f] for f in FIRMS]})
+                             "ind": [IND[f] for f in FIRMS],
+                             "yr": [2019] * len(FIRMS)})
     if "bokslut" in ql:
         return pd.DataFrame({"employer_id": FIRMS,
-                             "debt": [LEV[f] for f in FIRMS],
                              "assets": [1.0] * len(FIRMS),
-                             "yr": [2019] * len(FIRMS)})
+                             "equity": [1.0 - LEV[f] for f in FIRMS],
+                             "dlong": [LEV[f] * 0.6 for f in FIRMS],
+                             "dshort": [LEV[f] * 0.4 for f in FIRMS]})
     if "serrano_bol" in ql:
         return pd.DataFrame({"employer_id": list(FAILED),
                              "status": ["Konkurs"] * len(FAILED)})
@@ -186,16 +199,33 @@ check("industry is found and reduced to three digits",
       len(ind) and set(ind["ind3"].str.len()) == {3}, f"{len(ind)} firms")
 check("leverage is found", len(lev) and lev["lev"].between(0, 3).all(),
       f"{len(lev)} firms")
-check("FEK is PREFERRED over Serrano, being SCB's own and population",
-      any("FE_2019" in n for n in s73.NOTES),
-      next((n for n in s73.NOTES if "leverage built" in n), "")[:60])
-check("and the consolidation and coverage traps are recorded, not buried",
-      any("CONSOLIDATED" in n and "non-profit" in n for n in s73.NOTES))
+check("with no FEK table present, Serrano's real columns are used",
+      any("EKSU" in n and "TILLGSU" in n for n in s73.NOTES),
+      next((n for n in s73.NOTES if "leverage built" in n), "")[:70])
+check("the FDB year-RANGE table covering 2019 is chosen, not the first "
+      "one alphabetically",
+      any("FDB_JE_2014_2021" in n for n in s73.NOTES),
+      next((n for n in s73.NOTES if "industry from" in n), "")[:70])
+check("and the industry pull is filtered to the base year",
+      any("ar=2019" in n.replace(" ", "") for n in s73.NOTES))
 check("leverage reproduces 1 - equity/assets",
       abs(float(lev.set_index("employer_id").loc[FIRMS[0], "lev"])
           - LEV[FIRMS[0]]) < 1e-9)
 check("failed firms are found", len(failed) == len(FAILED))
 s73.NOTES.clear()
+
+
+# THE 21 SEPTEMBER FATAL BUG. L_counts supplies employer_id as float
+# while main() had normalised exposure to string, so every band died on
+# "merge on float64 and object columns" and the lane produced nothing.
+_probe = counts("clean").copy()
+_probe["employer_id"] = _probe["employer_id"].astype(float)
+_sk = {"ind": [], "lev": [], "bank": []}
+s73.run_band(_probe, EXPO, ind, lev, failed, "22-25", j47, _sk)
+check("a float employer_id in the counts still merges against string "
+      "exposure, which is what killed lane 19",
+      len(_sk["ind"]) > 0, f"{len(_sk['ind'])} rows")
+s73.NOTES.clear(); s73.FAILURES.clear()
 
 
 def run(world):
