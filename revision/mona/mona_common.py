@@ -1020,7 +1020,14 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
                      terms: list, cluster: str = "employer_id",
                      fes: tuple = ("fe_emp_bin", "fe_emp_t"),
                      nthreads: int = 0) -> pd.DataFrame:
-    """Poisson with an arbitrary term list via r_fepois_multi.R."""
+    """Poisson with an arbitrary term list via r_fepois_multi.R.
+
+    Since 22 Sep 2026 the R side also writes the clustered covariance of
+    the terms; it is copied into the CALLER's output directory as
+    vcov_<tag>.csv so it leaves MONA with the rest of the script's
+    exports, and its path is recorded in res.attrs["vcov"]. Nothing else
+    about the return value changed."""
+    out_dir = Path(workdir)
     workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_multi_{tag}.csv"
     outp = workdir / f"_rout_multi_{tag}.csv"
@@ -1037,6 +1044,15 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     if r.returncode != 0:
         _r_failed(tag, "fepois_multi", r, workdir)
     res = pd.read_csv(outp) if outp.exists() else pd.DataFrame()
+    vcp = outp.with_name(outp.stem + "_vcov.csv")
+    if vcp.exists():
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+            dest = out_dir / f"vcov_{tag}.csv"
+            shutil.copy(vcp, dest)
+            res.attrs["vcov"] = str(dest)
+        except OSError as ex:
+            print(f"  vcov for {tag} not copied: {ex}")
     inp.unlink(missing_ok=True)
     return res
 

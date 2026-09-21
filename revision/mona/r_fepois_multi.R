@@ -179,6 +179,26 @@ fit <- tryCatch(
 elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
 co <- summary(fit)$coeftable
+
+# The clustered covariance of the treatment terms, written beside the
+# coefficient table as <output>_vcov.csv. A linear combination of terms
+# (a net level = step during tightening + step at adoption; a difference
+# between two bands; a sum of quarter terms) then gets a standard error
+# from the SAME fit instead of a second trip to the lab. Added 22 Sep 2026
+# when the paper needed the level after adoption relative to the pre-hike
+# months and nothing exported could give its standard error. vcov(fit)
+# returns the covariance under the clustering the fit was given.
+vc <- tryCatch(vcov(fit), error = function(e) NULL)
+if (!is.null(vc)) {
+    keep <- intersect(terms, rownames(vc))
+    if (length(keep) > 0) {
+        vdf <- as.data.frame(vc[keep, keep, drop = FALSE])
+        colnames(vdf) <- keep
+        vdf <- cbind(term = keep, vdf)
+        write.csv(vdf, sub("\\.csv$", "_vcov.csv", output_path),
+                  row.names = FALSE)
+    }
+}
 out_rows <- lapply(terms, function(tm) {
     if (tm %in% rownames(co)) {
         data.frame(term = tm, coef = as.numeric(co[tm, "Estimate"]),
