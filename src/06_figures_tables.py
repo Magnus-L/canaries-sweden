@@ -42,6 +42,19 @@ set_rcparams()
 
 # ── Helper functions ──────────────────────────────────────────────────────────
 
+def save_fig(fig, out):
+    """
+    Write PNG and PDF side by side.
+
+    Economics Letters wants vector art and this script only ever emitted
+    raster. Saving both costs nothing and stops a rebuild from leaving
+    the manuscript on an old PDF while the PNG moves on.
+    """
+    fig.savefig(out)
+    pdf = out.with_suffix(".pdf")
+    fig.savefig(pdf, bbox_inches="tight")
+
+
 def add_event_annotations(ax, y_range, omxs_series=None):
     """Add Riksbanken hike and ChatGPT launch markers to a figure."""
     rb = pd.Timestamp(RIKSBANKEN_HIKE)
@@ -197,7 +210,7 @@ def fig_scary_chart():
     add_source_note(fig)
 
     out = FIGDIR / "fig1_scary_chart.png"
-    fig.savefig(out)
+    save_fig(fig, out)
     plt.close()
     print(f"  Saved → {out.name}")
 
@@ -284,7 +297,7 @@ def fig_exposure_gap():
     add_source_note(fig)
 
     out = FIGDIR / "fig2_exposure_gap.png"
-    fig.savefig(out)
+    save_fig(fig, out)
     plt.close()
     print(f"  Saved → {out.name}")
 
@@ -379,7 +392,7 @@ def fig_sweden_vs_us():
     add_source_note(fig, "Sources: Yahoo Finance, Indeed Hiring Lab, Platsbanken.")
 
     out = FIGDIR / "figA1_sweden_vs_us.png"
-    fig.savefig(out)
+    save_fig(fig, out)
     plt.close()
     print(f"  Saved → {out.name}")
 
@@ -418,7 +431,7 @@ def fig_quartile_panels():
     fig.tight_layout()
 
     out = FIGDIR / "figA2_quartile_panels.png"
-    fig.savefig(out)
+    save_fig(fig, out)
     plt.close()
     print(f"  Saved → {out.name}")
 
@@ -489,7 +502,7 @@ def fig_omxspi_scary_chart():
     add_source_note(fig, "Source: Yahoo Finance (^OMX, ^OMXSPI), Platsbanken microdata.")
 
     out = FIGDIR / "figA4_omxspi_comparison.png"
-    fig.savefig(out)
+    save_fig(fig, out)
     plt.close()
     print(f"  Saved → {out.name}")
 
