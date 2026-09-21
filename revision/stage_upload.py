@@ -36,10 +36,27 @@ def sha(p: Path) -> str:
 def main() -> int:
     check = "--check" in sys.argv
     drift = []
+    clobber = []
     for u in sorted(list(UP.glob("*.py")) + list(UP.glob("*.R"))):
         m = MONA / u.name
         if m.exists() and not filecmp.cmp(m, u, shallow=False):
-            drift.append((m, u))
+            # The sync runs one way, mona/ -> upload/. An upload/ copy
+            # that is NEWER than its source is an edit made in the wrong
+            # folder, and copying over it destroys work: that is exactly
+            # how the _lane.py failure guard was lost on 21 September,
+            # minutes after it was written and tested.
+            if u.stat().st_mtime > m.stat().st_mtime:
+                clobber.append((m, u))
+            else:
+                drift.append((m, u))
+
+    if clobber:
+        print("REFUSING TO SYNC. These upload/ files are NEWER than "
+              "mona/, so they hold edits made in the wrong folder:")
+        for m, u in clobber:
+            print(f"  {u.name}: upload/ {sha(u)} is newer than mona/ {sha(m)}")
+        print("\nmona/ is the source. Move the change there, then re-run.")
+        return 1
 
     if not drift:
         print("upload/ is identical to mona/ for every shared file.")

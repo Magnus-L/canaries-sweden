@@ -78,6 +78,35 @@ _DEP_NAMES = ("mona_common.py", "r_fepois.R", "r_fepois_es.R",
               "r_fepois_multi.R")
 
 
+# A summary that RECORDS FAILED FITS is not a finished stage. Lane 14's
+# 68_summary.txt says "FITS THAT FAILED: path/year/22-25;
+# 26-30/stock/true" and lane 19's 73_summary.txt says "FAILED:
+# ind_26-30". Re-running to recover exactly those fits is the normal
+# case, and until 21 Sep the lane read the partial result as complete
+# and skipped, so two resubmissions did nothing and reported success in
+# seconds.
+_FAIL_MARKS = ("FITS THAT FAILED", "FAILED:", "FAILURES:")
+
+
+def _recorded_failures(marker):
+    """The failures a previous run wrote into its own summary, if any."""
+    try:
+        txt = marker.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+    for m in _FAIL_MARKS:
+        i = txt.find(m)
+        if i == -1:
+            continue
+        tail = txt[i + len(m):].strip().splitlines()
+        first = tail[0].strip() if tail else ""
+        if not first and len(tail) > 1:      # "FAILED:" lists them below
+            first = tail[1].strip()
+        if first and first.lower() not in ("none", "none.", "-", "(none)"):
+            return first[:90]
+    return ""
+
+
 def _deps():
     return [HERE / n for n in _DEP_NAMES]
 
@@ -107,6 +136,7 @@ def run(lane: str, stages: list):
         newest = max([src.stat().st_mtime] +
                      [d.stat().st_mtime for d in _deps() if d.exists()]) \
             if src.exists() else 0
+        failed_before = _recorded_failures(marker) if marker.exists() else ""
         if marker.exists() and newest > marker.stat().st_mtime:
             plan.append((script, mins))
             why = ("the script" if src.exists()
@@ -114,6 +144,11 @@ def run(lane: str, stages: list):
             print(f"  RUN   {script:<34} about {mins} min  "
                   f"({why} is NEWER than {done}, so the old result "
                   f"is stale and will be overwritten)")
+        elif marker.exists() and failed_before:
+            plan.append((script, mins))
+            print(f"  RUN   {script:<34} about {mins} min  "
+                  f"({done} records FAILED FITS -- {failed_before} -- "
+                  f"so the stage did not finish and is NOT skipped)")
         elif marker.exists():
             print(f"  SKIP  {script:<34} {done} exists")
         elif not src.exists():
