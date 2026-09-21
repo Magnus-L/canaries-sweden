@@ -65,7 +65,8 @@ def main() -> int:
                "REAL" if r >= REAL else "AMBIGUOUS")
 
     terms = list(piv.index)
-    fig, ax = plt.subplots(figsize=(6.6, 4.0))
+    fig, ax = plt.subplots(figsize=(6.8, 4.2))
+    lows, labels = [], []
     for i, t in enumerate(terms):
         a, c = piv.loc[t, "ageband"], piv.loc[t, "cohort"]
         ax.plot([i, i], [a, c], color=GRAY, lw=1.2, zorder=1)
@@ -76,10 +77,19 @@ def main() -> int:
                     color=ORANGE, ms=6, capsize=3, lw=1.4,
                     label="fixed birth cohorts" if i == 0 else None,
                     zorder=2)
-        mark = "  <- largest" if t == biggest else ""
-        ax.text(i, min(a, c) - 0.012,
-                f"ratio {piv.loc[t, 'ratio']:.2f}{mark}", fontsize=8,
-                ha="center", color=DARK_TEXT)
+        # below the LOWER whisker, not below the lower marker, or the
+        # label sits on top of the error bar it is describing
+        floor = min(a - 1.96 * se.loc[t, "ageband"],
+                    c - 1.96 * se.loc[t, "cohort"])
+        lows.append(floor)
+        labels.append((i, floor, piv.loc[t, "ratio"], t == biggest))
+
+    pad = 0.055 * (max(piv[["ageband", "cohort"]].max()) - min(lows))
+    for i, floor, ratio, is_big in labels:
+        ax.text(i, floor - pad,
+                f"ratio {ratio:.2f}" + ("\n(largest)" if is_big else ""),
+                fontsize=8.2, ha="center", va="top", color=DARK_TEXT)
+    ax.set_ylim(min(lows) - 4.2 * pad, None)
 
     ax.axhline(0, color=DARK_TEXT, lw=0.8)
     ax.set_xticks(range(len(terms)))
