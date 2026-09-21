@@ -1,0 +1,36 @@
+70 respecifications
+======================================================================
+
+PART A PATH. Quarterly, each band against 41-49, same normalisation as 68: pre-ChatGPT reference, Q4 the omitted calendar season, so these can be laid beside 68's own paths.
+  55 coefficients over 55 quarters and 1 bands.
+
+  : ends +0.1523 (0.0194) at 2025Q2_50p
+
+PART A. Age profile, differences from 41-49.
+A positive coefficient means the band declined LESS than 41-49 did.
+
+  22_25   -0.0288 (0.0130)  t -2.21  *
+  26_30   -0.0146 (0.0086)  t -1.70
+  31_34   +0.0162 (0.0064)  t +2.53  *
+  35_40   +0.0087 (0.0052)  t +1.67
+  50p     +0.0616 (0.0065)  t +9.41  *
+
+  READ: the young declined significantly MORE than 41-49. The framing survives, and this is now a tested contrast rather than two separately significant coefficients.
+
+PART B. Youth payroll-tax expiry, April 2023.
+
+  post_rb_x_expo                   +0.0061 (0.0040)  t +1.54
+  post_gpt_x_expo                  +0.0084 (0.0083)  t +1.01
+  post_tax_x_taxshare              +0.0226 (0.0145)  t +1.56
+  post_tax_x_taxshare_x_high       -0.0537 (0.0338)  t -1.59
+
+  READ: the triple is the one that matters. A common national effect is absorbed by the month-by-age effects; only an exposure-differential response survives them.
+
+PART C. Education to occupation, one rung at a time.
+Coefficients are differences from 41-49.
+
+  A_edu_full         22-25 vs 41-49: -0.0288 (0.0130), 172,396 firms
+  B_edu_intersect    22-25 vs 41-49: -0.0254 (0.0140), 60,704 firms
+  D_occ_joint        22-25 vs 41-49: -0.0050 (0.0268), 60,704 firms
+
+  READ: A to B is employer coverage. B to D is the register AND the incumbent pool together, not the register alone, because the cached frames are pre-aggregated and a worker-level joint-support restriction would need a new pull.
