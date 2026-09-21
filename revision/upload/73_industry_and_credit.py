@@ -681,11 +681,27 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
 
     # PART A
     if len(ind) and gate(b0, ind, f"industry/{band}"):
-        b = add_ind_fe(b0.copy(), ind)
+        # No .copy(): add_ind_fe merges, which returns a new frame and
+        # never touches b0. The copy was a spare 28-million-row frame
+        # held for nothing while R was running.
+        b = add_ind_fe(b0, ind)
         if not b.empty:
             b, terms = base_terms(b)
-            r = fit(b, terms, tuple(j47.FES) + ("fe_ind_age_t",),
-                    f"ind_{band}")
+            # fe_t_age is DROPPED here, and this costs nothing.
+            # fe_ind_age_t is industry x age x month; fe_t_age is
+            # age x month. Every age-month cell is partitioned by
+            # industry, so the coarser effect is nested inside the finer
+            # one and absorbed by it. Including both identifies exactly
+            # the same model and makes fixest build, demean and discard
+            # a whole redundant dimension. That is not free: ind_26-30
+            # is the heaviest fit in the battery, 28,470,906 rows, and
+            # on 21 September it died with "recursive gc invocation"
+            # even at two threads, where the 26.4M-row baseline had
+            # survived. Four effects on the larger band is what tipped
+            # it, and one of the four was doing no work.
+            fes = tuple(f for f in j47.FES if f != "fe_t_age") \
+                + ("fe_ind_age_t",)
+            r = fit(b, terms, fes, f"ind_{band}")
             if r:
                 sinks["ind"].append({"band": band, "spec": "industry_age_t",
                                      **dict(zip(("coef", "se"),

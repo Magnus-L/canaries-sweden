@@ -55,12 +55,25 @@ mc._run_r(["Rscript", "x.R", "--nthreads", "8"], Path("."), "t2", "fepois")
 check("a fit already at 8 threads is lowered to 2",
       CALLS[1][CALLS[1].index("--nthreads") + 1] == "2")
 
-# 3. already at 2: no pointless second attempt
+# 3. already at 2: go once more at 1. r73_ind_26-30 died at exactly 2.
 FAILS, CALLS[:] = 1, []
 r = mc._run_r(["Rscript", "x.R", "--nthreads", "2"], Path("."), "t3", "fepois")
-check("a fit already at 2 threads is NOT retried", len(CALLS) == 1)
+check("a fit that dies at 2 threads is retried at 1", len(CALLS) == 2)
+check("and the retry says --nthreads 1",
+      CALLS[1][CALLS[1].index("--nthreads") + 1] == "1")
+
+# 3b. already at 1: nothing lower exists
+FAILS, CALLS[:] = 1, []
+r = mc._run_r(["Rscript", "x.R", "--nthreads", "1"], Path("."), "t3b", "fepois")
+check("a fit already at 1 thread is NOT retried", len(CALLS) == 1)
 check("and the failure is returned, not swallowed",
       r.returncode == mc.R_MEMORY_DEATH)
+
+# 3c. a fit that needs BOTH steps: 8 -> 2 -> 1
+FAILS, CALLS[:] = 1, []
+mc._run_r(["Rscript", "x.R", "--nthreads", "8"], Path("."), "t3c", "fepois")
+check("8 threads falls to 2 first, not straight to 1",
+      CALLS[1][CALLS[1].index("--nthreads") + 1] == "2")
 
 # 4. a non-memory failure is not retried: a bad formula must stay failed
 FAILS, CALLS[:] = 0, []
