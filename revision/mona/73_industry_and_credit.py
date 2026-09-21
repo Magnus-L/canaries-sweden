@@ -150,9 +150,24 @@ def _rss_gb() -> float:
                         ("PagefileUsage", ctypes.c_size_t),
                         ("PeakPagefileUsage", ctypes.c_size_t)]
         m = _PMC(); m.cb = ctypes.sizeof(_PMC)
-        ctypes.windll.psapi.GetProcessMemoryInfo(
-            ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(m),
-            m.cb)
+        # The 15:07 run printed 0.0 GB: the call had failed and the
+        # struct stayed zeroed, because a BOOL failure returns 0 rather
+        # than raising. Try kernel32's K32 export first, which is the
+        # one present on a plain Windows install, and TRUST NOTHING that
+        # does not return non-zero.
+        ok = 0
+        for dll, fn in (("kernel32", "K32GetProcessMemoryInfo"),
+                        ("psapi", "GetProcessMemoryInfo")):
+            try:
+                f = getattr(getattr(ctypes.windll, dll), fn)
+            except Exception:
+                continue
+            ok = f(ctypes.windll.kernel32.GetCurrentProcess(),
+                   ctypes.byref(m), m.cb)
+            if ok:
+                break
+        if not ok:
+            return float("nan")
         return m.WorkingSetSize / 1e9
     except Exception:
         try:
