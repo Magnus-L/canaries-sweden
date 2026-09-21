@@ -70,6 +70,18 @@ class _Tee:
         self._f.flush()
 
 
+
+# Shared modules every stage imports. A change to any of these makes an
+# existing result stale, exactly as a change to the stage script does.
+# Discovered the hard way on 21 September 2026: see the note in run().
+_DEP_NAMES = ("mona_common.py", "r_fepois.R", "r_fepois_es.R",
+              "r_fepois_multi.R")
+
+
+def _deps():
+    return [HERE / n for n in _DEP_NAMES]
+
+
 def run(lane: str, stages: list):
     """stages: (script, the file that proves it finished, expected minutes)."""
     _Tee(HERE / f"run_lane{lane}_log.txt")
@@ -86,11 +98,21 @@ def run(lane: str, stages: list):
         # previous version was still sitting there, and the lane reported
         # success having done nothing. So the marker only counts if it is
         # newer than the script that produced it.
-        if marker.exists() and src.exists() and \
-                src.stat().st_mtime > marker.stat().st_mtime:
+        # ...and "THIS code" means the script AND everything it imports.
+        # On 21 Sep a fix to mona_common.py was uploaded, lane 19 was
+        # resubmitted twice, and both runs SKIPPED, because the stage
+        # script itself had not changed. Two submissions did nothing and
+        # reported success. A shared module is part of the code that
+        # produced a result, so its timestamp counts too.
+        newest = max([src.stat().st_mtime] +
+                     [d.stat().st_mtime for d in _deps() if d.exists()]) \
+            if src.exists() else 0
+        if marker.exists() and newest > marker.stat().st_mtime:
             plan.append((script, mins))
+            why = ("the script" if src.exists()
+                   and src.stat().st_mtime == newest else "a module it imports")
             print(f"  RUN   {script:<34} about {mins} min  "
-                  f"(the script is NEWER than {done}, so the old result "
+                  f"({why} is NEWER than {done}, so the old result "
                   f"is stale and will be overwritten)")
         elif marker.exists():
             print(f"  SKIP  {script:<34} {done} exists")
