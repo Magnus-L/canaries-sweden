@@ -10,8 +10,9 @@ Modes:
   --sample   Download 1% enriched sample files (~8–15 MB each) for testing
   (default)  Download full raw JSONL files (~500 MB–1.3 GB each)
 
-Also fetches the most recent ads via the JobStream API to supplement
-the historical bulk download with the latest data.
+Also fetches JobTech's closed-quarter files for the current year.
+The JobStream API is deliberately NOT used: it returns only ads that
+are currently published, so recent months are undercounted.
 
 Data source: Arbetsförmedlingen, CC0 license.
 URL: https://data.jobtechdev.se/annonser/historiska/index.html
@@ -26,7 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (
     RAW, PLATSBANKEN_YEARS, platsbanken_url,
-    platsbanken_sample_url, JOBSTREAM_BASE,
+    platsbanken_sample_url,
+    JOBADS_CACHE, JOBTECH_BASE, quarter_files_after,
 )
 
 import requests
@@ -98,44 +100,37 @@ def download_historical(years: list[int] = None, sample: bool = False) -> list[P
     return downloaded
 
 
-def fetch_jobstream_snapshot() -> Path:
+def download_quarters() -> list[Path]:
     """
-    Fetch all currently published ads from the JobStream API.
+    Download the closed-quarter files for years past the last annual one.
 
-    The snapshot endpoint returns every ad currently live on Platsbanken.
-    This supplements the historical bulk download with the very latest
-    postings that may not yet appear in the annual files.
-
-    No authentication required (despite plan notes about API keys —
-    the docs confirm open access).
+    REPLACES fetch_jobstream_snapshot, removed 21 September 2026.
+    JobStream's /v2/snapshot returns ads CURRENTLY PUBLISHED, not
+    everything ever published, so a recent month is undercounted as its
+    ads expire; spliced onto the bulk series it produced 10,790 ads for
+    January 2026 against 40,733 for December 2025. JobTech's
+    closed-quarter files are complete. If one is already in the Monitor's
+    shared cache we use it there rather than downloading it twice.
     """
-    print("Fetching JobStream snapshot (current live ads)...")
-
-    dest = RAW / "jobstream_snapshot.jsonl"
-    if dest.exists():
-        print(f"  Already fetched: {dest.name}")
-        print("  (Delete to re-fetch)")
-        return dest
-
-    url = f"{JOBSTREAM_BASE}/v2/snapshot"
-    resp = requests.get(url, stream=True, timeout=120, headers={"Accept": "application/jsonl"})
-    resp.raise_for_status()
-
-    total = int(resp.headers.get("content-length", 0))
-    with open(dest, "wb") as f, tqdm(
-        total=total,
-        unit="B",
-        unit_scale=True,
-        desc="jobstream_snapshot",
-        disable=total == 0,
-    ) as pbar:
-        for chunk in resp.iter_content(chunk_size=8192):
-            f.write(chunk)
-            pbar.update(len(chunk))
-
-    size_mb = dest.stat().st_size / 1e6
-    print(f"  Saved: {dest.name} ({size_mb:.0f} MB)")
-    return dest
+    stems = quarter_files_after(PLATSBANKEN_YEARS[-1])
+    if not stems:
+        print("No closed quarters beyond the last annual file")
+        return []
+    print(f"Fetching closed quarters: {', '.join(stems)}")
+    out = []
+    for stem in stems:
+        cached = JOBADS_CACHE / f"{stem}.jsonl.zip"
+        if cached.exists():
+            print(f"  {stem}: already in the shared cache")
+            out.append(cached)
+            continue
+        dest = RAW / f"{stem}.jsonl.zip"
+        try:
+            download_file(f"{JOBTECH_BASE}/{stem}.jsonl.zip", dest)
+            out.append(dest)
+        except requests.HTTPError as e:
+            print(f"  WARNING: {stem} download failed ({e})")
+    return out
 
 
 def main():
@@ -173,7 +168,7 @@ def main():
         print("=" * 70)
 
         try:
-            fetch_jobstream_snapshot()
+            download_quarters()
         except Exception as e:
             print(f"  WARNING: JobStream fetch failed: {e}")
             print("  (This is optional — historical data is sufficient for the paper)")

@@ -33,6 +33,7 @@ from collections import defaultdict
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import RAW, PROCESSED, PLATSBANKEN_YEARS
+from config import (JOBADS_CACHE, quarter_files_after)
 
 import pandas as pd
 
@@ -122,9 +123,13 @@ def process_year(year: int, seen_ids: set) -> list[dict]:
     one line at a time keeps memory usage constant regardless of file size.
     """
     # Try full file first, then sample
+    # `year` may be an int (2024) or a closed-quarter stem
+    # ("2026-Q1"); both are published as <stem>.jsonl.zip.
     zip_path = RAW / f"{year}.jsonl.zip"
     if not zip_path.exists():
         zip_path = RAW / f"{year}_sample.jsonl.zip"
+    if not zip_path.exists():
+        zip_path = JOBADS_CACHE / f"{year}.jsonl.zip"
     if not zip_path.exists():
         print(f"  WARNING: No data file found for {year} — skipping")
         return []
@@ -181,44 +186,27 @@ def process_year(year: int, seen_ids: set) -> list[dict]:
     return records
 
 
-def process_jobstream(seen_ids: set) -> list[dict]:
+def process_quarters(seen_ids: set) -> list[dict]:
     """
-    Process the JobStream snapshot file (if it exists).
+    Process the closed-quarter files for years past the last annual file.
 
-    This supplements historical data with the very latest ads.
-    Same deduplication logic as historical files.
+    REPLACES process_jobstream, removed 21 September 2026. JobStream's
+    /v2/snapshot returns ads CURRENTLY PUBLISHED rather than everything
+    ever published, so any recent month is undercounted as its ads
+    expire. Spliced onto the bulk series it produced 10,790 ads for
+    January 2026 against 40,733 for December 2025, an 85 per cent drop
+    no labour market produces, and every figure built from the result
+    dived at the right edge. JobTech's closed-quarter files are complete
+    and are what the revision has used since 18 September.
     """
-    snapshot = RAW / "jobstream_snapshot.jsonl"
-    if not snapshot.exists():
-        print("  No JobStream snapshot found — skipping")
+    stems = quarter_files_after(PLATSBANKEN_YEARS[-1])
+    if not stems:
+        print("  No closed quarters beyond the last annual file")
         return []
-
-    print("  Processing JobStream snapshot...")
-    records = []
-    n_total = 0
-
-    with open(snapshot, "r", encoding="utf-8") as f:
-        for line in f:
-            n_total += 1
-            try:
-                ad = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            result = extract_ad_fields(ad)
-            if result is None:
-                continue
-
-            ad_id = result["ad_id"]
-            if ad_id and ad_id in seen_ids:
-                continue
-            if ad_id:
-                seen_ids.add(ad_id)
-
-            records.append(result)
-
-    print(f"    JobStream: {n_total:,} total | {len(records):,} new ads added")
-    return records
+    out = []
+    for stem in stems:
+        out.extend(process_year(stem, seen_ids))
+    return out
 
 
 def aggregate_to_monthly(records: list[dict]) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -263,7 +251,7 @@ def main():
     """
     Parse all Platsbanken JSONL files and produce monthly aggregates.
 
-    Processes 2020–2025 historical data plus any JobStream snapshot.
+    Processes the annual files plus any closed quarter beyond them.
     Deduplicates across all sources on ad ID.
     """
     print("=" * 70)
@@ -278,8 +266,8 @@ def main():
         records = process_year(year, seen_ids)
         all_records.extend(records)
 
-    # Process JobStream snapshot
-    records = process_jobstream(seen_ids)
+    # Process closed quarters past the last annual file
+    records = process_quarters(seen_ids)
     all_records.extend(records)
 
     print(f"\nTotal records (all years, deduplicated): {len(all_records):,}")

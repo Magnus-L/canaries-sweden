@@ -230,3 +230,51 @@ def load_postings_ssyk4(end: str = None):
     df = pd.read_csv(PROCESSED / "postings_ssyk4_monthly.csv")
     end = end or POSTINGS_END
     return df[df["year_month"] <= end].copy()
+
+
+# ----------------------------------------------------------------------
+# CLOSED-QUARTER FILES (added 21 Sep 2026, replacing the JobStream splice)
+#
+# JobTech publishes complete history as YYYY.jsonl.zip and, for the
+# current year, YYYY-QN.jsonl.zip once a quarter closes. Those are
+# complete. The JobStream API is NOT: /v2/snapshot returns ads CURRENTLY
+# PUBLISHED, so a recent month is undercounted as its ads expire, which
+# is how the 24 February build came to show 10,790 ads in January 2026
+# against 40,733 in December. Never splice a JobStream month onto a
+# bulk-file series.
+# ----------------------------------------------------------------------
+
+JOBTECH_INDEX = "https://data.jobtechdev.se/annonser/historiska/index.html"
+JOBTECH_BASE = "https://data.jobtechdev.se/annonser/historiska"
+JOBADS_CACHE = Path.home() / ".cache" / "aiel-jobads"
+
+
+def jobtech_available():
+    """Every YYYY or YYYY-QN file the server currently publishes."""
+    import re as _re, urllib.request
+    req = urllib.request.Request(
+        JOBTECH_INDEX,
+        headers={"User-Agent": "AI-Econ Lab research (mlodefalk@gmail.com)"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        html = r.read().decode("utf-8", "replace")
+    return sorted(set(_re.findall(r"(20\d\d(?:-Q[1-4])?)\.jsonl\.zip", html)))
+
+
+def quarter_files_after(last_full_year: int):
+    """
+    Closed-quarter stems for years past the last complete annual file.
+
+    Returns e.g. ["2026-Q1", "2026-Q2"]. Falls back to whatever the local
+    cache holds if the index cannot be reached, so a rerun offline still
+    uses bulk data rather than silently dropping to JobStream.
+    """
+    try:
+        avail = jobtech_available()
+    except Exception as ex:
+        print(f"  WARNING: JobTech index unreachable ({type(ex).__name__}); "
+              f"using the local cache")
+        avail = sorted(p.name.replace(".jsonl.zip", "")
+                       for p in JOBADS_CACHE.glob("*.jsonl.zip")) \
+            if JOBADS_CACHE.exists() else []
+    return [f for f in avail
+            if "-Q" in f and int(f[:4]) > last_full_year]
