@@ -112,7 +112,13 @@ def fig_scary_chart():
     print("Generating Figure 1: Scary chart...")
 
     # Load data
-    omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
+    omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0,
+                       parse_dates=True)
+    # The stock series runs two months past the postings (2026-08 against
+    # 2026-06), which leaves the right edge ragged and invites the eye to
+    # read the overhang as a divergence. Every series on a postings figure
+    # stops where the postings stop.
+    omxs = omxs[omxs.index <= pd.Timestamp(POSTINGS_END + "-01")]
     quartile = load_postings_indexed(by_quartile=True)
     quartile["date"] = pd.to_datetime(quartile["date"])
 
@@ -313,7 +319,13 @@ def fig_sweden_vs_us():
     """
     print("Generating Figure A1: Sweden vs US comparison...")
 
-    omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
+    omxs = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0,
+                       parse_dates=True)
+    # The stock series runs two months past the postings (2026-08 against
+    # 2026-06), which leaves the right edge ragged and invites the eye to
+    # read the overhang as a divergence. Every series on a postings figure
+    # stops where the postings stop.
+    omxs = omxs[omxs.index <= pd.Timestamp(POSTINGS_END + "-01")]
     postings = load_postings_indexed(by_quartile=False)
     postings["date"] = pd.to_datetime(postings["date"])
     postings = postings.set_index("date")
@@ -455,7 +467,10 @@ def fig_omxspi_scary_chart():
         return
 
     omxspi = pd.read_csv(omxspi_path, index_col=0, parse_dates=True)
-    omxs30 = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0, parse_dates=True)
+    omxspi = omxspi[omxspi.index <= pd.Timestamp(POSTINGS_END + "-01")]
+    omxs30 = pd.read_csv(PROCESSED / "omxs30_monthly.csv", index_col=0,
+                         parse_dates=True)
+    omxs30 = omxs30[omxs30.index <= pd.Timestamp(POSTINGS_END + "-01")]
     postings = load_postings_indexed(by_quartile=False)
     postings["date"] = pd.to_datetime(postings["date"])
     postings = postings.set_index("date")
