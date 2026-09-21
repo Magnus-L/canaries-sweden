@@ -936,7 +936,8 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
 
 def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
                      terms: list, cluster: str = "employer_id",
-                     fes: tuple = ("fe_emp_bin", "fe_emp_t")) -> pd.DataFrame:
+                     fes: tuple = ("fe_emp_bin", "fe_emp_t"),
+                     nthreads: int = 0) -> pd.DataFrame:
     """Poisson with an arbitrary term list via r_fepois_multi.R."""
     workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_multi_{tag}.csv"
@@ -947,6 +948,7 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     cmd = [_rscript(), str(_THIS_DIR / "r_fepois_multi.R"),
            "--input", str(inp), "--output", str(outp),
            "--nrows", str(len(panel)),
+           *(["--nthreads", str(nthreads)] if nthreads else []),
            "--terms", ",".join(terms), "--cluster", cluster,
            "--fe", ",".join(fes)]
     r = subprocess.run(cmd, capture_output=True, text=True,
