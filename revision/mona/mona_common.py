@@ -823,7 +823,7 @@ def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
 
 
 def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
-                   recode: tuple = ()) -> Path:
+                   recode: tuple = (), cluster: str = "") -> Path:
     """
     Write the R exchange file, COMPACTLY, and return the path actually used.
 
@@ -852,6 +852,24 @@ def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
     cols = list(dict.fromkeys(cols))
     out = panel[cols]
     recode = [c for c in recode if c in out.columns]
+    # The CLUSTER column is recoded too, when it is not already numeric.
+    # A cluster label is used for grouping and nothing else, exactly like
+    # a fixed effect: on 21 Sep 2026 script 73 normalised employer_id to
+    # a STRING for a merge and left it that way, so R read 26 million
+    # character values into a vector plus a string cache and died with
+    # *** recursive gc invocation -- on a panel SMALLER and simpler than
+    # one 68 had fitted the same morning with that column as int64. The
+    # difference was the dtype, not the size.
+    #
+    # Only the cluster, NOT every non-numeric column: run_fepois_es
+    # carries `halfyear` as text and uses it SEMANTICALLY, since --ref
+    # names one of its levels. Factorising that returned NaN coefficients
+    # and the harness caught it the moment the rule was made general.
+    if (cluster and cluster in out.columns and cluster not in recode
+            and not pd.api.types.is_numeric_dtype(out[cluster])):
+        recode = list(recode) + [cluster]
+        print(f"  exchange: factorising the cluster column {cluster!r} "
+              f"(its labels are never used)")
     if recode:
         out = out.copy()
         for c in recode:
@@ -875,7 +893,8 @@ def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,
     cols = ["n_emp", "post_rb_x_high", "post_gpt_x_high",
             "fe_emp_bin", "fe_emp_t", cluster]
     inp = _write_r_input(panel, cols, inp,
-                         recode=("fe_emp_bin", "fe_emp_t"))
+                         recode=("fe_emp_bin", "fe_emp_t"),
+                         cluster=cluster)
     cmd = [_rscript(), str(R_FEPOIS), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster,
            "--nrows", str(len(panel))]
@@ -900,7 +919,8 @@ def run_fepois_es(panel: pd.DataFrame, workdir: Path, tag: str,
     # `halfyear` is NOT recoded: r_fepois_es.R names its coefficients after
     # the level ("halfyear2021H1") and matches --ref against the label.
     inp = _write_r_input(panel, cols, inp,
-                         recode=("fe_emp_bin", "fe_emp_t"))
+                         recode=("fe_emp_bin", "fe_emp_t"),
+                         cluster=cluster)
     cmd = [_rscript(), str(R_FEPOIS_ES), "--input", str(inp),
            "--output", str(outp), "--cluster", cluster, "--ref", ref,
            "--nrows", str(len(panel))]
@@ -922,7 +942,8 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
     inp = workdir / f"_rin_multi_{tag}.csv"
     outp = workdir / f"_rout_multi_{tag}.csv"
     cols = ["n_emp"] + list(terms) + list(fes) + [cluster]
-    inp = _write_r_input(panel, cols, inp, recode=tuple(fes))
+    inp = _write_r_input(panel, cols, inp, recode=tuple(fes),
+                         cluster=cluster)
     cmd = [_rscript(), str(_THIS_DIR / "r_fepois_multi.R"),
            "--input", str(inp), "--output", str(outp),
            "--nrows", str(len(panel)),

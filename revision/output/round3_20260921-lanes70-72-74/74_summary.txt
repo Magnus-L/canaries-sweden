@@ -1,0 +1,12 @@
+74 the age contrast, with and without the calendar cycle
+======================================================================
+
+Coefficients are differences from the 41-49 band. A negative number means the band declined MORE than 41-49 did.
+
+plain    22-25 vs 41-49 -0.0357 (0.0135) t -2.64
+seasonal 22-25 vs 41-49 -0.0153 (0.0126) t -1.21
+the plain arm reproduces lane 16 (-0.0357), so the comparison is valid
+SEASONAL. The contrast is partly the calendar. The paper cannot lead on the young being distinctively hit; the framing moves to the spreading pattern and the composition of adjustment.
+seasonal 26-30 vs 41-49 -0.0091 (0.0086) t -1.05
+
+The seasonal terms are per band for the same reason the treatment is: with firm-level exposure, high x quarter is constant within employer-month and the employer-by-month effects absorb it. Q4 is omitted, matching 68.
