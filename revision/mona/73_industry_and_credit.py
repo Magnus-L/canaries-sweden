@@ -126,6 +126,55 @@ def _mod(fname: str, name: str):
     return m
 
 
+def _rss_gb() -> float:
+    """
+    This process's resident memory in GB, stdlib only.
+
+    Python and R share the job's allocation, so what Python is holding
+    when it spawns R is the budget R does not get. mem_available_gb()
+    reports the NODE and is useless for this.
+    """
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class _PMC(ctypes.Structure):
+            _fields_ = [("cb", wintypes.DWORD),
+                        ("PageFaultCount", wintypes.DWORD),
+                        ("PeakWorkingSetSize", ctypes.c_size_t),
+                        ("WorkingSetSize", ctypes.c_size_t),
+                        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                        ("PagefileUsage", ctypes.c_size_t),
+                        ("PeakPagefileUsage", ctypes.c_size_t)]
+        m = _PMC(); m.cb = ctypes.sizeof(_PMC)
+        ctypes.windll.psapi.GetProcessMemoryInfo(
+            ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(m),
+            m.cb)
+        return m.WorkingSetSize / 1e9
+    except Exception:
+        try:
+            import resource
+            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e9
+        except Exception:
+            return float("nan")
+
+
+# THREADS. This is why 73 kept dying where 68 lived. fixest defaults to
+# every core and each thread carries its own demeaning workspace, so peak
+# memory scales with the core count while the job cap does not. 68 ran
+# when fewer lanes were up; 73 ran with three lanes on the same node, and
+# died at 26.4M rows on a fit 68 had done at 36.5M. The signature is
+# rc=3221225477 with "*** recursive gc invocation", R's collector giving
+# up, and the node reporting 468 GB free at that moment: the machine had
+# the memory, this job did not. Two threads costs wall-clock and buys the
+# fit. The env var CANARIES_R_THREADS cannot be set from the MONA batch
+# submitter, which is why this now travels on the command line.
+R_THREADS = 2
+
+
 def norm_id(x) -> pd.Series:
     """One canonical spelling on both sides of every join (see 71)."""
     v = pd.Series(x).astype(str).str.strip()
@@ -439,7 +488,8 @@ def base_terms(b: pd.DataFrame) -> tuple:
 def fit(b, terms, fes, tag):
     print(f"    {tag}: {len(b):,} rows, {b['employer_id'].nunique():,} firms"
           f"{mc.mem_line(' | ')}")
-    r = mc.run_fepois_multi(b, OUT, tag=f"r73_{tag}", terms=terms, fes=fes)
+    r = mc.run_fepois_multi(b, OUT, tag=f"r73_{tag}", terms=terms, fes=fes,
+                            nthreads=R_THREADS)
     if r.empty:
         FAILURES.append(tag)
         return None
@@ -467,6 +517,9 @@ def gate(b, cov, label) -> bool:
 def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     l61 = _mod("61_redated_triple.py", "l61")
     skel = l61.build_skeleton(counts, band, j47)
+    # counts is 43.8M rows and is not needed again in this band. main()
+    # still holds it for the next band, so this only helps if main drops
+    # it too -- see the loop there.
     if skel.empty:
         print(f"  {band}: skeleton empty"); return
     # Normalise BEFORE the merge, not after. On 21 September both bands
@@ -481,16 +534,48 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     if b0.empty:
         print(f"  {band}: no firms matched exposure"); return
     b0["high"] = (b0["fq"] == 4).astype(int)
+    # norm_id leaves employer_id as ~26M Python strings, which every fit
+    # then re-hashes (nunique, the cluster factorisation, the merges).
+    # The joins are done by here and the labels are never reported, so
+    # swap in one compact code and keep the lookup for the arms that
+    # still need to match on the original id.
+    id_codes, id_labels = pd.factorize(b0["employer_id"], sort=False)
+    id_map = pd.Series(np.arange(len(id_labels), dtype="int32"),
+                       index=id_labels)
+    b0["employer_id"] = id_codes.astype("int32")
+    ind = ind.assign(employer_id=ind["employer_id"].map(id_map)).dropna(
+        subset=["employer_id"]) if len(ind) else ind
+    lev = lev.assign(employer_id=lev["employer_id"].map(id_map)).dropna(
+        subset=["employer_id"]) if len(lev) else lev
+    if len(ind):
+        ind["employer_id"] = ind["employer_id"].astype("int32")
+    if len(lev):
+        lev["employer_id"] = lev["employer_id"].astype("int32")
+    failed = {int(v) for v in pd.Series(list(failed)).map(id_map).dropna()} \
+        if failed else failed
+    del id_codes, id_labels, id_map
+    gc.collect()
 
-    # the baseline every comparison below is read against
-    b, terms = base_terms(b0.copy())
-    base = fit(b, terms, j47.FES, f"base_{band}")
+    # THE BASELINE FIT, and the reason 73 kept dying where 68 did not.
+    # Python and R share ONE job allocation. 68 holds counts and a single
+    # panel when it spawns R; 73 was holding counts (43.8M rows), skel,
+    # b0 AND a .copy() of b0 -- four large frames -- so R got what was
+    # left. Build the terms in place, drop everything not needed, and
+    # say how much the process is using so the next run settles it
+    # instead of another guess.
+    b0, terms = base_terms(b0)
+    gc.collect()
+    print(f"    python holding {_rss_gb():.1f} GB before the baseline fit")
+    base = fit(b0, terms, j47.FES, f"base_{band}")
+    for c in terms:
+        if c in b0.columns:
+            del b0[c]
+    gc.collect()
+    b = None
     if base:
         sinks["ind"].append({"band": band, "spec": "baseline",
                              **dict(zip(("coef", "se"),
                                         base["post_x_high_x_young"]))})
-    del b
-    gc.collect()
 
     # PART A
     if len(ind) and gate(b0, ind, f"industry/{band}"):
@@ -676,9 +761,12 @@ def main():
         raise SystemExit(f"counts end at {last}, before {POOLED_FROM}.")
 
     sinks = {"ind": [], "lev": [], "bank": []}
+    print(f"  python holding {_rss_gb():.1f} GB before the first band")
     for band in YOUNG_BANDS:
         opt(f"band {band}", run_band, counts, expo, ind, lev, failed, band,
             j47, sinks)
+        gc.collect()
+        print(f"  python holding {_rss_gb():.1f} GB after band {band}")
 
     dfi = pd.DataFrame(sinks["ind"])
     dfl = pd.DataFrame(sinks["lev"])

@@ -77,8 +77,14 @@ if (!file.exists(input_path)) {
 # invocation", R's collector failing while the node reported 500 GB free.
 # Override with CANARIES_R_THREADS when a lane runs alone.
 # ---------------------------------------------------------------------
-.threads <- suppressWarnings(as.integer(Sys.getenv("CANARIES_R_THREADS",
-                                                   "8")))
+# The env var cannot be set from inside the MONA batch submitter, so the
+# thread count has to arrive on the command line or it is never honoured.
+# Precedence: --nthreads, then CANARIES_R_THREADS, then 8.
+.threads <- suppressWarnings(as.integer(parse_arg(args, "--nthreads",
+                                                  default = NA_character_)))
+if (is.na(.threads))
+    .threads <- suppressWarnings(as.integer(
+        Sys.getenv("CANARIES_R_THREADS", "8")))
 if (is.na(.threads) || .threads < 1) .threads <- 8
 if (requireNamespace("fixest", quietly = TRUE)) {
     try(fixest::setFixest_nthreads(.threads), silent = TRUE)
