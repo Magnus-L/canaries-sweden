@@ -219,8 +219,38 @@ def firm_industry(conn, schema) -> pd.DataFrame:
                     else " (NO YEAR COLUMN, vintage unverified)"))
     # three digits: finer splits the sample thin, coarser stops absorbing
     # the age shocks this exists to absorb. Stated, not tuned.
-    d["ind3"] = d["ind"].astype(str).str.replace(r"\D", "", regex=True)
-    d = d[d["ind3"].str.len().between(2, 3)].drop_duplicates("employer_id")
+    # The 10:33 run found the RIGHT table and returned 0 firms, so the
+    # year filter or the column contents were wrong and the script said
+    # nothing useful about which. Diagnose in place: report what came
+    # back, and retry without the year filter rather than returning an
+    # empty frame and a silent Part A.
+    def _clean(f):
+        f = f.copy()
+        f["ind3"] = (f["ind"].astype(str).str.strip()
+                     .str.replace(r"\D", "", regex=True))
+        return f[f["ind3"].str.len().between(2, 5)]
+
+    got = _clean(d)
+    if got.empty and yrc and len(d) == 0:
+        NOTES.append(f"{tab}: {yrc}={BASE_YEAR} returned no rows; "
+                     f"retrying unfiltered and taking the modal industry")
+        d = pd.read_sql(sel + f" FROM dbo.[{tab}]", conn)
+        d["employer_id"] = norm_id(d["employer_id"])
+        if yrc and "yr" in d.columns:
+            yv = pd.to_numeric(d["yr"], errors="coerce")
+            NOTES.append(f"{tab}: {yrc} values seen: "
+                         f"{sorted(yv.dropna().unique())[:12]}")
+            near = d[yv <= BASE_YEAR]
+            d = near if len(near) else d
+        got = _clean(d)
+    if got.empty:
+        raw = sorted({str(x)[:8] for x in d["ind"].dropna().unique()})[:12]
+        NOTES.append(f"{tab}: no usable industry code. {len(d):,} rows "
+                     f"read; distinct raw values: {raw}")
+        return pd.DataFrame()
+    # ng3 is the three-digit level; anything longer is truncated to three
+    got["ind3"] = got["ind3"].str[:3]
+    d = got.drop_duplicates("employer_id")
     print(f"  industry: {tab} via {ind}, {len(d):,} firms, "
           f"{d['ind3'].nunique()} three-digit groups")
     return d[["employer_id", "ind3"]]

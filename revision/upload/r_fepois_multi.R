@@ -107,6 +107,28 @@ formula_str <- paste0("n_emp ~ ", paste(terms, collapse = " + "),
                       " | ", paste(fes, collapse = " + "))
 cluster_formula <- as.formula(paste("~", cluster_col))
 
+# ---------------------------------------------------------------------
+# THREADS. fixest defaults to every core on the machine, and each thread
+# carries its own working buffers, so peak memory scales with the core
+# count. With three lanes running at once on a large node that is three
+# times all cores, and on 21 September 2026 it took down fits at 26
+# million rows that had succeeded at 36 million when fewer lanes ran.
+# The symptom is rc=3221225477 with "*** recursive gc invocation", which
+# is R's collector failing, not the machine running out: the node
+# reported over 500 GB free at the time.
+#
+# A modest thread count costs wall-clock and buys the fit completing.
+# Override with CANARIES_R_THREADS when a lane runs alone.
+# ---------------------------------------------------------------------
+.threads <- suppressWarnings(as.integer(Sys.getenv("CANARIES_R_THREADS",
+                                                   "8")))
+if (is.na(.threads) || .threads < 1) .threads <- 8
+if (requireNamespace("fixest", quietly = TRUE)) {
+    try(fixest::setFixest_nthreads(.threads), silent = TRUE)
+}
+try(data.table::setDTthreads(.threads), silent = TRUE)
+cat(sprintf("threads: %d\n", .threads))
+
 t0 <- Sys.time()
 fit <- tryCatch(
     fixest::fepois(as.formula(formula_str), data = df,

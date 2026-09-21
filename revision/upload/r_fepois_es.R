@@ -68,6 +68,24 @@ if (!file.exists(input_path)) {
     quit(status = 1)
 }
 
+# ---------------------------------------------------------------------
+# THREADS. fixest defaults to every core, and each thread carries its own
+# working buffers, so peak memory scales with the core count. Three lanes
+# at once is three times all cores, and on 21 September 2026 that took
+# down fits at 26 million rows that had succeeded at 36 million when
+# fewer lanes ran. Symptom: rc=3221225477 and "*** recursive gc
+# invocation", R's collector failing while the node reported 500 GB free.
+# Override with CANARIES_R_THREADS when a lane runs alone.
+# ---------------------------------------------------------------------
+.threads <- suppressWarnings(as.integer(Sys.getenv("CANARIES_R_THREADS",
+                                                   "8")))
+if (is.na(.threads) || .threads < 1) .threads <- 8
+if (requireNamespace("fixest", quietly = TRUE)) {
+    try(fixest::setFixest_nthreads(.threads), silent = TRUE)
+}
+try(data.table::setDTthreads(.threads), silent = TRUE)
+cat(sprintf("threads: %d\n", .threads))
+
 read_exchange <- function(path) {
     if (requireNamespace("data.table", quietly = TRUE)) {
         cat("reader: data.table::fread\n")
