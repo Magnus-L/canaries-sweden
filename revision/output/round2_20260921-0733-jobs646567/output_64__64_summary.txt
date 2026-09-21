@@ -1,0 +1,93 @@
+THE WITHIN-EMPLOYER PATH, QUARTER BY QUARTER
+====================================================
+
+Young against older workers inside one employer in one month,
+exposure from the education mix of incumbents aged 31+ in 2019,
+one coefficient per quarter with 2022Q3 omitted.
+
+OL_daioe, asof codes, young = 22-25:
+  2021Q1   -0.0804 (0.0214)  *
+  2021Q2   -0.0548 (0.0153)  *
+  2021Q3   -0.0233 (0.0091)  *
+  2021Q4   +0.0729 (0.0148)  *
+  2022Q1   -0.0795 (0.0193)  *
+  2022Q2   -0.0445 (0.0122)  *
+  2022Q4   +0.0902 (0.0125)  *
+  2023Q1   -0.0626 (0.0218)  *
+  2023Q2   -0.0459 (0.0162)  *
+  2023Q3   -0.0136 (0.0119)
+  2023Q4   +0.0656 (0.0170)  *
+  2024Q1   -0.0659 (0.0231)  *
+  2024Q2   -0.0539 (0.0195)  *
+  2024Q3   -0.0444 (0.0166)  *
+  2024Q4   +0.0336 (0.0216)
+  2025Q1   -0.0583 (0.0304)
+  2025Q2   -0.0823 (0.0270)  *
+  pre-period NOT FLAT: largest single quarter +0.0729 (0.0148) at 2021Q4, t 4.94; drift +0.0023 per quarter, t +0.63
+  from 2024Q1: 5 of 6 quarters negative, 4 of them beyond two standard errors
+
+OL_daioe, true codes, young = 22-25:
+  2021Q1   -0.0766 (0.0201)  *
+  2021Q2   -0.0542 (0.0148)  *
+  2021Q3   -0.0226 (0.0090)  *
+  2021Q4   +0.0762 (0.0131)  *
+  2022Q1   -0.0734 (0.0181)  *
+  2022Q2   -0.0425 (0.0119)  *
+  2022Q4   +0.0923 (0.0119)  *
+  2023Q1   -0.0621 (0.0221)  *
+  2023Q2   -0.0503 (0.0163)  *
+  2023Q3   -0.0202 (0.0109)
+  2023Q4   +0.0615 (0.0174)  *
+  2024Q1   -0.0695 (0.0234)  *
+  2024Q2   -0.0631 (0.0189)  *
+  2024Q3   -0.0558 (0.0140)  *
+  2024Q4   +0.0247 (0.0219)
+  2025Q1   -0.0637 (0.0309)  *
+  2025Q2   -0.0931 (0.0265)  *
+  pre-period NOT FLAT: largest single quarter +0.0762 (0.0131) at 2021Q4, t 5.82; drift +0.0032 per quarter, t +0.91
+  from 2024Q1: 5 of 6 quarters negative, 5 of them beyond two standard errors
+
+OL_daioe, true codes, young = 26-30:
+  2021Q1   -0.0381 (0.0071)  *
+  2021Q2   -0.0294 (0.0062)  *
+  2021Q3   -0.0238 (0.0048)  *
+  2021Q4   +0.0195 (0.0051)  *
+  2022Q1   -0.0153 (0.0046)  *
+  2022Q2   -0.0097 (0.0030)  *
+  2022Q4   +0.0451 (0.0031)  *
+  2023Q1   -0.0059 (0.0068)
+  2023Q2   -0.0076 (0.0064)
+  2023Q3   -0.0059 (0.0065)
+  2023Q4   +0.0298 (0.0073)  *
+  2024Q1   -0.0208 (0.0100)  *
+  2024Q2   -0.0238 (0.0099)  *
+  2024Q3   -0.0300 (0.0098)  *
+  2024Q4   +0.0055 (0.0105)
+  2025Q1   -0.0690 (0.0139)  *
+  2025Q2   -0.0878 (0.0155)  *
+  pre-period NOT FLAT: largest single quarter -0.0381 (0.0071) at 2021Q1, t 5.37; drift +0.0044 per quarter, t +3.87
+  from 2024Q1: 5 of 6 quarters negative, 5 of them beyond two standard errors
+
+ARTEFACT ON THE PATH: the largest quarterly gap between
+the as-of and true arms at 22-25 is 0.0114.
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The pre-period test comes first. A drifting pre-period ends
+     the headline. Both thresholds, 2.5 standard errors
+     on any single quarter and 2.0 on the drift across
+     them, were fixed before these numbers existed.
+  2. 2023Q4 contains the two months script 61 reported as positive
+     and declined to interpret. The same applies here.
+  3. A decline in one quarter is not a path. Three of the five
+     quarters from 2024Q1 is.
+  4. Quarters are not independent draws, so counting stars across
+     them is not a test. The shape is the evidence.
+  5. 2025 is the preliminary AGI file and stops in June, so 2025Q2
+     is a two-month quarter.
+  6. The month-by-age fixed effect absorbs the average response
+     across firms, so every coefficient is a deviation from that
+     average rather than an absolute change. With the exposed
+     quartile at a quarter of employment, the absolute effect is
+     larger than what is printed here by roughly a third.
+
+Runtime 35.2 min. memory available: 723.1 GB

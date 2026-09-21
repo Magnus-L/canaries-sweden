@@ -1,0 +1,38 @@
+THE SAME DESIGN, CLASSIFIED BY OCCUPATION INSTEAD
+====================================================
+
+Firm exposure from the 2019 OCCUPATIONS of incumbents aged 31+,
+against 61's education mix of the same incumbents. Same panel,
+same windows, same fixed effects, same floor on incumbents.
+
+POOLED from 2024-01, occupational classification:
+  22-25  -0.0301 (0.0268) t -1.12
+  26-30  -0.0482 (0.0085) t -5.67
+
+THE TWO REGISTERS SIDE BY SIDE, pooled from 2024-01:
+  band    education      occupation
+  22-25  -0.0509 (0.0122)   -0.0301 (0.0268)
+  26-30  -0.0437 (0.0079)   -0.0482 (0.0085)
+
+STEP, young = 22-25: launch -0.0131(-1.0)  copilot +0.0831(+5.3)  adoption -0.0290(-0.9)
+
+FITS THAT FAILED: step/26-30
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. Agreement in sign is the claim: the result does not depend on
+     which register classifies the firm. Agreement in size is not
+     expected, since the two measures rank firms differently and
+     each is standardised on its own distribution.
+  2. Education stays primary. The occupation register samples about
+     half the workforce and about two per cent of the smallest
+     firms, and SCB says the imputed part is not built for
+     analysing transitions. That is a coverage argument and it is
+     not settled by this comparison.
+  3. About a third of 2019 occupation codes were assigned earlier,
+     so this measure is pre-treatment but not contemporaneous. That
+     attenuates it and cannot manufacture a result.
+  4. No as-of arm is run here and none is needed: the measure uses
+     2019 codes only, and 2019 is final. The lag this project is
+     about lives in the years after it.
+
+Runtime 13.0 min. memory available: 734.9 GB

@@ -1,5 +1,5 @@
 # Canaries: what the evidence supports
-*Assembled 2026-09-20 21:51 by `revision/assemble.py`. Submitted headline, ages 22-25: -0.174.*
+*Assembled 2026-09-21 07:36 by `revision/assemble.py`. Submitted headline, ages 22-25: -0.174.*
 
 > Pre-committed before the runs (47b's docstring, repeated in 47h, 47i and 47j): an artefact below 0.05 in absolute value at BOTH truncations means the design can carry register evidence; between that and half the occupation artefact (0.153 at T=2021, 0.081 at T=2022) it is usable only with the artefact stated beside every estimate; at or above half, the route is closed by lag.
 

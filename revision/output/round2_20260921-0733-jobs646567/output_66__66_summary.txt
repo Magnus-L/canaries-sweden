@@ -1,0 +1,67 @@
+WHAT AN EXPOSED FIRM ACTUALLY EXPERIENCED
+====================================================
+
+Descriptive, on the same firm classification as the headline.
+Pre is 2022-01 to 2023-12; post is 2024-01 onward.
+Nothing is controlled for. Read these beside the estimates, never instead of them.
+
+The exposed quartile is 25.0% of incumbent employment, so an
+exposed firm sits 0.75 of any coefficient below the national
+average and the rest sit 0.25 of it above.
+
+EMPLOYMENT, 22-25 relative to workers 31 and over,
+change from the pre period to the post period:
+  quartile 1: -0.0544
+  quartile 2: -0.0515
+  quartile 3: -0.0470
+  quartile 4: -0.0842
+  exposed minus the rest: -0.0333
+
+EMPLOYMENT, 26-30 relative to workers 31 and over,
+change from the pre period to the post period:
+  quartile 1: -0.1126
+  quartile 2: -0.0953
+  quartile 3: -0.0873
+  quartile 4: -0.1299
+  exposed minus the rest: -0.0315
+
+HIRING, 22-25 relative to workers 31 and over, change pre to post:
+  quartile 1: -0.0195
+  quartile 2: -0.0225
+  quartile 3: -0.0180
+  quartile 4: -0.0216
+  exposed minus the rest: -0.0016
+
+HIRING, 26-30 relative to workers 31 and over, change pre to post:
+  quartile 1: -0.0866
+  quartile 2: -0.0910
+  quartile 3: -0.0979
+  quartile 4: -0.1459
+  exposed minus the rest: -0.0541
+
+SEPARATIONS, 22-25 relative to workers 31 and over, change pre to post:
+  quartile 1: -0.0624
+  quartile 2: -0.0796
+  quartile 3: -0.0608
+  quartile 4: -0.0079
+  exposed minus the rest: +0.0597
+
+SEPARATIONS, 26-30 relative to workers 31 and over, change pre to post:
+  quartile 1: -0.1156
+  quartile 2: -0.1263
+  quartile 3: -0.1190
+  quartile 4: -0.0990
+  exposed minus the rest: +0.0213
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. These are raw means. Composition, firm size and the business
+     cycle are all inside them, which is exactly why the regression
+     exists. Never present one as though it were the other.
+  2. The raw exposed-minus-rest figure will be larger than the
+     estimate. That is expected: the estimate removes everything
+     the fixed effects remove, and teleworkability besides.
+  3. Every printed cell rests on at least 5 firms; thinner cells are dropped rather than blanked.
+  4. The pre window starts in 2022 rather than 2019, so the
+     comparison is not contaminated by the pandemic recovery.
+
+Runtime 2.6 min. memory available: 733.2 GB
