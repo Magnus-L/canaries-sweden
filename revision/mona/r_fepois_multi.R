@@ -136,12 +136,18 @@ cluster_formula <- as.formula(paste("~", cluster_col))
 # ---------------------------------------------------------------------
 # THREADS. fixest defaults to every core on the machine, and each thread
 # carries its own working buffers, so peak memory scales with the core
-# count. With three lanes running at once on a large node that is three
-# times all cores, and on 21 September 2026 it took down fits at 26
-# million rows that had succeeded at 36 million when fewer lanes ran.
-# The symptom is rc=3221225477 with "*** recursive gc invocation", which
-# is R's collector failing, not the machine running out: the node
-# reported over 500 GB free at the time.
+# count inside the job's own allocation. The symptom when it runs out is
+# rc=3221225477 with "*** recursive gc invocation", R's collector
+# failing.
+#
+# This is NOT contention between lanes. An earlier version of this note
+# blamed three lanes running at once; 178 log lines across the whole
+# revision report the node between 362 and 738 GB free, including every
+# crash, so the machine was never short. What binds is the per-job cap
+# and, more than threads, the NUMBER of fixed effects: on 21 September
+# a 30.5M-row fit with three effects succeeded while a 28.5M-row fit
+# with four died at two threads in the same job. Drop a nested,
+# redundant effect before reaching for the thread count.
 #
 # A modest thread count costs wall-clock and buys the fit completing.
 # Override with CANARIES_R_THREADS when a lane runs alone.

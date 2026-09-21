@@ -70,12 +70,16 @@ if (!file.exists(input_path)) {
 
 # ---------------------------------------------------------------------
 # THREADS. fixest defaults to every core, and each thread carries its own
-# working buffers, so peak memory scales with the core count. Three lanes
-# at once is three times all cores, and on 21 September 2026 that took
-# down fits at 26 million rows that had succeeded at 36 million when
-# fewer lanes ran. Symptom: rc=3221225477 and "*** recursive gc
-# invocation", R's collector failing while the node reported 500 GB free.
-# Override with CANARIES_R_THREADS when a lane runs alone.
+# working buffers, so peak memory scales with the core count inside the
+# job's own allocation. Symptom when it runs out: rc=3221225477 and
+# "*** recursive gc invocation", R's collector failing.
+#
+# This is NOT contention between lanes. An earlier version of this note
+# blamed three lanes at once; 178 log lines across the revision report
+# the node between 362 and 738 GB free, including every crash. What
+# binds is the per-job cap and, more than threads, the NUMBER of fixed
+# effects: on 21 September a 30.5M-row fit with three effects succeeded
+# while a 28.5M-row fit with four died at two threads in the same job.
 # ---------------------------------------------------------------------
 # The env var cannot be set from inside the MONA batch submitter, so the
 # thread count has to arrive on the command line or it is never honoured.
