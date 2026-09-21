@@ -66,6 +66,6 @@ script 32's architecture (panel cache, staged outputs, `_Tee` logging, crash rec
   `r_fepois_multi.R` e2e-tested against a known DGP with local fixest 0.14.
 - **Waiting:** 47 (Erik's education-exposure do-files).
 - Upload set for the MONA trip: **`upload/` is the staged set — see `upload/UPLOAD.md`**.
-  `.py` uploads directly (the .txt dance has been obsolete for Python since 12 Aug 2026);
-  only `.R` and `.csv` still travel as `.txt` and are renamed on arrival, since neither is
-  an allowed portal format. Destination: `P1207_Gem\Magnus_P1207\canaries-sweden\`.
+  **`.py` and `.R` both upload directly (ML confirmed 21 Sep 2026); the .txt rename is
+  over for scripts and `.txt` twins must NOT be kept, because on 21 Sep the twins drifted
+  and shipped a crash fix as a no-op.** Only `.csv` still needs converting, to `.dta`. Destination: `P1207_Gem\Magnus_P1207\canaries-sweden\`.

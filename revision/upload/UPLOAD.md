@@ -1,5 +1,14 @@
 # MONA trip — EL67898 revision, round 1
 
+> **UPLOAD FORMATS CHANGED, 21 September 2026.** `.py` and `.R` both upload
+> **directly** under their own names. The `.txt` rename is over for scripts, and
+> `.txt` twins of `.R` files have been deleted: on the morning of 21 September the
+> twins drifted, the `.R` carried a crash fix and the `.txt` did not, and the file
+> that uploaded was the stale one. Any instruction below that still says "upload as
+> .txt, rename to .py/.R" is obsolete. `.csv` is still not accepted; ship data as
+> `.dta` parts under ~8 MB.
+
+
 Staged 3 Sep; destination rebuilt 4 Sep. **16 uploadable files**; `UPLOAD.md` stays local
 (`.md` is not an allowed portal format). Largest file is 17 KB against a 10 MB cap.
 
@@ -75,9 +84,9 @@ dance — the scripts read either extension. **Only the three R files still need
 | 8 | `44_decile_gradient.py` | `revision/upload/` | `round1_EL67898\` | — |
 | 9 | `45_asof_backtest.py` | `revision/upload/` | `round1_EL67898\` | — |
 | 10 | `46_wfh_horserace.py` | `revision/upload/` | `round1_EL67898\` | — |
-| 11 | `r_fepois.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois.R`** |
-| 12 | `r_fepois_es.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois_es.R`** |
-| 13 | `r_fepois_multi.txt` | `revision/upload/` | `round1_EL67898\` | **→ `r_fepois_multi.R`** |
+| 11 | `r_fepois.R` | `revision/upload/` | `round1_EL67898\` | upload directly, no rename |
+| 12 | `r_fepois_es.R` | `revision/upload/` | `round1_EL67898\` | upload directly, no rename |
+| 13 | `r_fepois_multi.R` | `revision/upload/` | `round1_EL67898\` | upload directly, no rename |
 | 14 | `dingel_neiman_ssyk4.dta` | `revision/upload/` | **`input\`** | — |
 | 15 | `daioe_quartiles.dta` | `revision/upload/` | **`input\`** | — |
 | 16 | `MANIFEST.txt` | `revision/upload/` | `round1_EL67898\` | — |
@@ -211,7 +220,7 @@ Standalone, like 47b: submit the file itself, not a console wrapper. Two files g
 
 | File on this machine | Destination on MONA (full path) | Note |
 |---|---|---|
-| `revision/upload/47h_edu_horserace.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47h_edu_horserace.py` | upload as `.txt`, rename to `.py` beside the other scripts |
+| `revision/upload/47h_edu_horserace.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47h_edu_horserace.py` | upload directly |
 | `revision/upload/eloundou_ssyk4.dta` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\input\eloundou_ssyk4.dta` | `.dta` uploads directly, no rename; next to `daioe_quartiles.dta` |
 
 No new folder anywhere. `MANIFEST.txt` carries 47h's hash; re-upload it only if you want the
@@ -248,7 +257,7 @@ they happen to exist). Runs in any free slot.
 
 | File on this machine | Destination on MONA (full path) |
 |---|---|
-| `revision/upload/50_sim_moments.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py` (upload as `.txt`, rename to `.py`) |
+| `revision/upload/50_sim_moments.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\50_sim_moments.py` |
 
 Inputs already on the share: `input\daioe_quartiles.dta`, `input\utb_grupp2_sun2020_niva3_inr4_nyckel.dta`
 (both hash-checked). No new folder.
@@ -276,7 +285,7 @@ and their counts, and raises with a readable message if a code is missing or a s
 
 | File on this machine | Destination on MONA (full path) |
 |---|---|
-| `revision/upload/48_gender_poisson.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py` (upload as `.txt`, rename to `.py`) |
+| `revision/upload/48_gender_poisson.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\48_gender_poisson.py` |
 
 Submit standalone, or `python run_all_mona.py --only 48`. **`panel_gender.parquet` is already
 cached**, so the seven year pulls (38 min) are skipped and the run is the gate plus twelve fits,
@@ -294,7 +303,7 @@ worker's own stale education record never enters the classification -- the mecha
 
 | File on this machine | Destination on MONA (full path) |
 |---|---|
-| `revision/upload/47i_firmmix.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47i_firmmix.py` (upload as `.txt`, rename to `.py`) |
+| `revision/upload/47i_firmmix.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47i_firmmix.py` |
 
 **It needs no SQL of its own if 47h has run**: it reads 47h's cached year frames and weight
 pulls, so with a warm cache it is about 10 minutes for 48 fits. With a cold cache it pulls
@@ -321,7 +330,7 @@ one employer in one month.
 
 | File on this machine | Destination on MONA (full path) |
 |---|---|
-| `revision/upload/47j_within_employer_triple.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47j_within_employer_triple.py` (upload as `.txt`, rename to `.py`) |
+| `revision/upload/47j_within_employer_triple.py` | `\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden\round1_EL67898\47j_within_employer_triple.py` |
 
 Reads 47h's caches; about 10 minutes warm. Submit standalone, after 47h or 47i. Exports:
 `output_47j\47j_summary.txt`, `triple_estimates.csv`, `triple_quartile_sizes.csv`, `47j_log.txt`.

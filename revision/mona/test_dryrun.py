@@ -195,32 +195,30 @@ def stage_entrypoints():
 
 def stage_twins():
     """
-    The .R files travel to MONA as .txt, because .R is not an allowed
-    portal format. That makes every R wrapper two files, and on
-    21 September 2026 the pair drifted: r_fepois*.R carried the fread
-    fix for the recursive-gc crash and r_fepois*.txt still carried the
-    read.csv that caused it. The .txt is the one that actually uploads,
-    so the fix would have shipped as a no-op and the batch would have
-    died the same way a second time.
+    There must be NO .txt twin of an .R file.
 
-    Nothing about that is detectable from the .R file, which is why it
-    needs its own check rather than more care.
+    Until 21 September 2026 .R could not be uploaded to MONA and travelled
+    as .txt, so every wrapper existed twice. That morning the pair drifted:
+    r_fepois*.R carried the fix for the recursive-gc crash and r_fepois*.txt
+    still carried the read.csv that caused it. The .txt was the file that
+    uploaded, so the fix shipped as a no-op and the batch died the same way
+    a second time.
+
+    ML confirmed the same day that .py and .R now upload directly. The twins
+    are deleted and this stage exists to stop one coming back: a second copy
+    of a file is a second place for it to be wrong.
     """
-    print("\n7. UPLOAD TWINS (.R must equal its .txt)")
+    print("\n7. UPLOAD TWINS (no .txt copy of any .R)")
     up = REPO / "revision/upload"
-    twins = sorted(up.glob("*.R"))
-    if not twins:
-        record("twins", "there is at least one R wrapper to check", False,
-               "no .R found in upload/")
-        return
-    for r in twins:
+    rs = sorted(up.glob("*.R"))
+    record("twins", "there is at least one R wrapper to check", bool(rs),
+           "" if rs else "no .R found in upload/")
+    for r in rs:
         t = r.with_suffix(".txt")
-        if not t.exists():
-            record("twins", f"{r.name} has a .txt twin", False, "missing")
-            continue
-        same = r.read_bytes() == t.read_bytes()
-        record("twins", f"{r.name} == {t.name}", same,
-               "" if same else "STALE: the .txt is what uploads")
+        record("twins", f"{r.name} has no stale .txt twin", not t.exists(),
+               "" if not t.exists() else
+               "DELETE IT: .R uploads directly since 21 Sep 2026, and a "
+               "second copy is a second place to be wrong")
 
 
 def stage_import(work: Path, env: dict):
