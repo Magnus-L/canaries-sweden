@@ -127,24 +127,54 @@ COVER = {"wide": 1.0, "thin": 0.08}
 
 
 def survey(cover: str, seed=3):
-    """ITFtg-shaped rows for a share of our firms, with a planted gap."""
+    """
+    ITFtg-shaped rows with a planted gap in USE, and the barrier items
+    set to the OPPOSITE pattern.
+
+    Non-users are the ones who report barriers, so if the barrier block
+    leaks into the use flag it does not merely add noise, it pushes the
+    estimate the other way. A fixture where barriers were random would
+    have let the bug through.
+    """
     rng = np.random.default_rng(seed)
     firms = [f for f in ALLF if rng.random() < COVER[cover]]
     rows = []
     for f in firms:
         p = 0.20 + (TRUE_GAP if f in HIGH else 0.0)
-        val = "1" if rng.random() < p else "0"
-        # a realistic sprinkling of the delivery's missing marker
+        uses = rng.random() < p
+        val = "1" if uses else "0"
         if rng.random() < 0.05:
-            val = "****"
-        rows.append((f, val, val))
-    return pd.DataFrame(rows, columns=["P1207_LopNr_PeOrgNr",
-                                       "E_AI_TML", "E_AI_TNLG"])
+            val = "****"          # the delivery's missing marker
+        barrier = "0" if uses else "1"
+        rows.append((f, val, val, barrier, barrier, barrier, val))
+    return pd.DataFrame(rows, columns=[
+        "P1207_LopNr_PeOrgNr", "E_AI_TML", "E_AI_TNLG", "E_AI_BCST",
+        "E_AI_BNU", "E_AI_EC", "AI_PMS"])
+
+
+def itftg19(cover: str, seed=12):
+    """ai_itftg_2019, whose AI_USE_N is the complement of AI_USE."""
+    rng = np.random.default_rng(seed)
+    firms = [f for f in ALLF if rng.random() < COVER[cover]]
+    rows = []
+    for f in firms:
+        uses = rng.random() < (0.20 + (TRUE_GAP if f in HIGH else 0.0))
+        rows.append((f, "1" if uses else "0", "0" if uses else "1",
+                     "1" if uses else "0"))
+    return pd.DataFrame(rows, columns=["P1207_LopNr_PeOrgNr", "AI_USE",
+                                       "AI_USE_N", "AI_USE_CUST"])
 
 
 CATALOGUE = pd.DataFrame(
+    # The live 2023 table's real shape: seven technology items, but also
+    # the barrier block and "considered using AI", which are answered by
+    # NON-users and which the 21 September run counted as adoption.
     [("ITFtg_Stora_2023", c, "varchar") for c in
-     ("P1207_LopNr_PeOrgNr", "E_AI_TML", "E_AI_TNLG")]
+     ("P1207_LopNr_PeOrgNr", "E_AI_TML", "E_AI_TNLG", "E_AI_BCST",
+      "E_AI_BNU", "E_AI_EC", "AI_PMS")]
+    # and the 2019 table, whose AI_USE_N literally means "does not use"
+    + [("ai_itftg_2019", c, "varchar") for c in
+       ("P1207_LopNr_PeOrgNr", "AI_USE", "AI_USE_N", "AI_USE_CUST")]
     + [("ai_fufi_2019", c, "varchar") for c in
        ("P1207_LopNr_PeOrgNr", "AI_COST_T", "AI_COST_GOODS")]
     + [("BITA_2024", c, "varchar") for c in
@@ -198,6 +228,8 @@ def fake_read_sql(q, conn=None, *a, **kw):
     ql = str(q).lower()
     if "information_schema" in ql:
         return STATE["catalogue"].copy()
+    if "ai_itftg" in ql:
+        return itftg19(STATE["cover"]).copy()
     if "ai_fufi" in ql:
         return spend(STATE["cover"]).copy()
     if "itftg" in ql:
@@ -256,6 +288,23 @@ if (s71.OUT / "itftg_firststage.csv").exists():
     check("and it recovers a positive exposure gradient in AI spending",
           len(sp) and float(sp.iloc[0]["coef"]) > 0,
           f"{float(sp.iloc[0]['coef']):+.3f}" if len(sp) else "no row")
+    # THE 21 SEPTEMBER BUG. Barriers are answered by non-users, so if
+    # they leak into the use flag the coefficient collapses or flips.
+    an = fs[(fs.term == "high") & (fs.outcome == "ai_any")
+            & (fs.source == "ITFtg_Stora_2023")]
+    check("use EXCLUDES the barrier block, so ai_any still recovers the "
+          "planted gap rather than the barrier pattern",
+          len(an) and abs(float(an.iloc[0]["coef"]) - TRUE_GAP) < 0.08,
+          f"{float(an.iloc[0]['coef']):+.3f} vs planted {TRUE_GAP}"
+          if len(an) else "no row")
+    u19 = fs[(fs.term == "high") & (fs.outcome == "ai_any")
+             & (fs.source == "ai_itftg_2019")]
+    check("AI_USE_N is never counted as adoption",
+          len(u19) and float(u19.iloc[0]["coef"]) > 0.15,
+          f"{float(u19.iloc[0]['coef']):+.3f}" if len(u19) else "no row")
+    check("the log records which columns built the use flag",
+          any("use built from" in n for n in s71.NOTES),
+          next((n for n in s71.NOTES if "use built from" in n), "")[:70])
     check("the 2019 expenditure table is used, not only the 2023 survey",
           any("fufi" in str(x).lower() for x in fs["source"]),
           str(sorted(set(fs["source"]))))

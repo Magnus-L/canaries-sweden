@@ -345,13 +345,35 @@ def itftg_arm(conn, schema, routes, size, sink, counts_sink):
         # Continuous first. AI_COST_T and AI_IRD_T are dedicated
         # expenditure measures, and a continuous outcome carries far more
         # power at the same sample size than a binary flag, which is what
-        # refused every arm on 21 September.
+        # refused every arm on the 21 September morning run.
         cost_cols = [c for c in cols
                      if re.search(r"AI_(COST|IRD)", c, re.I)]
-        have_any = [c for c in cols if re.search(r"AI", c, re.I)
-                    and c not in cost_cols
-                    and not re.search(r"HAMP|BARRIER|_TXT$|_OTH_", c, re.I)]
-        have_2019 = AI_2019_COL if AI_2019_COL in cols else None
+
+        # USE IS THE TECHNOLOGY BLOCK, AND ONLY THAT.
+        #
+        # The afternoon run of 21 September took the max over every AI
+        # column, which quietly included the NINE barrier items
+        # (E_AI_BCST cost too high, E_AI_BLE lack of expertise, E_AI_BNU
+        # not useful, ...) and E_AI_EC "considered using AI". Those are
+        # answered by firms that do NOT use AI, so the resulting flag
+        # meant "engaged with the topic", not "uses AI", and it read as
+        # a 25.7 point adoption gap. ai_itftg_2019 and ai_fouoff were
+        # worse: both carry AI_USE_N, "does not use AI", which was being
+        # counted as a positive.
+        #
+        # E_AI_T* is the seven-item technology block and is BYTE
+        # IDENTICAL in 2021 and 2023, so a use measure built from it is
+        # also comparable across years, which the pooled version was
+        # not: the purpose block changed prefix between those waves.
+        tech = [c for c in cols if re.search(r"^E?_?AI_T[A-Z]+$", c, re.I)]
+        pure_use = [c for c in cols if re.search(r"^AI_USE$", c, re.I)]
+        have_any = tech or pure_use
+        BAD = r"_N$|^E?_?AI_B|^E?_?AI_EC$|HAMP|BARRIER|_TXT$|_OTH"
+        have_any = [c for c in have_any if not re.search(BAD, c, re.I)]
+        if have_any:
+            NOTES.append(f"{tab}: use built from {sorted(have_any)}")
+        have_2019 = next((c for c in cols
+                          if re.match(r"^AI_USE$", c, re.I)), None)
         if have_2019 and have_2019 in have_any:
             have_any.remove(have_2019)
         if not (have_any or have_2019 or cost_cols):
