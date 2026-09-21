@@ -180,6 +180,40 @@ check("and a void verdict reports no reading",
 check("an empty frame does not crash the verdict",
       isinstance(s74.verdict(pd.DataFrame()), list))
 
+# ---- end to end -------------------------------------------------------
+CNT = counts("real")
+for y in YEARS:
+    CNT[CNT["year_month"].str[:4] == str(y)].to_parquet(
+        mc.CACHE_DIR / f"L_counts_{y}.parquet", index=False)
+s74.PANEL_YEARS = YEARS
+_real = sys.stdout
+try:
+    s74.main()
+    ran = True
+except BaseException as ex:  # noqa: BLE001
+    ran = False; sys.stdout = _real
+    print(f"      main() raised: {type(ex).__name__}: {ex}")
+sys.stdout = _real
+check("main() runs end to end", ran)
+check("a summary is written", (s74.OUT / "74_summary.txt").exists())
+if (s74.OUT / "74_summary.txt").exists():
+    txt = (s74.OUT / "74_summary.txt").read_text()
+    check("the summary explains why the seasonal terms are per band",
+          "constant within employer-month" in txt)
+    check("it reaches a verdict or says why it cannot",
+          any(w in txt for w in ("STABLE", "SEASONAL.", "VOID", "NO VERDICT")))
+
+(mc.CACHE_DIR / f"L_counts_{YEARS[0]}.parquet").unlink()
+refused = False
+try:
+    s74.main()
+except SystemExit as ex:
+    refused = "performs no SQL" in str(ex)
+except BaseException:
+    refused = False
+sys.stdout = _real
+check("a missing counts cache is refused, not pulled", refused)
+
 print("\n" + "=" * 62)
 print(f"{'FAILED: ' + ', '.join(FAILS) if FAILS else 'all checks passed'}")
 shutil.rmtree(TMP, ignore_errors=True)
