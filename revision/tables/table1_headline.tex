@@ -1,3 +1,7 @@
+\begin{table}[ht!]
+\centering
+\caption{Employment of young workers relative to their older colleagues inside the same employer, with the calendar cycle removed.}
+\label{tab:headline}
 \begin{tabular}{lcc}
 \toprule
  & Estimate (SE) & Artefact \\
@@ -8,3 +12,7 @@
 22-25, separations & +0.0787 (0.0203) & -- \\
 \bottomrule
 \end{tabular}
+\begin{minipage}{0.86\textwidth}\footnotesize\vspace{4pt}
+Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, exposure frozen at the employer's 2019 education mix. Standard errors clustered by employer. The artefact column reports the coefficient the as-of backtest returns on the same specification when the register's lag is imposed on years where the true gap is zero; the threshold fixed before that test was 0.05.
+\end{minipage}
+\end{table}

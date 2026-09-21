@@ -100,12 +100,30 @@ def main() -> int:
         print(f"\n  PENDING, not zero: {'; '.join(missing)}")
 
     V2_TAB.mkdir(parents=True, exist_ok=True)
-    tex = [r"\begin{tabular}{lcc}", r"\toprule",
+    # A full float, not a bare tabular: the manuscript \input{}s this and
+    # needs the caption, the label and the note to travel with the numbers.
+    # A caption written by hand beside a generated table is how a table and
+    # its description drift apart.
+    tex = [r"\begin{table}[ht!]", r"\centering",
+           r"\caption{Employment of young workers relative to their older "
+           r"colleagues inside the same employer, with the calendar cycle "
+           r"removed.}",
+           r"\label{tab:headline}",
+           r"\begin{tabular}{lcc}", r"\toprule",
            r" & Estimate (SE) & Artefact \\", r"\midrule"]
     for lab, est, art in rows:
         e = "PENDING" if est == "PENDING" else est.split("  t")[0]
         tex.append(f"{lab} & {e} & {art} \\\\")
-    tex += [r"\bottomrule", r"\end{tabular}"]
+    tex += [r"\bottomrule", r"\end{tabular}",
+            r"\begin{minipage}{0.86\textwidth}\footnotesize\vspace{4pt}",
+            r"Poisson pseudo-maximum likelihood on employer $\times$ age "
+            r"$\times$ month counts, exposure frozen at the employer's 2019 "
+            r"education mix. Standard errors clustered by employer. The "
+            r"artefact column reports the coefficient the as-of backtest "
+            r"returns on the same specification when the register's lag is "
+            r"imposed on years where the true gap is zero; the threshold "
+            r"fixed before that test was 0.05.",
+            r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "table1_headline.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")
     print(f"\n  wrote {out.relative_to(REV)}")
