@@ -197,6 +197,7 @@ def discover(conn) -> pd.DataFrame:
     JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME
     WHERE t.TABLE_NAME LIKE 'FDB[_]JE[_]%' OR t.TABLE_NAME LIKE 'Serrano%'
        OR t.TABLE_NAME LIKE 'FE[_]%'
+       OR t.TABLE_NAME LIKE 'Ftg[_]%' OR t.TABLE_NAME LIKE 'Arbst[_]%'
     ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION
     """
     return pd.read_sql(q, conn)
@@ -225,83 +226,126 @@ def edu_exposure(j47):
     return expo
 
 
+def _sni3(raw: pd.Series) -> pd.Series:
+    """SNI2007 at three digits, from a code of any length."""
+    v = raw.astype(str).str.strip().str.replace(r"\D", "", regex=True)
+    return v.where(v.str.len().between(2, 5)).str[:3]
+
+
 def firm_industry(conn, schema) -> pd.DataFrame:
-    """employer_id -> frozen 2019 industry, from FDB_JE_2019."""
-    # FDB_JE tables are year RANGES with a year column, not one table
-    # per year: FDB_JE_2014_2021 covers 2019 and FDB_JE_2019 does not
-    # exist. Taking the first FDB_JE% alphabetically, as this did on
-    # 21 September, lands on FDB_JE_1990_1993 and its sni69ng1 column,
-    # which is the 1969 industry classification.
+    """
+    employer_id -> frozen 2019 three-digit industry.
+
+    SOURCE ORDER, AND WHY IT IS THIS ORDER.
+
+    Our employer_id is AGI's P1207_LOPNR_PEORGNR, the legal entity.
+    LISA's firm table Ftg_<year> is keyed on exactly that identifier and
+    carries Org_Sni2007, the statistical industry SCB itself attaches to
+    the employer, for every firm in the employment register. That is the
+    right source.
+
+    FDB_JE is the business register's legal-entity file. It carries the
+    same key, which is why it looked right, but the delivered extract is
+    not the employer population: at ar=2019 it returned 139,203 entities
+    and matched 12.3 per cent of the 22-25 panel. Every Swedish employer
+    has an industry code, so a 12.3 per cent match measures the register
+    we chose, not the firms. FDB_JE is now the last resort.
+
+    Arbst_<year> is the workplace file, keyed on the workplace but
+    carrying the parent LopNr_PeOrgNr, so a firm with workplaces in
+    several industries takes the industry of its largest workplace.
+
+    Whichever source answers, the coverage it achieves is reported, and
+    the gate below still applies: a source that cannot reach the match
+    threshold produces no estimate rather than a thin one.
+    """
+    tabs = sorted(schema["TABLE_NAME"].unique())
+
+    def cols_of(t):
+        return schema[schema.TABLE_NAME == t]["COLUMN_NAME"].tolist()
+
+    # ---- 1. LISA firm table: one row per firm, the industry SCB uses --
+    ftg = next((t for t in tabs
+                if re.fullmatch(rf"Ftg_{BASE_YEAR}", t, re.I)), None)
+    if ftg:
+        c = cols_of(ftg)
+        key = pick(c, r"^LopNr_PeOrgNr$", r"PeOrgNr")
+        ind = pick(c, r"^Org_Sni2007$", r"Sni2007", r"^Sni")
+        if key and ind:
+            d = pd.read_sql(f"SELECT [{key}] AS employer_id, "
+                            f"[{ind}] AS ind FROM dbo.[{ftg}]", conn)
+            d["employer_id"] = norm_id(d["employer_id"])
+            d["ind3"] = _sni3(d["ind"])
+            d = d.dropna(subset=["ind3"]).drop_duplicates("employer_id")
+            if len(d):
+                msg = (f"industry: {ftg} via {ind} (LISA firm table, the "
+                       f"employer population), {len(d):,} firms, "
+                       f"{d['ind3'].nunique()} three-digit groups")
+                print(f"  {msg}"); NOTES.append(msg)
+                return d[["employer_id", "ind3"]]
+        NOTES.append(f"{ftg}: key {key}, industry {ind}; unusable")
+
+    # ---- 2. LISA workplace table, rolled up to the firm ---------------
+    arb = next((t for t in tabs
+                if re.fullmatch(rf"Arbst_{BASE_YEAR}", t, re.I)), None)
+    if arb:
+        c = cols_of(arb)
+        key = pick(c, r"^LopNr_PeOrgNr$", r"PeOrgNr")
+        ind = pick(c, r"^AstSNI2007$", r"Sni2007", r"^Sni")
+        size = pick(c, r"^Anst$", r"AntAnst", r"^Syss")
+        if key and ind:
+            sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
+            sel += f", [{size}] AS n" if size else ""
+            d = pd.read_sql(sel + f" FROM dbo.[{arb}]", conn)
+            d["employer_id"] = norm_id(d["employer_id"])
+            d["ind3"] = _sni3(d["ind"])
+            d = d.dropna(subset=["ind3"])
+            if size:
+                d["n"] = pd.to_numeric(d["n"], errors="coerce").fillna(0)
+                d = d.sort_values("n", ascending=False)
+            d = d.drop_duplicates("employer_id")
+            if len(d):
+                how = "largest workplace" if size else "first workplace"
+                msg = (f"industry: {arb} via {ind} ({how}; Ftg_{BASE_YEAR} "
+                       f"was not available), {len(d):,} firms, "
+                       f"{d['ind3'].nunique()} three-digit groups")
+                print(f"  {msg}"); NOTES.append(msg)
+                return d[["employer_id", "ind3"]]
+
+    # ---- 3. FDB_JE, last resort ---------------------------------------
+    # Year RANGES with an `ar` column; there is no FDB_JE_2019, and the
+    # first FDB_JE% alphabetically is FDB_JE_1990_1993 with sni69ng1,
+    # the 1969 classification.
     def _covers(t):
-        yrs = [int(x) for x in re.findall(r"(19|20)\d{2}", t)] or []
         yrs = [int(x) for x in re.findall(r"((?:19|20)\d{2})", t)]
         if len(yrs) == 2:
             return yrs[0] <= BASE_YEAR <= yrs[1]
         return len(yrs) == 1 and yrs[0] == BASE_YEAR
 
-    cands = [t for t in sorted(schema["TABLE_NAME"].unique())
-             if t.lower().startswith("fdb_je")]
-    tab = next((t for t in cands if _covers(t)), None)
+    cands = [t for t in tabs if t.lower().startswith("fdb_je")]
+    tab = next((t for t in cands if _covers(t)), None) \
+        or next((t for t in cands if "all_years" in t.lower()), None)
     if tab is None:
-        tab = next((t for t in cands if "all_years" in t.lower()), None)
-    if tab is None:
-        NOTES.append(f"no FDB_JE table covers {BASE_YEAR}; saw {cands}")
+        NOTES.append(f"no industry source for {BASE_YEAR}; Part A cannot run")
         return pd.DataFrame()
-    cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
-    key = pick(cols, r"^P1207_Lopnr_peorgnr$", r"PeOrgNr", r"PEORGNR")
-    # ng1..ng5 are SNI at one to five digits. ng3 IS the three-digit
-    # level, so take it directly rather than truncating a finer code.
-    ind = pick(cols, r"^ng3$", r"^ngs1$", r"^ng2$", r"^NgS$", r"^Ng$")
-    yrc = pick(cols, r"^ar$", r"^year$")
+    c = cols_of(tab)
+    key = pick(c, r"^P1207_Lopnr_peorgnr$", r"PeOrgNr", r"PEORGNR")
+    ind = pick(c, r"^ng3$", r"^ngs1$", r"^ng2$")
+    yrc = pick(c, r"^ar$", r"^year$")
     if key is None or ind is None:
         NOTES.append(f"{tab}: key {key}, industry {ind}; Part A cannot run. "
-                     f"Columns seen: {cols[:20]}")
+                     f"Columns seen: {c[:20]}")
         return pd.DataFrame()
     sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
-    if yrc:
-        sel += f", [{yrc}] AS yr"
     d = pd.read_sql(sel + f" FROM dbo.[{tab}]"
                     + (f" WHERE [{yrc}] = {BASE_YEAR}" if yrc else ""), conn)
     d["employer_id"] = norm_id(d["employer_id"])
-    NOTES.append(f"industry from {tab} column {ind}"
-                 + (f", filtered to {yrc}={BASE_YEAR}" if yrc
-                    else " (NO YEAR COLUMN, vintage unverified)"))
-    # three digits: finer splits the sample thin, coarser stops absorbing
-    # the age shocks this exists to absorb. Stated, not tuned.
-    # The 10:33 run found the RIGHT table and returned 0 firms, so the
-    # year filter or the column contents were wrong and the script said
-    # nothing useful about which. Diagnose in place: report what came
-    # back, and retry without the year filter rather than returning an
-    # empty frame and a silent Part A.
-    def _clean(f):
-        f = f.copy()
-        f["ind3"] = (f["ind"].astype(str).str.strip()
-                     .str.replace(r"\D", "", regex=True))
-        return f[f["ind3"].str.len().between(2, 5)]
-
-    got = _clean(d)
-    if got.empty and yrc and len(d) == 0:
-        NOTES.append(f"{tab}: {yrc}={BASE_YEAR} returned no rows; "
-                     f"retrying unfiltered and taking the modal industry")
-        d = pd.read_sql(sel + f" FROM dbo.[{tab}]", conn)
-        d["employer_id"] = norm_id(d["employer_id"])
-        if yrc and "yr" in d.columns:
-            yv = pd.to_numeric(d["yr"], errors="coerce")
-            NOTES.append(f"{tab}: {yrc} values seen: "
-                         f"{sorted(yv.dropna().unique())[:12]}")
-            near = d[yv <= BASE_YEAR]
-            d = near if len(near) else d
-        got = _clean(d)
-    if got.empty:
-        raw = sorted({str(x)[:8] for x in d["ind"].dropna().unique()})[:12]
-        NOTES.append(f"{tab}: no usable industry code. {len(d):,} rows "
-                     f"read; distinct raw values: {raw}")
-        return pd.DataFrame()
-    # ng3 is the three-digit level; anything longer is truncated to three
-    got["ind3"] = got["ind3"].str[:3]
-    d = got.drop_duplicates("employer_id")
-    print(f"  industry: {tab} via {ind}, {len(d):,} firms, "
-          f"{d['ind3'].nunique()} three-digit groups")
+    d["ind3"] = _sni3(d["ind"])
+    d = d.dropna(subset=["ind3"]).drop_duplicates("employer_id")
+    msg = (f"industry: {tab} via {ind} (FALLBACK, the business register "
+           f"rather than the employer population), {len(d):,} firms, "
+           f"{d['ind3'].nunique()} three-digit groups")
+    print(f"  {msg}"); NOTES.append(msg)
     return d[["employer_id", "ind3"]]
 
 

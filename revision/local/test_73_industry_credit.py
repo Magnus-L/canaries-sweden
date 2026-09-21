@@ -144,9 +144,20 @@ def counts(world, beta=-0.35, seed=4):
 #     alphabetically first one is 1990-1993 carrying sni69ng1, the 1969
 #     industry classification;
 #   * no FE_ table exists at all, so the FEK path must fall through;
-#   * Serrano_bokslut names carry no `skuld` or `tillgang` anywhere.
+#   * Serrano_bokslut names carry no `skuld` or `tillgang` anywhere;
+#   * and FDB_JE, though keyed on the same identifier as AGI, is the
+#     BUSINESS register rather than the employer population: at ar=2019
+#     it matched 12.3% of the panel. Every Swedish employer has an
+#     industry code, so the fixture gives FDB a sliver and gives the
+#     LISA firm table Ftg_2019 the whole panel, which is what the real
+#     registers do.
 CATALOGUE = pd.DataFrame(
-    [("FDB_JE_1990_1993", c, "varchar") for c in
+    [("Ftg_2019", c, "varchar") for c in
+     ("LopNr_PeOrgNr", "Org_SateKommun", "Org_Sni2007")]
+    + [("Arbst_2019", c, "varchar") for c in
+       ("LopNr_ArbstId", "LopNr_CfarNr", "LopNr_PeOrgNr", "AstNr",
+        "AstSNI2007", "Anst")]
+    + [("FDB_JE_1990_1993", c, "varchar") for c in
      ("P1207_Lopnr_peorgnr", "ar", "sni69ng1", "anst")]
     + [("FDB_JE_2014_2021", c, "varchar") for c in
        ("P1207_Lopnr_peorgnr", "ar", "ng1", "ng2", "ng3", "ng5", "ngs1",
@@ -170,10 +181,24 @@ def fake_read_sql(q, conn=None, *a, **kw):
     if "fdb_je_1990_1993" in ql:
         raise AssertionError("queried the 1990-1993 table, which carries "
                              "the 1969 industry classification")
-    if "fdb_je" in ql:
+    if "ftg_2019" in ql:
+        # LISA's firm table: every employer, full five-digit SNI2007
         return pd.DataFrame({"employer_id": FIRMS,
-                             "ind": [IND[f] for f in FIRMS],
-                             "yr": [2019] * len(FIRMS)})
+                             "ind": [IND[f] + "42" for f in FIRMS]})
+    if "arbst_2019" in ql:
+        # workplace file: two workplaces for the first firm, the larger
+        # one in the industry the firm should end up with
+        ids = list(FIRMS) + [FIRMS[0]]
+        return pd.DataFrame(
+            {"employer_id": ids,
+             "ind": [IND[f] + "42" for f in FIRMS] + ["99999"],
+             "n": [50] * len(FIRMS) + [1]})
+    if "fdb_je" in ql:
+        # the business register covers a sliver of the employers
+        sliver = FIRMS[: max(1, len(FIRMS) // 8)]
+        return pd.DataFrame({"employer_id": sliver,
+                             "ind": [IND[f] for f in sliver],
+                             "yr": [2019] * len(sliver)})
     if "bokslut" in ql:
         return pd.DataFrame({"employer_id": FIRMS,
                              "assets": [1.0] * len(FIRMS),
@@ -202,12 +227,34 @@ check("leverage is found", len(lev) and lev["lev"].between(0, 3).all(),
 check("with no FEK table present, Serrano's real columns are used",
       any("EKSU" in n and "TILLGSU" in n for n in s73.NOTES),
       next((n for n in s73.NOTES if "leverage built" in n), "")[:70])
-check("the FDB year-RANGE table covering 2019 is chosen, not the first "
-      "one alphabetically",
-      any("FDB_JE_2014_2021" in n for n in s73.NOTES),
-      next((n for n in s73.NOTES if "industry from" in n), "")[:70])
-check("and the industry pull is filtered to the base year",
-      any("ar=2019" in n.replace(" ", "") for n in s73.NOTES))
+check("industry comes from the LISA firm table, not the business "
+      "register, and covers the whole panel",
+      any("Ftg_2019" in n for n in s73.NOTES) and len(ind) == len(FIRMS),
+      next((n for n in s73.NOTES if "industry:" in n), "")[:90])
+check("the five-digit SNI2007 is cut to the three-digit group",
+      ind.set_index("employer_id")["ind3"].to_dict()
+      == {f: IND[f] for f in FIRMS})
+
+# With Ftg absent the workplace file answers, largest workplace winning;
+# with both absent FDB_JE is the last resort and its thin coverage shows.
+_full = SCHEMA
+for drop, expect, label in (
+        (["Ftg_2019"], "Arbst_2019", "workplace file"),
+        (["Ftg_2019", "Arbst_2019"], "FDB_JE_2014_2021", "FDB_JE")):
+    s73.NOTES.clear()
+    sub = _full[~_full["TABLE_NAME"].isin(drop)]
+    alt = s73.firm_industry(None, sub)
+    check(f"with {' and '.join(drop)} absent the {label} answers",
+          any(expect in n for n in s73.NOTES), f"{len(alt)} firms")
+    if label == "workplace file":
+        check("and the firm takes its LARGEST workplace's industry",
+              alt.set_index("employer_id").loc[FIRMS[0], "ind3"]
+              == IND[FIRMS[0]])
+    else:
+        check("and FDB_JE's thin coverage is visible, not silent",
+              len(alt) < len(FIRMS) // 4, f"{len(alt)} of {len(FIRMS)}")
+s73.NOTES.clear()
+ind = s73.firm_industry(None, _full)
 check("leverage reproduces 1 - equity/assets",
       abs(float(lev.set_index("employer_id").loc[FIRMS[0], "lev"])
           - LEV[FIRMS[0]]) < 1e-9)
