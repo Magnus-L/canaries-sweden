@@ -1,0 +1,27 @@
+\begin{table}[ht!]
+\centering
+\caption{An industry-specific age shock and the credit channel as rival explanations for the decline of the young inside exposed employers.}
+\label{tab:industry_credit}
+\footnotesize
+\begin{tabular}{lcc}
+\toprule
+ & 22--25 & 26--30 \\
+\midrule
+\multicolumn{3}{l}{\textit{Panel A. An industry-specific age shock}} \\
+Baseline & $-0.0509^{*}$ (0.0122) & $-0.0437^{*}$ (0.0079) \\
+With industry $\times$ age $\times$ month & $-0.0448^{*}$ (0.0112) & $-0.0208^{*}$ (0.0072) \\
+Retained (per cent) & 88 & 48 \\
+\addlinespace[4pt]
+\multicolumn{3}{l}{\textit{Panel B. The credit channel, employers with a 2019 balance sheet}} \\
+Baseline on this sample & $-0.0695^{*}$ (0.0117) & $-0.0516^{*}$ (0.0088) \\
+Adoption step, less leveraged half & $-0.0875^{*}$ (0.0175) & $-0.0834^{*}$ (0.0144) \\
+Additional step, more leveraged half & $+0.0326$ (0.0267) & $+0.0583^{*}$ (0.0199) \\
+Adoption step averaged over the halves & $-0.0712^{*}$ (0.0116) & $-0.0542^{*}$ (0.0089) \\
+Leverage $\times$ young, all employers in the sample & $-0.0054$ (0.0087) & $-0.0147^{*}$ (0.0072) \\
+Retained, averaged step over baseline (per cent) & 102 & 105 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.9\textwidth}\footnotesize\vspace{4pt}
+Poisson pseudo-maximum likelihood, employer-by-month, employer-by-age and month-by-age effects, exposure frozen at the employer's 2019 education mix, treatment dated January 2024, standard errors clustered by employer; the calendar cycle is not removed in these specifications, so every row is read against the baseline in its own panel, never against Table~1 of the paper. Industry is the employer's three-digit NACE in 2019 (265 groups, carried by 95 per cent of the 22--25 panel and 93 per cent of the 26--30 panel), interacted with age band and month; retained is the industry-controlled step over the baseline, against a gate of 50 per cent fixed before the run. Leverage is one minus equity over assets from the employer's latest balance sheet closing in 2019 (Serrano), carried by 82.7 and 80.1 per cent of the two panels; the split is at the sample median, 0.691 and 0.688. The adoption step is interacted with the above-median indicator, so the first credit row is the step among the less leveraged exposed employers and the second the additional step among the more leveraged; the averaged step is the first plus half the second, with its standard error from the estimated covariance, and it is compared with the baseline estimated on the same employers. The leverage $\times$ young row is the credit channel common to every employer in the sample. Read rule fixed before the run: the exposure step is judged monetary if the averaged step loses more than half of the same-sample baseline; it retains 102 and 105 per cent. $^{*}$ $p<0.05$. Source: script 73 (\texttt{industry\_fe.csv}, lane 19; \texttt{credit\_test.csv} and \texttt{vcov\_r73\_lev\_*.csv}, lane 24).
+\end{minipage}
+\end{table}

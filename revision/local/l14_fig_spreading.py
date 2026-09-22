@@ -71,7 +71,7 @@ from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT
 # användning av IT), survey years 2023, 2024 and 2025. The paper quotes
 # the first two in Section 3 and in Online Appendix III.2. The series is
 # published, not estimated here, and is not in any export in this tree.
-SCB_ADOPTION = {"2023": 10.4, "2024": 25.2, "2025": 35.0}
+SCB_ADOPTION = {"2023": 10, "2024": 25, "2025": 35}
 LAUNCH_Q = "2022Q4"
 
 # The lane 14 export the final-code manifest names. Pass a directory on

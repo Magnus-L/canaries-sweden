@@ -1,0 +1,26 @@
+73 industry and credit
+======================================================================
+
+Industry and leverage are both taken from 2019, frozen pre-shock: a later vintage would let a firm's own response into the treatment.
+
+22-25: baseline -0.0509 (0.0122)
+22-25: with leverage in, exposure -0.0875 (0.0175), leverage x young -0.0054 (0.0087)
+22-25: AI SURVIVES the credit test, which answers R1.2, R1.3 and R2.1 with evidence rather than with a date.
+26-30: baseline -0.0437 (0.0079)
+26-30: with leverage in, exposure -0.0834 (0.0144), leverage x young -0.0147 (0.0072)
+26-30: AI SURVIVES the credit test, which answers R1.2, R1.3 and R2.1 with evidence rather than with a date.
+
+industry path: not estimated
+
+What this cannot do: leverage is a proxy for exposure to the rate cycle, not a measure of it, and surviving a credit test is not the same as identifying an AI effect.
+
+NOTES:
+  industry: Ftg_2019 via Org_Sni2007 (LISA firm table, the employer population), 552,099 firms, 265 three-digit groups
+  no FEK table answered the probe; using Serrano
+  leverage year filter: BSLSLUT in 2019, 581,879 of 9,681,255 balance-sheet rows kept
+  leverage built from Serrano_bokslut_20230614: 1 - EKSU/TILLGSU, keyed on P1207_Lopnr_ORGNR, 2019 balance sheets, 561,460 firms
+  corporate events: Serrano_Serrano_20230614 via bol_kkfall/bol_konkurs, ser_year<=2019, 126,566 failed firms of 12,419,495 rows
+  leverage/22-25: 92,213 of 111,459 panel firms carry the covariate (82.7%)
+  leverage/22-25: split at 0.691 (ge), 50.0% high
+  leverage/26-30: 102,719 of 128,193 panel firms carry the covariate (80.1%)
+  leverage/26-30: split at 0.688 (ge), 50.0% high
