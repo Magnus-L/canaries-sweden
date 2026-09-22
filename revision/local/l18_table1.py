@@ -9,10 +9,14 @@ employer, with exposure frozen at the employer's 2019 education mix.
 
   Sequence for 22-25    the rise during the tightening months (gamma_1),
                         the additional step once firms adopt AI (gamma_2)
-                        with the vintage-sensitivity artefact beside it,
+                        with the vintage re-scoring beside it, the step
+                        from the 2023 level (gamma_2 minus gamma_0, its
+                        standard error from the covariance of the two
+                        terms in the window specification of lane 21),
                         and the level after adoption against the months
                         before the rate hike.
-  26-30                 the additional step at adoption.
+  26-30                 the additional step at adoption and the step from
+                        the 2023 level.
   Profile               22-25 and 50 and over, each against 41-49, from
                         one panel of all six bands.
   Margin and incidence  hires, separations, the female differential and
@@ -25,12 +29,14 @@ a blank that could be read as a zero.
 
   lane 14  seasonal_pooled.csv    gamma_1, gamma_2, the as-of arm, hires,
                                   separations (script 68)
-  lane 21  reference_window.csv   the level after adoption (script 75)
+  lane 21  reference_window.csv   the level after adoption and, with the
+           vcov_s75_*_stock.csv     covariance files, the step from the 2023
+                                  level (script 75)
   lane 20  contrast_seasonal.csv  the six-band profile (script 74)
   lane 14  seasonal_gender.csv    the female differential (script 68)
   lane 22  gender_split.csv       the within-track differential (script 76)
 
-The artefact is the change in gamma_2 when each employer's 2019
+The vintage re-scoring is the change in gamma_2 when each employer's 2019
 incumbents are re-scored from the education register as it stood in
 2021, the staleness the 2024-25 records inherit, and the same panel is
 re-estimated (the as-of arm of script 68). It is not the backtest of
@@ -88,6 +94,24 @@ def one(df: pd.DataFrame, **cond) -> tuple[float, float]:
     return float(r.coef.iloc[0]), float(r.se.iloc[0])
 
 
+def step_from_2023(window: pd.DataFrame, band: str) -> tuple[float, float]:
+    """The change from the 2023 level to the level after adoption, on the
+    window specification of lane 21 (post minus interim, both measured
+    against the months before the rate hike, so the difference equals
+    gamma_2 minus gamma_0 of Equation (2)), with the standard error from
+    the exported covariance of the two terms."""
+    post = one(window, young_band=band, outcome="stock", term=TERM)
+    inter = one(window, young_band=band, outcome="stock",
+                term="interim_x_high_x_young")
+    d = Path(sys.argv[1]) if len(sys.argv) > 1 else LANE21_22
+    v = pd.read_csv(d / f"vcov_s75_{band.replace('-', '_')}_stock.csv",
+                    index_col=0)
+    var = (v.loc[TERM, TERM] + v.loc["interim_x_high_x_young",
+                                     "interim_x_high_x_young"]
+           - 2 * v.loc[TERM, "interim_x_high_x_young"])
+    return post[0] - inter[0], float(var) ** 0.5
+
+
 def est(c: float, se: float) -> str:
     return f"${c:+.4f}$ ({se:.4f})"
 
@@ -111,9 +135,11 @@ def main() -> int:
                   term=TERM)
     artefact = g2_asof[0] - g2[0]
     level = one(window, young_band="22-25", outcome="stock", term=TERM)
+    step23 = step_from_2023(window, "22-25")
     # 26-30, the step
     g2_26 = one(pooled, young_band="26-30", outcome="stock", arm="true",
                 term=TERM)
+    step23_26 = step_from_2023(window, "26-30")
     # the profile against 41-49
     p22 = one(profile, arm="seasonal", band_vs_ref="22_25")
     p50 = one(profile, arm="seasonal", band_vs_ref="50p")
@@ -137,12 +163,16 @@ def main() -> int:
          est(*g1), ""),
         (r"Additional step at adoption, from January 2024 ($\hat\gamma_2$)",
          est(*g2), f"${artefact:+.4f}$"),
+        (r"Step from the 2023 level ($\hat\gamma_2 - \hat\gamma_0$)",
+         est(*step23), ""),
         (r"Level after adoption, against the months before the hike",
          est(*level), ""),
         (r"\addlinespace[3pt]", None, None),
         (r"\multicolumn{3}{l}{\textit{Ages 26--30, employment stock, "
          r"against the older bands pooled}} \\", None, None),
         (r"Additional step at adoption ($\hat\gamma_2$)", est(*g2_26), ""),
+        (r"Step from the 2023 level ($\hat\gamma_2 - \hat\gamma_0$)",
+         est(*step23_26), ""),
         (r"\addlinespace[3pt]", None, None),
         (r"\multicolumn{3}{l}{\textit{The profile, against 41--49 alone}} \\",
          None, None),
@@ -166,7 +196,10 @@ def main() -> int:
         r"from the level reached during the tightening months, as "
         r"$\beta_2$ is on the posting margin; the level row re-estimates "
         r"with the Riksbank interaction as a window so that the "
-        r"post-adoption term reads against January 2021 to March 2022. The "
+        r"post-adoption term reads against January 2021 to March 2022, "
+        r"and the step from the 2023 level is the difference between its "
+        r"post-adoption and interim terms, with the standard error from "
+        r"their covariance. The "
         r"profile rows come from one panel of all six bands with 41--49 as "
         r"the reference. The female differential is the interaction of the "
         r"adoption term with a female indicator, with "
@@ -177,7 +210,7 @@ def main() -> int:
         r"differential change from January 2021 to December 2023; the "
         r"within-track row weights the same differential estimated inside "
         r"each broad education track by young women's track shares in "
-        r"exposed firms. The artefact column is the change in the "
+        r"exposed firms. The vintage re-scoring column is the change in the "
         r"coefficient when each employer's 2019 incumbents are re-scored "
         r"from the education register as it stood in 2021, the staleness "
         r"the 2024--25 records inherit, and the same panel is "
@@ -191,7 +224,7 @@ def main() -> int:
            r"removed.}",
            r"\label{tab:headline}", r"\footnotesize",
            r"\begin{tabular}{lcc}", r"\toprule",
-           r" & Estimate (SE) & Artefact \\", r"\midrule"]
+           r" & Estimate (SE) & Vintage re-scoring \\", r"\midrule"]
     for lab, e, art in rows:
         if e is None:
             tex.append(lab)

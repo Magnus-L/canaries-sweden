@@ -7,15 +7,21 @@
 \toprule
 \multicolumn{4}{l}{\textit{Panel A. Headline route: top-quartile 2019 education mix of incumbents aged 31+}} \\
 \addlinespace[2pt]
- & Estimate (SE) & Artefact & \\
+ & Estimate (SE) & Vintage re-scoring & \\
 \midrule
 22-25, cycle removed & $-0.0408^{*}$ (0.0150) & $+0.0113$ & \\
 26-30, cycle removed & $-0.0394^{*}$ (0.0102) & -- & \\
 22-25, before the cycle & $-0.0509^{*}$ (0.0122) & $+0.0067$ & \\
 26-30, before the cycle & $-0.0437^{*}$ (0.0079) & $+0.0006$ & \\
 22-25, tightening step, April 2022 & $+0.0214^{*}$ (0.0078) & -- & \\
+22-25, step from the 2023 level & $-0.0265^{*}$ (0.0099) & -- & \\
+26-30, step from the 2023 level & $-0.0360^{*}$ (0.0066) & -- & \\
 22-25, level after adoption vs pre-hike months & $-0.0194$ (0.0184) & -- & \\
 26-30, level after adoption vs pre-hike months & $-0.0172$ (0.0121) & -- & \\
+22-25, hires, step at adoption & $-0.0032$ (0.0363) & -- & \\
+22-25, separations, step at adoption & $+0.0787^{*}$ (0.0203) & -- & \\
+26-30, hires, step at adoption & $-0.0399$ (0.0225) & -- & \\
+26-30, separations, step at adoption & $+0.0221$ (0.0120) & -- & \\
 \addlinespace[6pt]
 \multicolumn{4}{l}{\textit{Panel B. Continuous occupation-scaled measures, per standard deviation}} \\
 \addlinespace[2pt]
@@ -30,6 +36,6 @@ Age band & DAIOE & Eloundou & Teleworkable \\
 \bottomrule
 \end{tabular}
 \begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}
-Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, employer-by-month, employer-by-age and month-by-age effects, treatment dated January 2024, standard errors clustered by employer, $^{*}$ denotes $p<0.05$. Exposure is frozen in 2019 throughout and no occupation code recorded after 2019 enters the exposure, the outcome or the sample. \textbf{The two panels are not comparable.} Panel A is a top-quartile indicator built from the education mix of a firm's incumbents, and it is the estimand the paper reports; it exists for the two young bands only. The tightening step and the two levels come from the same specification with the Riksbank interaction as a window (April to November 2022), so that the post-adoption term reads against January 2021 to March 2022. Panel B scores occupations continuously, so a coefficient there is the effect of one standard deviation of the 2019 firm-age baseline exposure, on that measure's own scale. The artefact column is the change in the coefficient when each employer's 2019 incumbents are re-scored from the education register as it stood in 2021, the staleness the 2024--25 records inherit, and the same panel is re-estimated; the threshold fixed before that test was 0.05. Employment at 41--49 declines on both AI measures in Panel B. The paper does not claim the young were hit harder than the prime-aged: tested directly with the calendar cycle removed on all six bands, the 22--25 contrast against 41--49 is $-0.0099$ (0.0121), a null (Table~\ref{tab:profile_seasonal}).
+Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, employer-by-month, employer-by-age and month-by-age effects, treatment dated January 2024, standard errors clustered by employer, $^{*}$ denotes $p<0.05$. Exposure is frozen in 2019 throughout and no occupation code recorded after 2019 enters the exposure, the outcome or the sample. \textbf{The two panels are not comparable.} Panel A is a top-quartile indicator built from the education mix of a firm's incumbents, and it is the estimand the paper reports; it exists for the two young bands only. The tightening step and the two levels come from the same specification with the Riksbank interaction as a window (April to November 2022), so that the post-adoption term reads against January 2021 to March 2022. Panel B scores occupations continuously, so a coefficient there is the effect of one standard deviation of the 2019 firm-age baseline exposure, on that measure's own scale. The vintage re-scoring column is the change in the coefficient when each employer's 2019 incumbents are re-scored from the education register as it stood in 2021, the staleness the 2024--25 records inherit, and the same panel is re-estimated; the threshold fixed before that test was 0.05. Employment at 41--49 declines on both AI measures in Panel B. The paper does not claim the young were hit harder than the prime-aged: tested directly with the calendar cycle removed on all six bands, the 22--25 contrast against 41--49 is $-0.0099$ (0.0121), a null (Table~\ref{tab:profile_seasonal}).
 \end{minipage}
 \end{table}

@@ -10,15 +10,18 @@ other.
            mix of a firm's incumbents aged 31 and over, estimated for the
            two young bands. Rows give the adoption step with and without
            the calendar cycle removed, the artefact beside each, the
-           tightening step, and the level after adoption against the
-           months before the rate hike.
+           tightening step, the step from the 2023 level (the
+           post-adoption minus the interim term of the window
+           specification, standard error from their covariance), the
+           level after adoption against the months before the rate hike,
+           and the hires and separations steps at adoption.
   Panel B  Six age bands on continuous occupation-scaled measures (DAIOE,
            Eloundou and teleworkability), each coefficient per standard
            deviation of the 2019 firm-age baseline exposure on that
            measure's own scale. A different estimand, reported as a
            robustness exercise about the measure.
 
-The artefact in Panel A is the change in the coefficient when each
+The vintage re-scoring in Panel A is the change in the coefficient when each
 employer's 2019 incumbents are re-scored from the education register as
 it stood in 2021 and the same panel is re-estimated (the as-of arms of
 scripts 61 and 68). The 26-30 arm of script 68 was not re-scored, so
@@ -26,9 +29,11 @@ that cell is empty.
 
 INPUTS, read from the export directories the final-code manifest names.
 
-  lane 14  seasonal_pooled.csv       adoption step, cycle removed (68)
+  lane 14  seasonal_pooled.csv       adoption step, cycle removed; hires
+                                     and separations (68)
   round 2  output_61__redated_pooled.csv  adoption step before the cycle (61)
-  lane 21  reference_window.csv      tightening step and levels (75)
+  lane 21  reference_window.csv      tightening step, levels and, with the
+           vcov_s75_*_stock.csv        covariance files, the 2023 step (75)
   lane 20  contrast_seasonal.csv     the 22-25 contrast against 41-49 (74),
                                      quoted in the note
   round 2  output_63__robustness_gradient.csv  Panel B (63)
@@ -118,11 +123,42 @@ def panel_a():
 
     rows.append(("22-25, tightening step, April 2022",
                  win("22-25", "rbw_x_high_x_young"), "--"))
+    for band in ("22-25", "26-30"):
+        c, se = step23(w, band)
+        rows.append((f"{band}, step from the 2023 level", fmt(c, se), "--"))
     rows.append(("22-25, level after adoption vs pre-hike months",
                  win("22-25", TERM), "--"))
     rows.append(("26-30, level after adoption vs pre-hike months",
                  win("26-30", TERM), "--"))
+    # the two margins, additional step at adoption (script 68)
+    d = pd.read_csv(source(LANE14, "seasonal_pooled.csv"))
+    d = d[d.get("status", "ok") == "ok"]
+    for band in ("22-25", "26-30"):
+        for outcome, label in (("hires", "hires"), ("seps", "separations")):
+            r = d[(d.young_band == band) & (d.outcome == outcome)
+                  & (d.arm == "true") & (d.term == TERM)]
+            if r.empty:
+                raise SystemExit(f"  no {outcome} step for {band}")
+            rows.append((f"{band}, {label}, step at adoption",
+                         fmt(float(r.coef.iloc[0]), float(r.se.iloc[0])), "--"))
     return rows
+
+
+def step23(w: pd.DataFrame, band: str) -> tuple[float, float]:
+    """Post-adoption minus interim term of the window specification, which
+    equals gamma_2 minus gamma_0 of Equation (2); standard error from the
+    exported covariance."""
+    def row(term):
+        r = w[(w.young_band == band) & (w.outcome == "stock") & (w.term == term)]
+        if r.empty:
+            raise SystemExit(f"  no {term} for {band} in reference_window.csv")
+        return float(r.coef.iloc[0])
+    d = Path(sys.argv[1]) if len(sys.argv) > 1 else LANE21_22
+    v = pd.read_csv(d / f"vcov_s75_{band.replace('-', '_')}_stock.csv",
+                    index_col=0)
+    i = "interim_x_high_x_young"
+    var = v.loc[TERM, TERM] + v.loc[i, i] - 2 * v.loc[TERM, i]
+    return row(TERM) - row(i), float(var) ** 0.5
 
 
 def panel_b():
@@ -162,7 +198,7 @@ def main() -> int:
            r"\multicolumn{4}{l}{\textit{Panel A. Headline route: "
            r"top-quartile 2019 education mix of incumbents aged 31+}} \\",
            r"\addlinespace[2pt]",
-           r" & Estimate (SE) & Artefact & \\", r"\midrule"]
+           r" & Estimate (SE) & Vintage re-scoring & \\", r"\midrule"]
     for lab, e, art in A:
         tex.append(f"{lab} & {e} & {art} & \\\\")
         print(f"  A  {lab:48s} {e}  art {art}")
@@ -192,7 +228,7 @@ def main() -> int:
             r"March 2022. Panel B scores occupations continuously, so a "
             r"coefficient there is the effect of one standard deviation of "
             r"the 2019 firm-age baseline exposure, on that measure's own "
-            r"scale. The artefact column is the change in the coefficient "
+            r"scale. The vintage re-scoring column is the change in the coefficient "
             r"when each employer's 2019 incumbents are re-scored from the "
             r"education register as it stood in 2021, the staleness the "
             r"2024--25 records inherit, and the same panel is re-estimated; "
