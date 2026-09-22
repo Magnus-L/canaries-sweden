@@ -2,17 +2,31 @@
 \centering
 \caption{Employment of young workers relative to their older colleagues inside the same employer, with the calendar cycle removed.}
 \label{tab:headline}
+\footnotesize
 \begin{tabular}{lcc}
 \toprule
  & Estimate (SE) & Artefact \\
 \midrule
-22-25, employment stock & -0.0408 (0.0150) & +0.0113 \\
-26-30, employment stock & -0.0394 (0.0102) & -- \\
-22-25, female differential & -0.0659 (0.0131) & -- \\
-22-25, separations & +0.0787 (0.0203) & -- \\
+\multicolumn{3}{l}{\textit{Ages 22--25, employment stock, against the older bands pooled}} \\
+Tightening months, April to November 2022 ($\hat\gamma_1$) & $+0.0214$ (0.0078) & \\
+Additional step at adoption, from January 2024 ($\hat\gamma_2$) & $-0.0408$ (0.0150) & $+0.0113$ \\
+Level after adoption, against the months before the hike & $-0.0194$ (0.0184) & \\
+\addlinespace[3pt]
+\multicolumn{3}{l}{\textit{Ages 26--30, employment stock, against the older bands pooled}} \\
+Additional step at adoption ($\hat\gamma_2$) & $-0.0394$ (0.0102) & \\
+\addlinespace[3pt]
+\multicolumn{3}{l}{\textit{The profile, against 41--49 alone}} \\
+22--25 & $-0.0099$ (0.0121) & \\
+50 and over & $+0.0589$ (0.0062) & \\
+\addlinespace[3pt]
+\multicolumn{3}{l}{\textit{Ages 22--25, margin and incidence}} \\
+Hires, additional step at adoption & $-0.0032$ (0.0363) & \\
+Separations, additional step at adoption & $+0.0787$ (0.0203) & \\
+Young women minus young men & $-0.0659$ (0.0131) & \\
+\quad of which within broad education tracks & $-0.0508$ (0.0118) & \\
 \bottomrule
 \end{tabular}
-\begin{minipage}{0.86\textwidth}\footnotesize\vspace{4pt}
-Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, exposure frozen at the employer's 2019 education mix. Standard errors clustered by employer. The artefact column reports the coefficient the as-of backtest returns on the same specification when the register's lag is imposed on years where the true gap is zero; the threshold fixed before that test was 0.05.
+\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}
+Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ month counts, employer-by-month, employer-by-age and month-by-age effects, three calendar-quarter interactions with the fourth quarter omitted, exposure frozen at the employer's 2019 education mix, standard errors clustered by employer. Steps are measured from the level reached during the tightening months, as $\beta_2$ is on the posting margin; the level row re-estimates with the Riksbank interaction as a window so that the post-adoption term reads against January 2021 to March 2022. The profile rows come from one panel of all six bands with 41--49 as the reference. The female differential is the interaction of the adoption term with a female indicator, with employer-by-age-and-sex and month-by-age-and-sex effects, in a specification that carries the Riksbank and adoption terms without the interim term, so that its steps are from the level of April 2022 to December 2023 and the female interaction is the differential change from January 2021 to December 2023; the within-track row weights the same differential estimated inside each broad education track by young women's track shares in exposed firms. The artefact column is the change in the coefficient when each employer's 2019 incumbents are re-scored from the education register as it stood in 2021, the staleness the 2024--25 records inherit, and the same panel is re-estimated; the threshold fixed before that test was 0.05. Full tables in Online Appendix~III.2.
 \end{minipage}
 \end{table}

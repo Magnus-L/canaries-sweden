@@ -9,8 +9,9 @@ Filled markers are the specification the paper uses, with three
 quarter-of-year interactions per band; hollow markers are the plain arm.
 A negative number means the band declined more than 41-49 did. The
 reference band is drawn at zero with no interval. Stars at the whisker
-ends mark p < 0.05, printed from the source SEs against the normal
-thresholds (house rule, 15 Sep 2026: coefficient plots keep their stars).
+ends mark significance at ten, five and one per cent (one to three
+stars), computed from the exported standard errors against the normal
+thresholds; coefficient plots in this paper keep their stars.
 
     python3 revision/local/l23_fig_age_profile.py [export_dir]
 

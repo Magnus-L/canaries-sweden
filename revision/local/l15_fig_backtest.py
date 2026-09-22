@@ -34,17 +34,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _figsafe import save  # noqa: E402
 from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, DARK_TEXT
 
+# The script 45 export the final-code manifest names. Pass a directory
+# on the command line to read from there instead.
+B45 = REV / "output" / "round2_20260918-1736-script45"
+
 
 def find(argv, name):
-    roots = [Path(a) for a in argv[1:]] + [REV / "output"]
-    best = None
-    for r in roots:
-        if not r.exists():
-            continue
-        for p in list(r.rglob(name)) + list(r.rglob(f"*__{name}")):
-            if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                best = p
-    return best
+    d = Path(argv[1]) if len(argv) > 1 else B45
+    p = d / name
+    return p if p.exists() else None
 
 
 def main() -> int:

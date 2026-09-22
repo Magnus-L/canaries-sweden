@@ -70,11 +70,15 @@ def t_coverage():
 
 
 def t_extended():
-    """Submitted window against the window extended to June 2026, both
+    """The window to December 2025 against the window extended to June 2026, both
     estimators. Answers 'does the posting conclusion survive current data'."""
     d = pd.read_csv(SRC / "postings_extended_did.csv")
-    lab = {"submitted_to_2025-12": "Submitted window (to Dec 2025)",
-           "extended_to_2026-06": "Extended window (to Jun 2026)"}
+    # Both rows start in January 2020; the first stops where the bulk
+    # collection is complete, the second adds the two closed quarters of
+    # 2026. Neither is the window of the submitted version (October 2019
+    # to February 2026, Section II.4).
+    lab = {"submitted_to_2025-12": "January 2020 to December 2025",
+           "extended_to_2026-06": "January 2020 to June 2026"}
     est = {"OLS_ln": r"OLS, $\ln(\text{ads})$", "Poisson": "Poisson PML"}
     rows = []
     for w in ["submitted_to_2025-12", "extended_to_2026-06"]:

@@ -1,46 +1,45 @@
 #!/usr/bin/env python3
 """
 l19_tab_age_profile.py -- the appendix table for the design the paper
-actually reports, plus the age profile that is NOT on that design.
+reports, beside the age profile on a different exposure construction.
 
-WHY THIS EXISTS. Until 21 September the online appendix had no section
-for the headline design; its only appendix support was Part IV, the
-backtest. Meanwhile `main_v2` sent the reader to Online Appendix III.2
-for "the full age profile", and III.2 was the SUPERSEDED employer-level
-DiD. So a live claim cited a dead design.
+WHAT THE TABLE REPORTS. Two panels that must not be read against each
+other.
 
-THE TRAP THIS TABLE EXISTS TO AVOID. There is no six-band age profile
-on the headline route. The headline exposure is a QUARTILE built from
-the education mix of a firm's incumbents aged 31+, and it is estimated
-for the two young bands only (scripts 61 and 68). The six-band profiles
-that do exist (script 63) use a CONTINUOUS occupation-scaled measure,
-so their coefficients are per standard deviation on that measure's own
-scale and are a different estimand entirely: -0.0132 at 22-25 against
-the headline's -0.0509 before the cycle is removed. Putting them in one
-column would repeat exactly the error that produced the change list's
-B1, where an occupation-route stock figure and two horse-race flow
-figures were quoted as though they were one design.
+  Panel A  The headline route: the top quartile of the 2019 education
+           mix of a firm's incumbents aged 31 and over, estimated for the
+           two young bands. Rows give the adoption step with and without
+           the calendar cycle removed, the artefact beside each, the
+           tightening step, and the level after adoption against the
+           months before the rate hike.
+  Panel B  Six age bands on continuous occupation-scaled measures (DAIOE,
+           Eloundou and teleworkability), each coefficient per standard
+           deviation of the 2019 firm-age baseline exposure on that
+           measure's own scale. A different estimand, reported as a
+           robustness exercise about the measure.
 
-So the table has two panels and says which is which.
+The artefact in Panel A is the change in the coefficient when each
+employer's 2019 incumbents are re-scored from the education register as
+it stood in 2021 and the same panel is re-estimated (the as-of arms of
+scripts 61 and 68). The 26-30 arm of script 68 was not re-scored, so
+that cell is empty.
 
-  Panel A  the headline route, both young bands, before and after the
-           calendar cycle is removed, with the backtest artefact beside
-           each. Sources: 61 (pre-seasonal) and 68 (seasonal).
-  Panel B  the six-band profile on the continuous occupation-scaled
-           measures, which is a robustness exercise about the measure,
-           not the headline estimand. Source: 63.
+INPUTS, read from the export directories the final-code manifest names.
 
-READ RULES.
-  * Never compare a Panel A number with a Panel B number. Different
-    exposure construction, different scale.
-  * 41-49 is negative and significant in Panel B on both AI routes.
-    What the paper must NOT say is that the young were hit harder than
-    the prime-aged: tested directly with the calendar cycle removed,
-    that contrast is -0.0153 (0.0126), a null.
-  * Telework is the identification check, not a rival AI measure.
+  lane 14  seasonal_pooled.csv       adoption step, cycle removed (68)
+  round 2  output_61__redated_pooled.csv  adoption step before the cycle (61)
+  lane 21  reference_window.csv      tightening step and levels (75)
+  lane 20  contrast_seasonal.csv     the 22-25 contrast against 41-49 (74),
+                                     quoted in the note
+  round 2  output_63__robustness_gradient.csv  Panel B (63)
 
-    python3 revision/local/l19_tab_age_profile.py [export_dir ...]
+OUTPUT. revision/tables/tableA_age_profile.tex, copied to the manuscript
+repository's tables/ folder. Pass one directory on the command line to
+read every input from there instead of the pinned locations.
+
+    python3 revision/local/l19_tab_age_profile.py [export_dir]
 """
+import shutil
 import sys
 from pathlib import Path
 
@@ -50,91 +49,110 @@ REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
+OUT = REV / "output"
+LANE14 = OUT / "round3_20260921-2152-lane14-seasonal-complete"
+ROUND2_61_63 = OUT / "round2_20260920-2148-jobs616263"
+LANE20 = OUT / "round3_20260922-0105-lane20-seasonal-contrast"
+LANE21_22 = OUT / "round3_20260922-0712-lanes21-22"
+PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
+
 BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 TERM = "post_x_high_x_young"
 POOLED = "post2024_x_high_x_young"
 
 
-def find(argv, name):
-    roots = [Path(a) for a in argv[1:]] + [REV / "output"]
-    best = None
-    for r in roots:
-        if r.exists():
-            for p in list(r.rglob(name)) + list(r.rglob(f"*__{name}")):
-                if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                    best = p
-    return best
+def source(default_dir: Path, name: str) -> Path:
+    d = Path(sys.argv[1]) if len(sys.argv) > 1 else default_dir
+    p = d / name
+    if not p.exists():
+        raise SystemExit(f"  missing input: {p}")
+    return p
 
 
 def fmt(c, se, p=None):
-    if c is None:
-        return "PENDING"
+    """Estimate with a star at five per cent, from the exported p-value
+    where the export carries one and from the normal threshold otherwise."""
     sig = (p < 0.05) if p is not None else (abs(c) > 1.96 * se)
     star = "^{*}" if sig else ""
     return f"${c:+.4f}{star}$ ({se:.4f})"
 
 
-def panel_a(argv):
+def panel_a():
     """Headline route: education-mix quartile, the two young bands."""
     rows = []
-    seas = find(argv, "seasonal_pooled.csv")
-    pre = find(argv, "redated_pooled.csv")
-    if seas is not None:
-        d = pd.read_csv(seas)
-        for band in ("22-25", "26-30"):
-            t = d[(d["young_band"] == band) & (d["outcome"] == "stock")
-                  & (d["arm"] == "true") & (d["term"] == TERM)]
-            a = d[(d["young_band"] == band) & (d["outcome"] == "stock")
-                  & (d["arm"] == "asof") & (d["term"] == TERM)]
-            if t.empty:
-                continue
-            art = (f"${float(a.iloc[0]['coef']) - float(t.iloc[0]['coef']):+.4f}$"
-                   if not a.empty else "--")
-            rows.append((f"{band}, cycle removed",
-                         fmt(float(t.iloc[0]["coef"]),
-                             float(t.iloc[0]["se"])), art))
-    if pre is not None:
-        d = pd.read_csv(pre)
-        for band in ("22-25", "26-30"):
-            t = d[(d["young_band"] == band) & (d["arm"] == "true")
-                  & (d["term"] == POOLED) & (d["design"] == "OL_daioe")]
-            a = d[(d["young_band"] == band) & (d["arm"] == "asof")
-                  & (d["term"] == POOLED) & (d["design"] == "OL_daioe")]
-            if t.empty:
-                continue
-            art = (f"${float(a.iloc[0]['coef']) - float(t.iloc[0]['coef']):+.4f}$"
-                   if not a.empty else "--")
-            rows.append((f"{band}, before the cycle",
-                         fmt(float(t.iloc[0]["coef"]),
-                             float(t.iloc[0]["se"])), art))
+    d = pd.read_csv(source(LANE14, "seasonal_pooled.csv"))
+    d = d[d.get("status", "ok") == "ok"]
+    for band in ("22-25", "26-30"):
+        t = d[(d.young_band == band) & (d.outcome == "stock")
+              & (d.arm == "true") & (d.term == TERM)]
+        a = d[(d.young_band == band) & (d.outcome == "stock")
+              & (d.arm == "asof") & (d.term == TERM)]
+        if t.empty:
+            raise SystemExit(f"  no cycle-removed step for {band}")
+        art = (f"${float(a.coef.iloc[0]) - float(t.coef.iloc[0]):+.4f}$"
+               if not a.empty else "--")
+        rows.append((f"{band}, cycle removed",
+                     fmt(float(t.coef.iloc[0]), float(t.se.iloc[0])), art))
+    d = pd.read_csv(source(ROUND2_61_63, "output_61__redated_pooled.csv"))
+    d = d[d.get("status", "ok") == "ok"]
+    for band in ("22-25", "26-30"):
+        t = d[(d.young_band == band) & (d.arm == "true")
+              & (d.term == POOLED) & (d.design == "OL_daioe")]
+        a = d[(d.young_band == band) & (d.arm == "asof")
+              & (d.term == POOLED) & (d.design == "OL_daioe")]
+        if t.empty:
+            raise SystemExit(f"  no pre-cycle step for {band}")
+        art = (f"${float(a.coef.iloc[0]) - float(t.coef.iloc[0]):+.4f}$"
+               if not a.empty else "--")
+        rows.append((f"{band}, before the cycle",
+                     fmt(float(t.coef.iloc[0]), float(t.se.iloc[0])), art))
+    w = pd.read_csv(source(LANE21_22, "reference_window.csv"))
+    w = w[w.get("status", "ok") == "ok"]
+
+    def win(band, term):
+        r = w[(w.young_band == band) & (w.outcome == "stock")
+              & (w.term == term)]
+        if r.empty:
+            raise SystemExit(f"  no {term} for {band} in reference_window.csv")
+        return fmt(float(r.coef.iloc[0]), float(r.se.iloc[0]))
+
+    rows.append(("22-25, tightening step, April 2022",
+                 win("22-25", "rbw_x_high_x_young"), "--"))
+    rows.append(("22-25, level after adoption vs pre-hike months",
+                 win("22-25", TERM), "--"))
+    rows.append(("26-30, level after adoption vs pre-hike months",
+                 win("26-30", TERM), "--"))
     return rows
 
 
-def panel_b(argv):
+def panel_b():
     """Six bands, continuous occupation-scaled measures. Different estimand."""
-    src = find(argv, "robustness_gradient.csv")
-    if src is None:
-        return []
-    d = pd.read_csv(src)
-    d = d[d["dating"] == "adoption"]
+    d = pd.read_csv(source(ROUND2_61_63, "output_63__robustness_gradient.csv"))
+    d = d[d.dating == "adoption"]
     out = []
     for b in BANDS:
         cells = []
         for m in ("daioe", "eloundou", "telework"):
-            r = d[(d["age_group"] == b) & (d["measure"] == m)
-                  & (d["outcome"] == "stock")]
+            r = d[(d.age_group == b) & (d.measure == m) & (d.outcome == "stock")]
             cells.append("--" if r.empty else
-                         fmt(float(r.iloc[0]["coef"]), float(r.iloc[0]["se"]),
-                             float(r.iloc[0]["pvalue"])))
+                         fmt(float(r.coef.iloc[0]), float(r.se.iloc[0]),
+                             float(r.pvalue.iloc[0])))
         out.append((b, cells))
     return out
 
 
+def contrast_22_25() -> str:
+    """The 22-25 contrast against 41-49, cycle removed, for the note."""
+    d = pd.read_csv(source(LANE20, "contrast_seasonal.csv"))
+    r = d[(d.arm == "seasonal") & (d.band_vs_ref == "22_25")]
+    if len(r) != 1:
+        raise SystemExit("  contrast_seasonal.csv: one seasonal 22_25 row expected")
+    return f"${float(r.coef.iloc[0]):+.4f}$ ({float(r.se.iloc[0]):.4f})"
+
+
 def main() -> int:
-    A, B = panel_a(sys.argv), panel_b(sys.argv)
-    if not A and not B:
-        print("  no exports found")
-        return 1
+    A, B = panel_a(), panel_b()
+    contrast = contrast_22_25().replace("+", "")
 
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{The headline design by age, and the age profile on a "
@@ -145,9 +163,9 @@ def main() -> int:
            r"top-quartile 2019 education mix of incumbents aged 31+}} \\",
            r"\addlinespace[2pt]",
            r" & Estimate (SE) & Artefact & \\", r"\midrule"]
-    for lab, est, art in A:
-        tex.append(f"{lab} & {est} & {art} & \\\\")
-        print(f"  A  {lab:28s} {est}  art {art}")
+    for lab, e, art in A:
+        tex.append(f"{lab} & {e} & {art} & \\\\")
+        print(f"  A  {lab:48s} {e}  art {art}")
     tex += [r"\addlinespace[6pt]",
             r"\multicolumn{4}{l}{\textit{Panel B. Continuous "
             r"occupation-scaled measures, per standard deviation}} \\",
@@ -167,21 +185,30 @@ def main() -> int:
             r"sample. \textbf{The two panels are not comparable.} Panel A "
             r"is a top-quartile indicator built from the education mix of a "
             r"firm's incumbents, and it is the estimand the paper reports; "
-            r"it exists for the two young bands only. Panel B scores "
-            r"occupations continuously, so a coefficient is the effect of a "
-            r"one standard deviation more exposed occupation on that "
-            r"measure's own scale. The artefact column gives what the as-of "
-            r"backtest returns on the same specification when the "
-            r"register's lag is imposed on years whose true gap is zero; "
-            r"the threshold fixed before the test was 0.05. Employment at "
+            r"it exists for the two young bands only. The tightening step "
+            r"and the two levels come from the same specification with the "
+            r"Riksbank interaction as a window (April to November 2022), so "
+            r"that the post-adoption term reads against January 2021 to "
+            r"March 2022. Panel B scores occupations continuously, so a "
+            r"coefficient there is the effect of one standard deviation of "
+            r"the 2019 firm-age baseline exposure, on that measure's own "
+            r"scale. The artefact column is the change in the coefficient "
+            r"when each employer's 2019 incumbents are re-scored from the "
+            r"education register as it stood in 2021, the staleness the "
+            r"2024--25 records inherit, and the same panel is re-estimated; "
+            r"the threshold fixed before that test was 0.05. Employment at "
             r"41--49 declines on both AI measures in Panel B. The paper "
             r"does not claim the young were hit harder than the "
-            r"prime-aged: tested directly with the calendar cycle removed, "
-            r"that contrast is $-0.0153$ (0.0126), a null.",
+            r"prime-aged: tested directly with the calendar cycle removed "
+            r"on all six bands, the 22--25 contrast against 41--49 is "
+            + contrast + r", a null (Table~\ref{tab:profile_seasonal}).",
             r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "tableA_age_profile.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")
     print(f"\n  wrote {out.relative_to(REV)}")
+    if PAPER_TAB.exists():
+        shutil.copy(out, PAPER_TAB / out.name)
+        print(f"  copied to {PAPER_TAB / out.name}")
     return 0
 
 

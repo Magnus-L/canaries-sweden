@@ -65,22 +65,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _figsafe import save  # noqa: E402
 from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT
 
-# SCB's firm AI-use series, the thing the timing is read against.
+# Statistics Sweden's firm AI-use series, the thing the timing is read
+# against: the share of enterprises with ten or more employees that use
+# AI, from the annual survey on ICT usage in enterprises (Företagens
+# användning av IT), survey years 2023, 2024 and 2025. The paper quotes
+# the first two in Section 3 and in Online Appendix III.2. The series is
+# published, not estimated here, and is not in any export in this tree.
 SCB_ADOPTION = {"2023": 10.4, "2024": 25.2, "2025": 35.0}
 LAUNCH_Q = "2022Q4"
 
+# The lane 14 export the final-code manifest names. Pass a directory on
+# the command line to read seasonal_path.csv from there instead.
+LANE14 = REV / "output" / "round3_20260921-2152-lane14-seasonal-complete"
+
 
 def find_path_csv(argv) -> Path | None:
-    roots = [Path(a) for a in argv[1:]] + [REV / "output"]
-    best = None
-    for r in roots:
-        if not r.exists():
-            continue
-        for p in list(r.rglob("seasonal_path.csv")) + list(
-                r.rglob("*__seasonal_path.csv")):
-            if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                best = p
-    return best
+    d = Path(argv[1]) if len(argv) > 1 else LANE14
+    p = d / "seasonal_path.csv"
+    return p if p.exists() else None
 
 
 def _to_date(period: str):

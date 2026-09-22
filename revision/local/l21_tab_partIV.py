@@ -26,8 +26,12 @@ Quoting -0.31 "against a true coefficient of +0.02" double-counts, since
 -0.31 is already the difference. The tables print all three columns so
 the distinction cannot be lost.
 
+Each table is written to revision/tables/ and copied to the manuscript
+repository's tables/ folder.
+
     python3 revision/local/l21_tab_partIV.py
 """
+import shutil
 import sys
 from pathlib import Path
 
@@ -41,6 +45,10 @@ OUT = REV / "output"
 B40 = OUT / "round2_20260918-1640"
 B45 = OUT / "round2_20260918-1736-script45"
 B41 = OUT / "round2_20260920-exportpack"
+LANE14 = OUT / "round3_20260921-2152-lane14-seasonal-complete"
+# The manuscript repository is a sibling of this one; the appendix
+# \input{}s the tables from there.
+PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
 BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 
 
@@ -160,9 +168,24 @@ def t2():
           f"{mp[mp.year == 2022].n_pairs.sum():,})")
 
 
+def rescoring_artefact() -> float:
+    """The vintage-sensitivity check on the reported design: the change
+    in its adoption step when the 2019 incumbents are re-scored from the
+    education register as it stood in 2021 (script 68, as-of arm). This
+    is not the backtest, which the reported design is immune to by
+    construction; it is quoted in the note so the reader sees both."""
+    d = pd.read_csv(LANE14 / "seasonal_pooled.csv")
+    d = d[(d.young_band == "22-25") & (d.outcome == "stock")
+          & (d.term == "post_x_high_x_young")]
+    true = float(d[d.arm == "true"].coef.iloc[0])
+    asof = float(d[d.arm == "asof"].coef.iloc[0])
+    return asof - true
+
+
 def t3():
     """The as-of backtest. Artefact = as-of minus true."""
     a = pd.read_csv(B45 / "asof_estimates.csv")
+    rescored = rescoring_artefact()
     L = [r"\begin{table}[ht!]", r"\centering", r"\footnotesize",
          r"\caption{The as-of backtest: what the register's lag alone "
          r"produces in years where the true age gap is observable.}",
@@ -191,15 +214,24 @@ def t3():
           r"indistinguishable from zero, to $-0.288$; the artefact is "
           r"$-0.307$. The submitted headline was $-0.174$, so the lag alone "
           r"can manufacture more than the whole of it. The design the paper "
-          r"reports carries $+0.011$ on this test. Source: script 45."
+          r"reports admits no occupation code recorded after 2019, so this "
+          r"test does not apply to it; re-scoring its 2019 exposure from the "
+          r"education register as it stood in 2021 moves its adoption step "
+          f"by ${rescored:+.3f}$, of the wrong sign to manufacture a "
+          r"decline. Source: scripts 45 and 68."
           r"\end{minipage}", r"\end{table}"]
     (V2_TAB / "tableIV3_backtest.tex").write_text("\n".join(L) + "\n")
-    print("  tableIV3_backtest.tex")
+    print(f"  tableIV3_backtest.tex  (re-scoring artefact {rescored:+.4f})")
 
 
 def main() -> int:
     t1(); t2(); t3()
     print(f"\n  wrote 3 tables to {V2_TAB.relative_to(REV)}")
+    if PAPER_TAB.exists():
+        for name in ("tableIV1_coverage.tex", "tableIV2_vintage.tex",
+                     "tableIV3_backtest.tex"):
+            shutil.copy(V2_TAB / name, PAPER_TAB / name)
+        print(f"  copied to {PAPER_TAB}")
     return 0
 
 

@@ -1,21 +1,51 @@
 #!/usr/bin/env python3
 """
-l18_table1.py -- Table 1, assembled from the exports rather than by hand.
+l18_table1.py -- Table 1 of the paper, assembled from the exported estimates.
 
-THE SPECIFICATION, from the writing pack: "Table 1 four rows: the two
-bands, the artefact beside each, the female differential. Nothing else."
+WHAT THE TABLE REPORTS. The estimates the paper rests on, all from the
+within-employer age design with the calendar cycle removed: employment of
+workers aged 22 to 25 relative to their older colleagues in the same
+employer, with exposure frozen at the employer's 2019 education mix.
 
-Everything comes from lane 14, the seasonally controlled design, which
-supersedes 61 and 67 for anything quoted. Nothing here is typed in: a
-cell that has no export prints as PENDING and says which fit is
-missing, because a blank that looks like a zero is how a reader is
-misled. The 26-30 stock row is the one currently outstanding -- its fit
-crashed and is being recovered.
+  Sequence for 22-25    the rise during the tightening months (gamma_1),
+                        the additional step once firms adopt AI (gamma_2)
+                        with the vintage-sensitivity artefact beside it,
+                        and the level after adoption against the months
+                        before the rate hike.
+  26-30                 the additional step at adoption.
+  Profile               22-25 and 50 and over, each against 41-49, from
+                        one panel of all six bands.
+  Margin and incidence  hires, separations, the female differential and
+                        the part of it that lies within broad education
+                        tracks.
 
-Writes tables/table1_headline.tex and prints the same thing as text.
+INPUTS, read from the export directories the final-code manifest names.
+Nothing is typed in; a missing row stops the script rather than printing
+a blank that could be read as a zero.
+
+  lane 14  seasonal_pooled.csv    gamma_1, gamma_2, the as-of arm, hires,
+                                  separations (script 68)
+  lane 21  reference_window.csv   the level after adoption (script 75)
+  lane 20  contrast_seasonal.csv  the six-band profile (script 74)
+  lane 14  seasonal_gender.csv    the female differential (script 68)
+  lane 22  gender_split.csv       the within-track differential (script 76)
+
+The artefact is the change in gamma_2 when each employer's 2019
+incumbents are re-scored from the education register as it stood in
+2021, the staleness the 2024-25 records inherit, and the same panel is
+re-estimated (the as-of arm of script 68). It is not the backtest of
+Online Appendix IV.3, which runs on 2019-2023 with a pseudo-dated
+treatment; the reported design admits no occupation code after 2019, so
+the backtest does not apply to it. The 26-30 arm was not re-scored, so
+that cell is left empty.
+
+OUTPUT. revision/tables/table1_headline.tex, copied to the manuscript
+repository's tables/ folder. Pass one directory on the command line to
+read every input from there instead of the pinned locations.
 
     python3 revision/local/l18_table1.py [export_dir]
 """
+import shutil
 import sys
 from pathlib import Path
 
@@ -25,108 +55,161 @@ REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
+OUT = REV / "output"
+LANE14 = OUT / "round3_20260921-2152-lane14-seasonal-complete"
+LANE14_GENDER = OUT / "round3_20260921-lane14-seasonal"
+LANE20 = OUT / "round3_20260922-0105-lane20-seasonal-contrast"
+LANE21_22 = OUT / "round3_20260922-0712-lanes21-22"
+# The manuscript repository is a sibling of this one; the paper \input{}s
+# the table from there.
+PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
+
 TERM = "post_x_high_x_young"
 FEMALE = "post_x_high_x_young_x_female"
 
 
-def find(argv, name):
-    roots = [Path(a) for a in argv[1:]] + [REV / "output"]
-    best = None
-    for r in roots:
-        if r.exists():
-            for p in list(r.rglob(name)) + list(r.rglob(f"*__{name}")):
-                if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                    best = p
-    return best
+def source(default_dir: Path, name: str) -> Path:
+    """The pinned export, or the same file name under a directory given
+    on the command line."""
+    d = Path(sys.argv[1]) if len(sys.argv) > 1 else default_dir
+    p = d / name
+    if not p.exists():
+        raise SystemExit(f"  missing input: {p}")
+    return p
 
 
-def cell(coef, se):
-    if coef is None:
-        return "PENDING"
-    t = coef / se if se else float("nan")
-    return f"{coef:+.4f} ({se:.4f})  t {t:+.2f}"
+def one(df: pd.DataFrame, **cond) -> tuple[float, float]:
+    """The coefficient and standard error of exactly one row."""
+    r = df
+    for k, v in cond.items():
+        r = r[r[k] == v]
+    if len(r) != 1:
+        raise SystemExit(f"  expected one row for {cond}, found {len(r)}")
+    return float(r.coef.iloc[0]), float(r.se.iloc[0])
+
+
+def est(c: float, se: float) -> str:
+    return f"${c:+.4f}$ ({se:.4f})"
 
 
 def main() -> int:
-    pooled = find(sys.argv, "seasonal_pooled.csv")
-    gender = find(sys.argv, "seasonal_gender.csv")
-    if pooled is None:
-        print("  no seasonal_pooled.csv; run lane 14 and export it")
-        return 1
-    print(f"  reading {pooled}")
-    d = pd.read_csv(pooled)
-    d = d[d.get("status", "ok") == "ok"]
+    pooled = pd.read_csv(source(LANE14, "seasonal_pooled.csv"))
+    pooled = pooled[pooled.get("status", "ok") == "ok"]
+    window = pd.read_csv(source(LANE21_22, "reference_window.csv"))
+    window = window[window.get("status", "ok") == "ok"]
+    profile = pd.read_csv(source(LANE20, "contrast_seasonal.csv"))
+    gender = pd.read_csv(source(LANE14_GENDER, "seasonal_gender.csv"))
+    gender = gender[gender.get("status", "ok") == "ok"]
+    split = pd.read_csv(source(LANE21_22, "gender_split.csv"))
 
-    def grab(band, arm):
-        r = d[(d.young_band == band) & (d.outcome == "stock")
-              & (d.arm == arm) & (d.term == TERM)]
-        if r.empty:
-            return None, None
-        return float(r.coef.iloc[0]), float(r.se.iloc[0])
+    # 22-25, the sequence
+    g1 = one(pooled, young_band="22-25", outcome="stock", arm="true",
+             term="rb_x_high_x_young")
+    g2 = one(pooled, young_band="22-25", outcome="stock", arm="true",
+             term=TERM)
+    g2_asof = one(pooled, young_band="22-25", outcome="stock", arm="asof",
+                  term=TERM)
+    artefact = g2_asof[0] - g2[0]
+    level = one(window, young_band="22-25", outcome="stock", term=TERM)
+    # 26-30, the step
+    g2_26 = one(pooled, young_band="26-30", outcome="stock", arm="true",
+                term=TERM)
+    # the profile against 41-49
+    p22 = one(profile, arm="seasonal", band_vs_ref="22_25")
+    p50 = one(profile, arm="seasonal", band_vs_ref="50p")
+    # margin and incidence
+    hires = one(pooled, young_band="22-25", outcome="hires", arm="true",
+                term=TERM)
+    seps = one(pooled, young_band="22-25", outcome="seps", arm="true",
+               term=TERM)
+    fem = one(gender, term=FEMALE)
+    if len(split) != 1:
+        raise SystemExit("  gender_split.csv should hold one row")
+    within = (float(split.within.iloc[0]), float(split.within_se.iloc[0]))
+    if abs(float(split.pooled.iloc[0]) - fem[0]) > 5e-5:
+        raise SystemExit("  the pooled differential in gender_split.csv "
+                         "does not match seasonal_gender.csv")
 
-    rows, missing = [], []
-    for band in ("22-25", "26-30"):
-        tc, ts = grab(band, "true")
-        ac, asd = grab(band, "asof")
-        art = (f"{ac - tc:+.4f}" if (tc is not None and ac is not None)
-               else "--")
-        if tc is None:
-            missing.append(f"{band} stock, true arm")
-        rows.append((f"{band}, employment stock", cell(tc, ts), art))
+    rows = [
+        (r"\multicolumn{3}{l}{\textit{Ages 22--25, employment stock, "
+         r"against the older bands pooled}} \\", None, None),
+        (r"Tightening months, April to November 2022 ($\hat\gamma_1$)",
+         est(*g1), ""),
+        (r"Additional step at adoption, from January 2024 ($\hat\gamma_2$)",
+         est(*g2), f"${artefact:+.4f}$"),
+        (r"Level after adoption, against the months before the hike",
+         est(*level), ""),
+        (r"\addlinespace[3pt]", None, None),
+        (r"\multicolumn{3}{l}{\textit{Ages 26--30, employment stock, "
+         r"against the older bands pooled}} \\", None, None),
+        (r"Additional step at adoption ($\hat\gamma_2$)", est(*g2_26), ""),
+        (r"\addlinespace[3pt]", None, None),
+        (r"\multicolumn{3}{l}{\textit{The profile, against 41--49 alone}} \\",
+         None, None),
+        (r"22--25", est(*p22), ""),
+        (r"50 and over", est(*p50), ""),
+        (r"\addlinespace[3pt]", None, None),
+        (r"\multicolumn{3}{l}{\textit{Ages 22--25, margin and incidence}} \\",
+         None, None),
+        (r"Hires, additional step at adoption", est(*hires), ""),
+        (r"Separations, additional step at adoption", est(*seps), ""),
+        (r"Young women minus young men", est(*fem), ""),
+        (r"\quad of which within broad education tracks", est(*within), ""),
+    ]
 
-    if gender is not None:
-        print(f"  reading {gender}")
-        g = pd.read_csv(gender)
-        g = g[(g.get("status", "ok") == "ok") & (g.term == FEMALE)]
-        if not g.empty:
-            rows.append(("22-25, female differential",
-                         cell(float(g.coef.iloc[0]), float(g.se.iloc[0])),
-                         "--"))
-        else:
-            missing.append("female differential")
-    sep = d[(d.young_band == "22-25") & (d.outcome == "seps")
-            & (d.arm == "true") & (d.term == TERM)]
-    if not sep.empty:
-        rows.append(("22-25, separations",
-                     cell(float(sep.coef.iloc[0]), float(sep.se.iloc[0])),
-                     "--"))
+    note = (
+        r"Poisson pseudo-maximum likelihood on employer $\times$ age $\times$ "
+        r"month counts, employer-by-month, employer-by-age and month-by-age "
+        r"effects, three calendar-quarter interactions with the fourth "
+        r"quarter omitted, exposure frozen at the employer's 2019 education "
+        r"mix, standard errors clustered by employer. Steps are measured "
+        r"from the level reached during the tightening months, as "
+        r"$\beta_2$ is on the posting margin; the level row re-estimates "
+        r"with the Riksbank interaction as a window so that the "
+        r"post-adoption term reads against January 2021 to March 2022. The "
+        r"profile rows come from one panel of all six bands with 41--49 as "
+        r"the reference. The female differential is the interaction of the "
+        r"adoption term with a female indicator, with "
+        r"employer-by-age-and-sex and month-by-age-and-sex effects, in a "
+        r"specification that carries the Riksbank and adoption terms "
+        r"without the interim term, so that its steps are from the level "
+        r"of April 2022 to December 2023 and the female interaction is the "
+        r"differential change from January 2021 to December 2023; the "
+        r"within-track row weights the same differential estimated inside "
+        r"each broad education track by young women's track shares in "
+        r"exposed firms. The artefact column is the change in the "
+        r"coefficient when each employer's 2019 incumbents are re-scored "
+        r"from the education register as it stood in 2021, the staleness "
+        r"the 2024--25 records inherit, and the same panel is "
+        r"re-estimated; the threshold fixed before that test was 0.05. "
+        r"Full tables in Online Appendix~III.2."
+    )
 
-    w = max(len(r[0]) for r in rows)
-    print()
-    print(f"  {'':<{w}}  {'estimate':<26} artefact")
-    for lab, est, art in rows:
-        print(f"  {lab:<{w}}  {est:<26} {art}")
-    if missing:
-        print(f"\n  PENDING, not zero: {'; '.join(missing)}")
-
-    V2_TAB.mkdir(parents=True, exist_ok=True)
-    # A full float, not a bare tabular: the manuscript \input{}s this and
-    # needs the caption, the label and the note to travel with the numbers.
-    # A caption written by hand beside a generated table is how a table and
-    # its description drift apart.
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{Employment of young workers relative to their older "
            r"colleagues inside the same employer, with the calendar cycle "
            r"removed.}",
-           r"\label{tab:headline}",
+           r"\label{tab:headline}", r"\footnotesize",
            r"\begin{tabular}{lcc}", r"\toprule",
            r" & Estimate (SE) & Artefact \\", r"\midrule"]
-    for lab, est, art in rows:
-        e = "PENDING" if est == "PENDING" else est.split("  t")[0]
-        tex.append(f"{lab} & {e} & {art} \\\\")
+    for lab, e, art in rows:
+        if e is None:
+            tex.append(lab)
+        else:
+            tex.append(f"{lab} & {e} & {art} \\\\" if art
+                       else f"{lab} & {e} & \\\\")
+            print(f"  {lab[:58]:58s} {e}  {art}")
     tex += [r"\bottomrule", r"\end{tabular}",
-            r"\begin{minipage}{0.86\textwidth}\footnotesize\vspace{4pt}",
-            r"Poisson pseudo-maximum likelihood on employer $\times$ age "
-            r"$\times$ month counts, exposure frozen at the employer's 2019 "
-            r"education mix. Standard errors clustered by employer. The "
-            r"artefact column reports the coefficient the as-of backtest "
-            r"returns on the same specification when the register's lag is "
-            r"imposed on years where the true gap is zero; the threshold "
-            r"fixed before that test was 0.05.",
-            r"\end{minipage}", r"\end{table}"]
+            r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
+            note, r"\end{minipage}", r"\end{table}"]
+
+    V2_TAB.mkdir(parents=True, exist_ok=True)
     out = V2_TAB / "table1_headline.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")
     print(f"\n  wrote {out.relative_to(REV)}")
+    if PAPER_TAB.exists():
+        shutil.copy(out, PAPER_TAB / out.name)
+        print(f"  copied to {PAPER_TAB / out.name}")
     return 0
 
 

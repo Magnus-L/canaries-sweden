@@ -59,21 +59,18 @@ ROWS = [
 ]
 
 
+# The corrected lane 17 export the final-code manifest names. The first
+# lane 17 run (round3_20260921-lane17-adoption) built its adoption flag
+# from every survey item whose name contained "AI", barrier items
+# included, and is withdrawn; only the corrected export is read. Pass a
+# directory on the command line to read from there instead.
+LANE17 = REV / "output" / "round3_20260921-lane17-adoption-corrected"
+
+
 def find(argv, name):
-    roots = [Path(a) for a in argv[1:]] + [REV / "output"]
-    best = None
-    for r in roots:
-        if not r.exists():
-            continue
-        for p in list(r.rglob(name)) + list(r.rglob(f"*__{name}")):
-            # the first version of 71 built its adoption flag by
-            # pattern-matching "AI" and swept in nine barrier items plus
-            # AI_USE_N; that export is withdrawn
-            if "lane17" in str(p) and "corrected" not in str(p):
-                continue
-            if best is None or p.stat().st_mtime > best.stat().st_mtime:
-                best = p
-    return best
+    d = Path(argv[1]) if len(argv) > 1 else LANE17
+    p = d / name
+    return p if p.exists() else None
 
 
 def main() -> int:
