@@ -1,0 +1,93 @@
+THE INDUSTRY KEY COMPLETED
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Nothing
+here changes the design. Part A builds the industry key and
+reports what it covers, Part B changes only what the standard
+errors are clustered on, Part C only which effects absorb the
+cell.
+
+The defect being repaired: Ftg_2019 alone left 5,285 of the
+111,459 employers on the 22-25 panel and 9,106 of the 128,193 on
+the 26-30 panel without a code, and each of those was given a
+cluster of its own, so the 5,545 and 9,368 clusters the earlier
+runs report are 265 real industry groups and several thousand
+singletons.
+
+B. THE CLUSTERING REDONE ON THE COMPLETE KEY:
+  coefficients equal the employer-clustered run to 4 decimals: YES
+  pooled 22-25: 260 clusters on the complete key against 5,545 before; 4,224 employers coded from another source, 1,308 unresolved
+  term                                    coef    employer      hybrid    industry
+  rb_x_high_x_young                    +0.0214      0.0078      0.0108      0.0108
+  interim_x_high_x_young               -0.0143      0.0095      0.0156      0.0156
+  post_x_high_x_young                  -0.0408      0.0150      0.0301      0.0302
+  pooled 26-30: 263 clusters on the complete key against 9,368 before; 6,560 employers coded from another source, 2,846 unresolved
+  term                                    coef    employer      hybrid    industry
+  rb_x_high_x_young                    +0.0222      0.0043      0.0064      0.0064
+  interim_x_high_x_young               -0.0035      0.0056      0.0079      0.0080
+  post_x_high_x_young                  -0.0394      0.0102      0.0199      0.0200
+  gender 22-25: 260 clusters on the complete key against 5,545 before; 4,224 employers coded from another source, 1,308 unresolved
+  term                                    coef    employer      hybrid    industry
+  rb_x_high_x_young                    +0.0223      0.0102      0.0132      0.0133
+  interim_x_high_x_young               -0.0032      0.0109      0.0170      0.0171
+  post_x_high_x_young                  -0.0047      0.0177      0.0353      0.0353
+  post_x_high_x_female                 +0.0064      0.0041      0.0076      0.0077
+  post_x_high_x_young_x_female         -0.0746      0.0142      0.0179      0.0179
+  young men, adoption step           -0.0047  employer (0.0177)  hybrid (0.0353)  industry (0.0353)
+  young women minus young men        -0.0746  employer (0.0142)  hybrid (0.0179)  industry (0.0179)
+  young women, adoption step         -0.0793  employer (0.0156)  hybrid (no SE)  industry (0.0285)
+  young men, step from 2023          -0.0015  employer (0.0120)  hybrid (no SE)  industry (0.0233)
+  young women, step from 2023        -0.0542  employer (0.0109)  hybrid (no SE)  industry (0.0175)
+  The women's step is the male step plus the differential and its
+  standard error comes from the covariance of each fit, so it is not
+  the sum of two standard errors. The hybrid column is blank for the
+  combinations, whose earlier standard errors were never computed.
+
+NOTES:
+  industry key: Ftg_2019 via Org_Sni2007 gave 526,394 coded firms of 552,099 rows; dropped by convention: all zeros 25,705
+  industry key: Ftg_2018 via Org_Sni2007 gave 514,674 coded firms of 537,932 rows; dropped by convention: all zeros 23,258
+  industry key: Ftg_2020 via Org_Sni2007 gave 529,538 coded firms of 557,907 rows; dropped by convention: all zeros 28,369
+  industry key: Ftg_2017 via Org_Sni2007 gave 519,505 coded firms of 547,324 rows; dropped by convention: all zeros 27,819
+  industry key: Ftg_2021 via Org_Sni2007 gave 532,386 coded firms of 558,549 rows; dropped by convention: all zeros 26,163
+  industry key: Ftg_2016 via Org_Sni2007 gave 513,915 coded firms of 537,811 rows; dropped by convention: all zeros 23,896
+  industry key: Ftg_2022 via Org_Sni2007 gave 519,287 coded firms of 568,212 rows; dropped by convention: all zeros 48,925
+  industry key: Ftg_2015 via Org_Sni2007 gave 519,771 coded firms of 547,001 rows; dropped by convention: all zeros 27,230
+  industry key: Ftg_2023 via Org_Sni2007 gave 514,535 coded firms of 569,901 rows; dropped by convention: all zeros 55,366
+  industry key: Serrano_Serrano_20230614 via bransch_sni3 at ser_year=2019 gave 0 coded firms of 762,147 rows; dropped by convention: null or empty 744,006, unparseable 18,141
+  industry key: FDB_JE_2014_2021 via ng3 at ar=2019 gave 139,203 coded firms of 1,243,327 rows; dropped by convention: null or empty 1,104,124
+  industry key: 1,082,543 firms, 267 three-digit groups, 526,394 of them from Ftg_2019
+  B/22-25: 110,151 of 111,459 employers carry a three-digit code (4,224 of them from a source other than Ftg_2019); 1,308 unresolved share one residual group holding 1.12% of the panel cells; 260 clusters
+  B/22-25: employer-clustered and earlier hybrid numbers from output_78b/cluster_industry.csv
+  B/26-30: 125,347 of 128,193 employers carry a three-digit code (6,560 of them from a source other than Ftg_2019); 2,846 unresolved share one residual group holding 2.20% of the panel cells; 263 clusters
+  B/26-30: employer-clustered and earlier hybrid numbers from output_78b/cluster_industry.csv
+  B/sex 22-25: 110,151 of 111,459 employers carry a three-digit code (4,224 from a source other than Ftg_2019); 1,308 unresolved share one residual group holding 1.03% of the panel cells; 260 clusters
+  B/sex: employer-clustered numbers from output_78b/gender_eq2.csv; earlier hybrid numbers from output_79a/gender_cluster_industry.csv
+
+READ RULES, FIXED BEFORE THE RUN:
+  A. Descriptive. Coverage is reported at every step of the cascade and
+     the employers the 2019 table alone missed are described beside the
+     ones it found, whichever way the comparison falls. Employer counts
+     below 5 are suppressed before anything leaves MONA.
+  B. GATE. The coefficients must reproduce the employer-clustered run to
+     4 decimals. If any term fails, nothing from Part B is
+     quoted, because the cluster changes the covariance and nothing
+     else, so a moved coefficient means a moved panel. The new standard
+     errors are reported beside the employer-clustered ones and beside
+     the earlier hybrid ones whatever they show.
+  C. No gate. The retained share of the adoption step against the
+     same-sample baseline is reported whatever it is, and so is the
+     share of firms in each fit whose code is not from Ftg_2019, since a
+     carried-forward code absorbs less and so flatters the test.
+
+AND WHEN QUOTING:
+  1. A is descriptive. It says what the industry variable covers and
+     what the 2019 table alone missed; it tests nothing.
+  2. B is inference only. The coefficients are 78's and 79's, and the
+     paper replaces the hybrid standard errors with these rather than
+     reporting both as findings.
+  3. C replaces the retained shares of the industry test at both
+     bands, with the non-2019 share beside them.
+
+Runtime 42.8 min. memory available: 484.3 GB

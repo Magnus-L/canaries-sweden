@@ -1,0 +1,108 @@
+THE INDUSTRY KEY COMPLETED
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Nothing
+here changes the design. Part A builds the industry key and
+reports what it covers, Part B changes only what the standard
+errors are clustered on, Part C only which effects absorb the
+cell.
+
+The defect being repaired: Ftg_2019 alone left 5,285 of the
+111,459 employers on the 22-25 panel and 9,106 of the 128,193 on
+the 26-30 panel without a code, and each of those was given a
+cluster of its own, so the 5,545 and 9,368 clusters the earlier
+runs report are 265 real industry groups and several thousand
+singletons.
+
+A. THE CASCADE, PANEL BY PANEL:
+  22-25 stock: 111,459 employers, 105,927 placed by Ftg_2019 (95.0%), 4,224 placed by a later step, 1,308 unresolved
+    median monthly headcount 1.1 in the employers Ftg_2019 missed against 5.8 in the ones it found; months employing anybody 30.2 against 49.6
+    The missing firms are smaller and shorter lived, which is the November reference date doing what we expected.
+    Part B residual group: 1,308 employers (1.2% of the panel) carrying 0.09% of its employment, median monthly headcount 0.8, 21.4 months employing anybody. They share ONE cluster; none is a cluster of its own.
+  26-30 stock: 128,193 employers, 118,787 placed by Ftg_2019 (92.7%), 6,560 placed by a later step, 2,846 unresolved
+    median monthly headcount 0.9 in the employers Ftg_2019 missed against 5.7 in the ones it found; months employing anybody 23.5 against 49.1
+    The missing firms are smaller and shorter lived, which is the November reference date doing what we expected.
+    Part B residual group: 2,846 employers (2.2% of the panel) carrying 0.12% of its employment, median monthly headcount 0.6, 15.2 months employing anybody. They share ONE cluster; none is a cluster of its own.
+  22-25 sex: 111,459 employers, 105,927 placed by Ftg_2019 (95.0%), 4,224 placed by a later step, 1,308 unresolved
+    median monthly headcount 1.1 in the employers Ftg_2019 missed against 5.8 in the ones it found; months employing anybody 30.2 against 49.6
+    The missing firms are smaller and shorter lived, which is the November reference date doing what we expected.
+    Part B residual group: 1,308 employers (1.2% of the panel) carrying 0.09% of its employment, median monthly headcount 0.8, 21.4 months employing anybody. They share ONE cluster; none is a cluster of its own.
+  22-25 sex, employers resolved at each step:
+    Ftg_2019          105,927   95.037%   cumulative 95.037%
+    Ftg_2018            2,105    1.889%   cumulative 96.925%
+    Ftg_2020              780    0.700%   cumulative 97.625%
+    Ftg_2017              364    0.327%   cumulative 97.952%
+    Ftg_2021              333    0.299%   cumulative 98.250%
+    Ftg_2016              195    0.175%   cumulative 98.425%
+    Ftg_2022              169    0.152%   cumulative 98.577%
+    Ftg_2015              123    0.110%   cumulative 98.687%
+    Ftg_2023              123    0.110%   cumulative 98.798%
+    FDB_JE                 32    0.029%   cumulative 98.826%
+    unresolved          1,308    1.174%   cumulative 100.000%
+  22-25 stock, employers resolved at each step:
+    Ftg_2019          105,927   95.037%   cumulative 95.037%
+    Ftg_2018            2,105    1.889%   cumulative 96.925%
+    Ftg_2020              780    0.700%   cumulative 97.625%
+    Ftg_2017              364    0.327%   cumulative 97.952%
+    Ftg_2021              333    0.299%   cumulative 98.250%
+    Ftg_2016              195    0.175%   cumulative 98.425%
+    Ftg_2022              169    0.152%   cumulative 98.577%
+    Ftg_2015              123    0.110%   cumulative 98.687%
+    Ftg_2023              123    0.110%   cumulative 98.798%
+    FDB_JE                 32    0.029%   cumulative 98.826%
+    unresolved          1,308    1.174%   cumulative 100.000%
+  26-30 stock, employers resolved at each step:
+    Ftg_2019          118,787   92.663%   cumulative 92.663%
+    Ftg_2018            2,931    2.286%   cumulative 94.949%
+    Ftg_2020            1,086    0.847%   cumulative 95.796%
+    Ftg_2017              748    0.583%   cumulative 96.380%
+    Ftg_2021              490    0.382%   cumulative 96.762%
+    Ftg_2016              456    0.356%   cumulative 97.118%
+    Ftg_2022              294    0.229%   cumulative 97.347%
+    Ftg_2015              298    0.232%   cumulative 97.579%
+    Ftg_2023              199    0.155%   cumulative 97.735%
+    FDB_JE                 58    0.045%   cumulative 97.780%
+    unresolved          2,846    2.220%   cumulative 100.000%
+
+NOTES:
+  industry key: Ftg_2019 via Org_Sni2007 gave 526,394 coded firms of 552,099 rows; dropped by convention: all zeros 25,705
+  industry key: Ftg_2018 via Org_Sni2007 gave 514,674 coded firms of 537,932 rows; dropped by convention: all zeros 23,258
+  industry key: Ftg_2020 via Org_Sni2007 gave 529,538 coded firms of 557,907 rows; dropped by convention: all zeros 28,369
+  industry key: Ftg_2017 via Org_Sni2007 gave 519,505 coded firms of 547,324 rows; dropped by convention: all zeros 27,819
+  industry key: Ftg_2021 via Org_Sni2007 gave 532,386 coded firms of 558,549 rows; dropped by convention: all zeros 26,163
+  industry key: Ftg_2016 via Org_Sni2007 gave 513,915 coded firms of 537,811 rows; dropped by convention: all zeros 23,896
+  industry key: Ftg_2022 via Org_Sni2007 gave 519,287 coded firms of 568,212 rows; dropped by convention: all zeros 48,925
+  industry key: Ftg_2015 via Org_Sni2007 gave 519,771 coded firms of 547,001 rows; dropped by convention: all zeros 27,230
+  industry key: Ftg_2023 via Org_Sni2007 gave 514,535 coded firms of 569,901 rows; dropped by convention: all zeros 55,366
+  industry key: Serrano_Serrano_20230614 via bransch_sni3 at ser_year=2019 gave 0 coded firms of 762,147 rows; dropped by convention: null or empty 744,006, unparseable 18,141
+  industry key: FDB_JE_2014_2021 via ng3 at ar=2019 gave 139,203 coded firms of 1,243,327 rows; dropped by convention: null or empty 1,104,124
+  industry key: 1,082,543 firms, 267 three-digit groups, 526,394 of them from Ftg_2019
+
+READ RULES, FIXED BEFORE THE RUN:
+  A. Descriptive. Coverage is reported at every step of the cascade and
+     the employers the 2019 table alone missed are described beside the
+     ones it found, whichever way the comparison falls. Employer counts
+     below 5 are suppressed before anything leaves MONA.
+  B. GATE. The coefficients must reproduce the employer-clustered run to
+     4 decimals. If any term fails, nothing from Part B is
+     quoted, because the cluster changes the covariance and nothing
+     else, so a moved coefficient means a moved panel. The new standard
+     errors are reported beside the employer-clustered ones and beside
+     the earlier hybrid ones whatever they show.
+  C. No gate. The retained share of the adoption step against the
+     same-sample baseline is reported whatever it is, and so is the
+     share of firms in each fit whose code is not from Ftg_2019, since a
+     carried-forward code absorbs less and so flatters the test.
+
+AND WHEN QUOTING:
+  1. A is descriptive. It says what the industry variable covers and
+     what the 2019 table alone missed; it tests nothing.
+  2. B is inference only. The coefficients are 78's and 79's, and the
+     paper replaces the hybrid standard errors with these rather than
+     reporting both as findings.
+  3. C replaces the retained shares of the industry test at both
+     bands, with the non-2019 share beside them.
+
+Runtime 10.6 min. memory available: 662.7 GB
