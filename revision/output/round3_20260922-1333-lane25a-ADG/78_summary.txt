@@ -1,0 +1,112 @@
+SEVEN CHECKS ON THE HEADLINE DESIGN
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Each part
+asks one question of that design and changes nothing else.
+
+A. THE PRE-PERIOD
+  (i) quarterly path on the plain specification, 2022Q1 omitted, no calendar terms:
+    22-25:
+      2019Q1   +0.0753 (0.0159)  *
+      2019Q2   +0.0935 (0.0183)  *
+      2019Q3   +0.1410 (0.0237)  *
+      2019Q4   +0.2117 (0.0176)  *
+      2020Q1   +0.0717 (0.0125)  *
+      2020Q2   +0.0571 (0.0176)  *
+      2020Q3   +0.0550 (0.0210)  *
+      2020Q4   +0.1465 (0.0148)  *
+      2021Q1   -0.0037 (0.0091)
+      2021Q2   +0.0192 (0.0120)
+      2021Q3   +0.0509 (0.0192)  *
+      2021Q4   +0.1506 (0.0127)  *
+      2022Q1   reference
+      2022Q2   +0.0312 (0.0095)  *
+      2022Q3   +0.0733 (0.0181)  *
+      2022Q4   +0.1664 (0.0135)  *
+      2023Q1   +0.0107 (0.0117)
+      2023Q2   +0.0228 (0.0144)
+      2023Q3   +0.0526 (0.0208)  *
+      2023Q4   +0.1348 (0.0171)  *
+      2024Q1   +0.0037 (0.0156)
+      2024Q2   +0.0106 (0.0171)
+      2024Q3   +0.0177 (0.0220)
+      2024Q4   +0.0988 (0.0195)  *
+      2025Q1   +0.0110 (0.0242)
+      2025Q2   -0.0180 (0.0246)
+    26-30:
+      2019Q1   -0.0161 (0.0113)
+      2019Q2   -0.0132 (0.0112)
+      2019Q3   -0.0045 (0.0111)
+      2019Q4   +0.0353 (0.0106)  *
+      2020Q1   -0.0115 (0.0086)
+      2020Q2   -0.0141 (0.0087)
+      2020Q3   -0.0215 (0.0085)  *
+      2020Q4   +0.0154 (0.0077)  *
+      2021Q1   -0.0242 (0.0054)  *
+      2021Q2   -0.0147 (0.0053)  *
+      2021Q3   -0.0087 (0.0055)
+      2021Q4   +0.0350 (0.0050)  *
+      2022Q1   reference
+      2022Q2   +0.0064 (0.0029)  *
+      2022Q3   +0.0160 (0.0046)  *
+      2022Q4   +0.0613 (0.0050)  *
+      2023Q1   +0.0101 (0.0066)
+      2023Q2   +0.0090 (0.0073)
+      2023Q3   +0.0107 (0.0083)
+      2023Q4   +0.0467 (0.0084)  *
+      2024Q1   -0.0034 (0.0098)
+      2024Q2   -0.0057 (0.0104)
+      2024Q3   -0.0118 (0.0109)
+      2024Q4   +0.0239 (0.0112)  *
+      2025Q1   -0.0500 (0.0138)  *
+      2025Q2   -0.0680 (0.0158)  *
+  (ii) drift test on the pre-launch months (January 2021 to November 2022), cycle and tightening window in:
+    22-25: trend +0.00060 (0.00079) per month, t +0.77; over the twenty-three months +0.0139: FLAT on the rule (within 2 SE)
+      tightening window +0.0039 (0.0079)
+    26-30: trend +0.00187 (0.00044) per month, t +4.27; over the twenty-three months +0.0431: NOT FLAT on the rule (within 2 SE)
+      tightening window -0.0011 (0.0034)
+    A joint test of every pre-launch quarter net of the cycle is
+    not identified from two years of pre-launch months; the
+    linear drift is the testable direction and is what is tested.
+
+D. THE SKILL-INTENSITY PLACEBO (High_edu = top quartile of the
+   2019 post-secondary share, employment weighted):
+  22-25 DAIOE step alone        -0.0408 (0.0150)
+  22-25 skill-cut step alone    +0.0077 (0.0188)
+  22-25 DAIOE step, both in     -0.0590 (0.0188)
+  22-25 skill-cut step, both in +0.0381 (0.0219)
+  22-25: skill cut alone does not reproduce the step (rule: at least as large as the DAIOE step, allowing one SE)
+  22-25: AI SURVIVES THE SKILL CUT (rule: DAIOE step keeps at least 50% of its size with both in)
+  26-30 DAIOE step alone        -0.0394 (0.0102)
+  26-30 skill-cut step alone    -0.0034 (0.0121)
+  26-30 DAIOE step, both in     -0.0518 (0.0133)
+  26-30 skill-cut step, both in +0.0239 (0.0142)
+  26-30: skill cut alone does not reproduce the step (rule: at least as large as the DAIOE step, allowing one SE)
+  26-30: AI SURVIVES THE SKILL CUT (rule: DAIOE step keeps at least 50% of its size with both in)
+
+G. THE TIGHTENING BOUNDARY AT 2022-05, 2022-04 DROPPED, 22-25 stock:
+  rb_x_high_x_young          +0.0241 (0.0081)
+  interim_x_high_x_young     -0.0170 (0.0093)
+  post_x_high_x_young        -0.0437 (0.0148)
+  Read beside 68's April-boundary rows; no gate.
+
+NOTES:
+  A(i): path from 2019-01 (2019 and 2020 counts cached)
+  D: post-secondary share cut at 0.669; 30.1% of scored employers are High_edu; 75.4% of DAIOE Q4 employers are also High_edu
+  G: 489,089 cells of 2022-04 dropped; the tightening indicator starts in 2022-05
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. A(i) is drawn, not read as a pooled estimate; A(ii)'s rule is
+     the only verdict in Part A.
+  2. B replaces 68's female differential wherever the paper wants
+     the sexes on Table 1's base; 68's number stays in the OA with
+     its own base stated.
+  3. C changes no coefficient; a coefficient that differs from 68's
+     means the panel differs and nothing in C is quoted.
+  4. D's two verdicts are both reported whichever way they fall.
+  5. E, F and G carry no gate; each is read beside the paper's own
+     number for the same object.
+
+Runtime 154.9 min. memory available: 464.7 GB
