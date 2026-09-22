@@ -1,0 +1,221 @@
+THE REST OF THE PAPER ON THE OCCUPATION ROUTE
+====================================================
+
+THE FIRST STAGE REPRODUCES. The occupation-route quartile predicts reported AI
+use with the same sign as the education route and at least 50% of its size, so
+the estimates below and those of lane 28 may be read.
+
+THE SCORE. Every fit here uses lane 28's firm score, built by that script's own
+build_exposure(): the employment-weighted mean DAIOE percentile of the 2019
+three-digit occupations of the employer's own incumbents aged 31 to 69, the
+backward cascade, a floor of five. It is not rebuilt here, so there is one
+definition of the treatment variable and not two.
+
+A. THE FIRST STAGE AND THE DESCRIPTIVE COUNTERPART:
+  1. THE FIRST STAGE: THE FIRST STAGE REPRODUCES
+     the firm-level gap in reported AI use (ITFtg_Stora_2023, 3,587 observations): occupation route +20.87 points (1.45) t +14.37
+       against +21.54 points on this run's own education-route estimate on the same table (recorded +21.50); the rule asks for the same sign and at least 50% of it, and ours is the same sign at 97% of it, so the rule is MET
+     the individual-level gap in generative-AI use (BITA_2024, 2,285 observations): occupation route +22.53 points (2.49) t +9.04
+       against +23.50 points on this run's own education-route estimate on the same table (recorded +23.50); the rule asks for the same sign and at least 50% of it, and ours is the same sign at 96% of it, so the rule is MET
+
+  2. THE PRE-CHATGPT ANY-AI GAP (a diagnostic; it settles nothing):
+     occupation  2019 +5.5 (0.4)  2019 +29.4 (3.8)  2019 +5.0 (1.3)  2019 +18.2 (1.2)  2021 +18.7 (1.3)  2023 +20.9 (1.5)
+     education   2019 +6.6 (0.4)  2019 +26.9 (3.6)  2019 +5.4 (1.4)  2019 +20.3 (1.4)  2021 +19.8 (1.4)  2023 +21.5 (1.6)
+     the education route is recorded flat at 2019 +20.3, 2021 +19.8, 2023 +21.5 points
+
+  3. THE DESCRIPTIVE COUNTERPART (no verdict; raw means):
+     occupation: the exposed quartile grew in EVERY band and grew 35-40 fastest (+0.1344); the bands, lowest first: 26-30 +0.0097, 22-25 +0.0246, 31-34 +0.0559, 41-49 +0.0841, 50+ +0.1102, 35-40 +0.1344
+     education: the exposed quartile grew in EVERY band and grew 35-40 fastest (+0.1379); the bands, lowest first: 26-30 +0.0162, 22-25 +0.0391, 31-34 +0.0631, 41-49 +0.0894, 50+ +0.1112, 35-40 +0.1379
+     the education route is recorded as: exposed employers grew in every band and grew the oldest band fastest
+     Composition, firm size and the business cycle are inside every one of these
+     numbers, which is what the regression exists to remove. Never present one
+     as though it were the other.
+
+  the overlap each arm had to work with:
+    ITFtg_Stora_2021     occupation  matched     4,163  with outcome     4,143  top quartile    1,373
+    ITFtg_Stora_2021     education   matched     4,173  with outcome     4,153  top quartile    1,191
+    ITFtg_Stora_2023     occupation  matched     3,597  with outcome     3,587  top quartile    1,169
+    ITFtg_Stora_2023     education   matched     3,611  with outcome     3,601  top quartile    1,030
+    ai_fouftg_2019_2021  occupation  matched    12,532  with outcome    12,532  top quartile    4,971
+    ai_fouftg_2019_2021  education   matched    12,591  with outcome    12,591  top quartile    4,562
+    ai_fouoff_2019_2021  occupation  matched     1,006  with outcome     1,006  top quartile      341
+    ai_fouoff_2019_2021  education   matched     1,010  with outcome     1,010  top quartile      375
+    ai_fufi_2019         occupation  matched     3,824  with outcome     3,823  top quartile    1,366
+    ai_fufi_2019         education   matched     3,841  with outcome     3,840  top quartile    1,217
+    ai_itftg_2019        occupation  matched     3,812  with outcome     3,812  top quartile    1,220
+    ai_itftg_2019        education   matched     3,829  with outcome     3,829  top quartile    1,019
+    BITA_2024            occupation  matched     2,310  with outcome     2,285  top quartile      712
+    BITA_2024            education   matched     2,321  with outcome     2,296  top quartile      723
+
+THE VERDICTS:
+  1 the first stage            THE FIRST STAGE REPRODUCES
+
+NOTES:
+  80's prior-export search path is emptied, so the employer-clustered run the four-decimal gate checks against is refitted on THIS panel rather than read from the education route's exports
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  71: ITFtg_Stora_2020: no AI columns found, skipped
+  71: ITFtg_Stora_2021: use built from ['E_AI_TAR', 'E_AI_TIR', 'E_AI_TML', 'E_AI_TNLG', 'E_AI_TPA', 'E_AI_TSR', 'E_AI_TTM']
+  71: ITFtg_Stora_2021/occupation: 4,163 of 4,254 keys matched (97.9%)
+  71: ITFtg_Stora_2021/education: 4,173 of 4,254 keys matched (98.1%)
+  71: ITFtg_Stora_2022: no AI columns found, skipped
+  71: ITFtg_Stora_2023: use built from ['E_AI_TAR', 'E_AI_TIR', 'E_AI_TML', 'E_AI_TNLG', 'E_AI_TPA', 'E_AI_TSR', 'E_AI_TTM']
+  71: ITFtg_Stora_2023/occupation: 3,597 of 3,789 keys matched (94.9%)
+  71: ITFtg_Stora_2023/education: 3,611 of 3,789 keys matched (95.3%)
+  71: ITftg_Stora_2013: no AI columns found, skipped
+  71: ITftg_Stora_2014: no AI columns found, skipped
+  71: ITftg_Stora_2015: no AI columns found, skipped
+  71: ITftg_Stora_2016: no AI columns found, skipped
+  71: ITftg_Stora_2017: no AI columns found, skipped
+  71: ITftg_Stora_2018: no AI columns found, skipped
+  71: ITftg_Stora_2019: no AI columns found, skipped
+  71: ai_fouftg_2019_2021/occupation: 8,814 of 9,082 keys matched (97.0%)
+  71: ai_fouftg_2019_2021/education: 8,870 of 9,082 keys matched (97.7%)
+  71: ai_fouoff_2019_2021: use built from ['AI_USE']
+  71: ai_fouoff_2019_2021/occupation: 498 of 500 keys matched (99.6%)
+  71: ai_fouoff_2019_2021/education: 500 of 500 keys matched (100.0%)
+  71: ai_fufi_2019/occupation: 3,824 of 3,846 keys matched (99.4%)
+  71: ai_fufi_2019/education: 3,841 of 3,846 keys matched (99.9%)
+  71: ai_itftg_2019: use built from ['AI_USE']
+  71: ai_itftg_2019/occupation: 3,812 of 3,847 keys matched (99.1%)
+  71: ai_itftg_2019/education: 3,829 of 3,847 keys matched (99.5%)
+  71: BITA_2024/persons: 2,708 of 5,277 keys matched (51.3%)
+  71: BITA_2024/occupation: 1,495 of 1,645 keys matched (90.9%)
+  71: BITA_2024/education: 1,506 of 1,645 keys matched (91.6%)
+  71: BITA_2025: no CH columns, skipped
+  descriptive occupation: the exposed quartile grew in EVERY band and grew 35-40 fastest (+0.1344); the bands, lowest first: 26-30 +0.0097, 22-25 +0.0246, 31-34 +0.0559, 41-49 +0.0841, 50+ +0.1102, 35-40 +0.1344
+  descriptive education: the exposed quartile grew in EVERY band and grew 35-40 fastest (+0.1379); the bands, lowest first: 26-30 +0.0162, 22-25 +0.0391, 31-34 +0.0631, 41-49 +0.0894, 50+ +0.1112, 35-40 +0.1379
+
+READ RULES, FIXED BEFORE THE RUN:
+  There is NO coefficient gate anywhere in this lane EXCEPT the
+  clustering fits of Part B, where the coefficients must reproduce
+  their own employer-clustered run to 4 decimals, exactly
+  as script 80 gates: the cluster changes the covariance and nothing
+  else, so a moved coefficient means a moved panel. Everywhere else
+  this is a different measure of the same object, the estimates will
+  differ from the education route, and that is expected. Every
+  estimate is printed beside the education-route one.
+
+  1. THE FIRST STAGE, and it decides whether anything in this lane
+     or in lane 28 may be quoted at all. THE FIRST STAGE REPRODUCES
+     if the occupation-route quartile predicts reported AI use with
+     the SAME SIGN as the education route and an association AT
+     LEAST HALF its size, on the 2023 firm-level ITFtg gap
+     (education route +21.5 points) and on
+     the 2024 individual BITA gap (+23.5
+     points). Both must hold; if one does it is PARTLY and the
+     summary names which. IF IT DOES NOT REPRODUCE, NOTHING IN LANE
+     29 OR LANE 28 IS QUOTED, and the summary says so at the top in
+     those words: a score that does not predict who uses AI is not
+     an AI exposure measure, whatever its coefficients do.
+     71's own sample gates travel with 71's code (800 firms and 100
+     exposed for ITFtg, 600 and 80 for BITA). This route scores
+     fewer employers, so BELOW THRESHOLD is a live outcome and is
+     accepted as one: it is reported as NO VERDICT, never as a
+     failure and never as a pass.
+  2. The pre-ChatGPT any-AI gap in 2019, 2021 and 2023 is a
+     DIAGNOSTIC and settles nothing. The education route reports it
+     flat at 20.3, 19.8
+     and 21.5 points; ours is printed beside
+     it whatever it is. No threshold is set on it, because none can
+     be read off three coefficients with no interaction test behind
+     them.
+  3. The descriptives carry NO verdict. They are raw means, with
+     composition, firm size and the business cycle inside them. The
+     education route's shape is stated (exposed employers grew in every band and grew the oldest band fastest)
+     and ours is described beside it in the same words.
+  4. THE REFERENCE WINDOW AGREES IN DIRECTION if the level after
+     adoption is negative at both bands. No significance rule is
+     set, because neither education-route figure is distinguishable
+     from zero (-0.0194 (0.0184) at 22-25 and
+     -0.0172 (0.0121) at
+     26-30), so a rule on significance would be one the education
+     route itself fails.
+  5. THE PRE-LAUNCH DRIFT is read as script 78 reads it: FLAT if the
+     monthly trend is within 2 of its own standard
+     errors of zero. The education route is FLAT at 22-25
+     (+0.0006 (0.0008)) and
+     NOT FLAT at 26-30 (+0.0019 (0.0004), four
+     standard errors from zero), so a drift at 26-30 here is
+     agreement with the education route and not a defect of this
+     route. Both are reported whichever way they fall.
+  6. THE CLUSTERING. The gate above, and then: THE INFERENCE
+     SURVIVES INDUSTRY CLUSTERING if the adoption step at 22-25 and
+     the female differential keep their sign and stay
+     distinguishable from zero at the five per cent level with the
+     industry standard error. The education route's industry
+     standard errors are 0.0302 at 22-25, 0.0200 at 26-30, 0.0353
+     for young men, 0.0179 for the female differential and 0.0285
+     for young women.
+  7. THE INDUSTRY TEST. No gate, as script 80 has none. The retained
+     share of the adoption step against the same-sample baseline is
+     reported whatever it is, beside the education route's, which is
+     85 per cent at 22-25 and 47 per cent at 26-30, and beside the
+     share of firms coded from a source other than Ftg_2019, since a
+     carried-forward code absorbs less and so flatters the test.
+     Fixed in advance: the step SURVIVES at a band if it keeps its
+     sign and retains at least 50% of the same-sample
+     baseline. At 26-30 the education route retains 47 per cent and
+     so would not itself pass, which is said here rather than
+     discovered afterwards.
+  8. THE CREDIT TEST. THE STEP IS NOT A CREDIT EFFECT if it keeps
+     its sign and at least 80% of the baseline
+     re-estimated on the balance-sheet sample, at both bands. The
+     education route keeps 102 and 105 per cent of -0.0695 and
+     -0.0516. 73's own coverage gate travels with 73's code (500
+     firms and 30 per cent of the panel), and BELOW THRESHOLD is
+     again an accepted outcome reported as NO VERDICT.
+  9. THE FIRM-SIZE ROBUSTNESS. A firm's score is a mean over its
+     incumbents, so its sampling variance falls with their number,
+     and the floor barely binds: lane 28a scores 271,047 employers
+     at a floor of one and 262,089 at five. A noisier score has
+     fatter tails, which over-represents small employers at BOTH
+     ends of the score distribution, and that is a composition
+     distortion in the treatment group that count-weighting does
+     not remove. THE SIZE ROBUSTNESS PASSES if the adoption step at
+     22-25 at a floor of 60 incumbent person-months keeps
+     its sign and sits within 1 standard error of
+     the reported floor-of-five step, AND no size tercile carries
+     the whole step. Both halves are reported whichever way they
+     fall, and if the step is carried by the smallest tercile the
+     summary says so in those words: the concern is then NOT
+     answered.
+     The quartile is the NATIONAL one in every arm of Part D and is
+     never recut inside a subsample, because that would change the
+     treatment definition with the sample and the comparison would
+     mean nothing.
+     The reliability table is DESCRIPTIVE and carries no verdict.
+     It is reported and NEVER used to correct an estimate: the
+     measurement error here is not classical, and the answer to a
+     low reliability is a design that raises it, not a correction
+     that manufactures precision the data do not have.
+  Employer, firm and person counts below 5 are suppressed
+  before anything leaves MONA, and a share is suppressed with its
+  own numerator.
+
+WHAT TO EXPECT, SO IT IS NOT READ AS A BUG:
+  1. The estimates will differ from the education route's. Two
+     measures of the same object standardised on their own
+     distributions rank employers differently, and no rule here
+     asks them to agree in SIZE.
+  2. This route scores fewer employers, so every panel here is a
+     SUBSET of the education route's and every standard error is
+     larger for that reason alone before anything else is said.
+  3. 71's sample gates and 73's coverage gate travel with their
+     code. A BELOW THRESHOLD outcome is reported as NO VERDICT
+     and is neither a pass nor a failure.
+  4. The only coefficient gate in this lane is the clustering's,
+     and it is a reproduction check to 4 decimals, not a
+     judgement about the estimate.
+  5. A higher floor scores fewer employers and a different set
+     of them, so Part D's floor arm has larger standard errors
+     than the reported one for that reason before anything else
+     is said. What the rule reads is the point estimate against
+     the REPORTED standard error, not against its own.
+  6. The reliability of a firm score falls with the number of
+     incumbents behind it by construction, so a low figure at
+     one incumbent is arithmetic and not a finding. What the
+     table is for is the share of the sample sitting there.
+
+Runtime 4.5 min. memory available: 660.6 GB
