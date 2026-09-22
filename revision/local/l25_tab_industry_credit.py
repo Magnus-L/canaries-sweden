@@ -138,30 +138,19 @@ def main() -> int:
         + " & ".join(f"{b[band]['kept']:.0f}" for band in BANDS) + r" \\",
         r"\bottomrule", r"\end{tabular}",
         r"\begin{minipage}{0.9\textwidth}\footnotesize\vspace{4pt}",
-        r"Poisson pseudo-maximum likelihood, employer-by-month, employer-by-age and "
-        r"month-by-age effects, exposure frozen at the employer's 2019 education mix, "
-        r"treatment dated January 2024, standard errors clustered by employer; the "
-        r"calendar cycle is not removed in these specifications, so every row is read "
-        r"against the baseline in its own panel, never against Table~1 of the paper. "
-        r"Industry is the employer's three-digit NACE in 2019 (265 groups, carried by "
-        r"95 per cent of the 22--25 panel and 93 per cent of the 26--30 panel), "
-        r"interacted with age band and month; retained is the industry-controlled step "
-        r"over the baseline, against a gate of 50 per cent fixed before the run. "
-        r"Leverage is one minus equity over assets from the employer's latest balance "
-        r"sheet closing in 2019 (Serrano), carried by "
-        f"{COVERAGE['22-25']:.1f} and {COVERAGE['26-30']:.1f} per cent of the two panels; "
-        f"the split is at the sample median, {SPLIT['22-25']:.3f} and {SPLIT['26-30']:.3f}. "
-        r"The adoption step is interacted with the above-median indicator, so the first "
-        r"credit row is the step among the less leveraged exposed employers and the second "
-        r"the additional step among the more leveraged; the averaged step is the first "
-        r"plus half the second, with its standard error from the estimated covariance, "
-        r"and it is compared with the baseline estimated on the same employers. The "
-        r"leverage $\times$ young row is the credit channel common to every employer in "
-        r"the sample. Read rule fixed before the run: the exposure step is judged monetary "
-        r"if the averaged step loses more than half of the same-sample baseline; it "
-        f"retains {b['22-25']['kept']:.0f} and {b['26-30']['kept']:.0f} per cent. "
-        r"$^{*}$ $p<0.05$. Source: script 73 (\texttt{industry\_fe.csv}, lane 19; "
-        r"\texttt{credit\_test.csv} and \texttt{vcov\_r73\_lev\_*.csv}, lane 24).",
+        r"Poisson with the paper's three fixed effects, exposure frozen in 2019, "
+        r"treatment January 2024, clustered by employer. The calendar "
+        r"cycle is not removed, so each row reads against the baseline in its own panel. "
+        r"Industry is the employer's three-digit NACE in 2019, interacted with age band "
+        r"and month; retained is the industry-controlled step over that baseline. "
+        r"Leverage is one minus equity over assets from the 2019 balance sheet (Serrano), "
+        f"held by {COVERAGE['22-25']:.1f} and {COVERAGE['26-30']:.1f} per cent of the two panels "
+        f"and split at the median ({SPLIT['22-25']:.3f} and {SPLIT['26-30']:.3f}). "
+        r"Credit rows: the step among the less leveraged exposed employers, the "
+        r"additional step among the more leveraged, their average (the first plus half "
+        r"the second) against the same-sample baseline, and leverage $\times$ young, "
+        r"the channel common to all. "
+        r"$^{*}$ $p<0.05$. Source: script 73.",
         r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "tableA_industry_credit.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")

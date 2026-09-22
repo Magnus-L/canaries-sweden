@@ -24,7 +24,9 @@ Two panels that must not be read against each other.
            adoption. A different estimand, reported as a check on the
            measure.
 
-The note quotes the 22-25 contrast against 41-49 with the cycle removed
+The 22-25 contrast against 41-49 with the cycle removed is read here
+for the summary line but no longer quoted in the note (it is in the paper's
+Results and in the six-band profile table); the note is kept short
 (script 74). The vintage re-scoring is the change in the coefficient when
 the 2019 incumbents are re-scored from the education register as it stood
 in 2021 (the as-of arms of scripts 61 and 68); the 26-30 arm of script 68
@@ -213,31 +215,17 @@ def main() -> int:
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}",
             r"Poisson pseudo-maximum likelihood on employer $\times$ age "
-            r"$\times$ month counts, employer-by-month, employer-by-age and "
-            r"month-by-age effects, treatment dated January 2024, standard "
-            r"errors clustered by employer, $^{*}$ denotes $p<0.05$. "
-            r"Exposure is frozen in 2019 throughout and no occupation code "
-            r"recorded after 2019 enters the exposure, the outcome or the "
-            r"sample. \textbf{The two panels are not comparable.} Panel A "
-            r"is a top-quartile indicator built from the education mix of a "
-            r"firm's incumbents, and it is the estimand the paper reports; "
-            r"it exists for the two young bands only. The tightening step "
-            r"and the two levels come from the same specification with the "
-            r"Riksbank interaction as a window (April to November 2022), so "
-            r"that the post-adoption term reads against January 2021 to "
-            r"March 2022. Panel B scores occupations continuously, so a "
-            r"coefficient there is the effect of one standard deviation of "
-            r"the 2019 firm-age baseline exposure, on that measure's own "
-            r"scale. The vintage re-scoring column is the change in the coefficient "
-            r"when each employer's 2019 incumbents are re-scored from the "
-            r"education register as it stood in 2021, the staleness the "
-            r"2024--25 records inherit, and the same panel is re-estimated; "
-            r"the threshold fixed before that test was 0.05. Employment at "
-            r"41--49 declines on both AI measures in Panel B. The paper "
-            r"does not claim the young were hit harder than the "
-            r"prime-aged: tested directly with the calendar cycle removed "
-            r"on all six bands, the 22--25 contrast against 41--49 is "
-            + contrast + r", a null (Table~\ref{tab:profile_seasonal}).",
+            r"$\times$ month counts; employer-by-month, employer-by-age and "
+            r"month-by-age effects; treatment January 2024; standard errors "
+            r"clustered by employer; $^{*}$ $p<0.05$. Panel A is the paper's "
+            r"estimand, the top-quartile indicator from the 2019 education mix, "
+            r"for the two young bands; its tightening step and levels use the "
+            r"Riksbank interaction as a window (post term against January 2021 "
+            r"to March 2022). Panel B scores occupations "
+            r"continuously, so a coefficient is per standard deviation of the "
+            r"2019 firm-age baseline exposure; the two panels are not "
+            r"comparable. Vintage re-scoring: the change when the 2019 "
+            r"incumbents are re-scored from the 2021 education register.",
             r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "tableA_age_profile.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")

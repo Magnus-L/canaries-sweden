@@ -103,20 +103,14 @@ def main() -> int:
     tex += block(b, "Panel B. Mean headcount per populated employer-month")
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
-            r"Per cent change between the pre-adoption months (January 2022 "
-            r"to December 2023) and the adoption window (January 2024 to "
-            r"June 2025), on the same firm classification the regressions "
-            r"use. Panel A sums headcount over every employer in the "
-            r"quartile and divides by the months in the window, so an "
-            r"employer whose count in a band falls to zero contributes that "
-            r"zero. Panel B averages over employer-months with at least one "
-            r"worker in the band; it conditions on the cell being populated, "
-            r"and the set of populated employer-months is not held fixed "
-            r"between the windows. Descriptive: no controls, so composition, "
-            r"the business cycle and the ageing of the workforce are inside "
-            r"every number. The regression coefficients in Table~1 of the "
-            r"paper remove what the fixed effects remove and are contrasts, "
-            r"not levels. Source: script 66 (\texttt{plain\_stock.csv}).",
+            r"Per cent change from the pre-adoption months (January 2022 to "
+            r"December 2023) to the adoption window (January 2024 to June "
+            r"2025), by the exposure quartile the regressions use. Panel A: "
+            r"total headcount per month over every employer in the quartile, "
+            r"zeros included. Panel B: mean headcount per employer-month with "
+            r"at least one worker in the band, so it conditions on a populated "
+            r"cell, and the set of such cells is not fixed across the windows. "
+            r"No controls enter. Source: script 66 (\texttt{plain\_stock.csv}).",
             r"\end{minipage}", r"\end{table}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)
