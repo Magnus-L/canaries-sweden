@@ -676,11 +676,31 @@ def coverage_rows(panel: str, emp: pd.DataFrame, src_map: dict,
                  "share": 1.0, "value": 1.0})
     missed = emp[(src != PRIMARY_SOURCE).to_numpy()]
     found = emp[(src == PRIMARY_SOURCE).to_numpy()]
+    # The residual group of Part B is this set and no other: firms the
+    # whole cascade leaves uncoded. It is profiled separately from
+    # "missed by Ftg_2019", most of which a later step recovers, because
+    # what decides whether pooling them into one cluster matters is their
+    # employment weight, not their number.
+    unres = emp[(src == UNRESOLVED).to_numpy()]
     rows += size_rows(panel, f"in_{PRIMARY_SOURCE}", found)
     rows += size_rows(panel, f"missed_by_{PRIMARY_SOURCE}", missed)
+    rows += size_rows(panel, UNRESOLVED, unres)
+    tot_emp = float(emp["n_emp_total"].sum())
+    n_unres = int(len(unres))
+    share_emp_unres = (float(unres["n_emp_total"].sum()) / tot_emp
+                       if (n_unres >= FLOOR and tot_emp > 0) else np.nan)
+    rows.append({"panel": panel, "block": "size", "group": UNRESOLVED,
+                 "item": "share_of_panel_employment",
+                 "n_employers": n_unres, "share": share_emp_unres,
+                 "value": share_emp_unres})
     summ = {"panel": panel, "n": n,
             "n_primary": int(len(found)), "n_missed": int(len(missed)),
-            "n_unresolved": int((src == UNRESOLVED).sum()),
+            "n_unresolved": n_unres,
+            "share_emp_unresolved": share_emp_unres,
+            "med_unres": (float(unres["mean_headcount"].median())
+                          if n_unres >= FLOOR else np.nan),
+            "months_unres": (float(unres["months_active"].mean())
+                             if n_unres >= FLOOR else np.nan),
             "med_found": (float(found["mean_headcount"].median())
                           if len(found) >= FLOOR else np.nan),
             "med_missed": (float(missed["mean_headcount"].median())
@@ -932,7 +952,8 @@ def part_b(counts, sexcounts, expo, key, s61, s67, s78, s73, j47) -> tuple:
                f"{cnt(info['n_firms'])} employers carry a three-digit code "
                f"({cnt(info['n_not_from_2019'])} of them from a source other "
                f"than {PRIMARY_SOURCE}); {cnt(info['n_unresolved'])} "
-               f"unresolved share one residual group; "
+               f"unresolved share one residual group holding "
+               f"{info['share_cells_unresolved']:.2%} of the panel cells; "
                f"{info['n_clusters']:,} clusters")
         print(f"  {msg}")
         NOTES.append(msg)
@@ -987,7 +1008,9 @@ def part_b(counts, sexcounts, expo, key, s61, s67, s78, s73, j47) -> tuple:
            f"of {cnt(info['n_firms'])} employers carry a three-digit code "
            f"({cnt(info['n_not_from_2019'])} from a source other than "
            f"{PRIMARY_SOURCE}); {cnt(info['n_unresolved'])} unresolved share "
-           f"one residual group; {info['n_clusters']:,} clusters")
+           f"one residual group holding "
+           f"{info['share_cells_unresolved']:.2%} of the panel cells; "
+           f"{info['n_clusters']:,} clusters")
     print(f"  {msg}")
     NOTES.append(msg)
     b, terms = s78.gender_eq2_terms(b)
@@ -1198,6 +1221,24 @@ def a_summary_lines(summaries: list) -> list:
                                "The missing firms are NOT both smaller and "
                                "shorter lived, so the reference-date story "
                                "does not account for them on its own."))
+        # The residual group of Part B, stated here so its weight can be
+        # read without opening the CSV. Its employment share, not its
+        # firm count, is what decides whether one shared cluster matters.
+        nu = s["n_unresolved"]
+        if nu == 0:
+            L.append("    The cascade leaves no employer uncoded, so Part B "
+                     "has no residual group and every cluster is a real "
+                     "three-digit industry.")
+        elif s.get("share_emp_unresolved") == s.get("share_emp_unresolved"):
+            L.append(f"    Part B residual group: {cnt(nu)} employers "
+                     f"({nu / max(s['n'], 1):.1%} of the panel) carrying "
+                     f"{s['share_emp_unresolved']:.2%} of its employment, "
+                     f"median monthly headcount {s['med_unres']:.1f}, "
+                     f"{s['months_unres']:.1f} months employing anybody. "
+                     f"They share ONE cluster; none is a cluster of its own.")
+        else:
+            L.append(f"    Part B residual group: fewer than {FLOOR} "
+                     f"employers, so it is not described further.")
     return L
 
 

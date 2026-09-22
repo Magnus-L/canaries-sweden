@@ -354,7 +354,23 @@ check("A: a firm present nowhere is REPORTED unresolved, not dropped",
 check("A: the shares are on the record and the cascade reaches every firm",
       abs(float(p22["share"].sum()) - 1.0) < 1e-9,
       f"shares sum to {float(p22['share'].sum()):.6f}")
+# The residual group of Part B is the set that must be describable on its
+# own: its employment weight, not its firm count, decides whether pooling
+# it into one cluster distorts the standard errors.
 size = COV[COV["block"] == "size"]
+ures = size[(size["panel"] == "22-25 stock") & (size["group"] == "unresolved")]
+check("A: the firms no source places are profiled as their own group",
+      len(ures) > 0
+      and int(ures[ures["item"] == "n_employers"]["value"].iloc[0])
+      == len(NOWHERE),
+      f"{len(ures)} rows for the unresolved group")
+ushare = ures[ures["item"] == "share_of_panel_employment"]
+check("A: the residual group's share of panel employment is exported",
+      len(ushare) == 1
+      and 0.0 <= float(ushare["value"].iloc[0]) <= 1.0,
+      f"{float(ushare['value'].iloc[0]):.4f}"
+      if len(ushare) == 1 else "missing")
+
 m50 = size[(size["panel"] == "22-25 stock")
            & (size["group"] == "missed_by_Ftg_2019")
            & (size["item"] == "mean_headcount_p50")]["value"].iloc[0]
