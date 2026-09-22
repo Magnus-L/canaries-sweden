@@ -17,6 +17,21 @@ same frame and the write is atomic, so a race is harmless, but it costs the
 pull three times. run_lane28.py runs all three in one job and is kept for
 the record; do not submit it as well.
 
+THE SCORING ARM. Every incumbent is scored at THREE digits, from a book
+built once as the 2019 national employment-weighted mean of the
+four-digit DAIOE scores within each three-digit group, read from the
+register's own three-digit column and never by truncating the four-digit
+one. The workers lacking a four-digit code are not a random subset, so a
+mixed four-then-three rule would give a sharp score to firms whose coding
+is complete and a smoothed one to firms whose coding is not, and quartile
+assignment would then depend partly on coding completeness: a bias
+channel into the treatment variable, not merely noise. Under the uniform
+rule the smoothing is common to every firm and the ranking survives it,
+and from 2019 every coded occupation carries at least three digits, so
+the uniform level is the near-complete one. mixed43 and four_only are
+fitted beside it as robustness and settle nothing; the read rules are
+read on uniform3 and on nothing else.
+
 WHAT RUNS HERE.
   A  the score and no fit at all. Where the cascade resolves each
      incumbent, step by step; the coverage of the code among incumbents by
@@ -30,7 +45,15 @@ WHAT RUNS HERE.
      routes score, with the share on the diagonal and the Spearman rank
      correlation; and the size and longevity of the employers one route
      scores and the other does not, read off the panels the fits
-     themselves build.
+     themselves build; the three-digit book and what the coarsening
+     costs (the employment-weighted variance of the four-digit score
+     split between and within three-digit groups, against an unweighted
+     benchmark computed on the released DAIOE panel); and the appendix
+     coverage table, which reports per cascade year and per age band the
+     incumbents resolved, scored at four digits, scored at three and
+     unscored, the same for employers, how many employers change
+     quartile between the arms and the rank correlation of the three
+     firm scores.
      Runtime: thirty to forty minutes. The cascade pull is a few minutes
      and the 2019 monthly counts about seventy seconds when they are not
      already on the share; the rest is the two panel rebuilds. This is the
@@ -45,7 +68,8 @@ and one read of the 2019 monthly declarations through 47L's own query if
 L_counts_2019 is not on the share. Both are cached. No other declarations
 are touched, so this is safe beside any job.
 
-Export: output_82a/82_summary.txt and occ_route_coverage.csv. Employer and
+Export: output_82a/82_summary.txt, occ_route_coverage.csv,
+occ_route_appendix_coverage.csv and occ_route_ssyk3_book.csv. Employer and
 person counts below five are suppressed before anything leaves MONA, and a
 share is suppressed with its own numerator.
 """

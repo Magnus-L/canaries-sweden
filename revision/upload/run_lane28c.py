@@ -17,6 +17,22 @@ same frame and the write is atomic, so a race is harmless, but it costs the
 pull three times. run_lane28.py runs all three in one job and is kept for
 the record; do not submit it as well.
 
+
+THE SCORING ARM. Every incumbent is scored at THREE digits, from a book
+built once as the 2019 national employment-weighted mean of the
+four-digit DAIOE scores within each three-digit group, read from the
+register's own three-digit column and never by truncating the four-digit
+one. The workers lacking a four-digit code are not a random subset, so a
+mixed four-then-three rule would give a sharp score to firms whose coding
+is complete and a smoothed one to firms whose coding is not, and quartile
+assignment would then depend partly on coding completeness: a bias
+channel into the treatment variable, not merely noise. Under the uniform
+rule the smoothing is common to every firm and the ranking survives it,
+and from 2019 every coded occupation carries at least three digits, so
+the uniform level is the near-complete one. mixed43 and four_only are
+fitted beside it as robustness and settle nothing; the read rules are
+read on uniform3 and on nothing else.
+
 WHAT RUNS HERE.
   C  the sex specification of Equation (2) at 22-25 on script 67's panel,
      every term entered as High x Young, High x Female and
@@ -30,6 +46,7 @@ WHAT RUNS HERE.
      cascade's coverage and call the total an artefact. All three fit on
      one panel and on the employers all three can score, so the
      difference between them is the score and not the sample.
+     Every fit is on the reported score, the uniform three-digit arm.
      Six fits and one small pull. The sex panel is the heavy one but it is
      a subset of the 40.5-million-row education-route panel, which fit in
      about fifteen minutes; the flows and the three vintage arms are

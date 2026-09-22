@@ -135,6 +135,7 @@ INC = ["31-34", "35-40", "41-49", "50+"]
 YOUNG = ("22-25", "26-30")
 N_FIRMS = 150
 FIRMS = list(range(1, N_FIRMS + 1))
+WEIGHT_FIRM = 900        # the firm that carries the book-weight plant
 EXPOSED = set(range(1, 51))              # their INCUMBENTS do high work
 THIN_CODED = list(range(101, 107))       # 3 coded, plenty of person-months
 FORWARD_ONLY = list(range(107, 111))     # coded in 2021 alone
@@ -158,10 +159,33 @@ LO = sorted(DAIOE.loc[DAIOE.high_exposure == 0, "ssyk4"])
 UNSCORED_CODE = "9999"
 assert UNSCORED_CODE not in set(DAIOE["ssyk4"])
 
+# A real three-digit group holding at least two four-digit codes whose
+# scores differ, so that a weighted and an unweighted book disagree.
+_g = (DAIOE.assign(g=DAIOE["ssyk4"].str[:3])
+      .groupby("g")
+      .filter(lambda d: len(d) >= 2 and d["pctl_rank_genai"].std() > 5))
+WGROUP = sorted(_g["g"].unique())[0]
+WCODES = sorted(_g.loc[_g["g"] == WGROUP, "ssyk4"])[:2]
+WSCORE = {c: float(DAIOE.loc[DAIOE["ssyk4"] == c,
+                             "pctl_rank_genai"].iloc[0]) for c in WCODES}
+# the heavier code gets ninety of the hundred workers, so the weighted
+# book value sits close to it and far from the simple mean
+WWEIGHT = {WCODES[0]: 90, WCODES[1]: 10}
+
 
 def code_for(emp: int, i: int, want_hi: bool) -> str:
     pool = HI if want_hi else LO
     return pool[(emp * 5 + i * 37) % len(pool)]
+
+
+# One firm holds a four-digit worker, a three-digit-only worker and a
+# worker no level can score, so the two-level rule has all three cases in
+# one place and the arms can be told apart on it.
+MIXED_FIRM = 51
+# A three-digit group where the four-digit members differ sharply in
+# score AND in size, so the employment-weighted book value is far from
+# the simple mean and the test can tell which was computed.
+WEIGHT_GROUP = None       # filled below, once the DAIOE file is read
 
 
 def cascade_frame(swap_young: bool = False, recoded=frozenset(),
@@ -196,14 +220,25 @@ def cascade_frame(swap_young: bool = False, recoded=frozenset(),
             if swap_young and young:
                 want_hi = not want_hi
             s_ = ("2019" if emp not in UNCODED else None) if young else src
+            if emp == MIXED_FIRM and not young:
+                # one four-digit worker, one three-digit-only worker and
+                # one no level can score, all in the same firm
+                c4 = code_for(emp, 0, want_hi)
+                rows.append((emp, age, c4, c4[:3], "2019", 6))
+                # no four-digit code, but the register's three-digit
+                # column holds a group the book can score
+                rows.append((emp, age, "____", WGROUP, "2019", 5))
+                # and one worker neither level can reach
+                rows.append((emp, age, "____", "___", "none", 4))
+                continue
             if emp in SMALL:
                 # one incumbent in one band, so the floor decides them and
                 # nothing else does
                 if age == "41-49":
                     if s_ is not None:
-                        rows.append((emp, age, code_for(emp, 0, want_hi),
-                                     s_, 1))
-                    rows.append((emp, age, "____", "none", 1))
+                        c = code_for(emp, 0, want_hi)
+                        rows.append((emp, age, c, c[:3], s_, 1))
+                    rows.append((emp, age, "____", "___", "none", 1))
                 continue
             if emp in THIN_CODED and not young:
                 # FOUR coded incumbents in ONE band, so the firm has fewer
@@ -211,21 +246,31 @@ def cascade_frame(swap_young: bool = False, recoded=frozenset(),
                 # rule loses it, while its sixty incumbent person-months
                 # clear the floor the education route uses
                 if age == "31-34" and s_ is not None:
-                    rows.append((emp, age, code_for(emp, 0, want_hi), s_, 4))
+                    c = code_for(emp, 0, want_hi)
+                    rows.append((emp, age, c, c[:3], s_, 4))
             elif s_ is not None:
                 for i in range(3):
-                    rows.append((emp, age, code_for(emp, i, want_hi), s_,
+                    c = code_for(emp, i, want_hi)
+                    rows.append((emp, age, c, c[:3], s_,
                                  4 + emp % 6))
             # a code the DAIOE file does not hold, and a worker the
             # register leaves uncoded: both count in the denominator and
-            # neither can carry an exposure
-            rows.append((emp, age, UNSCORED_CODE, "2019", 2))
-            rows.append((emp, age, "____", "none", 3))
+            # neither can carry an exposure at four digits
+            rows.append((emp, age, UNSCORED_CODE, UNSCORED_CODE[:3],
+                         "2019", 2))
+            rows.append((emp, age, "____", "___", "none", 3))
+    # the weight-group plant: one firm whose incumbents hold the two
+    # four-digit codes of WGROUP in a 90/10 split, so the national book
+    # value for that group is the weighted mean and not the simple one
+    for c, w in WWEIGHT.items():
+        rows.append((900, "41-49", c, WGROUP, "2019", w))
     d = pd.DataFrame(rows, columns=["employer_id", "age_group", "ssyk4",
-                                    "source_year", "n"])
+                                    "ssyk3", "source_year", "n"])
+    d["ssyk_ar"] = np.where(d["source_year"] == "2019", "2019", "2017")
+    d["ssyk_status"] = np.where(d["ssyk4"] == "____", "9", "1")
     if vintage_only:
-        # the as-of pull groups on the code alone and carries no source
-        d = (d.groupby(["employer_id", "age_group", "ssyk4"],
+        # the as-of pull groups on the codes alone and carries no source
+        d = (d.groupby(["employer_id", "age_group", "ssyk4", "ssyk3"],
                        observed=True)["n"].sum().reset_index())
     return d
 
@@ -241,7 +286,7 @@ CASC.to_parquet(s82.CASC_CACHE, index=False)
 def counts_2019() -> pd.DataFrame:
     """47L's monthly counts for the base year, which the floor sums."""
     rows = []
-    for emp in FIRMS:
+    for emp in FIRMS + [WEIGHT_FIRM]:
         tiny = emp in SMALL
         months = ["2019-01"] if tiny else [f"2019-{m:02d}"
                                            for m in range(1, 13)]
@@ -256,7 +301,60 @@ def counts_2019() -> pd.DataFrame:
 
 counts_2019().to_parquet(s82.COUNTS_2019_CACHE, index=False)
 
-INCF = s82.incumbent_frame(CASC, SCORES, j47)
+PLAN = s82.check_cascade_years()
+check("the guard maps every cascade year to the column the dictionary "
+      "gives it: the J16 column from 2016 and Ssyk4_2012 at 2015",
+      PLAN[2019][0] == "Ssyk4_2012_J16" and PLAN[2016][0] == "Ssyk4_2012_J16"
+      and PLAN[2015][0] == "Ssyk4_2012"
+      and PLAN[2015][1] == "Ssyk3_2012"
+      and PLAN[2019][1] == "Ssyk3_2012_J16",
+      f"2019 {PLAN[2019]}, 2015 {PLAN[2015]}")
+_back = s82.CASCADE_BACK
+try:
+    s82.CASCADE_BACK = [2019, 2014, 2013]
+    s82.check_cascade_years()
+    _refused = False
+except RuntimeError as ex:
+    _refused = "SSYK96" in str(ex) or "floor year" in str(ex)
+finally:
+    s82.CASCADE_BACK = _back
+check("and it REFUSES a cascade that reaches below the floor year, where "
+      "the column holds SSYK96 and the merge would be silent nonsense",
+      _refused)
+
+BOOK, COST = s82.build_book3(CASC, SCORES)
+B3 = dict(zip(BOOK["ssyk3"].astype(str), BOOK["score3"]))
+_g19 = CASC[(CASC["source_year"] == "2019")
+            & (CASC["ssyk4"].astype(str).str.len() == 4)]
+_g19 = _g19.merge(SCORES, on="ssyk4", how="inner")
+_gw = _g19[_g19["ssyk4"].str[:3] == WGROUP].groupby("ssyk4").agg(
+    n=("n", "sum"), score=("score", "first"))
+_w = float((_gw["score"] * _gw["n"]).sum() / _gw["n"].sum())
+_s = float(_gw["score"].mean())
+check("the three-digit book is the EMPLOYMENT-WEIGHTED mean of the "
+      "four-digit scores in the group, not the simple mean",
+      abs(B3[WGROUP] - _w) < 1e-6 and abs(_w - _s) > 0.5,
+      f"group {WGROUP}: book {B3[WGROUP]:.3f}, weighted {_w:.3f}, simple "
+      f"mean {_s:.3f} over {len(_gw)} codes")
+check("the book is national and fixed: the same group takes the same "
+      "value whichever firm is looked at",
+      BOOK["ssyk3"].is_unique and BOOK["score3"].notna().all(),
+      f"{len(BOOK)} groups")
+check("the coarsening cost is measured, not assumed: the variance "
+      "splits between and within, and the shares sum to one",
+      abs(COST["share_between"] + COST["share_within"] - 1.0) < 1e-9
+      and COST["mean_abs_difference"] >= 0,
+      f"between {COST['share_between']:.1%}, within "
+      f"{COST['share_within']:.1%}, mean gap "
+      f"{COST['mean_abs_difference']:.2f}")
+check("and the groups holding a single four-digit occupation are "
+      "counted, since the arms are identical there by construction",
+      COST["n_ssyk3_single_occupation"] >= 0
+      and 0.0 <= COST["employment_share_in_single_groups"] <= 1.0,
+      f"{COST['n_ssyk3_single_occupation']} groups, "
+      f"{COST['employment_share_in_single_groups']:.1%} of employment")
+
+INCF = s82.incumbent_frame(CASC, SCORES, BOOK, j47)
 NFLOOR = s82.incumbent_floor_series(l47, CASC, j47)
 check("the floor is on incumbent PERSON-MONTHS, the education route's "
       "own unit, when 47L's 2019 counts are on the share",
@@ -266,7 +364,7 @@ check("and the tiny firms have one incumbent person-month while the "
       int(NFLOOR.loc[TINY[0]]) == 1 and int(NFLOOR.loc[1]) == 240,
       f"tiny {int(NFLOOR.loc[TINY[0]])}, ordinary {int(NFLOOR.loc[1])}")
 
-OCC = s82.occ_route_exposure(INCF, SCORES, NFLOOR, s82.FLOOR_MAIN,
+OCC = s82.occ_route_exposure(INCF, NFLOOR, s82.FLOOR_MAIN,
                              s82.ARM_YEARS[s82.MAIN_ARM])
 OLD = s82.old_rule_scored(INCF)
 Q4F = set(OCC.loc[OCC["fq"] == 4, "employer_id"].astype(int))
@@ -274,7 +372,8 @@ SCORED = set(OCC["employer_id"].astype(int))
 
 check("the occupation route scores every firm with incumbents enough and "
       "a code, and no other",
-      SCORED == set(FIRMS) - set(FORWARD_ONLY) - UNCODED - set(TINY),
+      SCORED == (set(FIRMS) | {WEIGHT_FIRM}) - set(FORWARD_ONLY)
+      - UNCODED - set(TINY),
       f"{len(SCORED)} scored of {N_FIRMS}")
 check("only firms whose INCUMBENTS do high-exposure work reach the top "
       "quartile, so the young never enter the score",
@@ -282,13 +381,45 @@ check("only firms whose INCUMBENTS do high-exposure work reach the top "
       f"{len(Q4F)} in Q4, {len(Q4F - EXPOSED)} of them not "
       f"incumbent-exposed")
 SW = s82.occ_route_exposure(
-    s82.incumbent_frame(cascade_frame(swap_young=True), SCORES, j47),
-    SCORES, NFLOOR, s82.FLOOR_MAIN, s82.ARM_YEARS[s82.MAIN_ARM])
+    s82.incumbent_frame(cascade_frame(swap_young=True), SCORES, BOOK, j47),
+    NFLOOR, s82.FLOOR_MAIN, s82.ARM_YEARS[s82.MAIN_ARM])
 check("and changing ONLY the young cells leaves the score identical",
       SW[["employer_id", "fq", "mix"]].equals(
           OCC[["employer_id", "fq", "mix"]]),
       f"{int((SW['fq'].to_numpy() != OCC['fq'].to_numpy()).sum())} "
       f"quartiles moved")
+
+# ---- THE THREE LEVELS, ALL IN ONE FIRM -------------------------------
+MX = INCF[INCF["employer_id"] == MIXED_FIRM]
+_n4 = int(MX.loc[MX["has4"] == 1, "n"].sum())
+_n3 = int(MX.loc[(MX["has4"] == 0) & (MX["has3"] == 1), "n"].sum())
+_n0 = int(MX.loc[(MX["has4"] == 0) & (MX["has3"] == 0), "n"].sum())
+check("one firm holds a four-digit worker, a three-digit-only worker and "
+      "a worker no level can score, so the arms can be told apart on it",
+      _n4 > 0 and _n3 > 0 and _n0 > 0,
+      f"four-digit {_n4}, three-digit only {_n3}, unscored {_n0}")
+_sc = {a: s82.arm_score(MX, a)[0].notna() for a in s82.SCORE_ARMS}
+_w = {a: int(MX.loc[m, "n"].sum()) for a, m in _sc.items()}
+check("and the three arms score different numbers of them: the uniform "
+      "arm every worker with a three-digit code, the four-digit-only arm "
+      "only those with four",
+      _w["uniform3"] == _n4 + _n3 and _w["four_only"] == _n4
+      and _w["mixed43"] == _n4 + _n3,
+      str(_w))
+check("the uniform arm scores EVERY one of them at three digits, so its "
+      "smoothing is the same for every firm and cannot depend on how "
+      "completely the firm happens to be coded",
+      (s82.arm_score(MX, "uniform3")[1][_sc["uniform3"]]
+       == "three_digit").all())
+check("while the mixed arm scores the same firm at two different levels, "
+      "which is the bias channel the primary arm avoids",
+      set(s82.arm_score(MX, "mixed43")[1][_sc["mixed43"]])
+      == {"four_digit", "three_digit"})
+check("the primary arm is the uniform one, named as such",
+      s82.MAIN_LEVEL == "uniform3"
+      and s82.SCORE_ARMS[0] == "uniform3"
+      and "PRIMARY" in s82.ARM_LABEL["uniform3"])
+
 
 # ---- THE FLOOR: on the firm's incumbents, not on its coded ones -------
 check("the OLD rule loses a firm with three coded incumbents, because it "
@@ -326,7 +457,7 @@ check("the reported cascade reaches no year after the freeze year",
       str(s82.ARM_YEARS[s82.MAIN_ARM]))
 check("so a firm coded in 2021 alone is NOT on the reported score",
       not (set(FORWARD_ONLY) & SCORED))
-FWD = s82.occ_route_exposure(INCF, SCORES, NFLOOR, s82.FLOOR_MAIN,
+FWD = s82.occ_route_exposure(INCF, NFLOOR, s82.FLOOR_MAIN,
                              s82.ARM_YEARS["forward"])
 check("and IS on the forward arm, which is reported and is never the "
       "score",
@@ -342,16 +473,17 @@ def lopsided():
         emp = 1000 + i
         big = i >= 90
         code = (HI if big else LO)[(i * 3) % (len(HI) if big else len(LO))]
-        rows.append((emp, "41-49", code, "2019", 100 if big else 5))
+        rows.append((emp, "41-49", code, code[:3], "2019",
+                     100 if big else 5))
         floor[emp] = 100 if big else 5
     d = pd.DataFrame(rows, columns=["employer_id", "age_group", "ssyk4",
-                                    "source_year", "n"])
-    return (s82.incumbent_frame(d, SCORES, j47),
+                                    "ssyk3", "source_year", "n"])
+    return (s82.incumbent_frame(d, SCORES, BOOK, j47),
             pd.Series(floor).rename_axis("employer_id").rename("n_floor"))
 
 
 li, lf = lopsided()
-LOP = s82.occ_route_exposure(li, SCORES, lf, 1, s82.ARM_YEARS[s82.MAIN_ARM])
+LOP = s82.occ_route_exposure(li, lf, 1, s82.ARM_YEARS[s82.MAIN_ARM])
 w_top = float(LOP.loc[LOP["fq"] == 4, "n"].sum() / LOP["n"].sum())
 f_top = float((LOP["fq"] == 4).mean())
 check("the quartile cut points are weighted by incumbent employment: the "
@@ -364,10 +496,21 @@ check("the quartile cut points are weighted by incumbent employment: the "
 # ======================================================================
 # the cascade query, and the catalogue probe
 # ======================================================================
+# The dictionary says Individ_YYYY runs 1990 to 2023, so every backward
+# year is here. What changes at 2016 is the COLUMN: the J16 twins exist
+# from 2016 and 2015 has only the plain ones. 2020 is planted absent, to
+# prove a missing FORWARD year is dropped from that arm alone.
+def _cat_rows(year):
+    cols = ["P1207_LopNr_PersonNr", "FodelseAr", "SsykAr_J16",
+            "SsykStatus_J16", "Ssyk4_2012", "Ssyk3_2012"]
+    if year >= 2016:
+        cols += ["Ssyk4_2012_J16", "Ssyk3_2012_J16"]
+    return [(f"Individ_{year}", c) for c in cols]
+
+
+CAT_YEARS = [2015, 2016, 2017, 2018, 2019, 2021]      # 2020 absent
 CATALOGUE = pd.DataFrame(
-    [(f"Individ_{y}", c)
-     for y in (2015, 2016, 2018, 2019, 2020, 2021)     # 2017 is ABSENT
-     for c in ("P1207_LopNr_PersonNr", "FodelseAr", "Ssyk4_2012_J16")],
+    [r for y in CAT_YEARS for r in _cat_rows(y)],
     columns=["TABLE_NAME", "COLUMN_NAME"])
 SQL_CALLS = []
 
@@ -392,27 +535,56 @@ check("the cascade probes the catalogue before it pulls",
       len(SQL_CALLS) == 2 and "INFORMATION_SCHEMA" in SQL_CALLS[0],
       f"{len(SQL_CALLS)} calls")
 q = SQL_CALLS[1]
-check("a year the catalogue does not hold is skipped and said so",
-      "Individ_2017" not in q
-      and any("2017" in n and "absent" in n for n in s82.NOTES),
-      next((n for n in s82.NOTES if "absent" in n), "")[:100])
-check("every vintage the catalogue does hold is joined, in the cascade's "
-      "own order",
-      all(f"Individ_{y} i{y}" in q for y in (2019, 2018, 2016, 2015,
-                                             2020, 2021))
-      and q.index("Individ_2019 i2019") < q.index("Individ_2018 i2018")
-      < q.index("Individ_2016 i2016"))
+check("the column changes at 2016: the J16 twins from 2016 up and the "
+      "plain ones at 2015, which is the real constraint on the cascade",
+      all(f"i{y}.Ssyk4_2012_J16" in q for y in (2019, 2018, 2017, 2016))
+      and "i2015.Ssyk4_2012 " in q.replace("\n", " ")
+      and "i2015.Ssyk4_2012_J16" not in q,
+      "2019-2016 via Ssyk4_2012_J16, 2015 via Ssyk4_2012")
+check("and the THREE-digit column is read as its own column at both "
+      "levels, never by truncating the four-digit field",
+      all(f"i{y}.Ssyk3_2012_J16" in q for y in (2019, 2016))
+      and "i2015.Ssyk3_2012 " in q.replace("\n", " ")
+      and "LEFT(" + "i2019.Ssyk4" not in q)
+check("a FORWARD year the catalogue does not hold is dropped from the "
+      "forward arm alone and said so",
+      "Individ_2020" not in q
+      and any("2020" in n and "dropped" in n for n in s82.NOTES),
+      next((n for n in s82.NOTES if "dropped" in n), "")[:100])
+_cat = CATALOGUE
+try:
+    CATALOGUE = CATALOGUE[CATALOGUE["TABLE_NAME"] != "Individ_2017"]
+    s82.CASC_CACHE.unlink(missing_ok=True)
+    pd.read_sql = fake_read_sql
+    s82.baseline_cascade()
+    _hard = False
+except RuntimeError as ex:
+    _hard = "stops here" in str(ex)
+finally:
+    CATALOGue = None
+    CATALOGUE = _cat
+    pd.read_sql = _real_read_sql
+check("but a BACKWARD year the catalogue does not hold STOPS the run: "
+      "the dictionary says it is there, so a disagreement is a finding "
+      "and not a reason to shorten the score quietly",
+      _hard)
+s82.CASC_CACHE.unlink(missing_ok=True)
+pd.read_sql = fake_read_sql
+s82.NOTES.clear()
+PULLED = s82.baseline_cascade()
+pd.read_sql = _real_read_sql
 check("each vintage is cleaned of the missing conventions BEFORE the "
       "COALESCE, so a '****' in 2019 cannot block the 2018 code",
-      q.count("LEFT(LTRIM(i") >= 6 and "COALESCE(CASE WHEN i2019" in
-      q.replace("\n", "").replace("  ", ""),
-      f"{q.count('LEFT(LTRIM(i')} cleaned vintages")
+      q.count("LEFT(LTRIM(RTRIM(CAST(i") >= 6,
+      f"{q.count('LEFT(LTRIM(RTRIM(CAST(i')} cleaned vintages")
 check("the birth year and the sample filter come from the 2019 register, "
       "so the population cannot move with the coding",
       "WHERE 2019 - TRY_CAST(b.FodelseAr AS INT) BETWEEN 22 AND 69" in q
       and "Individ_2019 b" in q)
-check("the source year travels with the code",
-      "AS source_year" in q and "THEN '2018'" in q)
+check("the source year travels with the code, and the staleness columns "
+      "come from the 2019 register",
+      "AS source_year" in q and "THEN '2018'" in q
+      and "b.SsykAr_J16" in q and "b.SsykStatus_J16" in q)
 check("and the frame is cached, so the other parts do not pull it again",
       s82.CASC_CACHE.exists() and len(PULLED) == len(CASC))
 
@@ -546,8 +718,8 @@ s82.fit = counting_fit
 # A. the score, the decomposition and the coverage
 # ======================================================================
 s82.NOTES.clear(); s82.FAILURES.clear(); FITS.clear()
-COV, CSUM, CROSS, LOSS, FSUM = s82.part_a(
-    COUNTS, OCC, EDU, CASC, INCF, NFLOOR, SCORES, s61, s80, j47)
+COV, CSUM, CROSS, LOSS, FSUM, ARMS, MOVED = s82.part_a(
+    COUNTS, OCC, EDU, CASC, INCF, NFLOOR, SCORES, BOOK, PLAN, s61, s80, j47)
 check("A: no fit runs in Part A", not FITS, str(FITS))
 st = COV[(COV["block"] == "step") & (COV["item"] == "incumbents_resolved")]
 check("A: where the cascade resolved each incumbent is reported, step by "
@@ -660,18 +832,61 @@ check("A: nothing between one and four leaves MONA",
       f"{int(small.isna().sum())} suppressed cells")
 check("A: the export is on disk",
       (s82.OUT / "occ_route_coverage.csv").exists())
+AP = pd.read_csv(s82.OUT / "occ_route_appendix_coverage.csv")
+check("A: the appendix coverage table is exported in a shape a table "
+      "generator reads: year, unit, age band, metric, count and share",
+      list(AP.columns) == ["year", "unit", "age_band", "metric", "n",
+                           "share", "value"],
+      str(list(AP.columns)))
+check("A: it covers the year actually used AND each cascade year",
+      {"used", "2019", "2018"} <= set(AP["year"].astype(str)),
+      str(sorted(set(AP["year"].astype(str)))))
+check("A: for incumbents it reports resolved, scored at four digits, "
+      "scored at three digits and unscored, by age band and in total",
+      {"resolved", "scored_four_digit", "scored_three_digit", "unscored"}
+      <= set(AP["metric"])
+      and {"total"} | set(j47.INCUMBENT_BANDS)
+      <= set(AP.loc[AP["unit"] == "incumbents", "age_band"]),
+      str(sorted(set(AP.loc[AP['unit'] == 'incumbents', 'age_band']))))
+_u = AP[(AP["year"] == "used") & (AP["unit"] == "incumbents")
+        & (AP["age_band"] == "total")].set_index("metric")["n"]
+check("A: and the three of them partition the incumbents",
+      int(_u["scored_four_digit"] + _u["scored_three_digit"]
+          + _u["unscored"]) == int(_u["incumbents"]),
+      f"{int(_u['scored_four_digit'])} + {int(_u['scored_three_digit'])} "
+      f"+ {int(_u['unscored'])} = {int(_u['incumbents'])}")
+check("A: the same is reported for employers",
+      len(AP[(AP["unit"] == "employers") & (AP["metric"] == "resolved")]) > 0)
+check("A: how many employers change quartile between the primary arm and "
+      "each of the other two is exported",
+      {"quartile_changed_vs_mixed43", "quartile_changed_vs_four_only"}
+      <= set(AP["metric"]),
+      str([m for m in AP["metric"] if "quartile_changed" in str(m)]))
+check("A: and the rank correlation of the three firm scores",
+      {"spearman_uniform3_mixed43", "spearman_uniform3_four_only",
+       "spearman_mixed43_four_only"} <= set(AP["metric"])
+      and AP.loc[AP["metric"] == "spearman_uniform3_mixed43",
+                 "value"].between(-1, 1).all(),
+      str(AP.loc[AP["metric"].astype(str).str.startswith("spearman"),
+                 "value"].round(3).tolist()))
+check("A: nothing between one and four leaves MONA in the appendix table "
+      "either",
+      not ((AP["n"] > 0) & (AP["n"] < s82.FLOOR)).any(),
+      f"{int(AP['n'].isna().sum())} suppressed cells")
+
 
 
 # ======================================================================
 # B. the headline, the profile, the floor variants and the forward arm
 # ======================================================================
 s82.NOTES.clear(); FITS.clear()
-HEAD, PROF = s82.part_b(COUNTS, INCF, SCORES, NFLOOR, s61, s74, s78, l70,
-                        j47)
-check("B: six fits run: both bands, the profile, two floor variants and "
-      "the forward arm",
-      len(FITS) == 6 and sum("forward" in t for t in FITS) == 1
-      and sum("_f1" in t or "_f3" in t for t in FITS) == 2, str(FITS))
+HEAD, PROF = s82.part_b(COUNTS, INCF, NFLOOR, s61, s74, s78, l70, j47)
+check("B: ten fits run: three scoring arms at both bands, the profile, "
+      "two floor variants and the forward cascade",
+      len(FITS) == 10 and sum("forward" in t for t in FITS) == 1
+      and sum("_f1" in t or "_f3" in t for t in FITS) == 2
+      and sum("mixed43" in t for t in FITS) == 2
+      and sum("four_only" in t for t in FITS) == 2, str(FITS))
 H = pd.DataFrame(HEAD)
 M = H[(H.arm == s82.MAIN_ARM) & (H.floor == s82.FLOOR_MAIN)]
 check("B: both young bands are exported with every term of Equation (2)",
@@ -692,11 +907,26 @@ check("B: every row carries the arm, the floor, the employer count, the "
       <= set(H.columns) and H["n_firms"].notna().all()
       and H["share_not_2019"].notna().all(),
       f"share_not_2019 {float(p22['share_not_2019']):.4f}")
-check("B: the floor variants and the forward arm are exported beside the "
-      "reported score and marked as what they are",
+check("B: the three scoring arms, the floor variants and the forward "
+      "cascade are all exported beside the reported score and marked as "
+      "what they are",
       set(H["floor"]) == set(s82.FLOORS)
-      and set(H["arm"]) == {s82.MAIN_ARM, "forward"},
-      f"floors {sorted(set(H['floor']))}, arms {sorted(set(H['arm']))}")
+      and set(H["arm"]) == {s82.MAIN_ARM, "forward"}
+      and set(H["level"]) == set(s82.SCORE_ARMS),
+      f"floors {sorted(set(H['floor']))}, arms {sorted(set(H['arm']))}, "
+      f"levels {sorted(set(H['level']))}")
+check("B: the primary is the UNIFORM three-digit arm, and every "
+      "incumbent it scores is scored at three digits",
+      s82.MAIN_LEVEL == "uniform3"
+      and float(M[M.term == "post_x_high_x_young"]["share_three_digit"]
+                .iloc[0]) == 1.0,
+      f"{s82.MAIN_LEVEL}, three-digit share "
+      f"{float(M[M.term == 'post_x_high_x_young']['share_three_digit'].iloc[0]):.2f}")
+_fo = H[(H.level == "four_only") & (H.term == "post_x_high_x_young")]
+check("B: and the four-digit-only arm scores none of its incumbents at "
+      "three digits, which is what makes it the comparison",
+      float(_fo["share_three_digit"].iloc[0]) == 0.0,
+      f"{float(_fo['share_three_digit'].iloc[0]):.2f}")
 f1 = H[(H.floor == 1) & (H.term == "post_x_high_x_young")].iloc[0]
 check("B: a lower floor scores more employers, which is what the floor "
       "sensitivity is for",
@@ -720,10 +950,16 @@ check("B: read rule 2 is met on the planted world",
       V2 == "THE PROFILE REPRODUCES", V2 + " | " + L2[1].strip())
 POISON = [dict(r) for r in HEAD] + [
     {"young_band": "22-25", "term": "post_x_high_x_young", "arm": "forward",
-     "floor": s82.FLOOR_MAIN, "coef": +0.9, "se": 0.001, "t": 900.0,
-     "n_firms": 9, "n_obs": 9}]
-check("B: the verdict reads the REPORTED arm and ignores the forward one, "
-      "however loud it is",
+     "floor": s82.FLOOR_MAIN, "level": s82.MAIN_LEVEL, "coef": +0.9,
+     "se": 0.001, "t": 900.0, "n_firms": 9, "n_obs": 9},
+    {"young_band": "22-25", "term": "post_x_high_x_young",
+     "arm": s82.MAIN_ARM, "floor": s82.FLOOR_MAIN, "level": "mixed43",
+     "coef": +0.9, "se": 0.001, "t": 900.0, "n_firms": 9, "n_obs": 9},
+    {"young_band": "22-25", "term": "post_x_high_x_young",
+     "arm": s82.MAIN_ARM, "floor": s82.FLOOR_MAIN, "level": "four_only",
+     "coef": -0.9, "se": 0.001, "t": -900.0, "n_firms": 9, "n_obs": 9}]
+check("B: the verdict reads the PRIMARY arm and ignores the mixed, the "
+      "four-digit-only and the forward ones, however loud they are",
       s82.verdict_headline(POISON)[0] == "REPRODUCES"
       and abs(float(s82.verdict_headline(POISON)[1][1].split()[2])
               - float(p22["coef"])) < 1e-4,
@@ -731,7 +967,7 @@ check("B: the verdict reads the REPORTED arm and ignores the forward one, "
 check("B: the exports are on disk and carry the covariance",
       (s82.OUT / "occ_route_headline.csv").exists()
       and (s82.OUT / "occ_route_profile.csv").exists()
-      and len(list(s82.OUT.glob("vcov_s82_stock_*.csv"))) == 5,
+      and len(list(s82.OUT.glob("vcov_s82_stock_*.csv"))) == 9,
       f"{len(list(s82.OUT.glob('vcov_s82_*.csv')))} covariance files")
 
 # ---- the rules must be able to FAIL, or they are decoration -----------
@@ -814,13 +1050,15 @@ check("C: the education-route margins travel beside them",
 s82.VINT_CACHE.unlink(missing_ok=True)
 s82.NOTES.clear(); FITS.clear(); SQL_CALLS.clear()
 pd.read_sql = fake_read_sql
-VROWS, STAB = s82.part_c_vintage(COUNTS, INCF, SCORES, NFLOOR, j47, s61, s78)
+VROWS, STAB = s82.part_c_vintage(COUNTS, INCF, SCORES, BOOK, NFLOOR, j47,
+                                 s61, s78)
 pd.read_sql = _real_read_sql
-check("C: the vintage arm pulls once when the cache is absent and caches "
-      "what it pulled",
-      len(SQL_CALLS) == 1 and s82.VINT_CACHE.exists(),
+check("C: the vintage arm probes the catalogue, pulls once when the "
+      "cache is absent, and caches what it pulled",
+      len(SQL_CALLS) == 2 and "INFORMATION_SCHEMA" in SQL_CALLS[0]
+      and s82.VINT_CACHE.exists(),
       f"{len(SQL_CALLS)} SQL calls")
-q = SQL_CALLS[0] if SQL_CALLS else ""
+q = SQL_CALLS[1] if len(SQL_CALLS) > 1 else ""
 check("C: the as-of query takes the birth year from the 2019 register "
       "and the code from the later one, so a worker the later register "
       "does not hold loses his code and not his place",
@@ -858,15 +1096,25 @@ s82.NOTES.clear(); s82.FAILURES.clear(); FITS.clear(); SQL_CALLS.clear()
 pd.read_sql = fake_read_sql
 s82.main()
 pd.read_sql = _real_read_sql
-for nm in ("occ_route_coverage.csv", "occ_route_headline.csv",
+for nm in ("occ_route_coverage.csv", "occ_route_appendix_coverage.csv",
+           "occ_route_ssyk3_book.csv", "occ_route_headline.csv",
            "occ_route_profile.csv", "occ_route_gender.csv",
            "occ_route_flows.csv", "occ_route_vintage.csv",
            "82_summary.txt"):
     check(f"main() writes {nm}", (s82.OUT / nm).exists())
+BK = pd.read_csv(s82.OUT / "occ_route_ssyk3_book.csv")
+check("the three-digit book is exported so the appendix can cite it, "
+      "with the variance decomposition beside it",
+      {"share_between", "share_within", "mean_abs_difference",
+       "n_ssyk3_single_occupation", "employment_share_in_single_groups"}
+      <= set(BK["item"].astype(str))
+      and int((BK["item"] == "book").sum()) > 50,
+      f"{int((BK['item'] == 'book').sum())} groups plus "
+      f"{int((BK['item'] != 'book').sum())} cost rows")
 check("main() made no SQL call, since every frame is cached",
       not SQL_CALLS, f"{len(SQL_CALLS)} calls")
-check("main() ran twelve fits: six for B and six for C",
-      len(FITS) == 12, str(FITS))
+check("main() ran sixteen fits: ten for B and six for C",
+      len(FITS) == 16, str(FITS))
 check("no part failed in the end-to-end run", not s82.FAILURES,
       str(s82.FAILURES))
 summ = (s82.OUT / "82_summary.txt").read_text(encoding="utf-8")
@@ -881,6 +1129,13 @@ for must in ("READ RULES, FIXED BEFORE THE RUN",
              "commensurable",
              "THE CASCADE",
              "Backward only",
+             "THE SCORING LEVEL, AND WHY THE UNIFORM ONE IS PRIMARY",
+             "DO NOT REVERSE THIS",
+             "WHAT THE COARSENING COSTS",
+             "between-group share of variance",
+             "within-group share (discarded)",
+             "unweighted benchmark",
+             "employers scored by each arm",
              "where the cascade resolves each incumbent",
              "coverage of the code among incumbents, before and",
              "where the employers the OLD rule lost went",

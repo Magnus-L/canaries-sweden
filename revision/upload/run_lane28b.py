@@ -17,20 +17,39 @@ same frame and the write is atomic, so a race is harmless, but it costs the
 pull three times. run_lane28.py runs all three in one job and is kept for
 the record; do not submit it as well.
 
+
+THE SCORING ARM. Every incumbent is scored at THREE digits, from a book
+built once as the 2019 national employment-weighted mean of the
+four-digit DAIOE scores within each three-digit group, read from the
+register's own three-digit column and never by truncating the four-digit
+one. The workers lacking a four-digit code are not a random subset, so a
+mixed four-then-three rule would give a sharp score to firms whose coding
+is complete and a smoothed one to firms whose coding is not, and quartile
+assignment would then depend partly on coding completeness: a bias
+channel into the treatment variable, not merely noise. Under the uniform
+rule the smoothing is common to every firm and the ranking survives it,
+and from 2019 every coded occupation carries at least three digits, so
+the uniform level is the near-complete one. mixed43 and four_only are
+fitted beside it as robustness and settle nothing; the read rules are
+read on uniform3 and on nothing else.
+
 WHAT RUNS HERE.
   B  Equation (2) on the employment stock at 22-25 and at 26-30, with the
      tightening switch, the interim window, the adoption step and the
      three calendar-quarter terms, exactly as script 68 estimates it and
      with script 78's term builder, on the occupation-route quartile.
+     on ALL THREE scoring arms (uniform3, the reported one, then mixed43
+     and four_only as robustness), at both bands, printed side by side.
      Then the six-band profile against 41-49, as script 74 builds it on
      script 70's six-band skeleton; then the 22-25 headline at floors of
      1 and 3, which is the floor sensitivity, and on the forward-cascade
-     arm, which is reported and is never the score.
-     Six fits. On the education route the two stock fits ran in fifteen to
+     arm.
+     Ten fits: three arms at two bands, the profile, two floor variants
+     and the forward cascade. On the education route the two stock fits ran in fifteen to
      thirty minutes each and the six-band profile in about twenty, and
      every panel here is a SUBSET of those, so no fit in this lane is
-     larger than one that has already fitted. Budget an hour and a half to
-     two hours.
+     larger than one that has already fitted. Budget two and a half to
+     three hours.
 
 READ RULES, fixed before the run. There is no coefficient gate: this is a
 different measure and the estimates will differ. Part B answers two of the
@@ -40,9 +59,10 @@ three questions, and reports the numbers whichever way they fall.
      clustering.
   2. THE PROFILE REPRODUCES if the 50-and-over band gains against 41-49
      and the young band is the lowest or second lowest of the six.
-Both are read on the REPORTED score, the backward cascade at a floor of
-five; the floor variants and the forward arm are reported beside it and
-settle nothing. The education-route numbers are printed beside every
+Both are read on the REPORTED score and on nothing else: the uniform
+three-digit arm, the backward cascade, a floor of five. The mixed43 and
+four_only arms, the floor variants and the forward cascade are reported
+beside it and settle nothing, however they fall. The education-route numbers are printed beside every
 estimate: -0.0408 (0.0150) at 22-25, -0.0394 (0.0102) at 26-30, -0.0099
 (0.0121) for 22-25 against 41-49 and +0.0589 (0.0062) for 50 and over.
 
@@ -51,7 +71,7 @@ counts; those two pulls otherwise. Safe beside any job.
 
 Export: output_82b/82_summary.txt, occ_route_headline.csv (with the arm,
 the floor, the employer count and the share of coded incumbents from
-before the freeze year on every row), occ_route_profile.csv and the six
+before the freeze year on every row), occ_route_profile.csv and the ten
 vcov_s82_*.csv files.
 """
 
@@ -67,7 +87,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402
 
 STAGES = [
-    ("82_occupation_route.py", "output_82b/82_summary.txt", 120),
+    ("82_occupation_route.py", "output_82b/82_summary.txt", 180),
 ]
 
 if __name__ == "__main__":
