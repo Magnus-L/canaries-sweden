@@ -1,62 +1,67 @@
 #!/usr/bin/env python3
 """
-47j_within_employer_triple.py -- their exposure idea, our within-employer
-identification: a triple difference in which no young worker is ever
+47j_within_employer_triple.py: the within-employer age design, with
+exposure placed on the employer so that no young worker is ever
 classified.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY. Standalone: submit THIS
-  file. Writes output_47j/. Reads 47h's cached year frames, so no SQL of
-  its own once 47h has pulled (about 10 minutes warm).
-  Local end-to-end test: revision/local/test_47j_synthetic.py
-======================================================================
+QUESTION
+Does the employment of young workers relative to their older colleagues
+inside the same employer change more in exposed employers after
+generative AI arrives? Exposure is measured on the employer, from the 2019
+education mix of its incumbents aged 31 to 69, and the within-employer
+variation comes from age, which is read from the birth year and cannot go
+stale. No worker under 31 enters the exposure measure, and no occupation
+code recorded after 2019 enters anything. This is the design the paper
+reports; scripts 61, 68 and 75 re-estimate it with the treatment dated at
+adoption and the calendar cycle removed.
 
-THE PROBLEM THIS SOLVES (19 Sep 2026). Two designs, each missing what the
-other has:
+DESIGN
+Unit: employer by age band by month counts of employed persons, 2019 to
+2023 here, for the young band under study (22-25 or 26-30) beside the
+four incumbent bands 31-34, 35-40, 41-49 and 50-69. Exposure
+(incumbent_exposure): the worker-weighted mean of the education score
+(script 47h's OL_daioe or entrant score book) over the employer's
+incumbents aged 31 to 69 in 2019; employers with fewer than five incumbent
+person-months are not scored; quartile cut points are weighted by
+incumbent employment, so the top quartile holds a quarter of incumbent
+employment rather than a quarter of employers. Sample: an employer enters
+if it holds the young band and at least one incumbent band; the panel is
+balanced and zero-filled over the window; an employer-band cell that is
+zero in every month is dropped, since the employer-by-age effect predicts
+it exactly, and an employer left with one band is dropped with it.
+Specification: Poisson pseudo-maximum likelihood on the counts with
+PostRB x High x Young (from April 2022) and PostGPT x High x Young (from
+December 2022), under employer-by-month, employer-by-age and
+month-by-age effects, standard errors clustered by employer. The
+employer-by-month effect absorbs every firm-level shock common to the
+ages in the panel, including the firm-level exposure interaction itself.
+The estimand is therefore the change in the young-to-older ratio inside
+exposed employers relative to less exposed ones.
 
-  47b / 47h  within-employer across exposure quartiles -- the paper's
-             identification, strong, but it must sort each 22-25 year old
-             into a quartile from their own education record, which at that
-             age is a record of who they were before the degree. Artefact
-             -0.36.
-  47i        firm-mix exposure, after Nordstrom Skans and Sokolow Romin --
-             robust, because a firm's mix is dominated by settled
-             incumbents, but a firm holds ONE quartile, so identification
-             is across firms and every firm-level shock is a confounder.
+Both arms are estimated: with the 2019 incumbents scored from the
+education register as it stood in 2019 (true) and as it stood in 2021 or
+2022 (as-of), for each of the two score books. The read rule is script
+47h's: an artefact below 0.05 at both truncations carries register
+evidence.
 
-The combination. Put the exposure on the FIRM, where it is stable, and take
-the within-employer variation from AGE, which is the one worker attribute
-that cannot go stale: birth year is in the register, complete, and correct
-for everyone. Compare young to older workers INSIDE the same employer in
-the same month, and ask whether that gap moves more in exposed firms.
+INPUTS AND OUTPUTS
+Reads the caches script 47h writes (edu_hr_weights_2019 to 2021 and
+edu_hr_2019 to 2023) and, through 47h, the education key and the score
+files; pulls nothing itself unless a cache is missing. Writes to
+output_47j/: triple_estimates.csv (one row per design, arm, truncation
+and young band), triple_quartile_sizes.csv (employers and incumbent
+employment per quartile) and 47j_summary.txt.
 
-  outcome    employment in employer x age band x month cells
-  treatment  PostGPT x High(firm) x Young(22-25)
-  absorbed   employer x month  (every firm-time shock, including the
-                                firm-level PostGPT x High that 47i relies on)
-             employer x age    (a firm's standing age composition)
-             month x age       (the economy-wide path of each age band,
-                                including any general young-worker decline)
-  left       exactly the triple interaction, identified off young versus
-             older workers within one employer in one month.
-
-WHY THE CLASSIFIER CANNOT GO STALE. Firm exposure is the worker-weighted
-mean education score over the firm's INCUMBENTS ONLY -- workers aged 31 and
-over -- measured in 2019 and held fixed. Three consequences: the young never
-enter the classifier, so their records cannot contaminate it; 2019 is deep
-inside the education register's coverage, so the measure is not a cascade;
-and being fixed pre-shock, it cannot respond to the shock. The backtest is
-run anyway, because that is an argument and the artefact is a measurement.
-
-WHAT IT COSTS. The estimand changes: this is the young-old gap within
-exposed employers, not the level of young employment in exposed cells. A
-shock that hit every age equally inside exposed firms would not show up.
-That is stated in the output.
-
-READ RULE, PRE-COMMITTED, the same bar as 47b and 47i: artefact below 0.05
-in absolute value at both truncations means the design can carry register
-evidence; 0.05 to half the occupation artefact (0.153 / 0.081) means usable
-with the artefact beside every estimate; at or above half, closed.
+IN THE PAPER
+Section 2: the exposure construction (the 2019 education mix of
+incumbents aged 31 to 69, at least five person-months, quartiles weighted
+by incumbent employment) and the fixed effects and sample rules of
+Equation (2); Online Appendix III.2, the quartile sizes. The
+incumbent_exposure function, INCUMBENT_BANDS, YOUNG_BANDS and FES are
+imported by every later register script. The coefficients in
+triple_estimates.csv, dated at the launch on a panel ending in 2023, are
+not quoted; the paper's estimates come from scripts 68 and 75 on the same
+exposure and effects.
 """
 
 import gc
@@ -150,12 +155,10 @@ def _drop_dead_cells(bal: pd.DataFrame) -> pd.DataFrame:
     discards it internally. Doing it here instead means the rows never
     reach R.
 
-    The reason it matters: on 20 Sep every 22-25 fit crashed R with an
-    access violation on a panel of 39 million rows, while the LARGER
-    26-30 panel at 45 million succeeded. Zero-filling a balanced panel
-    over five age bands creates a great many cells that are empty for the
-    life of the panel, and the youngest band is where employers most often
-    have none at all.
+    Zero-filling a balanced panel over five age bands creates a great many
+    cells that are empty for the life of the panel, most often in the
+    youngest band, and removing them before R sees them keeps the exchange
+    file and the fit within the memory the job has.
     """
     alive = bal.groupby(["employer_id", "age_group"], observed=True)["n_emp"].transform("sum") > 0
     out = bal[alive]

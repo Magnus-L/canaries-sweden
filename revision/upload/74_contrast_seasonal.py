@@ -1,55 +1,52 @@
 #!/usr/bin/env python3
 """
-74_contrast_seasonal.py -- the age contrast, with and without the cycle.
+74_contrast_seasonal.py: the age profile against 41-49, with and without
+the calendar cycle.
 
-======================================================================
-  RUNS IN MONA. No SQL. Reads 47h's education caches and 47L's counts.
-  Writes output_74/. Two fits, ~15 min.
-======================================================================
+QUESTION
+The headline compares the young with the older bands pooled. Against the
+prime-aged alone, is either young band distinguishable, and does the
+answer depend on the calendar cycle? The cycle is exposure-differential
+and age-specific, so it can move a contrast between bands and not only a
+level. This script fits the six-band profile of script 70 twice on one
+panel, once without and once with the quarter-of-year terms, and it is
+the source of Figure 2 and of the profile rows of Table 1.
 
-WHY THIS EXISTS.
+DESIGN
+Panel: script 70's all_band_skeleton, employer by age band by month over
+all six bands from January 2021 to June 2025, an employer entering if it
+holds 41-49 and at least one other band, employer-band cells zero in
+every month dropped. Exposure: the headline classification (script 70's
+edu_exposure, which is script 47j's incumbent_exposure on the OL_daioe
+score book). Plain arm: for every band except 41-49, PostGPT x High x Band
+from January 2024 and PostRB x High x Band from April 2022. Seasonal arm:
+the same plus Q1, Q2 and Q3 x High x Band per band, with the fourth
+quarter omitted; the quarter terms are band-specific because High x
+Quarter alone is constant within an employer-month and absorbed. Every
+coefficient is a difference from the 41-49 band. Fixed effects employer by
+month, employer by age, month by age; Poisson pseudo-maximum likelihood;
+standard errors clustered by employer. One skeleton serves both arms, so
+they differ in the term list and in nothing else. The band list is set in
+this file and checked against script 70's at start, so the panel and the
+terms cannot describe different age sets.
 
-Lane 16 gave the paper the number its title needed: 22-25 declines 3.6 log
-points MORE than 41-49, t -2.64, on 120,359 firms. That is a tested
-contrast rather than two separately significant coefficients read side by
-side, and it is what lets the paper keep its framing.
+Read rule fixed before the run: the plain arm must reproduce script 70's
+Part A within one standard error or neither arm is reported; the contrast
+is stable if the seasonally adjusted 22-25 coefficient keeps at least half
+its size and its significance, and seasonal otherwise.
 
-But it sits on a specification WITHOUT the calendar control. 70's Part A
-carries `post x high x band` and the Riksbank term and nothing else,
-while the headline the paper quotes, -0.0408, has three quarter
-interactions in it. The cycle is exposure-differential AND age-specific,
-so it can move a contrast between age bands, not just a level. Quoting
--0.0357 beside -0.0408 without checking that would be comparing two
-different specifications and hoping.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h)
+and L_counts_2021 to 2025 (script 47L); performs no SQL. Writes to
+output_74/: contrast_seasonal.csv (both arms, every band, with the number
+of employers) and 74_summary.txt.
 
-So: the same panel, the same bands, fitted twice.
-
-  plain     exactly 70's Part A, which must reproduce -0.0357 (0.0135)
-            at 22-25. If it does not, the two runs are not on the same
-            sample and nothing below is comparable.
-  seasonal  the same plus three quarter interactions PER BAND, Q4
-            omitted, matching 68's normalisation.
-
-The quarter terms are band-specific for the same reason the treatment is:
-with firm-level exposure, `high x quarter` is constant within
-employer-month and the employer-by-month effects absorb it. Everything
-here is a difference from the 41-49 band, the seasonal included.
-
-THE READ RULE, FIXED BEFORE THE RUN.
-
-  1. STABLE if the seasonally adjusted contrast keeps at least half its
-     size and its significance. Then quote the adjusted figure and note
-     in one clause that the cycle does not drive the age difference.
-  2. SEASONAL if it loses significance or more than half its size. Then
-     the contrast is partly the calendar, the paper cannot lead on the
-     young being distinctively hit, and the framing moves to the
-     spreading pattern and the composition of adjustment.
-  3. The plain arm must land within one standard error of -0.0357 or the
-     comparison is void and neither number is reported.
-
-Output (output_74/):
-  contrast_seasonal.csv   both arms, both bands
-  74_summary.txt
+IN THE PAPER
+Figure 2 (drawn by script l23: filled markers the seasonal arm, hollow
+the plain arm); Table 1, the profile rows (22-25 at -0.0099 and 50 and
+over at +0.0589 against 41-49); Section 3 and Online Appendix III.2
+(31-34 at +0.0159, 26-30 at -0.0096, 172,396 employers) and Table
+tableA_profile_seasonal.
 """
 
 import gc
@@ -79,25 +76,18 @@ FAILURES = []
 
 
 # ──────────────────────────────────────────────────────────────────────
-# THE BAND LIST IS SET HERE, DELIBERATELY, AND PRINTED INTO THE SUMMARY.
+# THE BAND LIST IS SET HERE, DELIBERATELY, AND CHECKED AGAINST SCRIPT 70's
+# AT START, so that a change to 70's band list cannot change this script's
+# sample without the mismatch being caught. Two configurations exist and
+# they are not interchangeable:
 #
-# 74 used to read l70.CONTRAST_BANDS at runtime. When 70 went from three
-# bands to six on 21 September at 20:38, this script's sample would have
-# changed with it, silently, and nothing in the output would have said
-# which list produced the number. Set it here instead.
+#   THREE  ["22-25", "26-30", "41-49"]                  120,359 employers
+#          The three-band contrast Online Appendix III.2 quotes, which
+#          script 77 reproduces as its gate.
 #
-# Two configurations exist and they are not interchangeable:
-#
-#   THREE  ["22-25", "26-30", "41-49"]                  120,359 firms
-#          Produced the -0.0153 (0.0126) contrast the paper quotes.
-#          Use this to reproduce the published number.
-#
-#   SIX    all bands                                    172,396 firms
-#          Adds 31-34, 35-40 and 50+, none of which has ever been
-#          estimated with the calendar cycle removed. This is the
-#          exploratory run: it asks whether an age gradient survives the
-#          cycle control. The paper claims no gradient, so a null here
-#          changes nothing and a gradient is a finding.
+#   SIX    all bands                                    172,396 employers
+#          The profile of Figure 2 and Table 1, which is what this file is
+#          set to.
 #
 BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 # ──────────────────────────────────────────────────────────────────────

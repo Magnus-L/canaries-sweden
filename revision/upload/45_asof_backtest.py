@@ -1,61 +1,62 @@
 #!/usr/bin/env python3
 """
-45_asof_backtest.py -- T3/E5 centrepiece (MONA run M6): the as-of
-backtest and the missingness x misclassification frontier.
+45_asof_backtest.py: the as-of backtest of the occupation-coding cascade.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY (stages 1-2).
-  Stage 3 (the frontier) is pure arithmetic on exported aggregates and
-  can be re-run locally on the exported CSVs.
-======================================================================
+QUESTION
+The submitted version classified each worker by their own occupation code
+from the annual register. That register is published with a lag, so the
+2024 and 2025 records carry codes from 2023 or earlier and workers the
+truncated register cannot code drop out. What does that staleness alone
+do to the coefficient? On 2019 to 2023 the truth is observable, since
+every year has its own register, so the staleness of 2024 and 2025 can be
+imposed there and the artefact measured rather than argued about. This
+is the test that withdrew the submitted employment design.
 
-THE IDEA
-========
-The editor's mechanical story is a hypothesis about what register
-latency does to measured employment. On 2019-2023 the truth is
-observable: every year has its own Individ table. So impose the 2024-25
-staleness structure there and MEASURE the artefact instead of arguing
-about it.
+DESIGN
+Stage 1: for each truncation year T in {2021, 2022}, one pull of the
+monthly employer declarations for 2019 to 2023 with two occupation codes
+per worker: the year's own Individ code (true) and the code the
+production cascade would assign if the register ended at T (the own code
+for years up to T; Individ_T, then T minus 1, then T minus 2 for later
+years), aggregated to employer by true code by as-of code by age band by
+month. From that panel: the confusion matrix of true against as-of
+exposure quartile by age band and year, and the as-of match rate by year
+and age band.
 
-Stage 1 -- as-of panels. For truncation year T in {2021, 2022}: years
-  <= T keep own-year codes; years > T get the cascade
-  COALESCE(Individ_T, Individ_{T-1}, Individ_{T-2}) -- exactly the
-  production rule 2024-25 lives under, shifted back. Alongside, the same
-  years' TRUE own-year codes. Both assignments in one pull, so the
-  confusion matrix (as-of quartile vs true quartile, by age group and
-  year) falls out of the same query.
+Stage 2: the submitted design on both assignments. Employer by exposure
+quartile by month cells for ages 22-25, employers with a cumulative count
+of at least five, balanced and zero-filled, restricted to employers in
+both the top quartile and a lower one; Poisson pseudo-maximum likelihood
+with PostRB x High and PostGPT x High under employer-by-quartile and
+employer-by-month effects, standard errors clustered by employer; and the
+half-year event study with the same effects. The pseudo-launch is placed
+in December of the year before T and the pseudo-hike in April of that
+year, so the launch sits thirteen months before the first month the
+truncated register cannot code, as December 2022 sits before January 2024
+in the production panel; the event-study reference is the first half of
+T minus 1. The artefact is the as-of coefficient minus the true one.
 
-Stage 2 -- re-estimation. For each T: Poisson pooled DiD + half-year ES
-  for 22-25 on (a) true codes and (b) as-of codes over 2019-2023, with a
-  PSEUDO treatment date placed T+1 relative to the truncation the way
-  ChatGPT (Dec 2022) sits relative to the 2023 register end. The
-  DIFFERENCE (b) - (a) in the post coefficients is the measured
-  artificial effect that latency alone generates. Report it against the
-  production-window headline.
+Stage 3: a grid of the artificial coefficient ln((1 - dm)(1 - mc)) over
+differential non-match growth dm and misclassification mc. Its default
+comparison value is the withdrawn submitted coefficient; the grid and the
+summary line it writes are not quoted.
 
-Stage 3 -- the frontier. Grid over (dm, mc):
-    dm = extra nonmatch growth among true-Q4 young workers relative to
-         Q1-Q3, 2024-25 (percentage points)
-    mc = share of stale-coded Q4 workers misclassified into Q1-Q3
-  Under the editor's mechanism, measured relative Q4 employment falls by
-  approximately ln(1 - dm) + ln(1 - mc) log points with no true change.
-  The frontier marks the (dm, mc) combinations that would generate the
-  full headline coefficient; the backtest's measured confusion matrix
-  and script 40's match-rate gaps place the calibrated point on the
-  grid. Distance between the calibrated point and the frontier is the
-  slack the response letter quotes.
+INPUTS AND OUTPUTS
+Reads, in MONA, Arb_AGIIndivid for 2019 to 2023 joined to Individ_2019 to
+2023, and daioe_quartiles.dta; caches cache/panel_dual_T2021.parquet and
+panel_dual_T2022.parquet, so a re-run after the pulls needs no
+connection. Writes to output_45/: asof_confusion_T<T>.csv,
+asof_matchrates_T<T>.csv, asof_estimates.csv, asof_es_T<T>.csv,
+frontier_grid.csv and 45_summary.txt.
 
-NOTE (R1.14): the Facius-Iacono-style backdated-treatment placebo is
-already in the submitted record -- script 25 ran Nov-2021 and Jul-2022
-false dates. Cite those beside this backtest; no new run needed.
-
-Output (output_45/):
-  asof_confusion_T{T}.csv     true x as-of quartile counts, by age, year
-  asof_matchrates_T{T}.csv    match rate by year x age under truncation
-  asof_estimates.csv          pooled + endpoint: true vs as-of, per T
-  asof_es_T{T}.csv            event studies, both assignments
-  frontier_grid.csv           artificial-coefficient surface + calibration
-  45_summary.txt
+IN THE PAPER
+Online Appendix IV.3: with true codes the submitted design returns +0.0193
+(SE 0.0129) and with as-of codes -0.2875 at the 2021 truncation, an
+artefact of -0.3068; +0.0176 to -0.1452 at the 2022 truncation, an
+artefact of -0.1627; the as-of arm's cell count against the true arm's.
+Table IV.3 (script l21) and Figure A1 (script l15) are built from
+asof_estimates.csv. Section 2 refers to Part IV for why no occupation code
+after 2019 enters the reported design.
 """
 
 import sys
@@ -210,15 +211,13 @@ def estimate_both(panel, daioe, trunc):
     """Poisson pooled + ES for the headline age group, true vs as-of."""
     results = []
     es_frames = []
-    # Pseudo-dates: place the pseudo-ChatGPT the same distance after the
-    # truncation as Dec 2022 sits after the 2023 register end (i.e. minus
-    # one year: production has codes THROUGH 2023 and treatment 2022-12;
-    # the pseudo pair for T=2021 is treatment 2020-12? No: the artefact
-    # window is AFTER the register ends. Production: codes end 2023,
-    # artefact years 2024-25, treatment 2022-12 (pre-dates the coverage
-    # break by 13 months). Backtest T=2021: artefact years 2022-23,
-    # pseudo-treatment 2020-12. The pseudo event study's post window then
-    # crosses into the artefact years exactly as the production one does.
+    # Pseudo-dates. In production the codes end in 2023, the artefact
+    # years are 2024 and 2025, and the treatment is December 2022,
+    # thirteen months before the first uncodable month. For truncation T
+    # the artefact years are T+1 and T+2, so the pseudo-launch is December
+    # of T-1 and the pseudo-hike April of T-1; the pseudo event study's
+    # post window then crosses into the artefact years exactly as the
+    # production one does.
     pseudo_gpt = f"{trunc - 1}-12"
     pseudo_rb = f"{trunc - 1}-04"
 

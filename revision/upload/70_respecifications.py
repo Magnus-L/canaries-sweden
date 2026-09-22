@@ -1,89 +1,61 @@
 #!/usr/bin/env python3
 """
-70_respecifications.py -- three things the reviews said the paper cannot
-                          currently claim, all on panels already cached.
+70_respecifications.py: the age profile against 41-49, the youth
+payroll-tax expiry, and the education-to-occupation ladder.
 
-======================================================================
-  RUNS IN MONA. NO SQL AT ALL. Reads 47h's 2019 frame, 47L's cached
-  counts and 47L's cached baseline pay. Writes output_70/.
-======================================================================
+QUESTION
+Part A. Is the young coefficient different from the prime-aged one? Two
+separately significant coefficients do not test that. With firm-level
+exposure the six band interactions are collinear with the employer-by-
+month effects, so one band must be the reference; taking 41-49 as the
+reference makes every other band's coefficient a tested difference from
+it. Part B. The reduced employer contribution for young workers expired
+on 31 March 2023, inside the post window: does an exposure-differential
+response to that expiry survive the month-by-age effects? Part C. The
+education route classifies about 311,000 employers and the occupation
+route about 65,000; how much of the difference between the two routes is
+employer coverage and how much is the register?
 
-Three questions, none of which needs a new pull, all of which decide
-something the paper currently asserts without having tested it.
+DESIGN
+Part A (all_band_skeleton, part_a): employer by age band by month counts
+over all six bands from January 2021, an employer entering if it holds
+41-49 and at least one other band, cells zero-filled, employer-band cells
+zero in every month dropped, fixed-effect keys as integer codes. Exposure
+is the headline classification (script 47j's incumbent_exposure on the
+OL_daioe score book, true arm). Terms: for every band except 41-49,
+PostGPT x High x Band from January 2024 and PostRB x High x Band from
+April 2022. A second fit gives the quarterly path per band: Q1 to Q3 x
+High with the fourth quarter omitted, and one interaction per quarter
+from December 2022 onward per band. Fixed effects employer by month,
+employer by age, month by age; Poisson pseudo-maximum likelihood;
+standard errors clustered by employer.
 
-PART A. IS THE YOUNG COEFFICIENT DIFFERENT FROM THE MIDDLE-AGED ONE?
+Part B (part_b): script 47L's panel and continuous exposure, with High the
+top quartile of the firm-age baseline, and the terms PostRB x E,
+PostGPT x E, PostTax x TaxShare and PostTax x TaxShare x High, where
+TaxShare is the share of the cell's 2019 young workers paid at or below
+SEK 25,000 a month and PostTax is one from April 2023.
 
-The paper is called canaries. Script 63 reports, adoption-dated and net of
-teleworkability, a stock coefficient of -0.0318 at 22-25 and -0.0493 at
-41-49. Both were read as "significant declines" from their own standard
-errors, and the 41-49 result was treated as an awkward extra finding.
+Part C (part_c): three rungs on the six-band skeleton with the Part A
+terms: the education classification on every employer it scores; the
+education classification restricted to employers the occupation route
+also scores; the occupation classification (script 65) on the same
+restriction. The first difference is employer coverage; the second is the
+register and the incumbent pool together, since the cached frames are
+aggregated and cannot restrict at the worker level.
 
-The arithmetic nobody did is that the POINT ESTIMATES put the youngest
-band 0.0175 ABOVE the middle-aged one: on the stock, the young look
-better, not worse. Comparing two t-statistics is not a test of whether two
-coefficients differ, and the paper needs that test before it can keep its
-framing.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h),
+L_counts_2021 to 2025, L_baseline_2019 and L_basepay_2019 (script 47L),
+and the input file daioe_quartiles.dta; performs no SQL. Writes to
+output_70/: age_contrast.csv, age_path.csv, payroll_tax.csv,
+route_ladder.csv and 70_summary.txt.
 
-The fix costs one fit. Exposure here is firm-level and constant within
-employer-month, so the full set of six band interactions is collinear with
-the employer-by-month effects and one band must drop. Which band drops is
-a free choice, and every remaining coefficient is then a DIFFERENCE from
-the dropped one, with a correct standard error and covariance built in. So
-we drop 41-49 deliberately. The 22-25 coefficient that comes back IS the
-contrast, tested, with no post-estimation algebra.
-
-PART B. THE YOUTH PAYROLL-TAX EXPIRY, INTERACTED WITH EXPOSURE.
-
-Sweden's reduced employer contributions for young workers expired on
-31 March 2023, inside the post window. 47L already anticipated this: it
-carries the SEK 25,000 cap, the April 2023 date, and a `post_tax x
-taxshare` control, where taxshare is the base-year share of a firm's young
-workers paid under the cap.
-
-What it does not carry is the interaction that matters. A national policy
-with a common effect is absorbed by the month-by-age effects. What
-survives them is an EXPOSURE-DIFFERENTIAL response: exposed firms
-employing many subsidised young workers reacting differently from
-unexposed firms that also employed many. That is
-`post_tax x taxshare x high`, and it is one term.
-
-Timing is a partial defence whatever comes back, since the subsidy ended
-in March 2023 and the effect concentrates from January 2024. The point is
-to have tested it rather than to argue from the calendar.
-
-PART C. WHY THE MECHANISM REVERSES BETWEEN THE TWO EXPOSURE ROUTES.
-
-63 (occupation route) says hiring carries the decline. 67 (education
-route, the headline classification) says hiring is null and separations
-rise. The paper's abstract asserts hiring.
-
-These two are not a clean measure comparison: the education route
-classifies 311,227 firms and the occupation route 65,146, so population
-and measurement move together. This part separates them as far as the
-cached frames allow:
-
-  A  education score, full education sample
-  B  education score, restricted to firms the occupation route also scores
-  C  both routes, restricted to firm-age cells BOTH routes score
-  D  occupation score, same restriction as C
-
-A versus B isolates employer coverage. C versus D isolates the register.
-
-One limit, stated because it changes what C-versus-D means: a true
-worker-level joint-support restriction, using only incumbents who hold
-BOTH a usable 2019 occupation code and usable 2019 education fields, is
-not possible from the cached frames, because the two routes read different
-pre-aggregated tables. C restricts at the level of the firm-age cell, not
-the worker. So C versus D isolates the register and the incumbent pool
-together, not the register alone. Getting further needs a new SQL pull and
-is not worth a MONA round for this revision.
-
-Output (output_70/):
-  age_contrast.csv     Part A, differences from the 41-49 band
-  age_path.csv         Part A, quarterly path per band, 68's normalisation
-  payroll_tax.csv      Part B
-  route_ladder.csv     Part C, the four variants
-  70_summary.txt
+IN THE PAPER
+all_band_skeleton and edu_exposure are the panel and exposure of script
+74, which gives Figure 2 and the profile rows of Table 1; Part A's
+contrasts are the plain arm that script 74 reproduces and draws with
+hollow markers. Parts B and C are not quoted in the current manuscript.
 """
 
 import gc
@@ -104,23 +76,10 @@ OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 
 ALL_BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
-# The bands Part A and Part C actually put in the panel.
-#
-# The 21 September run asked for all six and died: 172,396 firms x 54
-# months x 6 bands is 55.9 million rows and about 9.3 million
-# employer-by-month fixed-effect levels, and fepois took an access
-# violation inside garbage collection. 61 fitted 36.5M rows, and this
-# script's own intersection rungs fitted 19.7M, so the ceiling sits
-# between. Machine memory was never the constraint: 680 GB was free.
-#
-# Three bands give the contrast the paper needs, 22-25 and 26-30 each
-# against the 41-49 reference, on a panel of about 28 million rows. The
-# other three bands bought secondary rows at twice the size.
-# ALL SIX BANDS, restored 21 September. It was cut to three on 20 September
-# when the six-band panel hit 55.9M rows and died. That was read as a size
-# ceiling; it was the FE-count ceiling plus an unnecessary panel. Both are
-# addressed below, so the profile the paper is actually about can be
-# estimated in one fit.
+# The bands Part A and Part C put in the panel: all six, so that the whole
+# age profile is estimated in one fit. Employer-band cells that are zero in
+# every month are dropped in all_band_skeleton, which is what keeps the
+# six-band panel within the memory a fit has.
 AGE_PATH = []        # six-band quarterly path, written to age_path.csv
 A_THREADS = 2        # start where the retry ladder ends; see 73
 CONTRAST_BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
@@ -234,15 +193,13 @@ def all_band_skeleton(counts: pd.DataFrame) -> pd.DataFrame:
            ["n_emp"].sum().reindex(full, fill_value=0).reset_index())
     bal["n_emp"] = bal["n_emp"].astype(int)
 
-    # THE ROWS THAT KILLED THIS FIT. The balanced panel above gives every
-    # firm all six bands, and most firms employ nobody at all in most of
-    # them: a 12-person firm carries four all-zero bands for 54 months
-    # each. Those rows cannot inform a within-employer age contrast.
-    # Under employer x age effects a firm-band that is zero in every
-    # month is perfectly predicted by its own effect, so fixest separates
-    # and drops it regardless; dropping it here costs nothing and is the
-    # difference between a panel that fits and one that does not. Script
-    # 73 does the same on its own skeleton.
+    # The balanced panel above gives every firm all six bands, and most
+    # firms employ nobody at all in most of them, so it carries many
+    # all-zero firm-band series that cannot inform a within-employer age
+    # contrast. Under employer x age effects such a series is perfectly
+    # predicted by its own effect and fixest separates and drops it
+    # regardless; dropping it here costs nothing and keeps the panel small
+    # enough to fit. Script 73 does the same on its own skeleton.
     alive = (bal.groupby(["employer_id", "age_group"], observed=True)["n_emp"]
              .transform("max") > 0)
     before = len(bal)
@@ -403,17 +360,15 @@ def part_c(counts, j47, l65, sink):
     both = set(edu["employer_id"]) & set(occ["employer_id"])
     print(f"  C: education {len(edu):,} firms, occupation {len(occ):,}, "
           f"intersection {len(both):,}")
-    # C is gone. It was given the SAME restriction as B, so it was the
-    # same regression, and the 21 September run returned -0.0254 (0.0140)
-    # on 60,704 firms for both. A worker-level joint-support restriction
-    # is what C was meant to be and the pre-aggregated frames cannot
-    # express it, so the rung is dropped rather than duplicated.
+    # A rung with the education score restricted to the firm-age cells
+    # both routes score would be the same regression as rung B, since the
+    # cached frames are aggregated to the firm and the restriction cannot
+    # be made at the worker level; it is therefore not run.
     rungs = [("A_edu_full", edu, None),
              ("B_edu_intersect", edu, both),
              ("D_occ_joint", occ, both)]
     # The skeleton does not depend on which route scored the firm, only
-    # the quartile does. 61 learned this the expensive way: rebuilding a
-    # forty-million-row panel per variant is four builds where one will do.
+    # the quartile does, so it is built once for the three rungs.
     skel = all_band_skeleton(counts)
     if skel.empty:
         print("  C: skeleton empty"); FAILURES.append("C/skeleton"); return

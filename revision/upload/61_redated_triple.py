@@ -1,84 +1,59 @@
 #!/usr/bin/env python3
 """
-61_redated_triple.py -- the cleanest design, dated where the adoption data
-                        put the treatment.
+61_redated_triple.py: the within-employer age design with the treatment
+dated at adoption, and the panel construction every later script reuses.
 
-======================================================================
-  RUNS IN MONA. No SQL. Reads 47h's cached 2019 frame (for exposure) and
-  47L's cached monthly counts (for the panel). Writes output_61/.
-======================================================================
+QUESTION
+Statistics Sweden's survey of enterprises records firm AI use at 10 per
+cent in 2023, 25 in 2024 and 35 in 2025, so most of the diffusion came
+after the ChatGPT launch of November 2022. A design dated at the launch
+pools thirteen months in which few firms had adopted with the months in
+which they did. This script estimates script 47j's design with the
+adoption window opening in January 2024, on an outcome panel that runs to
+June 2025.
 
-WHERE THE PANEL COMES FROM, WHICH IS NOT WHERE 47j TAKES IT.
+DESIGN
+Panel (build_skeleton): employer by age band by month counts from script
+47L's caches, January 2021 to June 2025, for one young band (22-25 or
+26-30) beside the four incumbent bands 31-34, 35-40, 41-49 and 50-69. The
+panel starts in 2021 so that 2019, the scoring year, stays out of the
+outcome window and the pandemic year does not enter the reference. An
+employer enters if it holds the young band and at least one incumbent
+band; cells are zero-filled over the window; employer-band cells that are
+zero in every month are dropped, and so is an employer left with one
+band. The three fixed-effect keys (employer by month, employer by age,
+month by age) are integer codes. The skeleton does not depend on the
+exposure, so it is built once per young band and the quartile is merged
+in afterwards (attach_exposure).
 
-47j builds its panel from 47h's year frames, and those stop in 2023
-because the education register is only delivered that far and the
-backtest needs a year where the truth is observable. That is fine for a
-design dated at the launch. It is useless for this one: the adoption
-window opens in January 2024, so a panel ending in December 2023 would
-estimate the coefficient we care about on no data at all.
+Exposure: script 47j's incumbent_exposure on script 47h's 2019 frame, for
+the OL_daioe score book (the paper's) and the entrant score book, with
+the 2019 incumbents scored from the education register as it stood in
+2019 (true arm) and, for OL_daioe, as it stood in 2021 (as-of arm).
 
-So the exposure comes from 47h's 2019 frame, exactly as in 47j, and the
-outcome comes from 47L's monthly employment counts, which run to June
-2025. Nothing about the treatment changes; only the months the outcome is
-observed over. The script refuses to run if the panel contains no month
-in the adoption window, because that failure is silent otherwise.
+Terms (add_terms): PostRB x High x Young from April 2022, kept on through
+the window, and either three disjoint windows (launch, December 2022 to
+October 2023; Copilot, November and December 2023; adoption, from January
+2024) or one step from January 2024. The window boundaries were fixed
+before any estimate was seen. Poisson pseudo-maximum likelihood, standard
+errors clustered by employer. The script refuses to run if the counts end
+before the adoption window opens.
 
-WHY THIS IS THE ONE SPECIFICATION WORTH RUNNING NEXT.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021, edu_hr_2019 (script 47h) and
+L_counts_2021 to 2025 (script 47L); performs no SQL. Writes to output_61/:
+redated_step.csv (the three windows), redated_pooled.csv (the single step)
+and 61_summary.txt.
 
-47j is the cleanest measurement in the round. Comparing young workers with
-older ones inside the same employer in the same month, with exposure taken
-from the education mix of the firm's incumbents aged 31 and over in 2019,
-it carries an artefact of one to five thousandths against a threshold of
-0.05. No young worker is ever classified.
-
-It also dates the treatment at the ChatGPT launch, and so does every other
-estimate we have. SCB's survey of enterprises with ten or more employees
-puts AI use at 10.4 per cent in 2023, 25.2 in 2024 and 35.0 in 2025, so
-almost all of the diffusion happened AFTER the date we have been calling
-the treatment. Pooling thirteen untreated months with eighteen treated ones
-attenuates the coefficient for reasons that have nothing to do with the
-world. Script 60 showed the consequence on the frozen-exposure design: the
-estimate grows monotonically from -0.002 to -0.018 as the date moves from
-the launch to January 2024, with the standard error flat.
-
-This runs 47j's design with the treatment dated properly.
-
-HOW IT IS FAST, because the obvious way is not.
-
-The obvious way estimates the design once per candidate date. That is four
-fits per cell, and 47j's fits cost fifteen to nineteen minutes each on
-panels of forty million rows.
-
-Two changes make it roughly a quarter of the work.
-
-  THE PANEL DOES NOT DEPEND ON THE DATE, AND ALMOST NONE OF IT DEPENDS ON
-  THE EXPOSURE. Only the interaction terms depend on the date, and only the
-  quartile column depends on the design and the arm. So the balanced panel,
-  the zero-filling and the three fixed-effect keys are built ONCE per young
-  band and the quartile is merged in afterwards: two panel builds instead of
-  eight.
-
-  THE DATES GO IN AS ONE STEP FUNCTION, NOT FOUR REGRESSIONS. The candidate
-  dates are nested, so instead of four separate post dummies we use three
-  DISJOINT period interactions: the launch window, the Copilot window and
-  the adoption window. One fit then yields the whole profile, and the
-  coefficients are directly interpretable as the effect in each period
-  rather than as four overlapping averages of each other.
-
-WHAT IT REPORTS
-
-  step      the disjoint period interactions, which is the object of
-            interest: is the gap bigger in 2024-25 than in 2023?
-  pooled    the single post-2024-01 interaction, for a headline number
-            comparable with 60's
-  both arms so the artefact is still measured at the new dating, since a
-            design being clean at one date does not make it clean at
-            another
-
-Output (output_61/):
-  redated_step.csv     period-specific coefficients, with SEs
-  redated_pooled.csv   the single post-2024 coefficient
-  61_summary.txt
+IN THE PAPER
+build_skeleton, attach_exposure and add_terms are the panel of Equation
+(2) and are used by scripts 65, 67, 68, 72, 73, 75 and 77. The single
+step without the calendar terms appears in Online Appendix Table III.2,
+Panel A ("before the cycle"), with the change under the as-of arm beside
+it; that change is the vintage re-scoring the appendix describes, the
+same panel re-estimated with the 2019 incumbents scored from the
+education register as it stood in 2021. The step with the calendar cycle
+removed, which the paper quotes, is script 68's.
 """
 
 import gc
@@ -113,11 +88,11 @@ ARMS = ("true", "asof")
 JOBS = (("OL_daioe", "true"), ("OL_daioe", "asof"), ("entrant", "true"))
 TRUNC = 2021
 
-# The panel starts here rather than in 2019. Twenty-three months of
-# pre-launch data identify the employer x age and month x age effects
-# perfectly well, and the 2019-2025 version is around fifty-five million
-# rows, which is past the size at which R died repeatedly on 20 September.
-# This is a pre-specified choice, made before the estimate was seen.
+# The panel starts here rather than in 2019: 2019 is the scoring year and
+# 2020 the pandemic year, twenty-three months of pre-launch data identify
+# the employer x age and month x age effects, and the 2019 to 2025 panel
+# would run to about fifty-five million rows. A choice fixed before the
+# estimate was seen.
 PANEL_FROM = "2021-01"
 PANEL_YEARS = list(range(2021, 2026))
 FAILURES = []

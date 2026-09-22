@@ -1,62 +1,44 @@
 #!/usr/bin/env python3
 """
-65_occupation_arm.py -- the same firms, classified by the other register.
+65_occupation_arm.py: the same design with employers classified by the
+2019 occupations of their incumbents instead of their education.
 
-======================================================================
-  RUNS IN MONA. No SQL. Reads 47L's cached 2019 occupation baseline and
-  monthly counts. Writes output_65/.
-======================================================================
+QUESTION
+The paper classifies an employer by the education mix of its incumbents
+aged 31 to 69 in 2019, with occupation entering only as the 2019 bridge
+from each education group to an exposure score. The occupation register
+for 2019 is final and could classify the same employers directly. It is
+kept secondary because it samples about half the workforce and imputes
+the rest, and because about a third of its 2019 codes were assigned in an
+earlier year. This script runs script 61's design on the same employers
+and outcome with the occupational classification, so the two registers
+can be compared in sign.
 
-THE QUESTION, WHICH A CO-AUTHOR ASKED AND WHICH DESERVED A BETTER ANSWER
-THAN THE ONE IT GOT.
+DESIGN
+Exposure (occupation_exposure): the worker-weighted mean DAIOE
+generative-AI percentile of the four-digit occupations held in November
+2019 by the employer's incumbents aged 31 to 69, from script 47L's
+baseline; employers with fewer than five coded incumbents are not scored;
+quartile cut points are weighted by incumbent employment, as in script
+47j. Panel, windows, terms and fixed effects are script 61's: employer by
+age band by month from January 2021 to June 2025, PostRB x High x Young
+plus the three disjoint windows or the single step from January 2024,
+employer-by-month, employer-by-age and month-by-age effects, Poisson
+pseudo-maximum likelihood, standard errors clustered by employer. No
+as-of arm is run, since the 2019 register is final.
 
-Script 61 classifies a firm by the EDUCATION mix of its incumbents aged
-31 and over in 2019. Occupation enters only as the bridge that gives
-each education group its exposure score. Yet almost every worker has an
-occupation code in 2019, the register for that year is final, and a
-frozen 2019 occupational exposure would be the more direct measure. So
-why the detour?
+INPUTS AND OUTPUTS
+Reads the caches L_baseline_2019 and L_counts_2021 to 2025 (script 47L)
+and the input file daioe_quartiles.dta; performs no SQL. Writes to
+output_65/: occ_step.csv, occ_pooled.csv and 65_summary.txt, the last
+with script 61's education-based estimate beside the occupational one
+when output_61/ is present.
 
-Two reasons, of unequal strength.
-
-The strong one is SCB's own documentation of the occupation register:
-it samples about half the workforce, and only about two per cent of the
-smallest firms, with the rest imputed. The imputation is fine for a
-cross-section and is not designed for analysing transitions. For a small
-firm, therefore, a 2019 occupational exposure is substantially an
-imputation of the quantity we want to measure. Education is a census.
-Occupation is also missing outright for about fifteen per cent of wage
-earners in 2019.
-
-The weak one is history. The within-employer design was built while we
-were trying to replace occupation wholesale, before freezing exposure in
-2019 made the detour unnecessary.
-
-So this runs the identical design on the identical firms with the
-identical outcome, and changes only which register does the
-classification. If the two agree in sign, the paper can say the result
-does not depend on the register, and can keep the education version as
-primary for the coverage reason above. That is a stronger position than
-choosing one route and defending it.
-
-WHAT TO EXPECT, WRITTEN BEFORE THE RUN. Script 62 ran both measures at
-firm level on the employment stock and found the occupational one
-LARGER: -0.0278 at 22-25 against -0.0067 for education. If that carries
-over, the education route is the conservative one and our headline
-understates. If the occupational arm instead comes back near zero, the
-headline depends on the register and we say so.
-
-WHAT THIS DOES NOT FIX. About a third of 2019 occupation codes were
-assigned in an earlier year, so the measure is pre-treatment but not
-contemporaneous. That attenuates it toward zero and cannot explain a
-result; it can only hide one. Filtering on the assignment year needs a
-column the cached baseline does not carry, so it is a SQL job for
-another round rather than a change here.
-
-Output (output_65/):
-  occ_step.csv     the three disjoint windows, occupational classification
-  occ_pooled.csv   the single post-2024 coefficient
-  65_summary.txt   both registers side by side
+IN THE PAPER
+No coefficient from this script is quoted in the current manuscript. Its
+occupation_exposure function supplies the occupation route to script 70
+(the education-to-occupation ladder) and to script 71, which runs the
+first stage on both routes.
 """
 
 import gc

@@ -1,70 +1,53 @@
 #!/usr/bin/env python3
 """
-63_measure_robustness.py -- every design we have rests on one exposure
-                            measure. Does the answer?
+63_measure_robustness.py: does the answer depend on the exposure measure?
 
-======================================================================
-  RUNS IN MONA. No SQL: reads the caches 47L and 54 already wrote.
-  Writes output_63/.
-======================================================================
+QUESTION
+Every design in this package scores occupations with DAIOE. If DAIOE
+mismeasured what generative AI does to an occupation, every design would
+be wrong in the same way, and their agreement would establish nothing.
+This script re-estimates the continuous occupation-scaled route of script
+47L with two alternative scores: the Eloundou et al. exposure, a different
+team's measure of the same object, and the Dingel and Neiman
+teleworkability share, which is not an AI measure and serves as a placebo
+for office work. Because teleworkability and the DAIOE percentile are
+correlated across occupations, the placebo cannot be expected to return
+nothing; the joint specification, with both measures in one regression,
+is what separates them.
 
-THE PROBLEM THIS ADDRESSES, WHICH IS THE LARGEST ONE LEFT.
+DESIGN
+For each measure the 2019 firm-age baseline E(f, a) is rebuilt with script
+47L's build_exposure and the score standardised across occupations, so
+that a coefficient is the effect of one standard deviation of the 2019
+baseline on that measure's own scale. Outcomes: the employment stock
+(script 47L's counts) and hires and separations (script 54's flows), each
+on a balanced employer by age band by month panel with employer-by-month,
+employer-by-age and month-by-age effects. Terms: PostRB x E and one
+PostGPT x E per age band, with the treatment dated at the launch
+(December 2022) and, separately, at adoption (January 2024); both datings
+were fixed in advance. The joint specification enters the DAIOE and
+teleworkability interactions together, pooled over bands and band by
+band, on the cells both measures score. Poisson pseudo-maximum
+likelihood, standard errors clustered by employer. The correlation between
+the measures across four-digit occupations is reported beside the
+estimates.
 
-Four designs now agree, and they were built to fail differently: the
-register lag reaches some and not others, some identify across firms and
-some within, some read the stock and some the flow. That is the point of
-having four.
+INPUTS AND OUTPUTS
+Reads the caches L_baseline_2019, L_counts_2019 to 2025 and flows_2019 to
+2025, and the input files daioe_quartiles.dta, eloundou_ssyk4.dta and
+dingel_neiman_ssyk4.dta; performs no SQL. Writes to output_63/:
+robustness_gradient.csv (age band by measure by outcome by dating),
+horserace.csv (the joint specification), measure_correlation.csv and
+63_summary.txt.
 
-They share one thing. Every one of them assigns exposure from DAIOE at
-four-digit occupation. If DAIOE mismeasures what generative AI does to an
-occupation, all four are wrong together and their agreement is worth
-nothing. A common mode defeats triangulation completely, and it is the
-one weakness our design portfolio cannot see.
-
-We cannot validate DAIOE inside P1207: there is no survey of who actually
-uses a language model at work in this project's data. What we CAN do is
-ask whether the conclusions depend on the measure, using two alternatives
-already in the input directory.
-
-  ELOUNDOU. A different research team, a different method, the same
-  object. If it gives the same answer, the finding does not depend on our
-  own measure. If it does not, we have a problem we did not know about.
-
-  DINGEL AND NEIMAN TELEWORKABILITY, AND THIS IS THE REAL TEST. It scores
-  how far a job can be done from home. It is not an AI measure at all, and
-  it correlates with AI exposure because both load on desk work. So it is
-  a PLACEBO MEASURE: if teleworkability produces the same age gradient as
-  DAIOE, then what we are measuring is "office work", not "exposure to
-  generative AI", and the paper's interpretation is wrong regardless of
-  how clean the identification is.
-
-  That second test can fail, and it is the one I would run first if we
-  could only run one.
-
-HOW STRONG A PLACEBO IS IT? NOT VERY, AND SAYING SO IS PART OF THE JOB.
-
-Across the 393 four-digit occupations all three measures score, our genAI
-percentile correlates 0.74 with teleworkability and 0.87 with Eloundou.
-At 0.74 a placebo cannot be expected to return nothing: a good deal of
-any DAIOE result will reappear in the telework column for arithmetic
-reasons alone. Reading "telework is also negative" as a refutation would
-therefore be as wrong as reading "telework is smaller" as a vindication.
-
-That is why this script also runs the HORSE RACE. Both measures enter one
-regression, so the DAIOE coefficient is identified off the part of AI
-exposure that teleworkability does not explain. That is the coefficient
-worth quoting, and it is the one that can actually separate the two
-stories.
-
-HOW IT IS FAST. The panels are cached and identical across measures, so
-only the exposure column changes. Three measures times two outcomes is
-six fits, and the expensive pulls never repeat.
-
-Output (output_63/):
-  robustness_gradient.csv   age band x measure x outcome x dating
-  horserace.csv             both measures in one regression
-  measure_correlation.csv   how much the three measures agree at SSYK4
-  63_summary.txt
+IN THE PAPER
+Online Appendix Table III.2, Panel B, and the paragraph beside it: the
+41-49 decline on both AI measures, the gain of the 50-69 band on DAIOE and
+on teleworkability, the opposite signs of DAIOE and teleworkability in the
+joint specification, and the hiring and separation coefficients on the
+continuous route; Section 3's clause that on this route the oldest band's
+gain loads as strongly on teleworkability as on AI exposure. Table
+tableA_age_profile is built from robustness_gradient.csv by script l19.
 """
 
 import gc

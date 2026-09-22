@@ -1,46 +1,52 @@
 #!/usr/bin/env python3
 """
-77_contrast_by_track.py -- the young against the prime-aged, inside each
-                           broad education track.
+77_contrast_by_track.py: the young against the prime-aged, inside each
+broad education track.
 
-======================================================================
-  RUNS IN MONA. No SQL: reads the L_counts_sex_edu_YYYY caches that 76
-  wrote (run 76 first, or in the same lane ahead of this). Six fits,
-  three to five hours. Writes output_77/.
-======================================================================
+QUESTION
+With the calendar cycle removed, neither young band is distinguishable
+from 41-49 inside exposed employers, with standard errors of about a
+hundredth. That pooled null says nothing about workers in particular
+tracks: a steeper gradient among, say, ICT graduates is neither claimed
+nor ruled out by it. This script asks the question track by track, as
+heterogeneity, with every track reported including the nulls.
 
-WHY (ML, 22 Sep 2026, 01:55). With the calendar cycle removed, the
-22-25 and 26-30 bands are not distinguishable from 41-49 inside exposed
-firms (lane 20: -0.0099 (0.0121) and -0.0096 (0.0084) on 172,396
-firms). That is a pooled null with standard errors of a hundredth, and
-it says nothing about workers in particular tracks: a steeper youth
-gradient among, say, ICT graduates is neither claimed nor ruled out by
-it. This script asks the question track by track, so the paper can say
-in one sentence what the cut shows and the appendix can show it.
+DESIGN
+Panel (three_band_skeleton): employer by age band by month over 22-25,
+26-30 and 41-49 from January 2021 to June 2025, an employer entering if it
+holds 41-49 and at least one young band, cells zero-filled, employer-band
+cells zero in every month dropped, fixed-effect keys as integer codes.
+Exposure is the headline classification (script 47j's incumbent_exposure
+on the OL_daioe score book). Terms (contrast_terms), script 74's seasonal
+arm: for each young band, PostGPT x High x Band from January 2024, PostRB
+x High x Band from April 2022 and Q1 to Q3 x High x Band with the fourth
+quarter omitted; every coefficient is a difference from 41-49. Fixed
+effects employer by month, employer by age, month by age; Poisson
+pseudo-maximum likelihood; standard errors clustered by employer. The
+fit runs first on all workers, as a reproduction gate, and then on the
+workers of each track from script 76's caches, the counts collapsed to
+employer by age by month.
 
-THE DESIGN. 74's seasonal arm on the THREE-band panel (22-25, 26-30,
-41-49 as the omitted reference), the specification that produced the
--0.0153 (0.0126) the appendix quotes on 120,359 firms: employer-by-month,
-employer-by-age and month-by-age effects, one post and one Riksbank term
-per young band and three quarter-of-year terms per young band, Q4
-omitted. Run first on all workers, as a reproduction gate against
--0.0153, then on the workers of each track.
+Read rule fixed before the run: the all-worker 22-25 contrast must lie
+within one standard error of the three-band seasonal contrast or the
+panel is not the paper's; a track contrast beyond two standard errors is
+reported with its standard error and employer count and with the
+carried-forward education record stated beside it; the paper's sentence on
+the pooled profile stands whatever the cut shows.
 
-THE READ RULE, FIXED BEFORE THE RUN.
+INPUTS AND OUTPUTS
+Reads the caches L_counts_sex_edu_2021 to 2025 (script 76) and script
+47h's caches for the exposure; performs no SQL. Writes to output_77/:
+contrast_by_track.csv (both young bands against 41-49 per track, with the
+number of employers), vcov_s77_<track>.csv and 77_summary.txt.
 
-  * GATE: the all-worker 22-25 contrast must land within one standard
-    error of -0.0153 or the panel is not the paper's.
-  * The cut is HETEROGENEITY. Every track is reported, sign and size,
-    including the nulls. No track is promoted to a headline, and the
-    paper's sentence on the pooled profile stands whatever the cut shows.
-  * A track contrast beyond two standard errors is reported as such in
-    the OA with its standard error and its firm count, with the
-    carried-forward education record stated beside it.
-
-Output (output_77/):
-  contrast_by_track.csv   both young bands against 41-49, per track
-  vcov_s77_*.csv          clustered covariances
-  77_summary.txt
+IN THE PAPER
+Section 3 (the shortfall against 41-49 is steepest for ICT degrees,
+-0.117, and clear in business, law and administration, -0.069; absent in
+engineering and in health, education and care); Online Appendix III.2,
+"The young against 41-49, by track" (the all-worker contrast of -0.0153 on
+120,359 employers, and the 26-30 contrasts), and Table
+tableA_contrast_by_track.
 """
 
 import gc

@@ -1,21 +1,43 @@
 #!/usr/bin/env Rscript
-# r_fepois_multi.R -- Poisson PML with an ARBITRARY list of treatment terms.
+# r_fepois_multi.R: Poisson pseudo-maximum likelihood with any list of
+# treatment terms and any list of fixed effects, fitted in R with fixest and
+# called from Python. Every register estimate the paper reports (Table 1,
+# Figures 2 and 3, Online Appendix Part III) is fitted through this file by
+# mona_common.run_fepois_multi.
 #
-# Generalisation of r_fepois.R (which hard-codes the two-term PostRB/PostGPT
-# formula). Needed by:
-#   44_decile_gradient.py  -- nine decile x post interactions in ONE model
-#   46_wfh_horserace.py    -- DAIOE terms + WFH x period terms jointly
+# WHAT IT FITS
+#   n_emp ~ <terms> | <fixed effects>
+# with standard errors clustered on --cluster (employer_id by default). For
+# the headline the terms are the Riksbank, calendar-quarter, interim and
+# adoption interactions with High x Young and the effects are employer by
+# month, employer by age and month by age.
 #
-# Usage:
-#   Rscript r_fepois_multi.R --input in.csv --output out.csv \
-#       --terms "rb_d2,gpt_d2,rb_d3" [--cluster employer_id] [--fe "fe_emp_bin,fe_emp_t"]
+# USAGE
+#   Rscript r_fepois_multi.R --input <in.csv[.gz]> --output <out.csv>
+#       --terms "a,b,c" [--fe "f1,f2,f3"] [--cluster <col>]
+#       [--nrows <n>] [--nthreads <k>]
 #
-# Input CSV must contain: n_emp, every column named in --terms, every FE
-# column named in --fe (default fe_emp_bin,fe_emp_t), and the cluster column.
-# Output CSV: term, coef, se, pvalue, n_obs, n_emp_total, converged,
-#             elapsed_s, status   (one row per term; 'dropped' if absorbed)
-# ASCII-only output; a failure still writes an output CSV so Python can
-# read a status row instead of crashing.
+# INPUT COLUMNS
+#   n_emp, every column named in --terms, every column named in --fe (default
+#   fe_emp_bin,fe_emp_t; passed as integer codes by the Python wrapper) and
+#   the cluster column.
+#
+# OUTPUT
+#   <out.csv>        term, coef, se, pvalue, n_obs, n_emp_total, converged,
+#                    elapsed_s, status; one row per term, 'dropped' when a
+#                    term is absorbed by the effects.
+#   <out>_vcov.csv   the clustered covariance of the terms, so that a linear
+#                    combination (a level, a difference between bands, a sum
+#                    of quarters) gets a standard error from the same fit.
+#                    The Python wrapper copies it to the calling script's
+#                    output folder as vcov_<tag>.csv.
+# A failure still writes the coefficient file with a status row.
+#
+# READER AND THREADS
+#   data.table::fread when installed; otherwise read.csv with the row count
+#   from --nrows and column classes inferred from a sample. The thread count
+#   comes from --nthreads, then CANARIES_R_THREADS, then 8; the Python wrapper
+#   lowers it and retries when R's allocator fails. Output is ASCII only.
 
 args <- commandArgs(trailingOnly = TRUE)
 parse_arg <- function(args, key, default = NA) {

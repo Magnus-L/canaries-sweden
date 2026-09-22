@@ -1,85 +1,57 @@
 #!/usr/bin/env python3
 """
-71_adoption_validation.py -- do the firms we call exposed actually adopt AI?
+71_adoption_validation.py: do the employers the 2019 education mix places
+in the top exposure quartile report using AI?
 
-======================================================================
-  RUNS IN MONA. SQL against tables this project has never touched, so it
-  DISCOVERS the schema before it assumes anything. Writes output_71/.
-======================================================================
+QUESTION
+Exposure is built from an education mix and mentions nothing about AI, so
+whether it identifies adopting firms is a question rather than a
+definition. Statistics Sweden's surveys of ICT use in enterprises and of
+individuals' ICT use report AI use directly. This script matches the
+classified employers to those surveys and estimates the first stage: the
+difference in reported AI use between top-quartile employers and the
+rest.
 
-THE GAP THIS CLOSES.
+DESIGN
+Routes: the education classification (script 47j's incumbent_exposure on
+the OL_daioe score book) and the occupation classification (script 65),
+so the two can be judged on the same external criterion. Firm level: for
+each survey table found in the catalogue (ai_itftg_2019 with its AI_USE
+flag; ITFtg_Stora_2021 and 2023 with the seven-item technology block
+E_AI_T*, of which E_AI_TNLG is language generation; the AI expenditure
+tables where present), a linear probability model of the use flag on High
+and log 2019 employment, with heteroskedasticity-robust standard errors.
+The use flag is the maximum over the technology items only; barrier and
+"considered using" items are excluded, and a positive expenditure counts
+as use where no flag exists. Individual level: BITA_2024 and 2025 (CH1,
+used generative AI; CH2b, professional use), respondents linked to their
+employer through the employer declarations of November (June for 2025),
+one employer per respondent, weighted by vikt_ind_SE.
 
-Every estimate in the revision classifies a firm as exposed from the 2019
-education mix, or the 2019 occupation mix, of its incumbents aged 31 and
-over, and then never observes whether that firm adopted anything. Both
-external reviews put this first: freezing exposure fixes the changing-code
-problem, but it supplies no evidence that the thing being measured is AI
-rather than another correlate of the score.
+Gates fixed before the run: the firm first stage is estimated only if at
+least 800 matched firms carry an outcome and at least 100 of them are in
+the top quartile; the individual first stage only with at least 600
+matched respondents and 80 in the top quartile. Below a gate nothing is
+reported. Survey codes are parsed tolerantly (1/0, J/N, Ja/Nej, with
+"****" and unrecognised values treated as missing), and a column that
+parses to nothing prints its distinct raw values.
 
-The delivery turns out to contain the missing half, and we had not used it:
+INPUTS AND OUTPUTS
+Reads, in MONA, the INFORMATION_SCHEMA catalogue, the survey tables it
+finds, and the November (June) employer declarations for the respondent
+link; the caches of scripts 47h and 47L for the two routes and the 2019
+sizes; daioe_quartiles.dta. Writes to output_71/: schema_found.csv,
+overlap_counts.csv, itftg_firststage.csv, bita_firststage.csv and
+71_summary.txt. Count rows below the export floor are dropped.
 
-  ITFtg_Stora_YYYY   firm, 10+ employees, 2013-2023. AI technology types
-                     (E_AI_TTM text, E_AI_TSR speech, E_AI_TNLG language
-                     GENERATION, E_AI_TIR image, E_AI_TML machine
-                     learning, E_AI_TPA workflow, E_AI_TAR autonomous),
-                     purposes and acquisition routes.
-  ai_itftg_2019      firm, the 2019 AI module: AI_USE plus ten barriers.
-  BITA_2024 / 2025   INDIVIDUAL. CH1 used generative AI, CH2a/b/c purpose
-                     (b is professional use), CH3 reason for not using.
-                     Weights vikt_ind_SE.
-
-E_AI_TNLG is the variable that matters most: language generation is the
-genAI-relevant technology, and the paper's whole claim is about generative
-AI rather than machine learning in general.
-
-WHAT THIS BUYS, IN ONE SENTENCE OF THE PAPER.
-
-"Firms our 2019 measure places in the top exposure quartile are X
-percentage points more likely to report using AI in 2023." That is the
-first stage the paper does not have, and at 2,000 words it is worth more
-per word than any additional headline specification.
-
-IT ALSO SETTLES AN OPEN DECISION. Whether the education route or the
-occupation route should be primary is currently argued from coverage
-(311,227 firms against 65,146). Running the first stage on both routes
-adjudicates it on an external criterion instead: whichever better predicts
-observed adoption has the stronger claim to be the headline classifier.
-
-WHY IT COUNTS BEFORE IT ESTIMATES.
-
-Both sources are stratified SAMPLE surveys, not populations, and
-ITFtg_Stora covers only firms with ten or more employees, while most of
-our 311,227 are smaller. So the overlap with our classified firms is an
-empirical question, and a thin overlap would make any estimate here a
-trap rather than a validation. The script therefore counts first, applies
-thresholds fixed below before the run, and estimates only if they are met.
-
-  ITFtg first stage runs if the matched sample has at least
-  MIN_ITFTG_FIRMS firms with a non-missing AI outcome AND at least
-  MIN_ITFTG_HIGH of them in the top exposure quartile.
-
-  BITA runs if at least MIN_BITA_PERSONS matched employed respondents AND
-  at least MIN_BITA_HIGH in the top quartile.
-
-If a threshold is missed the script says so and stops that arm. It does
-not lower the bar and it does not report the estimate anyway.
-
-EXPECTATION, WRITTEN DOWN IN ADVANCE SO IT CANNOT BE REVISED AFTERWARDS.
-The ITFtg firm first stage is likely to work. The BITA age-by-exposure
-interaction is likely to be underpowered, because BITA is a few thousand
-respondents and the cells get thin fast; the simple exposure gradient in
-genAI use may survive where the interaction does not. Both outcomes are
-informative and neither is a disappointment.
-
-DISCLOSURE. Every count written out passes the export floor, and
-suppressed rows are DROPPED, never blanked.
-
-Output (output_71/):
-  schema_found.csv     what the discovery step actually found
-  overlap_counts.csv   matched firms and persons, by route and quartile
-  itftg_firststage.csv if the threshold was met
-  bita_firststage.csv  if the threshold was met
-  71_summary.txt
+IN THE PAPER
+Section 2 (top-quartile employers 21.5 points more likely to report AI
+use in 2023, SE 1.6; their employees 23.5 points more likely to report
+generative AI use in 2024, SE 2.5; the any-AI differential of similar size
+in 2019, 2021 and 2023 and the generative differential growing from 7.5
+to 9.7 points); Online Appendix III.2, "Does the measure identify firms
+that adopt AI?", and Figure A2 (drawn by script l16 from the education
+route rows).
 """
 
 import gc
@@ -191,10 +163,9 @@ def discover(conn) -> pd.DataFrame:
     """
     Find the survey tables and their columns before assuming either.
 
-    This project has already been bitten by identifier spelling (firmid
-    against firmID) and by "****" standing in for missing, and we have
-    never read these tables. Asking the catalogue costs one query and
-    turns three guesses into three facts.
+    Identifier spelling differs between deliveries (firmid against firmID)
+    and "****" stands in for missing, so the catalogue is asked first;
+    one query turns three guesses into three facts.
     """
     q = """
     SELECT t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE
@@ -213,11 +184,10 @@ def norm_id(x) -> pd.Series:
 
     The survey tables and the AGI-derived frames need not store the
     employer key as the same type: one arrives as text, the other as an
-    integer, and pandas refuses the merge rather than matching them. This
-    project has already lost time to `firmid` against `firmID`; a silent
-    zero-match here would instead look like a thin overlap and be refused
-    by the gate for the wrong reason. Trailing ".0" is stripped because a
-    key that has passed through a float column acquires one.
+    integer, and pandas refuses the merge rather than matching them. A
+    silent zero-match would look like a thin overlap and be refused by the
+    gate for the wrong reason. Trailing ".0" is stripped because a key that
+    has passed through a float column acquires one.
     """
     v = pd.Series(x).astype(str).str.strip()
     v = v.str.replace(r"\.0$", "", regex=True)
@@ -259,9 +229,7 @@ def to01(s: pd.Series) -> pd.Series:
     v = s.astype(str).str.strip().str.upper()
     # A column that reaches pandas as float, which is what pyodbc returns
     # for any numeric survey flag that has NULLs in it, stringifies as
-    # "1.0" and not "1". That matched neither list on 21 September 2026
-    # and turned every value into a missing, which the gate then read as
-    # a thin sample and refused. Strip the decimal tail first.
+    # "1.0" and not "1", so the decimal tail is stripped first.
     v = v.str.replace(r"\.0+$", "", regex=True)
     out = pd.Series(np.nan, index=s.index, dtype="float64")
     out[v.isin(["1", "J", "JA", "Y", "YES", "TRUE", "X"])] = 1.0
@@ -273,10 +241,10 @@ def parse_report(raw: pd.Series, parsed: pd.Series, label: str) -> None:
     """
     Say what a column actually contained when none of it parsed.
 
-    Guessing a survey codebook twice costs two MONA rounds. If a column
-    yields nothing, print its distinct raw values so the next version is
-    written against the data rather than against another guess. Distinct
-    codes of a survey flag are not disclosive; no counts are printed.
+    If a column yields nothing, print its distinct raw values so the next
+    version is written against the data rather than against a guess.
+    Distinct codes of a survey flag are not disclosive; no counts are
+    printed.
     """
     if parsed.notna().any():
         return
@@ -339,32 +307,24 @@ def itftg_arm(conn, schema, routes, size, sink, counts_sink):
         if key is None:
             NOTES.append(f"{tab}: no firm identifier found, skipped")
             continue
-        # Pattern, not whitelist. Three ITFtg years reported "no AI
-        # columns found" on 21 September because the delivered names do
-        # not match the reference's for every year.
+        # Pattern, not whitelist: the delivered column names do not match
+        # the reference's for every year.
         # Continuous first. AI_COST_T and AI_IRD_T are dedicated
-        # expenditure measures, and a continuous outcome carries far more
-        # power at the same sample size than a binary flag, which is what
-        # refused every arm on the 21 September morning run.
+        # expenditure measures, and a continuous outcome carries more power
+        # at the same sample size than a binary flag.
         cost_cols = [c for c in cols
                      if re.search(r"AI_(COST|IRD)", c, re.I)]
 
-        # USE IS THE TECHNOLOGY BLOCK, AND ONLY THAT.
-        #
-        # The afternoon run of 21 September took the max over every AI
-        # column, which quietly included the NINE barrier items
-        # (E_AI_BCST cost too high, E_AI_BLE lack of expertise, E_AI_BNU
-        # not useful, ...) and E_AI_EC "considered using AI". Those are
-        # answered by firms that do NOT use AI, so the resulting flag
-        # meant "engaged with the topic", not "uses AI", and it read as
-        # a 25.7 point adoption gap. ai_itftg_2019 and ai_fouoff were
-        # worse: both carry AI_USE_N, "does not use AI", which was being
-        # counted as a positive.
-        #
-        # E_AI_T* is the seven-item technology block and is BYTE
-        # IDENTICAL in 2021 and 2023, so a use measure built from it is
-        # also comparable across years, which the pooled version was
-        # not: the purpose block changed prefix between those waves.
+        # Use is the technology block, and only that. The nine barrier
+        # items (E_AI_BCST cost too high, E_AI_BLE lack of expertise,
+        # E_AI_BNU not useful, and so on) and E_AI_EC "considered using
+        # AI" are answered by firms that do not use AI, so a flag built
+        # over every AI column would mean "engaged with the topic" rather
+        # than "uses AI"; ai_itftg_2019 and ai_fouoff also carry AI_USE_N,
+        # "does not use AI", which must not count as a positive. The
+        # E_AI_T* block is identical in 2021 and 2023, so a use measure
+        # built from it is comparable across years, which the purpose
+        # block, whose prefix changed between the waves, is not.
         tech = [c for c in cols if re.search(r"^E?_?AI_T[A-Z]+$", c, re.I)]
         pure_use = [c for c in cols if re.search(r"^AI_USE$", c, re.I)]
         have_any = tech or pure_use

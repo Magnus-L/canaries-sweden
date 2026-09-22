@@ -1,26 +1,88 @@
 #!/usr/bin/env python3
 """
-mona_common.py -- shared infrastructure for the v2 MONA scripts (39-47).
+mona_common.py: the infrastructure every register script imports.
 
-======================================================================
-  RUNS ONLY IN SCB's MONA SECURE ENVIRONMENT (except LOCAL_DRYRUN).
-======================================================================
+QUESTION
+The register scripts in this folder estimate variants of one design on one
+panel, so the parts they share live here once: the database connection, the
+pull of the monthly employer declarations, the balanced panel, the Poisson
+fits through R, the caches and the export floor. A change to any of these
+reaches every script at the same time, which is what keeps the estimates
+comparable across scripts. No number in the paper is produced in this
+module, and every register estimate passes through it.
 
-Fixes defect D8 from the code-read: v1 copy-pasted the same SQL pull into
-seven scripts, with drift. In v2 every MONA script imports from here, so a
-change to the cascade or the panel builder cannot miss a script.
+WHAT IT PROVIDES
+Configuration: the P1207 database connection; the project folder on the
+MONA share and its input folder, which holds the DAIOE exposure file
+(hash-checked on every run) and the education and teleworkability files;
+the treatment dates (RIKSBANK_YM, April 2022, the Riksbank's first rate
+rise; CHATGPT_YM, December 2022, the first full month after the ChatGPT
+launch); the six age bands (22-25, 26-30, 31-34, 35-40, 41-49 and 50-69);
+and the five person-month floor on an employer.
 
-Extracted from the proven script-32 architecture (panel cache, staged
-outputs, _Tee logging, R + fixest subprocess), with ONE addition the whole
-coverage battery needs: `pull_year_vintage()` tags every worker-month with
-WHICH Individ vintage supplied the SSYK code (2023 / 2022 / 2021 / none)
-instead of collapsing the cascade inside COALESCE. The baseline panel is
-the vintage panel with the tags summed out, so both views come from one
-pull and cannot disagree.
+The register pull (pull_year_vintage, pull_panel, collapse_vintage): one
+year of the employer declarations (Arb_AGIIndivid, one table per month),
+aggregated to employer by four-digit occupation by age band by month, with
+a column recording which vintage of the annual Individ register supplied
+the occupation code: the year's own register up to 2022; the 2023, 2022 or
+2021 register, in that order, from 2023 onward; 'none' when no vintage
+holds a code. Summing over that column reproduces the plain cascade. Age
+is the calendar year minus the birth year. This pull serves the coverage
+diagnostics of Part IV of the online appendix and the withdrawn
+occupation design. The design the paper reports reads no occupation code
+recorded after 2019; its counts come from the scripts 47L and 54.
 
-LOCAL_DRYRUN: set env CANARIES_DRYRUN=1 to import this module outside MONA
-(pyodbc mocked, SQL functions raise, everything else testable). The local
-test suite runs the panel builder and the R wrapper against synthetic data.
+The panel builder (load_daioe, merge_daioe_and_filter,
+aggregate_to_quartile, balance_panel, add_treatment): the employer by
+exposure quartile by month panel of the withdrawn design, balanced and
+zero-filled over the months of the window, restricted to employers
+observed in both the top quartile and a lower one, with the two treatment
+interactions (PostRB x High, PostGPT x High) and the two fixed-effect keys
+(employer by quartile, employer by month). Its logic is the one the
+submitted version used, kept so that the submitted numbers reproduce.
+
+Estimation (run_fepois, run_fepois_es, run_fepois_multi): every Poisson
+pseudo-maximum likelihood fit runs in R through fixest, since pyfixest is
+not installed in MONA. The panel is written to a compressed exchange file
+on the batch node's local disk, with the fixed-effect and cluster columns
+as integer codes; R is located through a pin file, the PATH, the Windows
+registry and a version search, in that order; the fit runs with a bounded
+thread count and is retried at two threads and then at one if R's
+allocator fails; the coefficient table is read back with the standard
+errors clustered as requested. run_fepois_multi also copies the clustered
+covariance of the treatment terms into the calling script's output folder
+as vcov_<tag>.csv, so that a linear combination of terms (a level, a
+difference between bands, a sum of quarters) gets a standard error from
+the same fit.
+
+Caches and logs (cache_ok, read_cache, write_cache, Tee, runlog,
+storage_report, mem_available_gb, mem_line): every expensive pull is
+cached as parquet under one disposable folder, written atomically and
+validated against the column list the caller needs, so a cache written
+before a change to a pull is rebuilt rather than reused. Every script
+mirrors its output to its own log file, which opens with a provenance
+header (account, time, script), and appends one line per run to the
+project's RUNLOG.txt. The terminal echo is capped because the batch
+client's standard output is an unread pipe.
+
+Export safety (enforce_min_cell): counts of one to four are set to
+missing before any table leaves MONA; zero counts stay.
+
+INPUTS AND OUTPUTS
+Reads the tables Arb_AGIIndividYYYYMM and Individ_YYYY in P1207, and the
+input file daioe_quartiles.dta. Writes cache/panel_vintage.parquet and the
+R exchange files. Nothing written here is an export.
+
+LOCAL TESTING
+With the environment variable CANARIES_DRYRUN=1 the module imports
+outside MONA: the database driver is not loaded, the SQL functions raise,
+and the panel builder and the R wrappers run on synthetic data in the test
+files under revision/local/.
+
+IN THE PAPER
+Section 2 (the treatment dates and the age bands), and every register
+estimate in Section 3, Table 1 and Parts III and IV of the online
+appendix, all of which are fitted through run_fepois_multi.
 """
 
 import os
@@ -39,7 +101,7 @@ if not LOCAL_DRYRUN:
     import pyodbc  # noqa: F401
 
 # ----------------------------------------------------------------------
-# Configuration (single source for every v2 MONA script)
+# Configuration (single source for every register script)
 # ----------------------------------------------------------------------
 
 SQL_CONN_STRING = (
@@ -49,27 +111,24 @@ SQL_CONN_STRING = (
     "Trusted_Connection=yes;"
 )
 
-# Project root on the MONA share, under the GROUP CONVENTION (ML, 4 Sep 2026):
-# every researcher has one folder at P1207_Gem root; every project has ONE main
-# owner and lives in that owner's folder. Magnus owns canaries (he runs all the
-# revision empirics), so the round lives beside proworker-gov in Magnus_P1207.
-# The v1 work stays untouched in "Lydia P1207\CANARIES\" as the archive.
+# Project root on the MONA share, under the group convention: every researcher
+# has one folder at the P1207_Gem root and every project lives in its main
+# owner's folder. The submitted version's work stays untouched in the archive
+# folder recorded as V1_ARCHIVE below.
 PROJECT = r"\\micro.intra\Projekt\P1207$\P1207_Gem\Magnus_P1207\canaries-sweden"
 
 # Inputs live in input\ and are named for what they are. CANARIES_SHARE lets the
 # local dry-run test point this elsewhere; in MONA the variable is unset.
 SHARE = os.environ.get("CANARIES_SHARE", PROJECT + r"\input")
 
-# The v1 tree, for reference only. Nothing in v2 reads from it; it is recorded so
-# the provenance of daioe_quartiles.csv is traceable and so a future session does
-# not rediscover the layout the hard way.
+# The submitted version's tree, for reference only. Nothing here reads from it;
+# it is recorded so the provenance of the DAIOE quartile file is traceable.
 V1_ARCHIVE = (r"\\micro.intra\Projekt\P1207$\P1207_Gem\Lydia P1207"
               r"\CANARIES")
 
-# daioe_quartiles.csv is copied into input\ rather than read across from the v1
-# tree, so this round does not depend on a folder nobody designed. The copy is
-# verified by hash at pre-flight, which makes "the same file" provable rather
-# than assumed -- the objection to copying, answered.
+# The DAIOE quartile file is copied into the input folder rather than read from
+# the archive, and the copy is verified against this hash before any SQL runs,
+# so that "the same file" is proved rather than assumed.
 DAIOE_SHA256 = "e217df0d3cf03f3e4020fec565c280b9990a90736377e3c9e95091b874341bbb"
 DAIOE_PATH = SHARE + r"\daioe_quartiles.dta"
 
@@ -87,12 +146,11 @@ MIN_EMPLOYER_SIZE = 5
 _THIS_DIR = Path(__file__).resolve().parent
 
 # ----------------------------------------------------------------------
-# Storage discipline (handbook standard, mona-register-rounds point 7,
-# implemented here for the first time 4 Sep 2026)
+# Storage discipline
 # ----------------------------------------------------------------------
-# Every expensive pull is cached under ONE disposable directory, never in a
-# results folder. Cache during the round so a downstream failure does not
-# cost the SQL time; retire the whole directory at close of round with
+# Every expensive pull is cached under one disposable directory, never in a
+# results folder, so that a failure downstream does not cost the SQL time.
+# The directory is retired at the close of a round with
 # `run_all_mona.py --retire-caches` once the exports are out and verified.
 CACHE_DIR = _THIS_DIR / "cache"
 PANEL_CACHE = CACHE_DIR / "panel_vintage.parquet"
@@ -120,16 +178,12 @@ def cache_ok(path) -> bool:
 
 def write_cache(df: "pd.DataFrame", path) -> Path:
     """
-    Write a cache parquet ATOMICALLY: to a unique temporary name in the same
+    Write a cache parquet atomically: to a unique temporary name in the same
     directory, then rename onto the target. os.replace is atomic on Windows
     as well as POSIX, so a concurrent reader sees either the whole previous
-    file or the whole new one, never a truncated write.
-
-    This is what lets several scripts share one cache directory. Before it,
-    47k kept a private "_k" duplicate of 47h's year frames to avoid reading
-    a half-written file; on 19 Sep 2026 that second copy of five 38-million
-    row frames helped fill the batch server's disk and killed three lanes
-    with ENOSPC. One correct copy is better than two defensive ones.
+    file or the whole new one, never a truncated write. This is what lets
+    several scripts share one cache directory without keeping private copies
+    of the same frames.
     """
     path = Path(path)
     tmp = path.with_name(f"{path.stem}.{os.getpid()}.tmp{path.suffix}")
@@ -148,20 +202,18 @@ def write_cache(df: "pd.DataFrame", path) -> Path:
 
 def read_cache(path, require=None) -> "pd.DataFrame | None":
     """
-    Read a cache parquet, or return None if it is missing, UNREADABLE, or
-    written under an OLDER SCHEMA than the caller now needs.
+    Read a cache parquet, or return None if it is missing, unreadable, or
+    written under an older schema than the caller now needs.
 
-    A batch job killed mid-write (the 48-hour limit, a memory kill) leaves a
-    truncated parquet; cache-first logic must treat that as absent and
-    rebuild, never crash the restart on a corrupt read.
+    A batch job killed mid-write leaves a truncated parquet; cache-first
+    logic treats that as absent and rebuilds rather than failing on a
+    corrupt read.
 
-    `require` is the column list the caller will actually use. A cache that
-    predates a change to the pull is silently WRONG rather than broken: it
-    reads fine and then raises a KeyError deep in the analysis, hours later
-    and far from the cause. That is what killed 47h on 19 Sep 2026, when two
-    education columns were added to the year pull and the previous night's
-    frames were reused. Validate the schema where the cache is read, once,
-    for every caller, rather than remembering to bump a version string.
+    `require` is the column list the caller will use. A cache that predates
+    a change to the pull is wrong rather than broken: it reads without error
+    and then fails deep in the analysis, far from the cause. The schema is
+    therefore validated where the cache is read, once, for every caller,
+    rather than by a version string that has to be remembered.
     """
     path = Path(path)
     if not path.exists():
@@ -214,11 +266,10 @@ def runlog(script: str, rc: int, minutes: float):
 
 def mem_available_gb():
     """
-    Physical memory still available, in GB, or None off Windows. Stdlib
-    only: psutil is not installed in MONA and shell escapes are banned.
-    The node ceiling is 100 GB and over-runs are killed WITHOUT WARNING,
-    which is how the 5 September batch died; with three consoles sharing
-    the node, every stage now prints this before and after it runs.
+    Physical memory still available, in GB, or None off Windows. Standard
+    library only: psutil is not installed in MONA and shell escapes are not
+    permitted. Every stage prints this before and after it runs, since the
+    batch job's memory is bounded and several jobs share the node.
     """
     try:
         import ctypes
@@ -243,14 +294,12 @@ def mem_available_gb():
         return None
 
 
-# BatchClient reports "Max mem. 100 GB" per job against ~519 GB free on
-# the node, but the cap is SOFT: ML has run ~150 GB at weekends and no
-# job was terminated by a supervisor on 21 September, so the fits that
-# died were R's own allocator failing rather than a process being
-# killed. "*** recursive gc invocation" is the collector re-entered
-# during a collection. The number below is therefore a planning figure,
-# not a line the system enforces, and the right response is to cut R's
-# peak rather than to bet on where the ceiling sits.
+# The batch client reports a per-job memory ceiling of 100 GB. The cap is
+# soft, and the fits that fail do so because R's own allocator gives up
+# ("*** recursive gc invocation" is the collector re-entered during a
+# collection) rather than because a supervisor ends the process. The number
+# below is therefore a planning figure, and the response to a failure is to
+# cut R's peak rather than to rely on where the ceiling sits.
 JOB_MEM_CAP_GB = 100
 
 
@@ -261,7 +310,7 @@ def mem_line(prefix: str = "") -> str:
 
 def storage_report():
     """Bytes by top-level entry under the round folder, cache/ separated,
-    so every run ends with the footprint known (the 17 Aug lesson)."""
+    so every run ends with the footprint known."""
     rows = []
     for d in sorted(_THIS_DIR.iterdir()):
         if d.name.startswith((".", "__")):
@@ -279,32 +328,25 @@ R_FEPOIS_ES = _THIS_DIR / "r_fepois_es.R"
 
 
 # ----------------------------------------------------------------------
-# Logging (from script 32)
+# Logging
 # ----------------------------------------------------------------------
 
 class Tee:
     """
     Mirror stdout to a log file. ASCII-safe for MONA terminals.
 
-    Every log now opens with a provenance header: MONA account, timestamp,
+    Every log opens with a provenance header: MONA account, timestamp,
     script. This is the per-file half of the group convention that any output
-    in a shared project folder must say who produced it -- accounts in MONA
+    in a shared project folder must say who produced it; accounts in MONA
     are personal, so getpass.getuser() is the runner's identity.
     """
 
-    # BatchClient's stdout is an OS pipe with no reader. It fills at about
-    # 4 KB and the next write to it BLOCKS FOREVER. Two consequences, both
-    # of which we have now paid for:
-    #   - echoing BEFORE writing the file means the blocked line never
-    #     reaches the log either, so the log simply stops mid-run and looks
-    #     like the place the script died. 47h's log froze at 1,650 bytes on
-    #     19 September while its results CSV kept growing, and console 3's
-    #     log ended mid-traceback on 18 September. Both were this.
-    #   - an uncapped echo guarantees it on any script that prints.
-    # So: write the log FIRST and flush it, then echo up to a hard cap.
-    # 2048 on MONA, where stdout is the blocking pipe. A local test rig can
-    # raise it (CANARIES_ECHO_LIMIT) so its own output stays readable; the
-    # variable is never set in MONA, so the safe default is what runs there.
+    # The batch client's stdout is an OS pipe with no reader. It fills at
+    # about 4 KB and the next write to it blocks indefinitely. Echoing before
+    # writing the file would mean the blocked line never reaches the log
+    # either, so the log is written and flushed first and the echo is capped
+    # at 2 KB. A local test rig can raise the cap (CANARIES_ECHO_LIMIT) so
+    # its own output stays readable; the variable is never set in MONA.
     TERMINAL_ECHO_LIMIT = int(os.environ.get("CANARIES_ECHO_LIMIT", "2048"))
 
     def __init__(self, path: Path):
@@ -364,8 +406,8 @@ def connect():
         raise RuntimeError("SQL access is not available in LOCAL_DRYRUN")
     import pyodbc
     conn = pyodbc.connect(SQL_CONN_STRING)
-    # pyodbc waits forever by default; one stalled query would hold a
-    # multi-hour batch job indefinitely (runtime conventions, section 5).
+    # pyodbc waits indefinitely by default; one stalled query would hold a
+    # multi-hour batch job with it.
     conn.timeout = 3600
     return conn
 
@@ -380,24 +422,24 @@ def _year_suffix(year: int):
 
 def pull_year_vintage(year: int, conn, force_cascade: bool = False) -> pd.DataFrame:
     """
-    One year of AGI, aggregated to employer x ssyk4 x age_group x month x
-    SSYK VINTAGE. The vintage column records which Individ table supplied
-    the code:
+    One year of the employer declarations, aggregated to employer x ssyk4 x
+    age_group x month x vintage. The vintage column records which Individ
+    table supplied the code:
 
-        'own'   -- the year's own Individ table       (years <= 2022)
-        '2023' / '2022' / '2021'                      (years >= 2023 cascade)
-        'none'  -- no code in any cascade vintage     (the excluded workers
-                   the editor asks to be counted, E3)
+        'own'                       the year's own Individ table (years to 2022)
+        '2023' / '2022' / '2021'    the cascade (years from 2023)
+        'none'                      no code in any cascade vintage (the
+                                    excluded workers the coverage tables count)
 
-    Rows with vintage 'none' carry ssyk4 = '____' and are NOT usable for
+    Rows with vintage 'none' carry ssyk4 = '____' and are not usable for
     exposure assignment; they exist so the coverage denominators are right.
-    Summing n_emp over vintage reproduces the v1 COALESCE pull exactly.
+    Summing n_emp over vintage reproduces the plain COALESCE pull of the
+    submitted version exactly.
 
-    force_cascade=True applies the 2023/2022/2021 cascade to EVERY year,
-    including years that have their own Individ table. This is the frozen-
-    cohort assignment (script 42): membership and exposure are fixed by the
-    2021-2023 registers for the whole window, so post-2023 coverage
-    deterioration cannot enter either the numerator or the composition.
+    force_cascade=True applies the 2023/2022/2021 cascade to every year,
+    including years that have their own Individ table. This is the
+    frozen-cohort assignment (script 42): membership and exposure are fixed
+    by the 2021 to 2023 registers for the whole window.
     """
     suffix, max_month = _year_suffix(year)
     individ_year = 2023 if force_cascade else min(year, 2023)
@@ -477,8 +519,8 @@ def pull_panel(years, conn, cache_path: Path, vintage: bool = True,
                force_cascade: bool = False):
     """
     Pull all years to one panel, cached as parquet. With vintage=True the
-    panel carries the vintage column; collapse_vintage() reproduces the v1
-    view. Cache-first: if cache_path exists it is loaded, not re-pulled.
+    panel carries the vintage column; collapse_vintage() reproduces the
+    submitted version's view. Cache-first: if cache_path exists it is loaded, not re-pulled.
     force_cascade is passed through to pull_year_vintage (frozen cohort).
     """
     cached = read_cache(cache_path)
@@ -498,7 +540,8 @@ def pull_panel(years, conn, cache_path: Path, vintage: bool = True,
 
 
 def collapse_vintage(panel: pd.DataFrame) -> pd.DataFrame:
-    """Sum out the vintage tag; drop uncoded rows. Reproduces the v1 pull."""
+    """Sum out the vintage tag; drop uncoded rows. Reproduces the submitted
+    version's pull."""
     coded = panel[panel["ssyk4"] != "____"]
     return (coded.groupby(
         ["employer_id", "year_month", "ssyk4", "age_group"], observed=True)
@@ -506,18 +549,18 @@ def collapse_vintage(panel: pd.DataFrame) -> pd.DataFrame:
 
 
 # ----------------------------------------------------------------------
-# DAIOE merge, size filter, balanced panel (from scripts 15/18/32)
+# DAIOE merge, size filter, balanced panel
 # ----------------------------------------------------------------------
 
 def load_daioe(path: str = DAIOE_PATH) -> pd.DataFrame:
-    # .dta, not .csv: dta is an allowed upload format so the file arrives
-    # under its own name with no rename step (house convention, 9 Aug 2026).
+    # .dta, not .csv: dta is an allowed upload format, so the file arrives
+    # under its own name with no rename step.
     daioe = pd.read_stata(path) if str(path).endswith(".dta") else pd.read_csv(path)
     daioe["ssyk4"] = daioe["ssyk4"].astype(str).str.zfill(4)
     # The delivered file stores the quartile as "Q3". Test on numeric-ness,
     # not on `dtype == object`: pandas 3 gives string columns a `str` dtype,
-    # so the old object test silently skipped the conversion and left every
-    # `exposure_quartile == 4` comparison False, i.e. an empty panel.
+    # and an object test would skip the conversion and leave every
+    # `exposure_quartile == 4` comparison False.
     if not pd.api.types.is_numeric_dtype(daioe["exposure_quartile"]):
         daioe["exposure_quartile"] = (daioe["exposure_quartile"].astype(str)
                                       .str.strip().str.extract(r"(\d)")
@@ -548,8 +591,8 @@ def balance_panel(sub: pd.DataFrame, all_months) -> pd.DataFrame:
     """
     Balanced zero-filled employer x quartile x month panel for ONE age
     group's rows, with the Q4-and-below identification restriction.
-    Identical logic to v1 (15/18) -- kept bit-for-bit so the canary gate
-    reproduces.
+    The logic of the submitted version, kept unchanged so that its estimates
+    reproduce.
     """
     emp_q = (sub.groupby(["employer_id", "exposure_quartile"]).size()
              .reset_index()[["employer_id", "exposure_quartile"]])
@@ -589,29 +632,26 @@ def assign_halfyear(ym: pd.Series) -> pd.Series:
 
 
 # ----------------------------------------------------------------------
-# Estimation via R + fixest (from script 32; pyfixest unavailable in MONA)
+# Estimation via R + fixest (pyfixest is unavailable in MONA)
 # ----------------------------------------------------------------------
 
 def _rscript() -> str:
     """
-    Find Rscript the way v1's find_rscript.py proved works on MONA: PATH,
-    then the Windows registry (R-core InstallPath, both hives and WOW6432),
-    then a version glob over Program Files. The 4 Sep batch failure showed
-    the old two-candidate check (PATH + a hardcoded R-4.3.1 path) does not
-    survive the batch node, where R is neither on PATH nor at 4.3.1.
-    Cached after the first hit; raises with the full search record so a
-    failure names every place that was tried.
+    Find Rscript on the MONA node: a pin file beside the scripts, then the
+    PATH, then the Windows registry (R-core InstallPath, both hives and
+    WOW6432), then a version search over the program folders. The batch
+    nodes differ in where R is installed, which is why every route is
+    tried. Cached after the first hit; raises with the full search record so
+    a failure names every place that was tried.
     """
     global _RSCRIPT_CACHED
     if _RSCRIPT_CACHED:
         return _RSCRIPT_CACHED
     from shutil import which
     tried = []
-    # A pin file beats every search. The batch nodes are not identical: the
-    # 4 September node had R at E:\Programs\R-4.5.0 through the registry, and
-    # the 18 September node has neither that registry key nor R under
-    # C:\Program Files. When the search fails again, upload one line of text
-    # rather than waiting for a code change.
+    # A pin file beats every search: when the search fails on a node, one
+    # line of text naming the executable is uploaded rather than a change to
+    # this code.
     pin = _THIS_DIR / "rscript_path.txt"
     if pin.exists():
         cand = pin.read_text().strip().strip('"')
@@ -643,12 +683,11 @@ def _rscript() -> str:
     except ImportError:
         tried.append("winreg unavailable (not Windows)")
     import glob as _glob
-    # The node carries fourteen R installations side by side. Version choice
-    # is not cosmetic: the canary gate, the Poisson headline and the frozen
-    # cohort were all produced on 4.5.0 with fixest 0.13.2, and an install
-    # without fixest, or with a different fixest, either fails or answers a
-    # slightly different question. Take 4.5.0 when it is there, then the
-    # newest, and prefer the x64 launcher.
+    # The node carries several R installations side by side, and the version
+    # matters: the estimates were produced on R 4.5.0 with fixest 0.13.2, and
+    # an install without fixest, or with a different fixest, either fails or
+    # answers a slightly different question. Take 4.5.0 when it is there,
+    # then the newest, and prefer the x64 launcher.
     for pref in (r"E:\Programs\R-4.5.0\bin\x64\Rscript.exe",
                  r"E:\Programs\R-4.5.0\bin\Rscript.exe"):
         if Path(pref).exists():
@@ -685,47 +724,40 @@ _R_WORKDIR_SWEPT = False
 
 def _r_workdir(workdir: Path) -> Path:
     """
-    The R exchange files (multi-million-row CSVs) go to LOCAL disk, not the
-    share: SMB writes dominated 43's 667-minute runtime, and a stalled SMB
-    handle blocks forever (runtime conventions, section 4). The batch
-    servers' temp directory is local. Falls back to the share if temp is
-    unavailable.
+    The R exchange files (multi-million-row CSVs) go to the batch node's
+    local disk, not the share: writes over SMB dominate the runtime and a
+    stalled SMB handle blocks indefinitely. Falls back to the share if the
+    temporary directory is unavailable.
 
-    THREE CONSOLES (18 Sep 2026): the exchange directory is now per SCRIPT,
-    not shared. Two stages running at once write `_rin_<tag>.csv` into the
-    same place, and while the tags happen to differ today, a re-run of the
-    same script in a second console would have one process deleting the
-    other's input between the write and R reading it. A subdirectory per
-    script removes the class, not just today's instance.
+    The exchange directory is per script (and per job tag), not shared, so
+    that two jobs running at once can never delete each other's input
+    between the write and R reading it.
     """
     import tempfile
     try:
         # CANARIES_RWORK_TAG lets one script run as several batch jobs at
-        # once (lane 25 runs script 78 in three MONA slots): each job gets
-        # its own exchange directory, so their fits can never share a file
-        # and the sweep below only ever sees this job's own leftovers.
+        # once: each job gets its own exchange directory, so their fits can
+        # never share a file and the sweep below only ever sees this job's
+        # own leftovers.
         d = (Path(tempfile.gettempdir()) / "canaries_rwork"
              / (Path(sys.argv[0]).stem + os.environ.get("CANARIES_RWORK_TAG", "")))
         d.mkdir(parents=True, exist_ok=True)
     except OSError:
         return workdir
-    # FIRST call in this process only: sweep what a previous crashed run of
-    # THIS script left behind, and say how much room is left. A run killed
-    # mid-fit leaves its exchange file on disk, and three lanes accumulating
-    # those is how the batch server ran out of space on 19 Sep 2026. The
-    # sweep is confined to this script's own subdirectory, so a lane can
-    # never delete another lane's live input.
+    # First call in this process only: sweep what a previous crashed run of
+    # this script left behind, and say how much room is left. A run killed
+    # mid-fit leaves its exchange file on disk, and several of those fill
+    # the node's temporary volume. The sweep is confined to this script's
+    # own subdirectory, so one job can never delete another's live input.
     global _R_WORKDIR_SWEPT
     if not _R_WORKDIR_SWEPT:
         _R_WORKDIR_SWEPT = True
-        # SAME SCRIPT TWICE. The per-script subdirectory stopped two
-        # DIFFERENT scripts colliding; it does nothing when one script is
-        # submitted twice, which happened to lane 19 at 16:05 and 16:20 on
-        # 21 September. The second job's first act was this sweep, which
-        # deletes the first job's live input between the write and R
-        # reading it. Leave anything modified in the last hour alone: a
-        # crashed run's leftovers are older than that, and a live run's
-        # are not.
+        # The per-script subdirectory stops two different scripts colliding;
+        # it does nothing when one script is submitted twice, in which case
+        # the second job's sweep would delete the first job's live input.
+        # Anything modified in the last hour is therefore left alone: a
+        # crashed run's leftovers are older than that, and a live run's are
+        # not.
         import time as _t
         cutoff = _t.time() - 3600
         freed = skipped = 0
@@ -760,12 +792,10 @@ def _report_reader(stdout: str) -> None:
     """
     Echo R's reader choice into the Python log, once per process.
 
-    The R scripts have always printed which reader they used, but only
-    into their own stdout, which is captured and written out ONLY when a
-    fit fails. So on 21 September every successful fit silently used the
-    read.csv fallback, because data.table was not installed on MONA, and
-    the fix shipped that morning never ran. A line nobody sees is not a
-    diagnostic.
+    The R scripts print which reader they used into their own stdout, which
+    is captured and written out only when a fit fails; a successful fit
+    would otherwise leave no record of whether data.table or the base
+    reader ran. A line nobody sees is not a diagnostic.
     """
     global _READER_REPORTED
     if _READER_REPORTED or not stdout:
@@ -788,22 +818,18 @@ def _report_reader(stdout: str) -> None:
 
 def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
     """
-    Report an R failure so it can be DIAGNOSED, not just noticed.
+    Report an R failure so it can be diagnosed, not only noticed.
 
-    47L died on 19 Sep 2026 with three fits reported as
-    `fepois_multi FAILED (L_floor): <the tail of a package-reinstall warning
-    box>`, because we printed only stderr[-500:] and R's real error had
-    scrolled past. The message that reached the log was not the error at
-    all. Keep the whole stream on disk, and print both ends of it: the first
-    lines carry the cause, the last carry the collapse.
+    The tail of R's standard error is usually a package warning box, and the
+    cause has scrolled past it. The whole stream is kept on disk, and both
+    ends of it are printed: the first lines carry the cause, the last the
+    collapse.
     """
     err = (r.stderr or "").strip()
     out = (r.stdout or "").strip()
-    # Save beside the SCRIPT'S OUTPUT, on the share, not in the batch
-    # node's temp. On 20 Sep every 47j fit at 22-25 crashed R, the log
-    # named C:\Windows\TEMP\...\_rerr_*.txt, and that path is local to
-    # the batch node: unreadable from the interactive session and
-    # unexportable. An error report nobody can open is not a report.
+    # Save beside the script's output, on the share, not in the batch
+    # node's temporary folder, which is local to the node and cannot be read
+    # from the interactive session or exported.
     path = workdir / f"_rerr_{tag}.txt"
     try:
         import inspect
@@ -821,10 +847,8 @@ def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
         where = f"  full R output: {path}"
     except BaseException as ex:
         where = f"  (could not save R output: {type(ex).__name__})"
-    # MONA prints a twelve-line boxed banner about its CRAN mirror at the
-    # start of every R session. Printing "the first twelve lines" therefore
-    # printed the banner and nothing else, twice over, on 19 and 20 Sep.
-    # Drop it before choosing what to show.
+    # MONA prints a boxed banner about its CRAN mirror at the start of every
+    # R session; it is dropped before choosing what to show.
     def _is_banner(ln: str) -> bool:
         t = ln.strip()
         return (not t or set(t) <= set("+-|") or t.startswith("|")
@@ -848,46 +872,28 @@ def _r_failed(tag: str, kind: str, r, workdir: Path) -> None:
 def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
                    recode: tuple = (), cluster: str = "") -> Path:
     """
-    Write the R exchange file, COMPACTLY, and return the path actually used.
+    Write the R exchange file compactly, and return the path actually used.
 
-    Three lanes died on 19 Sep 2026 with `OSError: [Errno 28] No space left
-    on device`, all three inside the CSV writer: each was handing R a panel
-    of ten to eleven million rows whose two fixed-effect columns are long
-    concatenated strings ("1234567890_2021-03"), so a single exchange file
-    ran to roughly a gigabyte and three of them were open at once on the
-    batch server's temp volume.
-
-    Two changes, neither of which touches an estimate. The fixed-effect
-    columns are written as integer factor codes, since every R script
-    coerces them with as.factor() and a factor's labels are never used.
-    And the file is gzipped at level 1, which the R side reads transparently
-    because read.csv() detects compression from the connection. Together
-    these take a ~1 GB exchange to well under 100 MB.
-
-    Level 1 rather than 9 on purpose: the default costs minutes of CPU on
-    ten million rows for a few per cent more, and the constraint here is
-    disk, not bandwidth.
+    A panel of ten million rows whose fixed-effect columns are concatenated
+    strings runs to about a gigabyte as plain CSV. Two things keep the file
+    small, neither of which touches an estimate: the fixed-effect columns
+    are written as integer factor codes, since every R script coerces them
+    with as.factor() and a factor's labels are never used; and the file is
+    gzipped at level 1, which read.csv() reads transparently. Level 1 rather
+    than 9 because the constraint is disk, not bandwidth.
     """
-    # De-duplicate, preserving order: 47i uses employer_id as BOTH a fixed
-    # effect and the cluster, so the column list names it twice. Writing it
-    # twice made read.csv rename the second copy and silently ignore it;
-    # selecting it twice makes panel[cols] return a DataFrame per name.
+    # De-duplicate, preserving order: a caller may use employer_id as both a
+    # fixed effect and the cluster, so the column list can name it twice, and
+    # a column written twice is renamed and ignored by read.csv.
     cols = list(dict.fromkeys(cols))
     out = panel[cols]
     recode = [c for c in recode if c in out.columns]
-    # The CLUSTER column is recoded too, when it is not already numeric.
-    # A cluster label is used for grouping and nothing else, exactly like
-    # a fixed effect: on 21 Sep 2026 script 73 normalised employer_id to
-    # a STRING for a merge and left it that way, so R read 26 million
-    # character values into a vector plus a string cache and died with
-    # *** recursive gc invocation -- on a panel SMALLER and simpler than
-    # one 68 had fitted the same morning with that column as int64. The
-    # difference was the dtype, not the size.
-    #
-    # Only the cluster, NOT every non-numeric column: run_fepois_es
-    # carries `halfyear` as text and uses it SEMANTICALLY, since --ref
-    # names one of its levels. Factorising that returned NaN coefficients
-    # and the harness caught it the moment the rule was made general.
+    # The cluster column is recoded too, when it is not already numeric: a
+    # cluster label is used for grouping and nothing else, exactly like a
+    # fixed effect, and twenty million character values cost R far more
+    # than the same column as integers. Only the cluster, not every
+    # non-numeric column: run_fepois_es carries `halfyear` as text and uses
+    # its labels, since --ref names one of its levels.
     if (cluster and cluster in out.columns and cluster not in recode
             and not pd.api.types.is_numeric_dtype(out[cluster])):
         recode = list(recode) + [cluster]
@@ -907,10 +913,10 @@ def _write_r_input(panel: pd.DataFrame, cols: list, inp: Path,
     return inp
 
 
-# Windows STATUS_ACCESS_VIOLATION. R's allocator failing inside the job,
-# not the machine running out: the node reports hundreds of GB free at
-# the time. fixest gives every thread its own demeaning workspace, so
-# peak memory scales with the core count while the per-job cap does not.
+# Windows STATUS_ACCESS_VIOLATION: R's allocator failing inside the job,
+# not the node running out of memory. fixest gives every thread its own
+# demeaning workspace, so peak memory scales with the thread count while
+# the per-job cap does not.
 R_MEMORY_DEATH = 3221225477
 R_RETRY_THREADS = 2
 R_RETRY_FLOOR = 1      # one last attempt single-threaded
@@ -934,28 +940,19 @@ def _threads_in(cmd: list) -> int:
 
 def _run_r(cmd: list, workdir: Path, tag: str, kind: str):
     """
-    Run one R fit, and retry ONCE at a low thread count if it died the
-    way an over-threaded fixest dies.
-
-    On 21 September three fits in script 68 and every fit in 73 died
-    with rc=3221225477 and "*** recursive gc invocation" while the node
-    reported over 500 GB free. Lowering the thread count fixes it, and
-    nothing could lower it: the count was read from an environment
-    variable that the MONA batch submitter cannot set. Retrying here
-    costs nothing when a fit succeeds, which is almost always, and it
-    recovers the handful that do not without a second trip to the lab.
+    Run one R fit, and retry at a lower thread count if it failed the way
+    an over-threaded fixest fails (an access violation with "*** recursive
+    gc invocation"). The thread count travels on the command line because
+    the batch submitter cannot set environment variables. A retry costs
+    nothing when a fit succeeds and recovers the few that do not.
     """
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir))
     _report_reader(r.stdout)
     if r.returncode == 0 or not _looks_like_memory_death(r):
         return r
-    # Two threads is not always enough: r73_ind_26-30, 28.5M rows with
-    # four fixed effects, died at exactly two on 21 September, and on
-    # 22 September the ICT contrast in script 77 died at two on a panel
-    # of under a million rows. The comment above this block promised a
-    # further attempt at one thread; the code made only one retry. It
-    # now walks the ladder: 2, then 1, then gives up.
+    # Two threads is not always enough, so the retry walks the ladder: two
+    # threads, then one, then gives up.
     ladder = [R_RETRY_THREADS, R_RETRY_FLOOR]
     had = _threads_in(cmd)
     for nxt in ladder:
@@ -1033,11 +1030,10 @@ def run_fepois_multi(panel: pd.DataFrame, workdir: Path, tag: str,
                      nthreads: int = 0) -> pd.DataFrame:
     """Poisson with an arbitrary term list via r_fepois_multi.R.
 
-    Since 22 Sep 2026 the R side also writes the clustered covariance of
-    the terms; it is copied into the CALLER's output directory as
-    vcov_<tag>.csv so it leaves MONA with the rest of the script's
-    exports, and its path is recorded in res.attrs["vcov"]. Nothing else
-    about the return value changed."""
+    The R side also writes the clustered covariance of the terms; it is
+    copied into the caller's output directory as vcov_<tag>.csv so that it
+    leaves MONA with the rest of the script's exports, and its path is
+    recorded in res.attrs["vcov"]."""
     out_dir = Path(workdir)
     workdir = _r_workdir(workdir)
     inp = workdir / f"_rin_multi_{tag}.csv"

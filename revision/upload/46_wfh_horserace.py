@@ -1,37 +1,38 @@
 #!/usr/bin/env python3
 """
-46_wfh_horserace.py -- T10/R1.7 (MONA run M8): the work-from-home horse race.
+46_wfh_horserace.py: the submitted occupation design with teleworkability
+entered beside AI exposure.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires cache/panel_vintage.parquet (script 39 writes it) and the teleworkability file
-  dingel_neiman_ssyk4.csv on the Lydia P1207 share (v1 script 26 used
-  the same file; if absent, build locally from data/raw and upload).
-======================================================================
+QUESTION
+A referee asked how much of the submitted employment result can be
+explained by exposure to remote work. This script enters the Dingel and
+Neiman teleworkability share beside the DAIOE quartile in one model, on
+the submitted design's panel, per age band, and re-estimates the
+DAIOE-only model on the same sample for comparison.
 
-R1: "It would be worth seeing how much of both effects can be explained
-by work-from-home exposure (see Lambert and Schindler, 2026)."
+DESIGN
+Panel: the withdrawn design's employer by exposure quartile by month
+cells from the vintage-tagged panel with the vintages summed out,
+employers with at least five person-months, balanced and zero-filled,
+restricted to employers in both the top quartile and a lower one, one
+panel per age band. Teleworkability of a cell is the employment-weighted
+mean teleworkable share of its occupations over the months before the
+launch, fixed thereafter. Specification: Poisson pseudo-maximum
+likelihood with PostRB x High, PostGPT x High, PostRB x WFH and PostGPT x
+WFH under employer-by-quartile and employer-by-month effects, standard
+errors clustered by employer; then PostRB x High and PostGPT x High alone
+on the same cells.
 
-Design: the JOINT specification -- both exposures race in one model,
-per age group:
+INPUTS AND OUTPUTS
+Reads cache/panel_vintage.parquet (script 39), daioe_quartiles.dta and
+dingel_neiman_ssyk4.dta. Writes to output_46/: wfh_horserace.csv,
+wfh_daioe_only.csv and 46_summary.txt.
 
-  n_emp ~ PostRB x High + PostGPT x High + PostRB x WFH + PostGPT x WFH
-          | employer x quartile + employer x month     (Poisson)
-
-WFH is the Dingel-Neiman teleworkable share of the cell's occupations,
-aggregated to the employer x quartile cell as the employment-weighted
-mean over the PRE-period (fixed weights; the cell's WFH does not move
-with the outcome). If the DAIOE terms survive the WFH terms, remote
-work does not explain the age gradient. Azar, Gine and Sanz-Espin
-(2026) find their estimate GROWS when the WFH control is dropped;
-report our analogue by also running the DAIOE-only model on the same
-sample.
-
-The v1 SPLIT-sample result stands beside this (submitted OA: zero
-effect in teleworkable, -0.233 in non-teleworkable); this script adds
-the interaction form the referee literally asks for.
-
-Output (output_46/): wfh_horserace.csv, wfh_daioe_only.csv, 46_summary.txt
+IN THE PAPER
+Not quoted in the current manuscript. The design it runs on was withdrawn
+after the backtest of Online Appendix IV.3; the teleworkability
+comparison the paper reports is script 63's, on the 2019 firm-age
+baseline (Online Appendix Table III.2, Panel B).
 """
 
 import gc
@@ -76,9 +77,8 @@ def main():
 
     panel = pd.read_parquet(CACHE)
     agg_occ = mc.collapse_vintage(panel)
-    # Three consoles share a 100 GB node: drop the 140-million-row
-    # vintage panel the moment the collapse has consumed it. Same
-    # rows, same numbers, roughly half the peak.
+    # Drop the vintage panel the moment the collapse has consumed it:
+    # same rows, same numbers, roughly half the peak memory.
     del panel
     gc.collect()
     agg_occ["ssyk4"] = agg_occ["ssyk4"].astype(str).str.zfill(4)

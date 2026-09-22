@@ -1,38 +1,44 @@
 #!/usr/bin/env python3
 """
-41_vintage_event_studies.py -- T2/E4 (MONA run M2): event studies by
-occupation-code vintage and by hiring margin.
+41_vintage_event_studies.py: the submitted event study estimated
+separately on workers coded from each register vintage.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires cache/panel_vintage.parquet (script 39 writes it).
-======================================================================
+QUESTION
+The editor and a referee asked whether the post-2023 decline among workers
+aged 22-25 in the submitted design is concentrated among observations
+whose occupation code is old. This script splits the coded population
+from 2023 by the register vintage that supplied the code and runs the
+submitted half-year event study on each subsample. Conditioning on code
+vintage conditions on how recently a worker was observed, which is itself
+a function of tenure, entry and mobility, so the columns are not
+comparable with one another and none estimates a treatment effect; the
+exercise is reported because it was asked for, and its instability is the
+answer.
 
-The editor: "report separate event studies for workers classified using
-2023, 2022, and 2021 occupation codes ... These analyses should show
-whether the post-2023 decline among workers aged 22-25 is concentrated
-among observations whose occupation assignments are older or otherwise
-less reliable."
+DESIGN
+From the vintage-tagged panel, three variants: rows before 2023 keep the
+year's own code in every variant; rows from 2023 are kept only if the
+code came from the 2023 register (V2023), the 2022 register (V2022) or
+the 2021 register (V2021). Each variant is merged with the DAIOE
+quartiles, restricted to employers with a cumulative count of at least
+five, balanced and zero-filled over employer by exposure quartile by
+month for ages 22-25 and restricted to employers in both the top quartile
+and a lower one; the Poisson event study interacts High with each
+half-year, reference the first half of 2022, under employer-by-quartile
+and employer-by-month effects, standard errors clustered by employer. A
+second pull of person by employer by year presence flags new
+person-employer matches (a pair absent the year before) and counts pairs
+by year and margin; the monthly event study by margin is not built, since
+the cell panel cannot deliver it.
 
-Design. Pre-2023 rows always use own-year codes (they have no cascade).
-For 2023-2025 rows, three variants restrict the CODED population by the
-vintage that supplied the code:
+INPUTS AND OUTPUTS
+Reads cache/panel_vintage.parquet (script 39) and daioe_quartiles.dta, and
+for the margin count Arb_AGIIndivid for 2019 to 2025 in MONA. Writes to
+output_41/: vintage_es.csv and margin_pair_counts.csv.
 
-  V2023  keep only vintage == '2023'   (freshest assignments)
-  V2022  keep only vintage == '2022'
-  V2021  keep only vintage == '2021'   (stalest assignments)
-
-Each variant rebuilds the balanced panel and runs the Poisson half-year
-ES for ages 22-25 (headline group; add more ages via AGES). Reading:
-if the 2024-25 decline is a staleness artefact, it should be ABSENT in
-V2023 and grow with staleness; if it is real, V2023 carries it.
-
-Second margin (E4's last clause): incumbents vs NEW person-employer
-matches. Year-level person x employer presence (as script 40 stage E)
-defines new match = pair absent in year-1; monthly cells then split by
-that year-level flag. Poisson ES per margin for 22-25.
-
-Output (output_41/): vintage_es.csv, margin_es.csv, 41_summary.txt.
+IN THE PAPER
+Online Appendix IV.2 and Table IV.2 (script l21), which reports the three
+columns and states why they are not comparable.
 """
 
 import sys
@@ -139,14 +145,12 @@ def main():
         pd.concat(results).to_csv(OUT / "vintage_es.csv", index=False)
         print("\nSaved vintage_es.csv")
 
-    # NOTE on the margin split: the per-month person-level panel by margin
-    # requires re-aggregating AGI at the person level, which the cached
-    # cell panel cannot deliver. The pull in margin_split() gives the
-    # year-level flag; building the monthly margin panels needs a second
-    # person-level monthly pull (heavy). Run it only if the vintage ES
-    # does not settle E4's last clause on its own; the incumbents/new-
-    # matches coverage TABLE (script 40 stage E) may suffice for the
-    # letter, with the margin ES held for round 1.5.
+    # The per-month person-level panel by margin requires re-aggregating
+    # the declarations at the person level, which the cached cell panel
+    # cannot deliver. The pull in margin_split() gives the year-level flag
+    # and the pair counts; the monthly margin event study is not built, and
+    # the coverage by worker group of script 40 answers the question in
+    # its place.
     if RUN_MARGIN_SPLIT:
         print("\n--- margin split (year-level flag) ---")
         pe = margin_split(mc.connect(), panel)

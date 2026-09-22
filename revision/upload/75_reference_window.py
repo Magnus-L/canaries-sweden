@@ -1,69 +1,54 @@
 #!/usr/bin/env python3
 """
-75_reference_window.py -- the headline read against the months BEFORE the
-                          rate hike, so the level after adoption has a
-                          standard error of its own.
+75_reference_window.py: the headline read against the months before the
+rate rise, so that the level after adoption has a standard error.
 
-======================================================================
-  RUNS IN MONA. No SQL: reads the caches 47h, 47L and 54 already wrote.
-  Writes output_75/. Four fits, two to three hours.
-======================================================================
+QUESTION
+Script 68 keeps the Riksbank interaction switched on through the post
+period, so its adoption coefficient is the step from the level of April to
+November 2022. A reader who hears "employment falls 4 per cent" hears a
+change from before the rate rise, which is the sum of the tightening step
+and the adoption step and has no standard error in script 68's export.
+This script re-estimates the same specification with the Riksbank term as
+a window, so that the interim and post terms read directly against
+January 2021 to March 2022, and exports the clustered covariance of every
+fit.
 
-WHAT 68 MEASURES, STATED EXACTLY, AND WHY THIS SCRIPT EXISTS.
+DESIGN
+Panel, exposure and fixed effects are script 68's: script 61's skeleton
+from January 2021 to June 2025, the headline classification, employer-by-
+month, employer-by-age and month-by-age effects, Poisson pseudo-maximum
+likelihood, standard errors clustered by employer. Terms
+(add_window_terms): RBW x High x Young equal to one in April to November
+2022 only; Q1, Q2 and Q3 x High x Young with the fourth quarter omitted;
+Interim x High x Young for December 2022 to December 2023; Post x High x
+Young from January 2024. The post coefficient is the level after adoption
+relative to the pre-hike months, and the difference between the post and
+interim coefficients equals gamma_2 minus gamma_0 of Equation (2), with
+its standard error from the exported covariance. Four fits: the stock at
+22-25 and 26-30, hires and separations at 22-25.
 
-Script 68 carries `rb x high x young`, equal to one in EVERY month from
-April 2022 onward, beside the interim, post, year and quarter terms. The
-Riksbank term therefore stays switched on through the whole post period,
-and every later coefficient is a step measured from the level of April to
-November 2022, the seven tightening months before ChatGPT. That is the
-right estimand for the paper's question (does anything ADDITIONAL happen
-when generative AI arrives?) and it is exactly how beta_2 on the posting
-margin is read. But it is not the number a reader hears when the paper
-says "employment falls 4.0 per cent": that reader hears a change from
-before the hike.
+Reconciliation rule fixed before the run: the window post coefficient
+must lie within one of its own standard errors of the sum of script 68's
+cumulative Riksbank and post coefficients, since the two specifications
+describe the same fitted means; a failure means the panels differ and
+nothing is quoted. The headline stays script 68's adoption step; the
+number here is the level, reported beside it.
 
-At 22-25 the sequence in 68 is +0.0214 (0.0078) from April 2022, then
--0.0143 (0.0095) for the thirteen months after the launch, then -0.0408
-(0.0150) from January 2024. The level after adoption relative to the
-months before the hike is the sum of the first and the last, about
--0.019, and 68 exported no covariance, so that sum has no standard error.
-This script gives it one, the cheap way: the Riksbank term becomes a
-WINDOW, one in April to November 2022 and zero after, so the interim and
-post terms read directly against January 2021 to March 2022.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h),
+L_counts_2021 to 2025 (script 47L) and flows_2021 to 2025 (script 54);
+performs no SQL. Writes to output_75/: reference_window.csv (every term
+of every fit), vcov_s75_<band>_<outcome>.csv and 75_summary.txt.
 
-Nothing else changes. Same skeleton (61), same exposure (47h's OL_daioe,
-frozen 2019, incumbents 31+), same three fixed effects (47j), same three
-quarter-of-year interactions with the fourth quarter omitted (68), same
-Poisson wrapper. The four fits are the ones the paper quotes: the stock
-at 22-25 and 26-30, and hires and separations at 22-25.
-
-THE READ RULE, FIXED BEFORE THE RUN.
-
-  1. RECONCILED if, for each fit, the window-specification post
-     coefficient lies within one of its own standard errors of the sum
-     of 68's cumulative rb and post coefficients. The two
-     specifications describe the same fitted means, so this is
-     arithmetic, and a failure means the panels differ and nothing here
-     may be quoted.
-  2. The paper's headline stays the ADOPTION STEP from 68 (-0.0408),
-     stated as the step from the tightening level, with gamma_1 beside
-     it. The number here is the LEVEL after adoption relative to the
-     pre-hike months and goes in Table 1 and the response letter as
-     such. Both are reported; neither replaces the other.
-  3. For hires, the window arm says whether hiring of the young in
-     exposed firms after adoption is above, at or below its pre-hike
-     level. 68's -0.0032 says only that it did not fall from its 2022
-     level. Write whichever the interval supports, with the bound.
-
-The clustered covariance is now exported by the R wrapper for every fit
-(vcov_<tag>.csv), so any further combination of terms can be given a
-standard error without another trip.
-
-Output (output_75/):
-  reference_window.csv   every term, every fit, both arms of the
-                         reconciliation
-  vcov_s75_*.csv         the clustered covariance per fit
-  75_summary.txt
+IN THE PAPER
+Table 1: the level after adoption against the months before the hike
+(-0.0194, SE 0.0184) and the step from the 2023 level at 22-25 (-0.0265)
+and 26-30 (-0.0360), the last two computed by script l18 from the post and
+interim terms and their covariance; Online Appendix III.2, the paragraph
+on the level after adoption (the tightening steps +0.0214 and +0.0222,
+the interim levels, hiring at +0.049 and separations at +0.087 against the
+pre-hike months); Online Appendix Table III.2, Panel A (script l19).
 """
 
 import gc
@@ -88,9 +73,9 @@ RB_FROM, RB_TO = mc.RIKSBANK_YM, mc.CHATGPT_YM     # the window: 2022-04 .. 2022
 JOBS = [("22-25", "stock"), ("26-30", "stock"),
         ("22-25", "hires"), ("22-25", "seps")]
 
-# 68's cumulative coefficients (rb, interim, post), from the export of
-# 21 September 21:52, round3_20260921-2152-lane14-seasonal-complete.
-# Used ONLY for the reconciliation check; never written into a result.
+# 68's cumulative coefficients (rb, interim, post), from the export the
+# final-code manifest names. Used only for the reconciliation check; never
+# written into a result.
 S68 = {
     ("22-25", "stock"): (0.0214, -0.0143, -0.0408),
     ("26-30", "stock"): (0.0222, -0.0035, -0.0394),

@@ -1,77 +1,67 @@
 #!/usr/bin/env python3
 """
-76_gender_decomposition.py -- how much of the female differential is
-                              WHERE young women work, and how much is
-                              being hit harder in the same work.
+76_gender_decomposition.py: how much of the female differential is where
+young women work, and how much is being affected more in the same work.
 
-======================================================================
-  RUNS IN MONA. Own SQL, one pull per panel year (counts by employer x
-  age x sex x EDUCATION x month, about the size of 67's pull, budget an
-  hour), cached as L_counts_sex_edu_YYYY so 77 and any re-run read it
-  for free. Then six Poisson fits, four to six hours. Writes output_76/.
-======================================================================
+QUESTION
+The female differential of Table 1 compares young women with young men in
+the same employers. Young women and young men hold different educations,
+so part of the differential may be composition. Occupation cannot answer
+this on the reported design, which classifies no young worker by
+occupation after 2019, so the split is made on the bridge the exposure
+itself uses: education, recorded for every worker in every year. The
+education register ends in 2023, so the 2024 and 2025 records are the
+2023 ones carried forward, which is why the split runs on five broad
+tracks rather than on the 105 fine groups.
 
-THE QUESTION (ML, 22 Sep 2026, 01:40). The submitted paper carried an
-Oaxaca-Blinder decomposition: reweighting young women to young men's
-occupational distribution inside exposed firms narrowed the gender gap
-by about two fifths, so composition explained some of it and not all.
-That decomposition classified every young worker by their own
-occupation code and belongs to the design the as-of backtest closed
-(script 45). The surviving design classifies no young worker by
-occupation after 2019, so the question has to be asked again on the
-bridge the exposure itself uses: EDUCATION.
+DESIGN
+Tracks by two-digit SUN 2020 field: ict (48); engineering (52, 54, 58);
+business, law and social science (31, 32, 34, 38); health, education and
+care (14, 72, 76); other; a missing record is 'na' and is reported, never
+fitted. Levels: below upper secondary, upper secondary, post-secondary.
 
-Education is recorded for every worker in every year (LISA), not sampled
-and not imputed, which is why 47h built the exposure on it. It is not
-lag-free for the young: Individ ends at 2023, so a 22-year-old observed
-in 2025 carries the education recorded when they were 20. That is stated
-in the summary with the share of young person-months whose education
-record is the carried-forward 2023 one, and it is the reason the split is
-run on broad TRACKS (five fields) and not on the 105 fine groups, where
-a two-year-old record would misplace many of the young.
+1. Composition, descriptive: employed 22-25 year olds in 2023 by sex,
+   inside and outside the top exposure quartile, as person-months by track
+   and by level, their shares, and the mean DAIOE score of the education
+   groups they hold (script 47h's OL_daioe group score); cells with fewer
+   than five persons on average across the year's months are dropped.
+2. Within, estimated: script 68's gender specification (the sex panel of
+   script 67 at 22-25 on the stock; PostRB and Post x High x Young, Post x
+   High x Female, Post x High x Young x Female, the three quarter terms for
+   High x Young and for High x Young x Female; employer-by-month,
+   employer-by-age-and-sex and month-by-age-and-sex effects; Poisson;
+   clustered by employer), first on all workers as a reproduction gate and
+   then on the workers of one track at a time, so that the differential is
+   identified among women and men with the same broad education against
+   their same-track older colleagues.
+3. The split: within equals the sum over fitted tracks of young women's
+   track share in exposed employers in 2023 times that track's
+   differential, weights renormalised over the fitted tracks, with a
+   standard error that treats the track fits as independent; composition
+   is the pooled differential minus within.
 
-THE DESIGN. Three things, in order.
+Read rule fixed before the run: the all-track differential must lie within
+one standard error of script 68's or nothing is quoted; the verdict is
+composition if within is at or below half the pooled differential in
+absolute value, being affected more in the same work if at or above three
+quarters, ambiguous between. No track is promoted above the pooled
+profile.
 
-  1. COMPOSITION, descriptive. In 2023, the last complete education
-     year, the distribution of employed 22-25 year old women and men
-     across the five tracks and the three levels, inside top-quartile
-     firms and outside them, with the DAIOE exposure each track carries
-     (the education-group score 47h assigns). Does the female mix sit
-     higher on the exposure scale than the male one? One table. Every
-     exported cell holds at least EXPORT_FLOOR persons on average.
+INPUTS AND OUTPUTS
+Pulls, in MONA, the monthly employer declarations for 2021 to 2025 joined
+to Individ_2023, 2021 and 2019 for birth year and sex and to the year's
+own Individ table (Individ_2023 from 2023 onward) for the education level
+and field, aggregated to employer by month by age band by sex by level by
+field and cached as L_counts_sex_edu_YYYY.parquet. Reads script 47h's
+caches for the exposure and the score book. Writes to output_76/:
+education_mix_by_sex.csv, gender_by_track.csv, gender_split.csv,
+vcov_s76_<track>.csv and 76_summary.txt.
 
-  2. WITHIN, estimated. Script 68's gender specification (the seasonal
-     one the paper quotes: male effect, female differential, calendar
-     cycle removed, employer-by-month effects) re-run on the sex panel
-     RESTRICTED to workers in one track at a time, so the differential
-     is identified among women and men with the same broad education
-     against their same-track older colleagues. First on all workers, as
-     a reproduction gate against 68's -0.0659 (0.0131); then per track.
-
-  3. THE SPLIT. within = sum over tracks of (young women's track share
-     in exposed firms, 2023) x (that track's differential); its standard
-     error treats the track fits as independent, which is stated;
-     composition = the pooled differential minus within. Both reported.
-
-THE READ RULE, FIXED BEFORE THE RUN.
-
-  * GATE: the all-track fit must return the female differential within
-    one standard error of 68's -0.0659, or the panel is not the paper's
-    and nothing below is quoted.
-  * COMPOSITION if within is at or below half of the pooled differential
-    in absolute value; HIT HARDER if at or above three quarters;
-    AMBIGUOUS between. Both numbers are reported whichever way it falls,
-    with the ratio. The paper gets one sentence and the OA one table.
-  * No single track is promoted to a headline. The track cut is
-    heterogeneity, reported in full, including the tracks that show
-    nothing.
-
-Output (output_76/):
-  education_mix_by_sex.csv   composition, 2023, floored
-  gender_by_track.csv        male effect and female differential per track
-  gender_split.csv           the pooled, within and composition numbers
-  vcov_s76_*.csv             clustered covariances, one per fit
-  76_summary.txt
+IN THE PAPER
+Table 1, the within-track row (-0.0508, SE 0.0118); Section 3 (three
+quarters of the differential survives within broad education tracks);
+Online Appendix III.2, "The female differential, split", and the tables
+tableA_gender_split and tableA_education_mix.
 """
 
 import gc

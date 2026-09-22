@@ -1,42 +1,44 @@
 #!/usr/bin/env python3
 """
-66_plain_magnitudes.py -- what an exposed firm actually experienced.
+66_plain_magnitudes.py: the descriptive counterpart of the headline.
 
-======================================================================
-  RUNS IN MONA. No SQL, no regressions. Reads the caches 47h, 47L and
-  54 already wrote. Seconds to a couple of minutes. Writes output_66/.
-======================================================================
+QUESTION
+Every coefficient in the paper is a contrast, the exposed quartile against
+the rest net of the fixed effects, and a reader also needs to know what
+happened in levels. This script reports the raw employment, hiring and
+separation series by exposure quartile and age band, on the same employer
+classification the regressions use, so that the descriptive movement and
+the estimate can be read side by side without reconciling two definitions
+of exposed.
 
-WHY A SCRIPT FOR SOMETHING SO SIMPLE.
+WHAT IT BUILDS
+Exposure is the headline classification: script 47j's incumbent_exposure
+on script 47h's OL_daioe score book, the 2019 incumbents scored from the
+register as it stood in 2019. For each exposure quartile, age band (the
+two young bands and the four incumbent bands) and period, the script
+gives the mean and total of the outcome over employer-months, the number
+of employers behind the cell and the number of cells. Periods: pre is
+January 2022 to December 2023, post is January 2024 onward. From the
+totals it computes the young-to-older ratio (the young band over the four
+incumbent bands) per quartile and period and its log change, and the
+difference between the top quartile and the mean of the other three. No
+regression, no controls: composition, firm size and the business cycle
+are inside every number. Cells resting on fewer than five employers are
+dropped.
 
-Every coefficient in this project is a contrast: the exposed quartile
-minus the rest, net of what the fixed effects remove. That is the right
-object to estimate and the wrong object to say out loud. Asked what
-happened to young workers in an exposed firm, the honest answer needs
-two things the regression deliberately discards, the level and the
-common trend, and those live in the raw series.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script
+47h), L_counts_2021 to 2025 (script 47L) and flows_2021 to 2025 (script
+54); performs no SQL. Writes to output_66/: plain_stock.csv,
+plain_flows.csv and 66_summary.txt.
 
-So this produces the descriptive counterpart of the headline, on the
-SAME firm classification the headline uses, so that the two can sit
-beside each other without a reader having to reconcile two different
-definitions of exposed.
-
-It is descriptive. It controls for nothing, and composition and the
-business cycle are inside every number. That is the point: it says what
-happened, and the regression says how much of it is attributable. Label
-the two differently in every table and every talk.
-
-HOW TO PUT THE TWO TOGETHER. The coefficient is exposed minus the rest,
-and the national average is the employment-weighted mean of the two, so
-with the exposed quartile at a quarter of employment an exposed firm
-sits three quarters of the coefficient below the average and the rest
-sit one quarter above it. The arithmetic is printed here with the
-quartile's actual employment share rather than an assumed 25 per cent.
-
-Output (output_66/):
-  plain_stock.csv   quartile x age x period, employment and the age ratio
-  plain_flows.csv   the same for hires and separations
-  66_summary.txt    the sentences, with the split spelled out
+IN THE PAPER
+Online Appendix III.1 and its table (tableA_descriptive_bands, built from
+plain_stock.csv by script l24): the change in headcount by quartile and
+band between the pre-adoption months and the adoption window, quoted in
+Section 3 (the fall at 22-25 in exposed and less exposed employers alike,
+and the growth of the 50 and over workforce in exposed employers). Online
+Appendix III.2 quotes the number of employers per quartile.
 """
 
 import gc

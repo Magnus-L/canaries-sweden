@@ -1,44 +1,42 @@
 #!/usr/bin/env python3
 """
-49_coverage_reconcile.py -- reconcile the match rate, and test coverage
-attrition against a PRE-DETERMINED exposure quartile.
+49_coverage_reconcile.py: three definitions of the match rate, and coding
+attrition against an exposure quartile fixed before the register ends.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY. Standalone: submit this
-  file itself. It opens its own SQL connection and writes output_49/.
-======================================================================
+QUESTION
+Script 40 reports that essentially every employed worker carries an
+occupation code from 2020 onward, while the submitted appendix told the
+editor that the non-match rate rises to 15 per cent in 2024 and 20 per
+cent in 2025. Both can be right only if they count different things. This
+script computes three definitions on the same persons, per year and age
+band, and then asks the editor's question in the form it needs: does the
+probability of being coded in a later year differ by an exposure quartile
+fixed before the coverage problem begins?
 
-WHY (18 Sep 2026). Script 40 reports a match rate of 1.000 for 2023,
-2024 and 2025. The submitted online appendix tells the editor the
-non-match rate is 10 per cent through 2023, 15 per cent in 2024 and 20
-per cent in 2025, and the editor quotes those figures back at us. Both
-cannot be right, and we cannot answer his first employment-side demand
-until we know which is.
+WHAT IT BUILDS
+One row per employed person and year (2019 to 2025), at person level
+rather than cell level, with three indicators: M1, a code in that year's
+own Individ register (undefined for 2024 and 2025, which is what makes
+the submitted non-match rate rise); M2, a code from the 2023, 2022 or
+2021 register in cascade, the rule every register script uses; M3, any
+code from 2019 to 2023. The match rate under each definition is reported
+by year and age band. Then, for every worker with a known 2022 code, the
+exposure quartile of that code is frozen and the share coded under M2 in
+each later year is reported by year, age band and frozen quartile; a gap
+opening between the top and bottom quartile after 2023 would be the
+missingness channel, and a flat profile closes it, leaving
+misclassification, which script 45 measures.
 
-The likely explanation is that the two count different things. This
-script computes all three definitions on the same rows, per year and
-age group, so the answer is a table rather than an argument:
+INPUTS AND OUTPUTS
+Reads, in MONA, Arb_AGIIndivid for 2019 to 2025 joined to Individ_2019 to
+2023, and daioe_quartiles.dta. Writes to output_49/:
+match_rate_definitions.csv, attrition_by_frozen_quartile.csv and
+49_summary.txt. Cells with fewer than five workers are dropped.
 
-  M1 OWN-YEAR   the worker's code from that year's own Individ table.
-                Undefined for 2024 and 2025, where no register exists;
-                that is what makes v1's non-match rate rise.
-  M2 CASCADE    the 2023, then 2022, then 2021 register, which is what
-                every v2 script uses.
-  M3 EVER-SEEN  any code the worker has ever had in 2019-2023, which is
-                the carry-forward reading of v1's rule.
-
-SECOND, AND THE REASON THIS SCRIPT MATTERS MORE THAN THE FIRST PART.
-Script 40's coverage-by-quartile table conditions on the CURRENTLY
-assigned code, so a real decline in exposed employment and a coding
-artefact produce the same table. The editor's question is whether
-coding attrition differs across exposure groups, and that has to be
-asked of a quartile fixed BEFORE the coverage problem starts. We take
-every worker with a known 2022 code, freeze their quartile there, and
-report the probability of being coded in each later year by that frozen
-quartile. Neutrality across quartiles closes the missingness channel and
-leaves misclassification, which script 45 measures.
-
-EXPORT: rates and counts by year, age group and quartile. No raw rows.
+IN THE PAPER
+Online Appendix IV.1 and the response to the editor (point A2), where the
+non-match series of the submitted appendix is reconciled with the
+cascade's coverage.
 """
 
 import sys
