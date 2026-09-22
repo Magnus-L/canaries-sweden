@@ -14,9 +14,10 @@ frozen at the employer's 2019 education mix.
                      2023 level (gamma_2 minus gamma_0, its standard error
                      from the covariance of the post and interim terms of
                      the window specification); the level after adoption
-                     against the months before the rate rise.
-  Ages 26-30         the additional step at adoption and the step from the
-                     2023 level.
+                     against the months before the rate rise; and the
+                     pre-launch drift.
+  Ages 26-30         the additional step at adoption, the step from the
+                     2023 level and the pre-launch drift.
   Profile            22-25 and 50 and over, each against 41-49, from one
                      panel of all six bands.
   Margin, incidence  hires, separations, the young men's step, the female
@@ -32,6 +33,16 @@ no coefficient: the script refuses to write the table unless every
 coefficient reproduces the employer-clustered run to four decimals. The
 level row comes from the window specification, which was not re-clustered,
 so it carries one standard error only.
+
+THE PRE-LAUNCH DRIFT
+The drift row is the linear monthly trend in the relative path over the
+pre-launch months, January 2021 to November 2022, with the calendar terms
+and the tightening window in the fit (lane 25, part A(ii)). It is the
+paper's pre-test, and it falls the two ways: flat at 22-25, and four
+standard errors from zero at 26-30. Both are reported. A joint test of
+every pre-launch quarter net of the cycle is not identified from two
+years of pre-launch months, so the linear drift is the testable
+direction and is what the table reports.
 
 THE GENDER ROWS
 The three sex rows come from the sex split on Equation (2) (lane 25, part
@@ -55,8 +66,9 @@ directory given on the command line): seasonal_pooled.csv (script 68);
 reference_window.csv and vcov_s75_<band>_stock.csv (script 75);
 contrast_seasonal.csv (script 74); gender_split.csv (script 76);
 gender_eq2.csv, vcov_s78_gender_eq2_22_25.csv, cluster_industry.csv and
-vcov_s78_clind_<band>.csv (script 78, lane 25). Nothing is typed in; a
-missing or ambiguous row stops the script. Writes
+vcov_s78_clind_<band>.csv (script 78, lane 25b/c); predrift.csv (script
+78, lane 25a). Nothing is typed in; a missing or ambiguous row stops the
+script. Writes
 revision/tables/table1_headline.tex and copies it to
 canaries-sweden-paper/tables/.
 
@@ -81,6 +93,7 @@ LANE14_GENDER = OUT / "round3_20260921-lane14-seasonal"
 LANE20 = OUT / "round3_20260922-0105-lane20-seasonal-contrast"
 LANE21_22 = OUT / "round3_20260922-0712-lanes21-22"
 LANE25 = OUT / "round3_20260922-1237-lane25bc-BCEF"
+LANE25A = OUT / "round3_20260922-1333-lane25a-ADG"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -159,6 +172,8 @@ def main() -> int:
     sexes = pd.read_csv(source(LANE25, "gender_eq2.csv"))
     sexes = sexes[sexes.get("status", "ok") == "ok"]
     clind = pd.read_csv(source(LANE25, "cluster_industry.csv"))
+    drift = pd.read_csv(source(LANE25A, "predrift.csv"))
+    drift = drift[drift.get("status", "ok") == "ok"]
 
     # Part C is an inference exercise and nothing else: if a coefficient
     # moved, the panel is not the one the rest of the table reports and no
@@ -189,6 +204,10 @@ def main() -> int:
     artefact = g2_asof[0] - g2[0]
     level = one(window, young_band="22-25", outcome="stock", term=TERM)
     step23 = step_from_2023(window, "22-25")
+    # the pre-launch drift, per month, on the months to November 2022
+    TREND = "trend_x_high_x_young"
+    drift22 = one(drift, young_band="22-25", term=TREND)
+    drift26 = one(drift, young_band="26-30", term=TREND)
     # 26-30, the step
     g2_26 = one(pooled, young_band="26-30", outcome="stock", arm="true",
                 term=TERM)
@@ -239,6 +258,8 @@ def main() -> int:
          est(*step23), ind(step23_ind)),
         (r"Level after adoption, against the pre-hike months",
          est(*level), ""),
+        (r"Pre-launch drift per month, to November 2022",
+         est(*drift22), ""),
         (r"\addlinespace[3pt]", None, None),
         (r"\multicolumn{3}{l}{\textit{Ages 26--30, employment stock, "
          r"against the older bands pooled}} \\", None, None),
@@ -246,6 +267,8 @@ def main() -> int:
          est(*g2_26), ind(se_ind("26-30", TERM))),
         (r"Step from the 2023 level ($\hat\gamma_2 - \hat\gamma_0$)",
          est(*step23_26), ind(step23_26_ind)),
+        (r"Pre-launch drift per month, to November 2022",
+         est(*drift26), ""),
         (r"\addlinespace[3pt]", None, None),
         (r"\multicolumn{3}{l}{\textit{The profile, against 41--49 alone}} \\",
          None, None),
@@ -273,7 +296,9 @@ def main() -> int:
         r"reproduces every coefficient. The sex rows interact every "
         r"treatment term with female, with sex-specific effects; young "
         r"women is the male step plus the differential, standard error "
-        r"from their covariance (within-track row: earlier base). "
+        r"from their covariance (within-track row: earlier base). The "
+        r"drift rows are a linear monthly trend over January 2021 to "
+        r"November 2022, calendar terms and tightening window in. "
         r"Full tables in Online Appendix~III.2."
     )
 
