@@ -76,6 +76,7 @@ Output (output_73/):
 """
 
 import gc
+import os
 import re
 import sys
 import time
@@ -89,7 +90,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mona_common as mc
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE / "output_73"
+OUT = HERE / os.environ.get("CANARIES_73_OUT", "output_73")
+# Which parts to run: A industry, B credit, C bankruptcy. Lane 24 runs B alone
+# after the leverage-year defect of 22 September; the baseline fit runs
+# whenever A or B runs, since B's comparison needs it on its own sample.
+PARTS = os.environ.get("CANARIES_73_PARTS", "ABC").upper()
 OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 
@@ -487,10 +492,33 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
     if yr:
         sel += f", [{yr}] AS yr"
     d = pd.read_sql(f"SELECT {sel} FROM dbo.[{tab}]", conn)
-    if yr and "yr" in d:
+    # THE YEAR FILTER, done properly. BSLSLUT is a SQL date, and the 22
+    # September code review found that pd.to_numeric on a date column is
+    # NaN or nanoseconds, never 2019, so the filter below was skipped
+    # without a message and drop_duplicates kept an arbitrary year's
+    # balance sheet per firm. A numeric year column is still honoured;
+    # anything else is parsed as a date and its year taken. If no row
+    # matches the base year the arm refuses instead of falling through.
+    if not (yr and "yr" in d):
+        NOTES.append(f"{tab}: no accounting-year column found; Part B cannot run")
+        return pd.DataFrame()
+    if pd.api.types.is_numeric_dtype(d["yr"]):
         y = pd.to_numeric(d["yr"], errors="coerce")
-        if (y == BASE_YEAR).any():
-            d = d[y == BASE_YEAR]
+    else:
+        y = pd.to_datetime(d["yr"], errors="coerce").dt.year
+    n_all = len(d)
+    d = d[y == BASE_YEAR].copy()
+    if d.empty:
+        NOTES.append(f"{tab}: no balance sheet closes in {BASE_YEAR} "
+                     f"(column {yr}, {n_all:,} rows read); Part B REFUSED")
+        return pd.DataFrame()
+    # several closes inside the base year (a changed accounting period):
+    # keep the latest, deterministically
+    d["_close"] = pd.to_datetime(d["yr"], errors="coerce") \
+        if not pd.api.types.is_numeric_dtype(d["yr"]) else 0
+    d = d.sort_values("_close", ascending=False)
+    NOTES.append(f"leverage year filter: {yr} in {BASE_YEAR}, "
+                 f"{len(d):,} of {n_all:,} balance-sheet rows kept")
     d["employer_id"] = norm_id(d["employer_id"])
     for c in [c for c in ("assets", "equity", "dlong", "dshort")
               if c in d.columns]:
@@ -508,7 +536,8 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
     d = d[d["lev"].notna()].drop_duplicates("employer_id")
     print(f"  leverage: {tab} via {how}, {len(d):,} firms, "
           f"median {d['lev'].median():.2f}")
-    NOTES.append(f"leverage built from {tab}: {how}, keyed on {key}")
+    NOTES.append(f"leverage built from {tab}: {how}, keyed on {key}, "
+                 f"{BASE_YEAR} balance sheets, {len(d):,} firms")
     return d[["employer_id", "lev"]]
 
 
@@ -709,7 +738,7 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
                                         base["post_x_high_x_young"]))})
 
     # PART A
-    if len(ind) and gate(b0, ind, f"industry/{band}"):
+    if "A" in PARTS and len(ind) and gate(b0, ind, f"industry/{band}"):
         # No .copy(): add_ind_fe merges, which returns a new frame and
         # never touches b0. The copy was a spare 28-million-row frame
         # held for nothing while R was running.
@@ -773,7 +802,7 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
         gc.collect()
 
     # PART B
-    if len(lev) and gate(b0, lev, f"leverage/{band}"):
+    if "B" in PARTS and len(lev) and gate(b0, lev, f"leverage/{band}"):
         b = b0.merge(lev, on="employer_id", how="inner")
         if not b.empty:
             # A median split is not guaranteed to split. If leverage is
@@ -801,6 +830,22 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
                 NOTES.append(f"leverage/{band}: split at {cut:.3f} "
                              f"({op}), {share:.1%} high")
         if len(b):
+            # The credit arm runs on the firms WITH a balance sheet (limited
+            # companies, about 86 per cent of the panel). A comparison of
+            # its exposure term with the full-panel baseline would mix a
+            # sample change with a specification change (code review of
+            # 22 September, F2), so the baseline is re-estimated on this
+            # sample first. It runs only once the split is known to be
+            # identified: a refused Part B fits nothing and says so.
+            bb, bterms = base_terms(b.copy())
+            rb_ = fit(bb, bterms, j47.FES, f"levbase_{band}")
+            del bb
+            gc.collect()
+            if rb_:
+                sinks["lev"].append(
+                    {"band": band, "term": "baseline_on_balance_sheet_sample",
+                     "coef": rb_["post_x_high_x_young"][0],
+                     "se": rb_["post_x_high_x_young"][1]})
             ym = b["year_month"].astype(str)
             post = (ym >= POOLED_FROM).astype(int)
             b, terms = base_terms(b)
@@ -820,7 +865,7 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
         gc.collect()
 
     # PART C
-    if failed:
+    if "C" in PARTS and failed:
         b = b0[~b0["employer_id"].isin(failed)].copy()
         dropped = b0["employer_id"].nunique() - b["employer_id"].nunique()
         if dropped and not b.empty:

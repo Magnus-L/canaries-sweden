@@ -211,11 +211,22 @@ def fake_read_sql(q, conn=None, *a, **kw):
                              "ind": [IND[f] for f in sliver],
                              "yr": [2019] * len(sliver)})
     if "bokslut" in ql:
-        return pd.DataFrame({"employer_id": FIRMS,
-                             "assets": [1.0] * len(FIRMS),
-                             "equity": [1.0 - LEV[f] for f in FIRMS],
-                             "dlong": [LEV[f] * 0.6 for f in FIRMS],
-                             "dshort": [LEV[f] * 0.4 for f in FIRMS]})
+        # Serrano holds one row per firm and accounting year, and BSLSLUT
+        # is a SQL date. The 22 September code review found that the
+        # loader's year filter silently matched nothing on a date column
+        # and kept whichever row came first. So the fixture now does what
+        # the register does: a 2018 close listed FIRST with a different
+        # leverage, then the 2019 close. Only a loader that parses the
+        # date and keeps 2019 reproduces LEV.
+        import datetime as _dt
+        rows = []
+        for f in FIRMS:
+            rows.append((f, 1.0, 1.0 - min(LEV[f] + 0.3, 0.95), _dt.date(2018, 12, 31)))
+            rows.append((f, 1.0, 1.0 - LEV[f], _dt.date(2019, 12, 31)))
+        d = pd.DataFrame(rows, columns=["employer_id", "assets", "equity", "yr"])
+        d["dlong"] = (1.0 - d["equity"]) * 0.6
+        d["dshort"] = (1.0 - d["equity"]) * 0.4
+        return d
     if "serrano_serrano" in ql:
         # the purpose-built flags: 1 for the failed firms, 0 otherwise
         return pd.DataFrame(
@@ -247,6 +258,9 @@ check("leverage is found", len(lev) and lev["lev"].between(0, 3).all(),
 check("with no FEK table present, Serrano's real columns are used",
       any("EKSU" in n and "TILLGSU" in n for n in s73.NOTES),
       next((n for n in s73.NOTES if "leverage built" in n), "")[:70])
+check("the loader says which accounting year it kept and how many rows",
+      any("leverage year filter" in n and "2019" in n for n in s73.NOTES),
+      next((n for n in s73.NOTES if "year filter" in n), "")[:90])
 check("industry comes from the LISA firm table, not the business "
       "register, and covers the whole panel",
       any("Ftg_2019" in n for n in s73.NOTES) and len(ind) == len(FIRMS),
@@ -288,7 +302,7 @@ finally:
     s73.BASE_YEAR = _by
 s73.NOTES.clear()
 ind = s73.firm_industry(None, _full)
-check("leverage reproduces 1 - equity/assets",
+check("leverage reproduces 1 - equity/assets FROM THE 2019 CLOSE, not the 2018 row listed first",
       abs(float(lev.set_index("employer_id").loc[FIRMS[0], "lev"])
           - LEV[FIRMS[0]]) < 1e-9)
 check("failed firms come from Serrano_Serrano's bol_konkurs, not from "
