@@ -1,0 +1,46 @@
+THE LAST THREE GAPS
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Part A
+changes the cluster, Part B the effects, Part C fits nothing.
+
+B. INDUSTRY x AGE x MONTH EFFECTS WITH THE CALENDAR TERMS, 26-30 stock:
+  baseline_same_sample   rb_x_high_x_young          +0.0221 (0.0043)
+  baseline_same_sample   interim_x_high_x_young     -0.0036 (0.0056)
+  baseline_same_sample   post_x_high_x_young        -0.0396 (0.0103)
+  industry_age_month     rb_x_high_x_young          +0.0098 (0.0056)
+  industry_age_month     interim_x_high_x_young     -0.0041 (0.0053)
+  industry_age_month     post_x_high_x_young        -0.0180 (0.0093)
+  employers in both fits: 119,087
+  retained share of the adoption step against the same-sample baseline: 46%
+  Read beside 78's Part F, which is the same fit at 22-25.
+
+NOTES:
+  industry: Ftg_2019 via Org_Sni2007 (LISA firm table, the employer population), 552,099 firms, 265 three-digit groups
+  B: 119,087 of 128,193 employers on the 26-30 panel carry a 2019 industry code and form the sample for both fits
+
+READ RULES, FIXED BEFORE THE RUN:
+  A. The coefficients must reproduce the employer-clustered run to four
+     decimals. If any term fails, nothing from Part A is quoted, because
+     clustering changes the covariance and nothing else, so a moved
+     coefficient means a moved panel. The female differential and the
+     women's step are reported under both clusterings whatever they show.
+  B. No gate. The retained share of the adoption step against the
+     same-sample baseline is reported whatever it is.
+  C. The paper reports the figure whatever it shows. A share of uncounted
+     payslips that is higher in exposed firms at young ages is the
+     editor's mechanism and is stated plainly if it appears. Counts below
+     5 are suppressed before anything leaves MONA.
+
+AND WHEN QUOTING:
+  1. A is inference only. The coefficients are 78's Part B, and the
+     paper quotes the industry-clustered standard errors beside the
+     employer-clustered ones rather than in place of them.
+  2. B is read beside 78's Part F at 22-25; the two bands answer the
+     same question and the paper reports both retained shares.
+  3. C is a count, not an estimate. It bounds a measurement channel
+     and does not test it.
+
+Runtime 20.3 min. memory available: 510.4 GB

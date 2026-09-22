@@ -18,9 +18,19 @@ variance computed twice, on employer clusters and on the employer's
 three-digit NACE group in 2019 (script 78, lane 25 part C). The point
 estimates are therefore the same object under both clusterings, and the
 exercise bears on inference alone; the coefficient is printed once, in
-its own column, and the two standard errors beside it. Each panel is one
-young band against the older bands pooled, and the industry-cluster count
-is the number of groups that band's panel contains.
+its own column, and the two standard errors beside it. Panels A and B are
+one young band each against the older bands pooled, and the
+industry-cluster count is the number of groups that band's panel
+contains.
+
+Panel C does the same for the sex split of Equation (2) at ages 22 to 25,
+every treatment term interacted with female and the effects
+sex-specific (script 79, lane 26 part A). It is the panel the paper reads
+the hardest, because the female differential is a contrast drawn inside
+the employer and inside one age band, so a disturbance common to an
+industry has less of it to move. The step for young women is the male
+step plus the differential, and each of its standard errors comes from
+the covariance of those two terms in the run that column reports.
 
 The step from the 2023 level is the adoption term minus the interim term,
 which is gamma_2 minus gamma_0 of Equation (2). Its industry-clustered
@@ -34,20 +44,25 @@ INPUTS AND OUTPUTS
 Reads, from the export directories the final-code manifest names (or one
 directory given on the command line): cluster_industry.csv and
 vcov_s78_clind_<band>.csv (script 78, lane 25 part C) for the
-coefficients, both standard errors and the cluster counts; and
+coefficients, both standard errors and the cluster counts;
 reference_window.csv with vcov_s75_<band>_stock.csv (script 75, lanes 21
 and 22) for the employer-clustered standard error of the step, the one
-Table 1 prints. Nothing is typed in. Writes
+Table 1 prints; and gender_cluster_industry.csv with
+vcov_s79_gender_clind_22_25.csv (script 79, lane 26 part A) and
+gender_eq2.csv with vcov_s78_gender_eq2_22_25.csv (script 78, lane 25
+part B) for Panel C. Nothing is typed in. Writes
 revision/tables/tableA_cluster_industry.tex and copies it to
 canaries-sweden-paper/tables/.
 
     python3 revision/local/l27_tab_cluster_industry.py [export_dir]
 
 THE GATE
-The table is written only if the run reproduces the employer-clustered
-estimates: every coef_match_4dp in the export must be True, and the
+The table is written only if both runs reproduce the employer-clustered
+estimates: every coef_match_4dp in the two exports must be True, and each
 coefficient column must equal the employer-clustered run to four
-decimals. The step from the 2023 level must come out the same in the
+decimals. Panel C carries the further check that its coefficients are the
+ones the sex split of lane 25 part B reported, since those are the
+coefficients Table 1 prints. The step from the 2023 level must come out the same in the
 clustering run and in the window specification, since the employer
 standard error printed for it is the window specification's. Each
 industry standard error must equal the square root of its own diagonal in
@@ -59,7 +74,7 @@ script and nothing is written.
 IN THE PAPER
 Online Appendix III.2, the paragraph on the same estimates under industry
 clustering, Table tab:cluster_industry. The industry column of Table 1
-comes from the same export, through l18_table1.py.
+comes from the same two exports, through l18_table1.py.
 """
 import re
 import shutil
@@ -75,6 +90,7 @@ from config import V2_TAB  # noqa: E402
 OUT = REV / "output"
 LANE21_22 = OUT / "round3_20260922-0712-lanes21-22"
 LANE25 = OUT / "round3_20260922-1237-lane25bc-BCEF"
+LANE26 = OUT / "round3_20260922-lane26ab-AB"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -82,6 +98,8 @@ PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
 BANDS = ["22-25", "26-30"]
 POST = "post_x_high_x_young"
 INTER = "interim_x_high_x_young"
+RB = "rb_x_high_x_young"
+FEMALE = "post_x_high_x_young_x_female"
 # The window specification names the tightening term differently; every
 # other term carries the same name in the two runs.
 WINDOW_POST, WINDOW_INTER = POST, INTER
@@ -96,6 +114,17 @@ ROWS = [
     ("Quarter 1", "q1_x_high_x_young"),
     ("Quarter 2", "q2_x_high_x_young"),
     ("Quarter 3", "q3_x_high_x_young"),
+]
+# Panel C: the sex split at 22-25. Label, term; the sum is built last.
+SEX_ROWS = [
+    (r"Young men, tightening months ($\hat\gamma_1$)", RB),
+    (r"Young men, interim through 2023 ($\hat\gamma_0$)", INTER),
+    (r"Young men, adoption from 2024 ($\hat\gamma_2$)", POST),
+    (r"Female differential, tightening months",
+     "rb_x_high_x_young_x_female"),
+    (r"Female differential, interim through 2023",
+     "interim_x_high_x_young_x_female"),
+    (r"Female differential, adoption from 2024", FEMALE),
 ]
 COEF = re.compile(r"^\$([-+][0-9.]+)\$$")
 SE = re.compile(r"^\(([0-9.]+)\)(\$\^\{\*\}\$)?$")
@@ -126,6 +155,11 @@ def se_diff(v: pd.DataFrame, a: str, b: str) -> float:
     return float(v.loc[a, a] + v.loc[b, b] - 2 * v.loc[a, b]) ** 0.5
 
 
+def se_sum(v: pd.DataFrame, a: str, b: str) -> float:
+    """Standard error of a plus b from the exported covariance."""
+    return float(v.loc[a, a] + v.loc[b, b] + 2 * v.loc[a, b]) ** 0.5
+
+
 def coef_cell(what: str, c: float) -> str:
     """The coefficient, checked against the export before it is printed."""
     out = f"${c:+.4f}$"
@@ -147,6 +181,71 @@ def se_cell(what: str, c: float, se: float) -> str:
         raise SystemExit(f"  {what}: the printed standard error {out} "
                          f"disagrees with the export ({se:.6f})")
     return out
+
+
+def sex_panel() -> tuple[str, int, list]:
+    """Panel C: the sex split of Equation (2) at ages 22 to 25 under the
+    two clusterings, with the step for young women built from the male
+    step and the female differential."""
+    gsex = pd.read_csv(source(LANE26, "gender_cluster_industry.csv"))
+    gsex = gsex[gsex.get("status", "ok") == "ok"]
+    if not bool(gsex.coef_match_4dp.all()):
+        raise SystemExit("  lane 26A: a coefficient does not reproduce to "
+                         "four decimals; no industry SE is quotable for the "
+                         "sex rows")
+    off = (gsex.coef - gsex.coef_employer_run).abs().max()
+    if off > 5e-5:
+        raise SystemExit(f"  lane 26A: the coefficient column departs from "
+                         f"the employer-clustered run by {off:.2e}")
+    d = gsex[gsex.young_band == "22-25"]
+    if d.empty:
+        raise SystemExit("  gender_cluster_industry.csv: no rows for 22-25")
+    d = d.set_index("term")
+
+    # The coefficients must be the ones the sex split of lane 25 reported,
+    # because those are the coefficients Table 1 prints beside these
+    # standard errors.
+    eq2 = pd.read_csv(source(LANE25, "gender_eq2.csv"))
+    eq2 = eq2[eq2.get("status", "ok") == "ok"]
+    eq2 = eq2[eq2.young_band == "22-25"].set_index("term")
+    for term in d.index:
+        if term not in eq2.index:
+            raise SystemExit(f"  {term}: not in the lane 25 sex split")
+        if abs(float(d.loc[term, "coef"]) - float(eq2.loc[term, "coef"])) > 5e-5:
+            raise SystemExit(f"  {term}: the industry-clustered sex run does "
+                             f"not reproduce the lane 25 coefficient")
+
+    n_clusters = sorted(set(int(x) for x in d.n_clusters_industry))
+    if len(n_clusters) != 1:
+        raise SystemExit(f"  the sexes: one industry-cluster count expected, "
+                         f"found {n_clusters}")
+    vi = vcov(LANE26, "vcov_s79_gender_clind_22_25.csv")
+    ve = vcov(LANE25, "vcov_s78_gender_eq2_22_25.csv")
+
+    rows = []
+    for label, term in SEX_ROWS:
+        if term not in d.index:
+            raise SystemExit(f"  the sexes: no {term} in the export")
+        r = d.loc[term]
+        c, emp, ind = float(r.coef), float(r.se_employer), float(r.se_industry)
+        for v, got, which in ((vi, ind, "industry"), (ve, emp, "employer")):
+            diag = float(v.loc[term, term]) ** 0.5
+            if abs(diag - got) > 5e-5:
+                raise SystemExit(f"  {term}: the exported {which} SE "
+                                 f"{got:.6f} is not the square root of its "
+                                 f"own variance {diag:.6f}")
+        rows.append((label, coef_cell(f"sexes {term}", c),
+                     se_cell(f"sexes {term}, employer", c, emp),
+                     se_cell(f"sexes {term}, industry", c, ind)))
+
+    women = float(d.loc[POST, "coef"]) + float(d.loc[FEMALE, "coef"])
+    rows.append(("Young women, adoption from 2024",
+                 coef_cell("young women", women),
+                 se_cell("young women, employer", women,
+                         se_sum(ve, POST, FEMALE)),
+                 se_cell("young women, industry", women,
+                         se_sum(vi, POST, FEMALE))))
+    return ("sexes", n_clusters[0], rows)
 
 
 def main() -> int:
@@ -223,6 +322,8 @@ def main() -> int:
                          se_cell(f"{band} {term}, industry", c, ind)))
         panels.append((band, n_clusters[0], rows))
 
+    panels.append(sex_panel())
+
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{Every term of the headline design under two "
            r"clusterings, employer and three-digit industry.}",
@@ -233,8 +334,12 @@ def main() -> int:
     for i, (band, n_clusters, rows) in enumerate(panels):
         if i:
             tex.append(r"\addlinespace[4pt]")
-        head = (f"Panel {chr(65 + i)}. Ages {band.replace('-', '--')}, "
-                f"{thousands(n_clusters)} industry clusters")
+        if band == "sexes":
+            head = (f"Panel {chr(65 + i)}. The sexes at ages 22--25, "
+                    f"{thousands(n_clusters)} industry clusters")
+        else:
+            head = (f"Panel {chr(65 + i)}. Ages {band.replace('-', '--')}, "
+                    f"{thousands(n_clusters)} industry clusters")
         tex.append(r"\multicolumn{4}{l}{\textit{" + head + r"}} \\")
         print(f"  {head}")
         for label, c, emp, ind in rows:
@@ -251,9 +356,14 @@ def main() -> int:
             r"term minus the interim term; its employer-clustered standard "
             r"error is the one Table~1 reports, from the window "
             r"specification, and its industry-clustered standard error comes "
-            r"from the covariance of the two terms in this run. Stars mark "
+            r"from the covariance of the two terms in this run. Panel~C is "
+            r"the sex split of Equation~(2) at ages 22--25, every treatment "
+            r"term interacted with female and the effects sex-specific; the "
+            r"row for young women is the male step plus the female "
+            r"differential, each standard error from the covariance of those "
+            r"two terms in its own run. Stars mark "
             r"$p<0.05$ under the clustering in whose column they stand. "
-            r"Source: script 78, part C.",
+            r"Source: script 78, part C; script 79, part A.",
             r"\end{minipage}", r"\end{table}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)

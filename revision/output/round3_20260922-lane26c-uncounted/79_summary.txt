@@ -1,0 +1,67 @@
+THE LAST THREE GAPS
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Part A
+changes the cluster, Part B the effects, Part C fits nothing.
+
+C. THE PAYSLIPS THE PANEL NEVER COUNTS:
+  the employer declaration carries no birth year and no age of its own (columns seen: AMBASSAD_ANSTALLD_SVERIGE, ANDRA_KOSTNADSERS, ANTAL_DAGAR_SJOINKOMST, ASTNR, AVDRAG_UTGIFT_ARBETET, AVDR_PREL_SKATT, AVDR_SKATT_ASINK, AVDR_SKATT_SINK, AVRAKNING_AVGIFTSFRI_ERS, BILERSATTNING, BOSTADSF_EJ_SMAHUS_EJ_ULAG_SA, BOSTADSF_EJ_SMAHUS_ULAG_AG), so a worker with no register row cannot be placed in a band and the share is reported unbroken by age
+
+  person-months in the employer declarations, and the share whose
+  worker is in none of the three individual registers:
+    2019       75,461,082 person-months   no register  0.612%   not counted at all 18.353%
+    2020       73,865,984 person-months   no register  0.205%   not counted at all 18.079%
+    2021       75,030,237 person-months   no register  0.187%   not counted at all 18.288%
+    2022       78,023,805 person-months   no register  0.188%   not counted at all 18.798%
+    2023       80,683,697 person-months   no register  0.204%   not counted at all 20.296%
+    2024       80,173,757 person-months   no register  0.195%   not counted at all 20.367%
+    2025       39,924,240 person-months   no register  0.210%   not counted at all 20.093%
+    the mean share over 2019 to 2023 is 0.279% and over 2024/2025 it is 0.203%, no higher in the new years, which is what a register that ends in 2023 implies.
+
+  the same share by 2019 exposure quartile (Q4 is the treated group):
+    2019  Q4  0.567%   Q1-Q3  0.620%   unscored  0.981%
+    2020  Q4  0.273%   Q1-Q3  0.183%   unscored  0.274%
+    2021  Q4  0.228%   Q1-Q3  0.175%   unscored  0.205%
+    2022  Q4  0.227%   Q1-Q3  0.175%   unscored  0.213%
+    2023  Q4  0.279%   Q1-Q3  0.184%   unscored  0.161%
+    2024  Q4  0.252%   Q1-Q3  0.184%   unscored  0.127%
+    2025  Q4  0.269%   Q1-Q3  0.196%   unscored  0.164%
+
+  STATED PLAINLY: the uncounted share is HIGHER in the top exposure quartile than in the lower three, by at most 0.073 percentage points (2025, band all). Uncounted payslips in exposed firms are a mechanism that would show up in our counts as a fall, and the paper says so and gives the size, whether or not it is large.
+  The band is what the declaration itself says, not the register, since a worker with no register row has no register age.
+
+NOTES:
+  C: the employer declaration carries no birth year and no age of its own (columns seen: AMBASSAD_ANSTALLD_SVERIGE, ANDRA_KOSTNADSERS, ANTAL_DAGAR_SJOINKOMST, ASTNR, AVDRAG_UTGIFT_ARBETET, AVDR_PREL_SKATT, AVDR_SKATT_ASINK, AVDR_SKATT_SINK, AVRAKNING_AVGIFTSFRI_ERS, BILERSATTNING, BOSTADSF_EJ_SMAHUS_EJ_ULAG_SA, BOSTADSF_EJ_SMAHUS_ULAG_AG), so a worker with no register row cannot be placed in a band and the share is reported unbroken by age
+  C: 2019: 99.1% of person-months sit in an employer the 2019 score book scored
+  C: 2020: 98.0% of person-months sit in an employer the 2019 score book scored
+  C: 2021: 96.4% of person-months sit in an employer the 2019 score book scored
+  C: 2022: 94.9% of person-months sit in an employer the 2019 score book scored
+  C: 2023: 93.9% of person-months sit in an employer the 2019 score book scored
+  C: 2024: 92.9% of person-months sit in an employer the 2019 score book scored
+  C: 2025: 92.5% of person-months sit in an employer the 2019 score book scored
+
+READ RULES, FIXED BEFORE THE RUN:
+  A. The coefficients must reproduce the employer-clustered run to four
+     decimals. If any term fails, nothing from Part A is quoted, because
+     clustering changes the covariance and nothing else, so a moved
+     coefficient means a moved panel. The female differential and the
+     women's step are reported under both clusterings whatever they show.
+  B. No gate. The retained share of the adoption step against the
+     same-sample baseline is reported whatever it is.
+  C. The paper reports the figure whatever it shows. A share of uncounted
+     payslips that is higher in exposed firms at young ages is the
+     editor's mechanism and is stated plainly if it appears. Counts below
+     5 are suppressed before anything leaves MONA.
+
+AND WHEN QUOTING:
+  1. A is inference only. The coefficients are 78's Part B, and the
+     paper quotes the industry-clustered standard errors beside the
+     employer-clustered ones rather than in place of them.
+  2. B is read beside 78's Part F at 22-25; the two bands answer the
+     same question and the paper reports both retained shares.
+  3. C is a count, not an estimate. It bounds a measurement channel
+     and does not test it.
+
+Runtime 8.8 min. memory available: 565.8 GB
