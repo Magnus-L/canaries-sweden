@@ -333,24 +333,19 @@ def main() -> int:
         (r"\quad within broad education tracks", est(*within), ""),
     ]
 
+    # The note carries what a reader needs to tell the rows apart and
+    # nothing else. Cluster counts, the residual group, the derivation of
+    # each combined standard error and the within-track base are appendix
+    # material (ML, 22 Sep: naming the level of clustering is enough).
     note = (
         r"Poisson on employer $\times$ age $\times$ month counts, with the "
-        r"effects and calendar terms of Equation~(2); exposure frozen at the "
-        r"employer's 2019 education mix; clustered by employer. Steps read "
-        r"from the tightening level, the Riksbank interaction staying in the "
-        r"model; the level row is a window against January 2021 to "
-        r"March 2022, and the step from 2023 is post minus interim. The third "
-        r"column clusters the same fits on three-digit industry, the code "
-        r"completed from a cascade across register years: 260 groups at "
-        r"22--25 and in the sex fit, 263 at 26--30, with the employers it "
-        r"cannot place in one residual group (Online Appendix~III.2); "
-        r"every coefficient still reproduces, the sex rows included. Those "
-        r"rows interact every treatment term with female, with sex-specific "
-        r"effects; young women is the male step plus the differential, "
-        r"each standard error from the covariance of the two terms in "
-        r"its own run (within-track row: earlier base). The "
-        r"drift rows are a linear monthly trend over January 2021 to "
-        r"November 2022, calendar terms and tightening window in. "
+        r"effects and calendar terms of Equation~(2); clustered by employer. "
+        r"Steps read from the tightening level; the level row is a window "
+        r"against January 2021 to March 2022, and the step from 2023 is post "
+        r"minus interim. The third column clusters the same fits on "
+        r"three-digit industry. The sex rows interact every treatment term "
+        r"with female; young women is the male step plus the differential. "
+        r"The drift rows are a linear monthly trend to November 2022. "
         r"Full tables in Online Appendix~III.2."
     )
 
