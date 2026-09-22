@@ -1,0 +1,44 @@
+SEVEN CHECKS ON THE HEADLINE DESIGN
+====================================================
+
+Employer x age x month counts, exposure the top quartile of the
+2019 education mix, employer-by-month, employer-by-age and
+month-by-age effects, Poisson, calendar cycle removed. Each part
+asks one question of that design and changes nothing else.
+
+E. THE PROFILE AGAINST 41-49, CYCLE REMOVED, 50 AND OVER SPLIT AT 65:
+  22-25  -0.0111 (0.0120)
+  26-30  -0.0107 (0.0085)
+  31-34  +0.0150 (0.0065)  *
+  35-40  +0.0097 (0.0054)
+  41-49  reference
+  50-64  +0.0343 (0.0038)  *
+  65-69  +0.1672 (0.0313)  *
+  firms 111,659. Read 50-64 against 65-69: a gain confined to 65-69 is the retirement-age rival, a gain shared by 50-64 is not.
+
+F. INDUSTRY x AGE x MONTH EFFECTS WITH THE CALENDAR TERMS, 22-25 stock:
+  baseline_same_sample   rb_x_high_x_young          +0.0210 (0.0079)
+  baseline_same_sample   interim_x_high_x_young     -0.0138 (0.0095)
+  baseline_same_sample   post_x_high_x_young        -0.0406 (0.0151)
+  industry_age_month     rb_x_high_x_young          +0.0030 (0.0100)
+  industry_age_month     interim_x_high_x_young     -0.0130 (0.0084)
+  industry_age_month     post_x_high_x_young        -0.0333 (0.0134)
+  retained share of the adoption step against the same-sample baseline: 82%
+
+NOTES:
+  industry: Ftg_2019 via Org_Sni2007 (LISA firm table, the employer population), 552,099 firms, 265 three-digit groups
+  F: 106,174 of 111,459 employers carry a 2019 industry code and form the sample for both fits
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. A(i) is drawn, not read as a pooled estimate; A(ii)'s rule is
+     the only verdict in Part A.
+  2. B replaces 68's female differential wherever the paper wants
+     the sexes on Table 1's base; 68's number stays in the OA with
+     its own base stated.
+  3. C changes no coefficient; a coefficient that differs from 68's
+     means the panel differs and nothing in C is quoted.
+  4. D's two verdicts are both reported whichever way they fall.
+  5. E, F and G carry no gate; each is read beside the paper's own
+     number for the same object.
+
+Runtime 63.9 min. memory available: 490.7 GB
