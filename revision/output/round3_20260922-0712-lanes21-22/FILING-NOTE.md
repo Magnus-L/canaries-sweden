@@ -17,3 +17,10 @@ Lane 22 (77): gate PASS (-0.0153 (0.0126) reproduced). 22-25 vs 41-49 by track: 
 -0.027 (0.022); business/law/social -0.069 (0.022)*; health/education/care -0.010 (0.020);
 other +0.033 (0.018). ICT FAILED (rc 3221225477 at two threads, 940,788 rows); re-run as lane 23
 after the retry ladder gained a one-thread attempt.
+
+## Lane 23, exported 08:07, filed 08:40 (subfolder `lane23-0807/`, seven files, byte-checked)
+
+Script 77 re-run alone after the retry ladder gained the one-thread attempt; the ICT contrast
+fitted. Gate PASS again (-0.0153 (0.0126)). **ICT: 22-25 vs 41-49 -0.1167 (0.0501)*, 26-30 vs
+41-49 -0.1323 (0.0345)*, 6,921 firms.** All other tracks identical to the 07:12 export. The paper
+quotes THIS folder's `contrast_by_track.csv`; the 07:12 one lacks ICT and is superseded.
