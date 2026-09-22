@@ -99,7 +99,12 @@ Scripts `42`, `43`, `44`, `47`, `47b`, `47i`, `47k`, `48`, `50` to `53`, `55` to
 `62`, `64` and `69` belong to earlier stages of the revision and to designs the paper
 does not report; their exports are in `output/` and `EVIDENCE.md` records what each
 supports. `78_final_checks.py` runs seven checks on the headline design that the
-final review asked for, on the caches above and two small pulls of its own.
+final review asked for, on the caches above and two small pulls of its own;
+`79_last_gaps.py` the three questions it opened; `80_industry_key.py` the employer
+industry key completed by cascade and the two exercises that rested on it; and
+`82_occupation_route.py` the headline, the profile, the sex split, the margins and a
+vintage check on a firm score built from the 2019 occupations of the employer's own
+incumbents, with no education record anywhere.
 
 **Running on the share.** A script is submitted as one file to the batch client,
 which passes no arguments and keeps no standard output; each script therefore opens
@@ -107,8 +112,9 @@ its own log under `output_NN/` before anything else and appends a line to the
 project's `RUNLOG.txt`. `_lane.py` with a `run_lane*.py` wrapper runs several scripts
 in one job and skips a stage whose summary file exists, so a resubmitted job is
 cheap. Options travel as environment variables set inside the wrapper
-(`CANARIES_73_PARTS`, `CANARIES_73_OUT`, `CANARIES_78_PARTS`, `CANARIES_RWORK_TAG`,
-`CANARIES_47H_FRESH`). Caches live under one disposable `cache/` folder on the share;
+(`CANARIES_73_PARTS`, `CANARIES_73_OUT`, `CANARIES_78_PARTS`, `CANARIES_79_PARTS`,
+`CANARIES_80_PARTS`, `CANARIES_80_OUT`, `CANARIES_82_PARTS`, `CANARIES_82_OUT`,
+`CANARIES_RWORK_TAG`, `CANARIES_47H_FRESH`). Caches live under one disposable `cache/` folder on the share;
 the R exchange files go to the batch node's local disk. `run_all_mona.py` is the
 runner for the submitted design's battery (`39` to `46`) and retires the caches at the
 end of a round with `--retire-caches`.
