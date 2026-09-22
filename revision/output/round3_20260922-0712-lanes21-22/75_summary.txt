@@ -1,0 +1,37 @@
+THE HEADLINE AGAINST THE PRE-HIKE MONTHS
+====================================================
+
+68's specification with the Riksbank term as a WINDOW (April to
+November 2022) instead of a cumulative switch. Interim and post
+then read directly against January 2021 to March 2022, and the
+post coefficient is the LEVEL after adoption, with its own
+standard error. The calendar cycle is removed exactly as in 68.
+
+RECONCILIATION (rule 1: window post within one SE of 68's rb + post):
+  22-25 stock: level after adoption vs pre-hike months -0.0194 (0.0184) t -1.05; 68's rb + post = -0.0194; RECONCILED
+      tightening window Apr-Nov 2022 +0.0214 (0.0078); 68's cumulative rb +0.0214
+      Dec 2022 to Dec 2023 vs pre-hike +0.0071 (0.0135)
+  26-30 stock: level after adoption vs pre-hike months -0.0172 (0.0121) t -1.43; 68's rb + post = -0.0172; RECONCILED
+      tightening window Apr-Nov 2022 +0.0222 (0.0043); 68's cumulative rb +0.0222
+      Dec 2022 to Dec 2023 vs pre-hike +0.0188 (0.0078)
+  22-25 hires: level after adoption vs pre-hike months +0.0491 (0.0341) t +1.44; 68's rb + post = +0.0491; RECONCILED
+      tightening window Apr-Nov 2022 +0.0523 (0.0178); 68's cumulative rb +0.0523
+      Dec 2022 to Dec 2023 vs pre-hike +0.0253 (0.0211)
+  22-25 seps: level after adoption vs pre-hike months +0.0868 (0.0243) t +3.57; 68's rb + post = +0.0868; RECONCILED
+      tightening window Apr-Nov 2022 +0.0081 (0.0174); 68's cumulative rb +0.0081
+      Dec 2022 to Dec 2023 vs pre-hike +0.0412 (0.0185)
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The paper's headline stays 68's ADOPTION STEP, -0.0408 at
+     22-25, and must be written as the additional change from the
+     tightening level, with 68's +0.0214 rb term beside it.
+  2. The post coefficient here is the level after adoption
+     relative to the pre-hike months. It goes in Table 1 and the
+     response letter as that, and nowhere as 'the effect'.
+  3. Hires: 68 says hiring did not fall from its 2022 level. The
+     window arm says where it stands against the pre-hike level.
+     Quote the interval, not the point.
+  4. The clustered covariance of every fit is in vcov_s75_*.csv;
+     any further linear combination gets its SE from there.
+
+Runtime 31.2 min. memory available: 610.8 GB

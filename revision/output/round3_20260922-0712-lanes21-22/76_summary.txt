@@ -1,0 +1,46 @@
+THE FEMALE DIFFERENTIAL AT 22-25, SPLIT
+====================================================
+
+68's gender specification (cycle removed, employer-by-month
+effects), run on all workers and then within each broad
+education track. Education is the worker's own SUN 2020 record;
+Individ ends at 2023 and later years carry it forward.
+
+REPRODUCTION GATE: PASS. all-track differential -0.0659 (0.0131) against 68's -0.0659 (0.0131)
+  A FAIL means this panel is not the paper's; quote nothing.
+
+MALE EFFECT AND FEMALE DIFFERENTIAL BY TRACK (post from 2024-01, cycle removed):
+  all                      men -0.0001 (0.0139)   women minus men -0.0659 (0.0131) t -5.04   firms 111,459
+  ict                      men -0.0898 (0.0470)   women minus men +0.0986 (0.0667) t +1.48   firms 6,247
+  engineering              men -0.0225 (0.0190)   women minus men -0.0580 (0.0252) t -2.31   firms 53,559
+  business_law_social      men -0.0603 (0.0204)   women minus men -0.0326 (0.0202) t -1.62   firms 41,870
+  health_education_care    men +0.0608 (0.0300)   women minus men -0.1054 (0.0339) t -3.11   firms 25,115
+  other                    men +0.0408 (0.0219)   women minus men -0.0602 (0.0198) t -3.03   firms 71,963
+
+YOUNG WOMEN'S TRACK SHARES IN EXPOSED FIRMS, 2023 (the weights):
+  business_law_social 0.406, engineering 0.116, health_education_care 0.142, ict 0.027, na 0.006, other 0.303
+
+THE SPLIT:
+  pooled differential      -0.0659 (0.0131)
+  within tracks            -0.0508 (0.0118)   [weights renormalised over ict,engineering,business_law_social,health_education_care,other, mass 0.994; track fits treated as independent]
+  composition (residual)   -0.0150
+  ratio within / pooled    0.772
+  VERDICT on the rule fixed before the run (<= 0.50 composition, >= 0.75 hit harder): HIT HARDER
+
+EDUCATION RECORD COVERAGE AMONG 22-25 PERSON-MONTHS:
+  2021: 4,204,557 person-months, no record 0.4 per cent
+  2022: 4,500,764 person-months, no record 0.4 per cent
+  2023: 4,495,243 person-months, no record 0.3 per cent
+  2024: 4,370,538 person-months, no record 0.1 per cent; education carried forward from 2023
+  2025: 2,098,843 person-months, no record 0.2 per cent; education carried forward from 2023
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The gate must PASS. Otherwise nothing here is the paper's.
+  2. Report BOTH within and composition, and the ratio, whichever
+     way the verdict falls. One sentence in the paper, one OA table.
+  3. No track becomes a headline. The cut is heterogeneity.
+  4. The 2024-25 education record is the 2023 one for every worker;
+     the tracks are broad for that reason. Say so once.
+  5. The mix table is descriptive and floored at 5 persons per cell.
+
+Runtime 75.8 min. memory available: 607.8 GB

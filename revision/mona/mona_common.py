@@ -946,28 +946,35 @@ def _run_r(cmd: list, workdir: Path, tag: str, kind: str):
     _report_reader(r.stdout)
     if r.returncode == 0 or not _looks_like_memory_death(r):
         return r
-    had = _threads_in(cmd)
     # Two threads is not always enough: r73_ind_26-30, 28.5M rows with
-    # four fixed effects, died at exactly two on 21 September. Go once
-    # more at one before giving up.
-    nxt = R_RETRY_THREADS if (not had or had > R_RETRY_THREADS) \
-        else (R_RETRY_FLOOR if had > R_RETRY_FLOOR else 0)
-    if not nxt:
-        print(f"  {kind} ({tag}) died at {had} thread(s); nothing lower to try")
-        return r
-    print(f"  {kind} ({tag}) died with rc={r.returncode} "
-          f"(fixest memory, not the node); retrying at {nxt} thread(s)")
-    retry = [c for c in cmd]
-    if had:
-        retry[retry.index("--nthreads") + 1] = str(nxt)
-    else:
-        retry += ["--nthreads", str(nxt)]
-    r2 = subprocess.run(retry, capture_output=True, text=True,
-                        cwd=str(workdir))
-    _report_reader(r2.stdout)
-    if r2.returncode == 0:
-        print(f"  {kind} ({tag}) SUCCEEDED on the {nxt}-thread retry")
-    return r2
+    # four fixed effects, died at exactly two on 21 September, and on
+    # 22 September the ICT contrast in script 77 died at two on a panel
+    # of under a million rows. The comment above this block promised a
+    # further attempt at one thread; the code made only one retry. It
+    # now walks the ladder: 2, then 1, then gives up.
+    ladder = [R_RETRY_THREADS, R_RETRY_FLOOR]
+    had = _threads_in(cmd)
+    for nxt in ladder:
+        if had and had <= nxt:
+            continue
+        print(f"  {kind} ({tag}) died with rc={r.returncode} "
+              f"(fixest memory, not the node); retrying at {nxt} thread(s)")
+        retry = [c for c in cmd]
+        if "--nthreads" in retry:
+            retry[retry.index("--nthreads") + 1] = str(nxt)
+        else:
+            retry += ["--nthreads", str(nxt)]
+        r = subprocess.run(retry, capture_output=True, text=True,
+                           cwd=str(workdir))
+        _report_reader(r.stdout)
+        had = nxt
+        if r.returncode == 0:
+            print(f"  {kind} ({tag}) SUCCEEDED on the {nxt}-thread retry")
+            return r
+        if not _looks_like_memory_death(r):
+            return r
+    print(f"  {kind} ({tag}) died at {had} thread(s); nothing lower to try")
+    return r
 
 
 def run_fepois(panel: pd.DataFrame, workdir: Path, tag: str,

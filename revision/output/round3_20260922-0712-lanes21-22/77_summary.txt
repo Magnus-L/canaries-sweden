@@ -1,0 +1,34 @@
+THE YOUNG AGAINST 41-49, BY EDUCATION TRACK
+====================================================
+
+74's seasonal arm on the three-band panel, per track. A negative
+number means the band declined MORE than 41-49 did, inside exposed
+firms, with the calendar cycle removed.
+
+REPRODUCTION GATE: PASS. all-worker 22-25 vs 41-49 -0.0153 (0.0126) against lane 16/20's -0.0153 (0.0126)
+  A FAIL means this panel is not the paper's; quote nothing.
+
+  all                      22-25 vs 41-49 -0.0153 (0.0126) firms 120,359
+  all                      26-30 vs 41-49 -0.0091 (0.0086) firms 120,359
+  engineering              22-25 vs 41-49 -0.0270 (0.0220) firms 50,657
+  engineering              26-30 vs 41-49 -0.0170 (0.0154) firms 50,657
+  business_law_social      22-25 vs 41-49 -0.0690 (0.0215) firms 39,691  *
+  business_law_social      26-30 vs 41-49 -0.0339 (0.0158) firms 39,691  *
+  health_education_care    22-25 vs 41-49 -0.0099 (0.0199) firms 26,493
+  health_education_care    26-30 vs 41-49 -0.0290 (0.0140) firms 26,493  *
+  other                    22-25 vs 41-49 +0.0329 (0.0181) firms 77,164
+  other                    26-30 vs 41-49 -0.0284 (0.0099) firms 77,164  *
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. The gate must PASS.
+  2. This is heterogeneity. Every track is reported, including the
+     nulls; none becomes a headline; the pooled profile stands.
+  3. A starred track goes in the OA with its SE, its firm count and
+     the carried-forward education record stated beside it.
+  4. The education record for 2024-25 is the 2023 one (Individ
+     ends there), so the tracks are broad.
+
+FITS THAT FAILED: contrast/ict
+A missing row is a missing fit, never a zero.
+
+Runtime 30.2 min. memory available: 636.5 GB
