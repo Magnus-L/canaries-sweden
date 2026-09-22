@@ -1,21 +1,33 @@
 #!/usr/bin/env python3
 """
-l05_posting_estimators.py -- T4/E6 + R1.8 on the POSTING side: Poisson
-variants beside the OLS specifications, so no count outcome anywhere in
-the paper rests on a log transformation alone.
+l05_posting_estimators.py: the posting difference-in-differences by
+Poisson, on the panel with its zero cells.
 
-v1's posting DiD (src/05) drops zero cells and estimates OLS on ln(n);
-src/09's split uses ln(n+1) (defect D4: two conventions in one paper).
-This script estimates, on the FULL panel including zero cells:
+QUESTION
+The posting regression of Equation (1) is estimated by OLS on the log of
+the count, which drops occupation-months with no advertisement. Does the
+result depend on that? This script estimates the same interactions by
+Poisson pseudo-maximum likelihood on the balanced occupation-by-month
+panel with the zeros kept.
 
-  P1  Poisson: PostRB x High + PostGPT x High | occupation + month
-  P2  Poisson spec 4 analogue: | occupation + SSYK1 x month
-  P3  Poisson decile interactions (the l03 gradient, Poisson form)
+DESIGN
+Occupation-by-month cells from January 2020 to the last closed quarter
+(June 2026), balanced over the DAIOE-matched occupations with zero counts
+filled in. Terms: PostRB x High (from April 2022) and PostGPT x High (from
+December 2022), High the top exposure quartile. P1: occupation and month
+effects. P2: occupation and one-digit occupation group by month effects.
+P3: the decile interactions of script l03 in Poisson form, the fifth
+decile the reference. Standard errors clustered by occupation (pyfixest).
 
-pyfixest runs locally (0.40.x); the occupation-month panel is small
-(~26k cells) so this is seconds, not minutes.
+INPUTS AND OUTPUTS
+Reads data/processed/postings_daioe_merged_extended.csv (script l08), or
+postings_daioe_merged.csv if absent. Writes
+revision/tables/postings_poisson.csv and postings_poisson_deciles.csv.
 
-Output: tables/postings_poisson.csv, tables/postings_poisson_deciles.csv
+IN THE PAPER
+Section 3, the statement that neither posting coefficient moves with the
+estimator; Online Appendix II.4. The extended-window Poisson estimates of
+Table tab:extended come from script l08.
 """
 
 import sys

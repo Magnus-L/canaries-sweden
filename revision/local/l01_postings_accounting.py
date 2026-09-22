@@ -1,29 +1,41 @@
 #!/usr/bin/env python3
 """
-l01_postings_accounting.py -- Ed.1 / plan T1: the posting-sample accounting.
+l01_postings_accounting.py: the advertisement sample accounting.
 
-The editor: "report the number of raw advertisements, the number removed
-because of missing or invalid occupation codes, and the number removed as
-duplicates." v1's script 02 computed these but only PRINTED them (defect D3),
-and lumped every non-kept ad into one bucket. This script re-reads the raw
-JSONL zips and counts every drop reason separately, per year and in total:
+QUESTION
+How many advertisements does Platsbanken publish, how many are removed for
+want of an occupation code, an invalid code, a missing date or a
+duplicate identifier, and how does the share of advertisements with a
+valid code move by month and by source system? The editor asked for the
+counts; this script produces them from the raw files.
 
-    n_raw          lines read
-    n_parse_error  invalid JSON
-    n_no_occfield  occupation_group absent or empty
-    n_bad_code     occupation code present but not a 4-digit numeric SSYK
-    n_no_date      publication_date absent or unparseable
-    n_out_of_range publication year outside 2006-2026
-    n_duplicate    ad id already seen (across years, same order as v1)
-    n_kept         rows entering the analysis file
+WHAT IT BUILDS
+One pass over the raw JSONL archives for 2020 to 2025, classifying every
+line in the order the analysis file applies: parse error; occupation
+field absent; code present but not a four-digit numeric SSYK 2012 code;
+publication date absent or unparseable; publication year outside 2006 to
+2026; advertisement identifier already seen (across years); kept. Because
+the order is the one the processing step uses, the kept count reproduces
+the analysis sample by construction. Beside the accounting, every dated
+advertisement is counted by month and source system (the platform through
+which the advertiser posted) with and without a valid code, so that the
+coverage of the occupation field can be shown over time and by source.
+Duplicates are counted in the coverage series, since deduplication is an
+analysis choice and coverage is a property of the data.
 
-The drop order matches v1's extract_ad_fields exactly, so n_kept reproduces
-the v1 sample by construction; a mismatch is a red flag, not a rounding issue.
+INPUTS AND OUTPUTS
+Reads data/raw/<year>.jsonl.zip (the 1 per cent samples with --sample).
+Writes revision/tables/postings_accounting.csv (one row per year and a
+total), postings_accounting.tex and postings_coverage_monthly.csv (month
+by source, advertisements and valid-code advertisements).
 
-Output:  tables/postings_accounting.csv  (one row per year + TOTAL)
-         tables/postings_accounting.tex  (paper-ready)
-Runtime: ~15-25 min on the full files (streamed, constant memory).
-Test:    --sample uses the 1% files (~1 min).
+IN THE PAPER
+Section 2: 4,586,173 advertisements for 2020 to 2025 after the drops; the
+valid-code share of 100.0 per cent in every month from 2022, 99.3 over
+2021 and never below 94.3. Online Appendix II.11 (Table tab:accounting,
+from postings_accounting.tex) and II.12 (Table tab:coverage_source, which
+script l10 builds from postings_coverage_monthly.csv). Script l08 imports
+classify_ad to process the 2026 quarters identically.
 """
 
 import argparse
@@ -40,9 +52,9 @@ from config import RAW, V2_TAB, PLATSBANKEN_YEARS
 
 def classify_ad(ad: dict) -> tuple[str, dict | None]:
     """
-    Mirror of v1 extract_ad_fields (src/02), but returning the DROP REASON
-    instead of None. Order of checks is identical to v1 so the kept sample
-    is identical by construction.
+    Mirror of the submitted version's extract_ad_fields (src/02), but
+    returning the drop reason instead of None. The order of checks is the
+    same, so the kept sample is identical by construction.
     """
     occ_group = ad.get("occupation_group")
     if not occ_group:
@@ -107,7 +119,7 @@ def account_year(year: int, seen_ids: set, sample: bool, monthly: dict) -> dict:
                         c["n_parse_error"] += 1
                         continue
                     reason, rec = classify_ad(ad)
-                    # month + source for the monthly coverage series (Ed.2):
+                    # month + source for the monthly coverage series by source:
                     # the month is knowable even when the occupation code is
                     # not, as long as the ad carries a date.
                     _ym = str(ad.get("publication_date") or "")[:7]
@@ -162,7 +174,7 @@ def main():
     df.to_csv(out, index=False)
     print(f"\nSaved {out}")
 
-    # Monthly valid-code share by source (Ed.2). Duplicates are counted here
+    # Monthly valid-code share by source. Duplicates are counted here
     # (deduplication is an analysis choice, coverage is a data property).
     mrows = [{"year_month": ym, "source_type": src, **v}
              for (ym, src), v in sorted(monthly.items())]

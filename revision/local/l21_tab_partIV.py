@@ -1,35 +1,44 @@
 #!/usr/bin/env python3
 """
-l21_tab_partIV.py -- the three tables Part IV of the online appendix needs.
+l21_tab_partIV.py: the three tables of Online Appendix Part IV, on the
+coverage of the occupation register.
 
-WHY THIS EXISTS. Part IV answers the editor's central objection, that the
-occupation register's coverage moves and could generate our result. On
-21 September all three of its sections were empty: a title, a label and a
-TODO comment naming the script that had already produced the evidence.
-Meanwhile the paper, the response letter and the offline appendix all
-pointed at Part IV as the place where the objection is closed.
+WHAT THE TABLES REPORT
+  tableIV1_coverage.tex   Panel A, the share of employment excluded for
+                          want of any code, by year and age band; Panel B,
+                          the age of the code in 2023, 2024 and 2025 as a
+                          share of employment; Panel C, the match rate by
+                          worker group (incumbent, recent hire, entrant)
+                          pooled over 2020 to 2023. Source: script 40.
+  tableIV2_vintage.tex    the half-year event study of the submitted
+                          design estimated separately on workers coded
+                          from the 2021, 2022 and 2023 registers, ages
+                          22-25. Source: script 41.
+  tableIV3_backtest.tex   the as-of backtest: the true and as-of
+                          coefficients at the two truncations and the
+                          artefact, the as-of coefficient minus the true
+                          one. Source: script 45. The note also quotes the
+                          vintage re-scoring of the reported design (the
+                          as-of arm of script 68), which is the
+                          sensitivity that applies to it.
 
-Writes three tables from exports that already exist:
+The artefact is the gap between the two columns and not the as-of
+coefficient; the tables print all three so the distinction cannot be
+lost.
 
-  tableIV1_coverage.tex   exclusion shares, code vintage and match rates
-                          by worker group. Sources: 40.
-  tableIV2_vintage.tex    the half-year event study run separately on
-                          workers coded from each register vintage.
-                          Source: 41.
-  tableIV3_backtest.tex   the as-of backtest: true against as-of, at two
-                          truncations, with the artefact. Source: 45.
-
-READ RULE CARRIED INTO THE TABLES. The ARTEFACT is the gap, as-of minus
-true, not the as-of coefficient. At the 2021 truncation the as-of arm
-returns -0.2875 where the truth is +0.0193, so the artefact is -0.3068.
-Quoting -0.31 "against a true coefficient of +0.02" double-counts, since
--0.31 is already the difference. The tables print all three columns so
-the distinction cannot be lost.
-
-Each table is written to revision/tables/ and copied to the manuscript
-repository's tables/ folder.
+INPUTS AND OUTPUTS
+Reads, from the export directories the final-code manifest names:
+excluded_counts.csv, vintage_composition.csv and
+entrant_split_coverage.csv (script 40); output_41__vintage_es.csv and
+output_41__margin_pair_counts.csv (script 41); asof_estimates.csv (script
+45); seasonal_pooled.csv (script 68). Writes the three .tex files to
+revision/tables/ and copies them to canaries-sweden-paper/tables/.
 
     python3 revision/local/l21_tab_partIV.py
+
+IN THE PAPER
+Online Appendix IV.1 (tab:iv_coverage), IV.2 (tab:iv_vintage) and IV.3
+(tab:iv_backtest).
 """
 import shutil
 import sys

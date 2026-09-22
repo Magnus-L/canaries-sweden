@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 """
-l15_fig_backtest.py -- the as-of backtest, the exhibit the revision turns on.
+l15_fig_backtest.py: Figure A1, the as-of backtest.
 
-WHY THIS EXISTS. `figures/figA1_asof_backtest.pdf` had no generating
-script anywhere in the tree, and neither did figA2 or figA3. For the
-figure that carries the paper's central argument that is not acceptable:
-nobody can tell which export it came from, it cannot be re-rendered when
-new numbers land, and it cannot go into a replication package.
-
-WHAT IT SHOWS. Impose the register's two-year staleness on a period
-where the truth is observable. At each truncation T the same design is
-run twice: once on the codes as they will eventually read (`true`), once
-on the codes as they read at T (`asof`). The gap between them is what
-the lag manufactures out of nothing. It is large, negative, and it is
-the whole reason the submitted headline was withdrawn.
-
-Read the panel left to right: the true arm sits at zero, the as-of arm
-sits far below it, and the distance is the artefact.
+WHAT IT DRAWS
+For each truncation of the occupation register (2021 and 2022), the
+coefficient the submitted design returns with the true contemporaneous
+codes and with the codes the coding cascade would have produced had the
+register stopped at that year, from the estimates of script 45, with 95
+per cent intervals. The distance between the two markers is the artefact
+the lag alone manufactures, and it is written on the figure as the as-of
+coefficient minus the true one.
 
     python3 revision/local/l15_fig_backtest.py [export_dir]
+
+INPUTS AND OUTPUTS
+Reads asof_estimates.csv from the script 45 export directory the
+final-code manifest names (or from a directory given on the command
+line). Writes revision/figures/figA1_asof_backtest.pdf and .png through
+_figsafe.save.
+
+IN THE PAPER
+Online Appendix IV.3, Figure fig:asof_backtest, beside Table IV.3.
 """
 import sys
 from pathlib import Path

@@ -1,31 +1,43 @@
 #!/usr/bin/env Rscript
-# r_fepois.R -- Poisson PML wrapper for 32_mona_kauhanen_robustness.py
+# r_fepois.R: Poisson pseudo-maximum likelihood with the two treatment terms
+# of the submitted design, fitted in R with fixest and called from Python.
 #
-# Called via subprocess from Python. Replaces pyfixest::fepois with R's
-# fixest::fepois (version 0.13.2 confirmed installed in MONA, 2026-04-28).
+# WHAT IT FITS
+#   n_emp ~ post_rb_x_high + post_gpt_x_high | fe_emp_bin + fe_emp_t
+# on the exchange file mona_common.run_fepois writes, with standard errors
+# clustered on the column named by --cluster (employer_id by default) and an
+# optional cell weight. This is the pooled specification of the withdrawn
+# occupation design and of the as-of backtest (script 45), the education
+# design comparison (script 47h) and the teleworkability check (script 46).
+# Every estimate the paper reports is fitted through r_fepois_multi.R.
 #
-# Usage:
-#   Rscript r_fepois.R --input <input.csv> --output <output.csv> \
-#       [--weights <colname>] [--cluster <colname>]
+# USAGE
+#   Rscript r_fepois.R --input <in.csv[.gz]> --output <out.csv>
+#       [--weights <col>] [--cluster <col>] [--nrows <n>] [--nthreads <k>]
 #
-# Required CSV columns (read from --input):
-#   n_emp                -- dependent variable (count)
-#   post_rb_x_high       -- treatment 1
-#   post_gpt_x_high      -- treatment 2
-#   fe_emp_bin           -- FE 1 (string concatenation employer x bin)
-#   fe_emp_t             -- FE 2 (string concatenation employer x year-month)
-#   employer_id          -- cluster variable (and used in cluster vcov)
-#   <weights colname>    -- optional cell-level weight (if --weights passed)
+# INPUT COLUMNS
+#   n_emp             the count
+#   post_rb_x_high    one from April 2022 in the top exposure quartile
+#   post_gpt_x_high   one from December 2022 in the top exposure quartile
+#   fe_emp_bin        employer by quartile key (integer code or string)
+#   fe_emp_t          employer by month key
+#   <cluster>         the cluster column
 #
-# Output CSV columns (written to --output):
-#   term, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s, status
+# OUTPUT COLUMNS
+#   term, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s,
+#   status ('ok', 'dropped' for a term absorbed by the effects, or the
+#   failure reason). A failure still writes the file, so the calling script
+#   reads a status row rather than crashing.
 #
-# Exit codes:
-#   0  -- success (output CSV written)
-#   1  -- fixest not available, missing input, or fit failure
+# READER AND THREADS
+#   data.table::fread is used when installed; otherwise read.csv with the row
+#   count from --nrows and column classes inferred from a sample, which reads
+#   a thirty-million-row frame at roughly the size of the result. fixest's
+#   thread count comes from --nthreads, then CANARIES_R_THREADS, then 8; the
+#   Python wrapper lowers it and retries when R's allocator fails.
 #
-# ASCII-only output. Errors are written to stderr; output CSV always
-# written so Python can read a failure row instead of crashing.
+# Exit code 0 on success; 1 when fixest is missing, the input is missing or
+# the fit fails. Output is ASCII only.
 
 # ----------------------------------------------------------------------
 # Argument parsing (base R, no external deps)

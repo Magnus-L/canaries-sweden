@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
 """
-l23_fig_age_profile.py -- Figure 2 of the revision: every age band against
-41-49 inside exposed firms after adoption, with and without the calendar
-cycle, built from the exported lane 20 contrast rather than by hand.
+l23_fig_age_profile.py: Figure 2 of the paper, the age profile inside
+exposed employers after adoption.
 
-WHAT IT SHOWS. Six bands in one panel of 172,396 employers (script 74).
-Filled markers are the specification the paper uses, with three
-quarter-of-year interactions per band; hollow markers are the plain arm.
-A negative number means the band declined more than 41-49 did. The
-reference band is drawn at zero with no interval. Stars at the whisker
-ends mark significance at ten, five and one per cent (one to three
-stars), computed from the exported standard errors against the normal
-thresholds; coefficient plots in this paper keep their stars.
+WHAT IT DRAWS
+Each age band against 41-49, from the contrast export of script 74: six
+bands in one panel of 172,396 employers, with employer-by-month,
+employer-by-age and month-by-age effects, exposure frozen at the
+employer's 2019 education mix and treatment from January 2024. Filled
+markers are the paper's specification, with three quarter-of-year
+interactions per band; hollow markers omit them. The reference band is
+drawn at zero without an interval. Whiskers are 95 per cent intervals
+clustered by employer, and stars mark significance at ten, five and one
+per cent from the exported standard errors against the normal thresholds.
+A negative value means the band declined more than 41-49.
 
     python3 revision/local/l23_fig_age_profile.py [export_dir]
 
-Writes canaries-sweden-paper/figures/fig2_age_profile.pdf and .png.
+INPUTS AND OUTPUTS
+Reads contrast_seasonal.csv from the script 74 export directory the
+final-code manifest names (or from a directory given on the command
+line). Writes revision/figures/fig2_age_profile.pdf and .png through
+_figsafe.save and copies both to canaries-sweden-paper/figures/.
+
+IN THE PAPER
+Figure 2 (label fig:age_profile), Section 3.
 """
 import sys
 from pathlib import Path

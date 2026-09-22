@@ -1,79 +1,53 @@
 #!/usr/bin/env python3
 """
-72_incumbent_floor.py -- is the 31+ incumbent mix a good proxy for what
-                         a firm's YOUNG workers actually do?
+72_incumbent_floor.py: how well does the incumbent mix stand in for the
+work a firm's young workers do?
 
-======================================================================
-  RUNS IN MONA. NO SQL. Reads 47h's cached education frames and 47L's
-  cached counts. Writes output_72/.
-======================================================================
+QUESTION
+Exposure is scored from incumbents aged 31 to 69 because 31 is the lowest
+floor that keeps both young bands out of their own treatment. If a firm's
+young workers do different work from its older ones, the incumbent mix is
+a noisy proxy for whether the firm's young are exposed, and measurement
+error in a binary treatment attenuates toward zero. This script measures
+the proxy's reliability and re-estimates the headline with each young
+band's own records left out of the exposure but every other band's
+included. No attenuation correction is applied: the error is not
+classical, so the reliability is reported and the reader can see what
+room it leaves.
 
-THE QUESTION, WHICH IS ML'S AND IS A GOOD ONE.
+DESIGN
+Part A, descriptive: for every employer, the education-based score of its
+22-25 workers, of its 26-30 workers and of its incumbents aged 31 to 69
+in 2019 (script 47j's incumbent_exposure applied to each band set), then
+the Pearson and Spearman correlations between the young and incumbent
+scores, the share of employers in the same quartile on both, the share
+that flip between the top and bottom quartile, and the number of
+employers the young band cannot score at all, overall and by 2019
+employer size (1-9, 10-49, 50-249, 250 and over).
 
-Every headline in the revision scores a firm from the 2019 education mix
-of its incumbents aged 31 and over. The floor is not a taste: 31 is the
-LOWEST floor that keeps both studied bands, 22-25 and 26-30, out of their
-own treatment. Let a young worker's own record into the exposure measure
-and the circularity the as-of backtest just killed comes straight back.
+Part B: for each young band, exposure built from every band except that
+one, and script 61's single step (PostRB x High x Young from April 2022,
+Post x High x Young from January 2024; employer-by-month, employer-by-age
+and month-by-age effects; Poisson; clustered by employer) fitted on that
+exposure beside the incumbent-based one. Part C: the as-of arm of Part B,
+so the leave-one-out measure carries its own artefact.
 
-But the floor buys that immunity at a price, and the price is what this
-script measures. If a firm's young workers do different work from its
-older ones, trainees and assistants against the professionals who employ
-them, then the 31+ mix is a NOISY proxy for whether the young in that
-firm are exposed. Classical measurement error in a binary treatment
-attenuates toward zero, so the direction is knowable: our estimates would
-be conservative rather than inflated. That is worth being able to say,
-and it is worth QUANTIFYING rather than asserting.
+Read rule fixed before the run: the proxy is good if the correlation is
+at least 0.70 and quartile agreement at least 0.60; weak if the
+correlation is below 0.40, in which case the leave-one-out estimate should
+be larger in absolute value; partial between. A leave-one-out estimate is
+usable only if its artefact is below 0.05.
 
-Note what this script does not do. It does not attenuation-correct
-anything. The measurement error here is not classical, the correction
-would be a fiction, and the honest move is to report the reliability and
-let the reader see how much room it leaves.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h)
+and L_counts_2021 to 2025 (script 47L); performs no SQL. Writes to
+output_72/: reliability.csv, loo_headline.csv, loo_artefact.csv and
+72_summary.txt.
 
-WHAT IT MEASURES
-
-  A  RELIABILITY, descriptive, no estimation. For every firm, the
-     education-based exposure of its 22-25 workers, of its 26-30
-     workers, and of its 31+ incumbents. Then the correlation between
-     young and incumbent scores, the share of firms landing in the same
-     quartile on both, and the share that flip between the top and
-     bottom quartile. Broken out by firm size, because the concern is
-     sharpest where a handful of workers decide the mix.
-
-  B  LEAVE ONE BAND OUT. For band a, exposure built from every band
-     EXCEPT a. Estimating 22-25 then uses 26-30 and everyone older, so
-     representation improves while the estimated band still never enters
-     its own treatment. The headline is re-estimated on that measure.
-
-  C  THE ARTEFACT ON B. Letting 26-30's records into exposure admits
-     staler ones, so the leave-one-out measure has to carry its own
-     as-of arm. A measure is not usable here merely because it is better
-     represented.
-
-THE READ RULE, FIXED BEFORE THE RUN
-
-  1. PROXY GOOD if the young-to-incumbent correlation is at least
-     R_GOOD and quartile agreement at least Q_GOOD. Then the floor costs
-     little, say so in one sentence and keep the headline as it is.
-
-  2. PROXY WEAK if the correlation is below R_WEAK. Then the headline is
-     attenuated, and the leave-one-out estimate should be LARGER in
-     absolute value. If it is not larger, attenuation is not the story
-     and something else is going on, which must be chased rather than
-     written around.
-
-  3. Anything between is PARTIAL: report the reliability beside the
-     estimate and claim nothing further.
-
-  4. The leave-one-out estimate is USABLE only if its artefact stays
-     under ARTEFACT_MAX, the project's standing threshold. Better
-     representation does not buy a pass on staleness.
-
-Output (output_72/):
-  reliability.csv    Part A, overall and by size
-  loo_headline.csv   Part B, with the 31+ headline beside it
-  loo_artefact.csv   Part C
-  72_summary.txt
+IN THE PAPER
+No number from this script is quoted in the current manuscript. The
+reliability table is exported so that the proxy's quality can be reported
+if a sentence is added.
 """
 
 import gc

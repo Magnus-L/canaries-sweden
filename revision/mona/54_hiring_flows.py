@@ -1,72 +1,52 @@
 #!/usr/bin/env python3
 """
-54_hiring_flows.py -- the fast margin: HIRES and SEPARATIONS, on exposure
-                      frozen in 2019.
+54_hiring_flows.py: hires and separations by employer, age band and month.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY. Standalone: submit this
-  file itself. Writes output_54/. Caches under cache/.
-======================================================================
+QUESTION
+Through which margin does the employment of young workers adjust: fewer
+hires, or more separations? The stock is the slowest object in the
+Swedish labour market, since notice periods and seniority rules stand
+between a change in demand and a change in headcount, and the claim that
+entry-level work is affected is a claim about flows. This script builds
+the monthly flows from the employer declarations, with no occupation or
+education record, and estimates the same design as script 47L on them.
 
-WHY.
+DESIGN
+A hire in month t is an employer-person pair present in t and absent from
+that employer in t minus 1; a separation is a pair present in t minus 1
+and absent in t, counted in t. Both come from one full outer join of
+consecutive months, one query per month, so the two flows are computed
+from the same comparison. A move to another employer or a month off the
+payroll counts as a separation; the declarations record no reason for the
+exit. January 2019 has no predecessor and is dropped. Age is read from the
+birth year in the Individ register (2023, 2021 or 2019 vintage, whichever
+holds the person).
 
-47L put the paper's question on measurement that the register lag cannot
-touch, and found +0.007 (SE 0.0089) on 11.2 million cells through 2025H1.
-Read carelessly that is "no effect". Read properly it is a bound on ONE
-margin: the stock of employment, inside the firm, across age groups.
+Panel (build_panel): employer by age band by month, January 2019 to June
+2025, balanced and zero-filled, so that a cell that hires in some months
+and not others carries its zeros; a variant drops every January, the
+month of year-end contract turnover. Exposure is script 47L's E(f, a),
+imported rather than rebuilt, standardised across cells. Terms: PostRB x E
+and PostGPT x E, and in the gradient fit one PostGPT x E per age band.
+Fixed effects: employer by month, employer by age, month by age. Poisson
+pseudo-maximum likelihood, standard errors clustered by employer, one fit
+per outcome.
 
-Headcount is the slowest margin in the Swedish labour market. Notice
-periods, LAS and collective agreements all stand between a demand shock and
-a change in the stock. The literature this paper sits in is not about the
-stock either: the entry-level canary is a claim about HIRING. If generative
-AI is changing who firms take on, the stock is where you would see it last
-and the hiring flow is where you would see it first.
+INPUTS AND OUTPUTS
+Reads, in MONA, consecutive pairs of Arb_AGIIndivid monthly tables joined
+to Individ_2023, 2021 and 2019; the L_baseline_2019 cache and
+daioe_quartiles.dta through script 47L. Caches flows_YYYY.parquet
+(employer, month, age band, n_hire, n_sep). Writes to output_54/:
+flow_estimates.csv, flow_gradient.csv, flow_support.csv and
+54_summary.txt.
 
-The flow is observable with no occupation code at all. AGI carries a monthly
-spell per person per employer, so a hire at employer f in month t is a
-person present at f in t and absent from f in t-1, and a separation is the
-reverse. Birth year gives the age band. Nothing else is needed, and nothing
-that arrives with a register lag enters the outcome.
-
-THE DESIGN, deliberately identical to 47L except for the outcome:
-
-    exposure   E(f,a), the mean DAIOE genAI percentile of the occupations
-               employer f's age-a workers held in 2019, standardised across
-               cells and then FIXED. Imported from 47L, not recomputed, so
-               the two scripts cannot drift apart.
-    outcome    n_hire (and, separately, n_sep) per employer x age x month
-    absorbed   employer x month, employer x age, month x age
-    identified PostGPT x E(f,a), pooled and then one coefficient per age
-               band
-
-WHAT WOULD MAKE THIS WRONG, stated before the results:
-
-  1. A hire here is an employer-person spell that was not there last month.
-     That includes a return from parental leave, from long sick leave, and
-     a re-hire after a seasonal break. It is a start, not a labour-market
-     entry. Firms differ in how much of this they have, which the employer
-     fixed effects absorb; whether the MIX changed after ChatGPT
-     differentially by baseline exposure, they do not.
-  2. January is contaminated by year-end contract churn and the first month
-     of the window has no predecessor at all. Both are handled: 2019-01 is
-     dropped, and a January-excluded variant is reported beside the main
-     one.
-  3. Exposure is a 2019 proxy for who is exposed in 2025. It is stale by
-     construction, and staleness attenuates toward zero. A null here bounds
-     the effect of BASELINE exposure, not of current exposure. This is the
-     same disease as the register lag wearing a different coat, and it is
-     the reason this script reports the pooled estimate beside the gradient
-     rather than either alone.
-  4. Hires are a count with many structural zeros (a firm-age cell that
-     never hires). Poisson handles the zeros; the employer x age fixed
-     effect drops cells that never hire at all, which is correct and is
-     reported as a sample line, not hidden.
-
-Output (output_54/):
-  flow_estimates.csv     pooled gamma per outcome x variant
-  flow_gradient.csv      one coefficient per age band, per outcome
-  flow_support.csv       cells, firms, zero share, mean flow by age
-  54_summary.txt
+IN THE PAPER
+Section 2 defines a hire and a separation as above. The flows_YYYY caches
+are the outcome behind the hires and separations rows of Table 1 and
+Online Appendix Table III.2, Panel A (fitted by scripts 68 and 75 on the
+headline classification), and behind the hiring and separation rows of
+Panel B (fitted by script 63 on the continuous route). The estimates in
+flow_estimates.csv, dated at the launch, are not quoted.
 """
 
 import gc

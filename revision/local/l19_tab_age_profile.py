@@ -1,48 +1,48 @@
 #!/usr/bin/env python3
 """
-l19_tab_age_profile.py -- the appendix table for the design the paper
-reports, beside the age profile on a different exposure construction.
+l19_tab_age_profile.py: Online Appendix Table III.2 (tab:age_profile_rebuilt),
+the headline design by age beside the age profile on a different exposure
+construction.
 
-WHAT THE TABLE REPORTS. Two panels that must not be read against each
-other.
+WHAT THE TABLE REPORTS
+Two panels that must not be read against each other.
 
-  Panel A  The headline route: the top quartile of the 2019 education
-           mix of a firm's incumbents aged 31 and over, estimated for the
-           two young bands. Rows give the adoption step with and without
-           the calendar cycle removed, the artefact beside each, the
-           tightening step, the step from the 2023 level (the
-           post-adoption minus the interim term of the window
-           specification, standard error from their covariance), the
-           level after adoption against the months before the rate hike,
-           and the hires and separations steps at adoption.
-  Panel B  Six age bands on continuous occupation-scaled measures (DAIOE,
-           Eloundou and teleworkability), each coefficient per standard
-           deviation of the 2019 firm-age baseline exposure on that
-           measure's own scale. A different estimand, reported as a
-           robustness exercise about the measure.
+  Panel A  The headline route: the top quartile of the 2019 education mix
+           of an employer's incumbents aged 31 to 69, for the two young
+           bands. Rows give the adoption step with and without the
+           calendar cycle removed (scripts 68 and 61), the vintage
+           re-scoring beside each, the tightening step, the step from the
+           2023 level (the post-adoption minus the interim term of the
+           window specification of script 75, standard error from their
+           covariance), the level after adoption against the months
+           before the rate rise, and the hires and separations steps at
+           adoption.
+  Panel B  Six age bands on the continuous occupation-scaled measures of
+           script 63 (DAIOE, Eloundou et al. and teleworkability), each
+           coefficient per standard deviation of the 2019 firm-age
+           baseline on that measure's own scale, treatment dated at
+           adoption. A different estimand, reported as a check on the
+           measure.
 
-The vintage re-scoring in Panel A is the change in the coefficient when each
-employer's 2019 incumbents are re-scored from the education register as
-it stood in 2021 and the same panel is re-estimated (the as-of arms of
-scripts 61 and 68). The 26-30 arm of script 68 was not re-scored, so
-that cell is empty.
+The note quotes the 22-25 contrast against 41-49 with the cycle removed
+(script 74). The vintage re-scoring is the change in the coefficient when
+the 2019 incumbents are re-scored from the education register as it stood
+in 2021 (the as-of arms of scripts 61 and 68); the 26-30 arm of script 68
+was not re-scored, so that cell is empty.
 
-INPUTS, read from the export directories the final-code manifest names.
-
-  lane 14  seasonal_pooled.csv       adoption step, cycle removed; hires
-                                     and separations (68)
-  round 2  output_61__redated_pooled.csv  adoption step before the cycle (61)
-  lane 21  reference_window.csv      tightening step, levels and, with the
-           vcov_s75_*_stock.csv        covariance files, the 2023 step (75)
-  lane 20  contrast_seasonal.csv     the 22-25 contrast against 41-49 (74),
-                                     quoted in the note
-  round 2  output_63__robustness_gradient.csv  Panel B (63)
-
-OUTPUT. revision/tables/tableA_age_profile.tex, copied to the manuscript
-repository's tables/ folder. Pass one directory on the command line to
-read every input from there instead of the pinned locations.
+INPUTS AND OUTPUTS
+Reads, from the export directories the final-code manifest names (or one
+directory given on the command line): seasonal_pooled.csv (script 68),
+output_61__redated_pooled.csv (script 61), reference_window.csv and
+vcov_s75_<band>_stock.csv (script 75), contrast_seasonal.csv (script 74)
+and output_63__robustness_gradient.csv (script 63). Writes
+revision/tables/tableA_age_profile.tex and copies it to
+canaries-sweden-paper/tables/.
 
     python3 revision/local/l19_tab_age_profile.py [export_dir]
+
+IN THE PAPER
+Online Appendix III.2, Table tab:age_profile_rebuilt.
 """
 import shutil
 import sys

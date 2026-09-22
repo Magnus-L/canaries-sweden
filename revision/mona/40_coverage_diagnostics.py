@@ -1,37 +1,48 @@
 #!/usr/bin/env python3
 """
-40_coverage_diagnostics.py -- T1/E3 (MONA run M1): the employment-coverage
-accounting the editor's letter itemises.
+40_coverage_diagnostics.py: what the occupation register covers, and how
+old its codes are.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY.
-  Requires cache/panel_vintage.parquet (script 39 writes it).
-======================================================================
+QUESTION
+The editor asked what share of employed workers can be assigned an
+occupation code, whether that share moves over the window, which register
+vintage supplies the code, and how coverage differs between incumbents,
+recent hires and entrants. This script answers from the vintage-tagged
+panel, in which every worker-month records which Individ register
+supplied its code.
 
-From the vintage-tagged panel (employer x ssyk4 x age x month x vintage):
+WHAT IT BUILDS
+From cache/panel_vintage.parquet (employer by occupation by age band by
+month by vintage, written by script 39 through mona_common):
+  A and D  the match rate (share of worker-months with a code from any
+           vintage) and the excluded number and share, by month and age
+           band;
+  B        among coded worker-months from 2023, the share coded from the
+           2023, 2022 and 2021 registers, by month and age band;
+  C        among coded worker-months, the composition across DAIOE
+           exposure quartiles of the assigned code, by month and age band;
+  E        from a person by employer by year pull of the employer
+           declarations for 2019 to 2025, each person-employer pair
+           classified as entrant (the person's first year in the
+           declarations), incumbent (at the same employer the year before)
+           or recent hire (otherwise), with the share of pairs carrying a
+           code per group and year. The 2019 entrant row is censored,
+           since 2019 is the first panel year.
 
-  A. Match rates by month x age group: share of AGI worker-months with a
-     usable SSYK code (vintage != 'none'), the editor's headline series.
-  B. Vintage composition by month x age group for 2023-2025: share of
-     coded workers classified with 2023 / 2022 / 2021 codes.
-  C. Match rates by month x age x DAIOE quartile OF THE ASSIGNED CODE --
-     the differential the bounding exercise needs. (Unmatched workers have
-     no quartile by construction; their counts appear in A's denominator.)
-  D. Excluded counts: number and share of employed workers with no code,
-     by month x age group -- "the number and share of employed workers
-     excluded because no occupation code can be assigned".
+INPUTS AND OUTPUTS
+Reads the panel cache and, for stage E, Arb_AGIIndivid joined to the
+Individ registers in MONA. Writes to output_40/:
+coverage_by_month_age.csv, excluded_counts.csv, vintage_composition.csv,
+coverage_by_quartile.csv, entrant_split_coverage.csv and
+coverage_summary.txt. Aggregates only, with the export floor applied.
 
-The incumbent / recent-hire / new-entrant split (E3's remaining clause)
-uses a person-level first-appearance pull, shared with script 41; it runs
-here as stage E if RUN_ENTRANT_SPLIT = True (needs SQL, ~15 min):
-  person x year presence -> first AGI year -> entrant (first year),
-  recent hire (first seen at THIS employer this year, seen in AGI before),
-  incumbent (at this employer in the previous year too); match rates per
-  group per year.
-
-Output (output_40/): coverage_by_month_age.csv, vintage_composition.csv,
-coverage_by_quartile.csv, excluded_counts.csv, entrant_split_coverage.csv,
-coverage_summary.txt. All aggregates; export floor applied.
+IN THE PAPER
+Online Appendix IV.1 and Table IV.1 (script l21): Panel A, the share of
+employment excluded for want of a code, zero to two decimal places from
+2020; Panel B, the age of the code in 2023, 2024 and 2025; Panel C, the
+match rate by worker group pooled over 2020 to 2023 (incumbents 99.1 per
+cent, recent hires 99.4, entrants 92.9). Script 49 reconciles the match
+rate here with the non-match series of the submitted appendix.
 """
 
 import sys

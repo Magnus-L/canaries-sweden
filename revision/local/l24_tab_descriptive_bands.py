@@ -1,40 +1,41 @@
 #!/usr/bin/env python3
 """
-l24_tab_descriptive_bands.py -- the descriptive counterpart of the
-within-employer age design: how headcount by age band moved in exposed
-and less exposed firms, with no regression at all.
+l24_tab_descriptive_bands.py: Online Appendix Table III.1, the descriptive
+counterpart of the within-employer age design.
 
-WHAT THE TABLE REPORTS. Script 66 counts workers by employer, age band
-and month on the same 2019 exposure classification the regressions use,
-and sums them over two windows: the pre-adoption months, January 2022 to
-December 2023, and the adoption window, January 2024 to June 2025. The
-table gives the per cent change between the two windows, by exposure
-quartile of the employer and by age band, in two panels.
+WHAT THE TABLE REPORTS
+Script 66 counts workers by employer, age band and month on the 2019
+exposure classification the regressions use and sums them over two
+windows: the pre-adoption months, January 2022 to December 2023, and the
+adoption window, January 2024 to June 2025. The table gives the per cent
+change between the windows by exposure quartile of the employer and by
+age band, in two panels.
 
   Panel A  Total headcount per month, summed over every employer in the
-           quartile. A firm whose count in a band falls to zero
-           contributes that zero, so the panel is the change in the
-           number of people the quartile's employers had on the payroll.
-  Panel B  Mean headcount per employer-month, over the employer-months
-           with at least one worker in the band. This conditions on the
+           quartile; an employer whose count in a band falls to zero
+           contributes that zero, so the panel is the change in the number
+           of people the quartile's employers had on the payroll.
+  Panel B  Mean headcount per employer-month over the employer-months
+           with at least one worker in the band; this conditions on the
            cell being populated, and the set of populated employer-months
            is not held fixed between the windows.
 
-Neither panel controls for anything: firm composition, the business
-cycle and the ageing of the workforce are all inside the numbers. The
-regression coefficients in the paper are within-employer contrasts net
-of employer-by-month, employer-by-age and month-by-age effects; this
-table is the raw movement they are a contrast within.
+Neither panel controls for anything: composition, the business cycle and
+the ageing of the workforce are inside the numbers. The regression
+coefficients in Table 1 are within-employer contrasts net of the fixed
+effects; this table is the raw movement they are a contrast within.
 
-INPUT.  revision/output/round2_20260921-0733-jobs646567/
-        output_66__plain_stock.csv (script 66): fq, age_group, period,
-        mean_value, total, n_firms, n_cells. `total` is the sum of
-        headcount over all employer-months in the window; `mean_value`
-        the mean over populated employer-months.
-OUTPUT. revision/tables/tableA_descriptive_bands.tex, copied to the
-        manuscript repository's tables/ folder.
+INPUTS AND OUTPUTS
+Reads output_66__plain_stock.csv (script 66; columns fq, age_group,
+period, mean_value, total, n_firms, n_cells) from the export directory the
+final-code manifest names (or one given on the command line). Writes
+revision/tables/tableA_descriptive_bands.tex and copies it to
+canaries-sweden-paper/tables/.
 
     python3 revision/local/l24_tab_descriptive_bands.py [export_dir]
+
+IN THE PAPER
+Online Appendix III.1, Table tab:descriptive_bands; quoted in Section 3.
 """
 import shutil
 import sys

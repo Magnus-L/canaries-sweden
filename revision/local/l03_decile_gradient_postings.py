@@ -1,19 +1,34 @@
 #!/usr/bin/env python3
 """
-l03_decile_gradient_postings.py -- R1.4 / plan T11: the posting DiD by
-exposure DECILE instead of the binary top-quartile split.
+l03_decile_gradient_postings.py: the posting difference-in-differences by
+exposure decile.
 
-Why: R1 asks "why use such a discrete measure of AI exposure?"; Källberg's
-thesis uses the top decile where we use the top quartile. Estimating the
-gradient decile by decile answers both at once and shows what the quartile
-choice buries. Specification is v1's spec 2 (occupation + month FE, both
-post-period interactions), with the top-quartile dummy replaced by a full
-set of decile × post interactions (decile 1 = least exposed = reference).
+QUESTION
+A referee asked why exposure enters as a top-quartile indicator. Estimating
+the two period interactions decile by decile shows the whole gradient and
+what the quartile cut summarises.
 
-Output:
-  tables/postings_decile_gradient.csv   (coef, se, p per decile x period)
-  figures/postings_decile_gradient.pdf  (gradient plot, both coefficients)
-Runtime: ~1 min.
+DESIGN
+Occupation-by-month cells from January 2020 to the last closed quarter
+(June 2026), cells with a positive count, the outcome ln(postings).
+Occupations are cut into ten unweighted deciles of the DAIOE generative-AI
+percentile, each four-digit occupation counting once. Terms: PostRB
+(from April 2022) and PostGPT (from December 2022) interacted with each
+decile except the fifth, which is the reference, so that every
+coefficient is a contrast against the median occupation; the least
+exposed decile is not used as the reference because it carries its own
+rate-cycle response. Occupation and month fixed effects (linearmodels
+PanelOLS), standard errors clustered by occupation.
+
+INPUTS AND OUTPUTS
+Reads data/processed/postings_daioe_merged_extended.csv (script l08), or
+postings_daioe_merged.csv if the extended file is absent. Writes
+revision/tables/postings_decile_gradient.csv and
+revision/figures/postings_decile_gradient.pdf and .png.
+
+IN THE PAPER
+Online Appendix II.15: Figure fig:deciles and Table tab:deciles (built by
+script l10 from postings_decile_gradient.csv).
 """
 
 import sys

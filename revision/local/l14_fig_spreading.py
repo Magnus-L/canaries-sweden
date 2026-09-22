@@ -1,55 +1,44 @@
 #!/usr/bin/env python3
 """
-l14_fig_spreading.py -- the revision's headline exhibit, built from the
-exported lane 14 path rather than by hand.
+l14_fig_spreading.py: Figure 3 of the paper, the quarterly path of young
+employment relative to older colleagues, and its monthly diagnostic.
 
-WHY THIS EXISTS. `figures/fig2_quarterly_path.pdf` was produced ad hoc on
-21 September: no PNG twin, no script in the tree, no way to tell which
-export it came from. That is the wrong footing for the figure the paper
-leads on, and the change list has since respecified it anyway, as two
-series rather than one.
+WHAT IT DRAWS
+The quarterly path for 22-25 and for 26-30 on one pair of axes, from the
+seasonal path export of script 68: each point is the coefficient on that
+quarter's interaction with High x Young, a step from the level of the
+tightening months (the Riksbank term stays in the fit), with the calendar
+cycle removed by the quarter-of-year terms, and 95 per cent intervals
+clustered by employer. The point for 2022Q4 is December 2022 alone, the
+first full month after the launch, and is drawn hollow. Both series come
+from the same specification, so the comparison is between two seasonally
+adjusted paths. A lower panel gives Statistics Sweden's published share of
+enterprises with ten or more employees using AI (10, 25 and 35 per cent
+for the survey years 2023, 2024 and 2025), which is the series the timing
+is read against; it is published, not estimated here. The last points
+rest on six months of 2025 rather than twelve; the employer declarations
+are not revised after delivery, so they are not preliminary.
 
-WHAT IT SHOWS. The quarterly path for 22-25 and for 26-30 on the same
-axes, with SCB's measured firm AI adoption behind them. The claim is the
-second line peeling away from zero about a year after the first: the
-effect reaches the youngest band first and the next one later. Both
-series have the calendar cycle removed, which matters -- the 22-25 and
-26-30 paths must come from the SAME specification or the comparison is
-between a seasonally adjusted series and a raw one.
-
-READ RULES CARRIED INTO THE FIGURE.
-  * 2022Q4 straddles the ChatGPT launch and is neither pre nor post. It
-    is drawn hollow and excluded from any statement about the pre-period.
-  * 2025 is half a year of AGI data, so the last points rest on fewer
-    months than the rest. They are NOT preliminary; see below.
-  * No yearly series is plotted, because the quarterly one is strictly
-    finer. The 22-25 yearly path did land in the end (-0.0178, -0.0414,
-    -0.0403); the note that it "was never estimated" described the
-    13:23 export, whose fit had crashed, and is withdrawn.
+With --monthly the same design is drawn month by month. That chart is a
+diagnostic and not an estimate: the specification controls quarter of
+year, so a monthly coefficient retains whatever separates the month from
+its own quarter's mean, and that residual is large at 22-25. It shows how
+much the 2025 endpoint moves month to month and is used in the online
+appendix for that purpose only.
 
     python3 revision/local/l14_fig_spreading.py [export_dir]
     python3 revision/local/l14_fig_spreading.py --monthly [export_dir]
 
-THE MONTHLY VARIANT IS A DIAGNOSTIC, NOT AN ESTIMATE, and must not be
-the paper's figure. The design controls quarter-of-year (q1/q2/q3 x
-high x young), so a quarterly coefficient is measured against a control
-at its own frequency and a monthly one is not: each month keeps
-whatever separates it from its own quarter's mean. That residual is
-large in 22-25 and small in 26-30. The within-Q1 spread of the monthly
-coefficients runs 0.0152, 0.0112 and 0.0404 across 2023-25 for 22-25,
-the last of these wider than the 2025Q1 coefficient itself, against
-0.0087, 0.0093 and 0.0104 for 26-30. So February 2025 at +0.0208 and
-June at -0.1003 are the artefact, not the signal, and they are not a
-reason to prefer monthly. What the chart is good for is showing how
-much the 2025 endpoint moves month to month. Both bands have a monthly
-path since the 21:52 export of 21 September; before that only 22-25
-did, and the chart mixed frequencies.
+INPUTS AND OUTPUTS
+Reads seasonal_path.csv from the export directory the final-code manifest
+names (or from a directory given on the command line). Writes
+revision/figures/fig2_spreading.pdf and .png, and with --monthly
+fig2_spreading_monthly.pdf and .png, through _figsafe.save; the copies in
+the manuscript repository's figures/ folder are placed there by hand.
 
-2025 IS NOT PRELIMINARY. SCB confirmed to ML on 21 September 2026 that
-the AGI monthly figures are not revised after delivery. Earlier notes
-in this project hedged the 2025 endpoint as preliminary; that hedge is
-withdrawn. The endpoint still rests on six months rather than twelve,
-which is a different and much weaker caveat.
+IN THE PAPER
+Figure 3 (label fig:age_gradient, file fig2_spreading.pdf) in Section 3,
+and the monthly diagnostic figure of Online Appendix III.2.
 """
 import sys
 from pathlib import Path
@@ -74,7 +63,7 @@ from config import V2_FIG, DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT
 SCB_ADOPTION = {"2023": 10, "2024": 25, "2025": 35}
 LAUNCH_Q = "2022Q4"
 
-# The lane 14 export the final-code manifest names. Pass a directory on
+# The script 68 export the final-code manifest names. Pass a directory on
 # the command line to read seasonal_path.csv from there instead.
 LANE14 = REV / "output" / "round3_20260921-2152-lane14-seasonal-complete"
 
@@ -109,9 +98,9 @@ def monthly_figure(d: pd.DataFrame) -> int:
                              ("26-30", DARK_BLUE, "s")):
         mb = m[m["young_band"] == band].sort_values("t")
         if mb.empty:
-            # Before the 21:52 export of 21 Sep only 22-25 had a monthly
-            # path. Fall back to the quarterly series and SAY SO in the
-            # legend rather than silently mixing frequencies.
+            # If a band has no monthly path, fall back to its quarterly
+            # series and say so in the legend rather than silently mixing
+            # frequencies.
             qb = q[q["young_band"] == band].sort_values("t")
             if qb.empty:
                 continue
@@ -133,12 +122,10 @@ def monthly_figure(d: pd.DataFrame) -> int:
     ax.text(pd.Timestamp(2022, 12, 5), ax.get_ylim()[1], " ChatGPT",
             fontsize=8, color=GRAY, va="top")
 
-    # NO SHADING ON 2025. SCB confirmed to ML that the AGI months are not
-    # revised after delivery, so 2025 is definitive and not preliminary.
-    # What remains true is only that it is half a year, which is a
-    # statement about how many months the endpoint rests on, not about
-    # whether those months will change. That belongs in the caption, not
-    # in a grey box that reads as a health warning.
+    # No shading on 2025: the employer declarations are not revised after
+    # delivery, so 2025 is definitive. That the endpoint rests on six
+    # months rather than twelve belongs in the caption, not in a grey box
+    # that reads as a health warning.
 
     ax.set_ylabel("Employment, log points, cycle removed", fontsize=9.5)
     ax.spines[["top", "right"]].set_visible(False)

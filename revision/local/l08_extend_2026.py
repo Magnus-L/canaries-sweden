@@ -1,31 +1,46 @@
 #!/usr/bin/env python3
 """
-l08_extend_2026.py -- Er.2 upgraded (ML, 28 Aug): extend the POSTING side
-to June 2026 with the official quarterly files.
+l08_extend_2026.py: the posting window extended to June 2026, and the
+posting difference-in-differences on both windows.
 
-JobTech now publishes 2026 as closed-quarter files (2026-Q1, 2026-Q2);
-both sit in the Monitor's cached corpus (~/.cache/aiel-jobads/), so no
-download. This script processes them with the PAPER'S OWN extraction
-logic (classify_ad imported from l01, which mirrors src/02 exactly) and
-appends to the submitted monthly aggregates.
+QUESTION
+Does the posting conclusion survive current data? JobTech publishes 2026
+as closed-quarter files, so the posting series can be extended to the end
+of the second quarter with the paper's own extraction logic.
 
-Honesty notes carried into the outputs:
- - Seam: the 2020-2025 aggregates come from the February 2026 vintage
-   files and were deduplicated ACROSS years; 2026-H1 is deduplicated
-   within itself (ad ids from earlier years are not on disk in the
-   processed data). Cross-year duplicates ran 0.5-0.9%/year in L1, so
-   the seam bias is below one per cent and one-signed (slight overcount).
- - July 2026 is NOT included: no closed official file exists yet, and
-   live-window (JobStream) counts undercount the newest months -- the
-   exact artefact the paper's descriptive-cut rule exists for.
- - Regressions on the extended window are REPORTED AS EXTENSIONS; the
-   submitted-window estimates stay the headline (plan v3 freeze).
+WHAT IT BUILDS
+The two 2026 quarter files are streamed with the same classification as
+the accounting script (l01's classify_ad), deduplicated within the half
+year, and aggregated to occupation by month; the 2020 to 2025 aggregates
+of the processed data are appended to them. The 2020 to 2025 rows were
+deduplicated across years and the 2026 rows within the half year, so the
+seam carries a slight overcount, below one per cent on the cross-year
+duplicate rates of script l01. July 2026 is not included: no closed file
+exists and the live feed undercounts the newest months. The merged,
+exposure-tagged panel on the full window is written so that every posting
+regression (scripts l03, l05, l06) runs on the same months.
 
-Output:
-  output/postings_ssyk4_monthly_2026H1.csv
-  output/postings_ssyk4_monthly_extended.csv   (2020-01 .. 2026-06)
-  tables/postings_extended_did.csv             (OLS + Poisson, both windows)
-  figures/fig1_two_panel_extended.pdf/.png
+Equation (1) is then estimated on two windows, January 2020 to December
+2025 and January 2020 to June 2026, by OLS on ln(postings) with the zero
+cells dropped and by Poisson with them kept: PostRB x High and PostGPT x
+High, occupation and month effects, standard errors clustered by
+occupation (pyfixest). The quartile index series to June 2026 is
+rebuilt for Figure 1.
+
+INPUTS AND OUTPUTS
+Reads the cached corpus files 2026-Q1.jsonl.zip and 2026-Q2.jsonl.zip
+under ~/.cache/aiel-jobads/, data/processed/postings_ssyk4_monthly.csv
+and daioe_quartiles.csv. Writes revision/output/
+postings_ssyk4_monthly_2026H1.csv, postings_ssyk4_monthly_extended.csv and
+postings_quartile_indexed_extended.csv;
+data/processed/postings_daioe_merged_extended.csv; and
+revision/tables/postings_extended_did.csv.
+
+IN THE PAPER
+Section 2 (289,601 advertisements for the 2026 half year) and Section 3
+(beta_1 = -0.127 and beta_2 = -0.059 on the window to June 2026); Online
+Appendix II.13, Table tab:extended (built by script l10); Figure 1
+through script l07.
 """
 
 import importlib.util
@@ -106,11 +121,10 @@ def main():
                     ignore_index=True)
     ext.to_csv(OUT / "postings_ssyk4_monthly_extended.csv", index=False)
 
-    # The merged, exposure-tagged panel on the FULL window, so that every
-    # posting regression can run on the same months rather than only this
-    # script's. The old postings_daioe_merged.csv stops at February 2026 and
-    # its last two months are the JobStream artefact, which is why l03, l05
-    # and l06 were cutting at December 2025.
+    # The merged, exposure-tagged panel on the full window, so that every
+    # posting regression (l03, l05, l06) runs on the same months. The
+    # processed file postings_daioe_merged.csv stops at February 2026 and
+    # its last two months are the live-feed artefact.
     _d = pd.read_csv(_cfg.PROCESSED / "daioe_quartiles.csv",
                      dtype={"ssyk4": str})
     _d["ssyk4"] = _d["ssyk4"].str.zfill(4)

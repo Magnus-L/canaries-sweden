@@ -1,44 +1,51 @@
 #!/usr/bin/env python3
 """
-l25_tab_industry_credit.py -- the appendix table that tests two rival
-explanations for the decline of the young inside exposed employers.
+l25_tab_industry_credit.py: Online Appendix Table III.2
+(tab:industry_credit), two rival explanations for the decline of the
+young inside exposed employers.
 
-THE QUESTION. Could the within-employer age pattern be an industry-specific
-age shock (a sector that stopped hiring the young for reasons unrelated to
-AI), or the credit channel of the rate cycle (leveraged employers cutting
-their youngest staff as borrowing costs rose)?
+THE QUESTION
+Could the within-employer age pattern be an industry-specific age shock (a
+sector that stopped hiring the young for reasons unrelated to AI), or the
+credit channel of the rate cycle (leveraged employers cutting their
+youngest staff as borrowing costs rose)?
 
-WHAT IS ESTIMATED. Poisson pseudo-maximum likelihood on employer x age x
-month counts with employer-by-month, employer-by-age and month-by-age
-effects, exposure frozen at the employer's 2019 education mix, treatment
-dated January 2024; the calendar cycle is not removed here, so every row
-is read against the pre-cycle baseline in the same panel and never against
-Table 1 of the paper.
+WHAT IS ESTIMATED
+Poisson pseudo-maximum likelihood on employer by age by month counts with
+employer-by-month, employer-by-age and month-by-age effects, exposure
+frozen at the employer's 2019 education mix, treatment dated January 2024
+(script 73); the calendar cycle is not removed there, so every row is read
+against the baseline in the same panel and never against Table 1.
 
   Panel A  The adoption step with and without three-digit industry (2019)
-           interacted with age band and month. "Retained" is the
-           industry-controlled step over the baseline; the gate fixed before
-           the run was 50 per cent.
+           interacted with age band and month. Retained is the
+           industry-controlled step over the baseline; the gate fixed
+           before the run was 50 per cent.
   Panel B  On the employers with a 2019 balance sheet, the adoption step
-           interacted with an indicator for above-median leverage (1 minus
-           equity over assets), beside a term for leverage x young that is
-           common to all employers in the sample. The step averaged over the
-           two halves is the exposure step plus half the additional term,
-           with its standard error from the exported covariance, and it is
-           the number to compare with the baseline on the same sample. Read
-           rule fixed before the run: MONETARY if the averaged step loses
-           more than half of that baseline, AI SURVIVES otherwise.
+           interacted with an indicator for above-median leverage (one
+           minus equity over assets), beside a term for leverage x young
+           common to every employer in the sample. The step averaged over
+           the two halves is the exposure step plus half the additional
+           term, with its standard error from the exported covariance,
+           and it is compared with the baseline on the same sample. Read
+           rule fixed before the run: monetary if the averaged step loses
+           more than half of that baseline, AI survives otherwise.
 
-INPUTS, pinned to the export directories the final-code manifest names.
-
-  lane 19  industry_fe.csv                  Panel A (script 73, Part A)
-  lane 24  credit_test.csv, vcov_r73_lev_*  Panel B (script 73, Part B,
-                                            re-run on the 2019 close)
-
-OUTPUT. revision/tables/tableA_industry_credit.tex, copied to the manuscript
-repository's tables/ folder.
+INPUTS AND OUTPUTS
+Reads, from the export directories the final-code manifest names:
+industry_fe.csv (script 73, Part A) and credit_test.csv with
+vcov_r73_lev_<band>.csv (script 73, Part B, run on the balance sheets
+closing in 2019 with the baseline re-estimated on that sample). The
+median split and the coverage of the balance-sheet sample are quoted in
+the note from script 73's summary. Writes
+revision/tables/tableA_industry_credit.tex and copies it to
+canaries-sweden-paper/tables/.
 
     python3 revision/local/l25_tab_industry_credit.py
+
+IN THE PAPER
+Online Appendix III.2, Table tab:industry_credit; the retained shares and
+the leverage coefficients are quoted in Section 3.
 """
 import shutil
 import sys
@@ -62,7 +69,7 @@ TRIPLE = "post_x_high_x_young_x_lev"
 LEV = "post_x_young_x_lev"
 SAME = "baseline_on_balance_sheet_sample"
 
-# Stated in the lane 24 summary (73_summary.txt); quoted in the note.
+# Stated in script 73's summary (73_summary.txt); quoted in the note.
 SPLIT = {"22-25": 0.691, "26-30": 0.688}
 COVERAGE = {"22-25": 82.7, "26-30": 80.1}
 

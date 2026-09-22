@@ -1,35 +1,35 @@
 #!/usr/bin/env python3
 """
-l22_tab_descriptives.py -- descriptive statistics for the SURVIVING design.
+l22_tab_descriptives.py: Online Appendix Table I.2, the estimation sample
+of the reported design.
 
-WHY THIS EXISTS. Online Appendix I.2 carried two employment tables,
-`tab:sumstats_employment` and `tab:panel_structure`, both describing an
-employer x QUARTILE x month panel over 2019:01--2025:06, restricted to
-employers with at least five workers and observed in both Q4 and one of
-Q1--Q3. That is the withdrawn occupation design. The surviving design is
-employer x AGE BAND x month from 2021-01, exposure fixed at the firm, so
-there is no within-firm quartile variation at all and no size screen.
+WHAT THE TABLE REPORTS
+For each young band and outcome (the employment stock, hires,
+separations): the number of balanced employer by age band by month cells
+from January 2021 to June 2025; the cells in employer-band series that
+are zero in every month, which the employer-by-age effect predicts
+exactly and which are removed before estimation; the skeleton that
+remains; and the cells estimated after the merge with the 2019 exposure
+score. Below, the number of employers carrying an exposure score
+(311,227) and the number in each young band's panel. The panel is
+balanced and zero-filled, so an employer whose young headcount falls to
+zero contributes those months, which is why Poisson rather than a log
+transform.
 
-The paper's "seventy per cent of cells are zero at ages 22-25" came from
-the dead table's zero-cell share of 0.704, computed on employer x
-quartile x month cells. A submitted paper is expected to report its
-sample; this rebuilds that reporting on the panel actually estimated.
+Every number is parsed from an export: the cell counts and drops from
+script 68's log, the estimated cell counts from seasonal_pooled.csv, and
+the panel employers per band from script 73's summary, which is built on
+the same skeleton.
 
-Every number is parsed from an export, none typed in:
-  68_log.txt          balanced cells, all-zero drops, skeleton sizes
-  seasonal_pooled.csv the estimated cell count of each fit
-  73_summary.txt      panel firms per band (73 uses 61's build_skeleton,
-                      which is the same skeleton 68 uses)
-
-WHAT THE TABLE MUST MAKE CLEAR. Zeros are kept. The panel is balanced and
-zero-filled, so a firm whose young headcount falls to zero contributes
-those months, which is the extensive margin the paper is about. What is
-removed is (i) employer-band cells that are zero in EVERY month and
-(ii) firms never holding the young band. Both have their employer-by-age
-effect at minus infinity under Poisson and are separated by fixest
-regardless; removing them in pandas only keeps R alive.
+INPUTS AND OUTPUTS
+Reads 68_log.txt and seasonal_pooled.csv (script 68) and 73_summary.txt
+(script 73) from the export directories the final-code manifest names.
+Writes revision/tables/tableI2_sumstats_employment.tex.
 
     python3 revision/local/l22_tab_descriptives.py
+
+IN THE PAPER
+Online Appendix I.2, Table tab:sumstats_employment_new.
 """
 import re
 import sys

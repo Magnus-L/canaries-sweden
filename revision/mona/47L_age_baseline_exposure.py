@@ -1,87 +1,65 @@
 #!/usr/bin/env python3
 """
-47L_age_baseline_exposure.py -- exposure from what each firm's AGE GROUP
-actually did before the shock. No current worker is ever classified.
+47L_age_baseline_exposure.py: the monthly employment counts by employer and
+age band, and an exposure measured on the work each firm's age group did
+in 2019.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY. Standalone: submit THIS
-  file. Writes output_47L/. Own SQL: one baseline year and the monthly
-  counts, about 45 minutes, plus the fits.
-  Local end-to-end test: revision/local/test_47L_synthetic.py
-======================================================================
+QUESTION
+Two things the paper needs, from one pull. First, the outcome of the
+reported design: how many persons each employer had on its payroll in each
+age band in each month, read from the employer declarations and the birth
+year alone, so that no occupation or education record enters the outcome.
+Second, an exposure that uses neither the education register nor any
+occupation code after 2019: the AI exposure of the work an employer's
+22-25 year olds (or any other band) actually did in 2019, scored on the
+occupations they held that November. Continuous exposure varies within an
+employer-month on this route, so the level of every band is identified and
+the six bands can be read as a profile.
 
-WHY (19 Sep 2026, from the cross-vendor review, finding F4). Every design
-so far either classifies the young worker (47b, 47h: artefact -0.36) or
-gives up the within-employer comparison (47i) or replaces it with a young
--versus-old contrast (47j). The review named the design we had missed:
+DESIGN
+Exposure (build_exposure): E(f, a) is the employment-weighted mean DAIOE
+generative-AI percentile of the four-digit occupations held by employer
+f's age-a workers in November 2019. A cell is scored if it holds at least
+three coded workers (the floor variant) or, in the shrunk variant, its
+mean is pulled toward the employer's all-age mean with weight n/(n + 3);
+an employer must have at least two scored age cells. The coverage of each
+cell (coded workers over all workers) is kept, and the estimate is
+repeated on cells with at least 50 and 75 per cent coverage.
 
-  "Instead of assigning the firm a single exposure score, construct a
-   pre-shock score for each firm-age group, using its baseline
-   occupational or educational mix ... Current workers are counted by age
-   only. Their current education and occupation never determine the
-   outcome cell."
+Panel (build_panel): employer by age band by month, January 2019 to June
+2025, balanced and zero-filled, with E(f, a) standardised on the
+distribution of scored cells so that a coefficient reads per standard
+deviation of the 2019 baseline. Terms: PostRB x E (from April 2022) and
+PostGPT x E (from December 2022); in the gradient fit the PostGPT term is
+split into one interaction per age band with the Riksbank term pooled.
+Fixed effects: employer by month, employer by age, month by age. Poisson
+pseudo-maximum likelihood, standard errors clustered by employer. A
+further variant adds the share of the cell's 2019 workers paid at or below
+SEK 25,000 a month interacted with April 2023, the month the reduced
+employer contribution for young workers expired.
 
-THE IDEA, and why it is simpler than everything we have tried. In 2019 the
-occupation register is good: it is pre-shock, contemporaneous, and the
-codes are real. So take each employer's 22-25 year olds in 2019, look at
-the jobs they actually held, and score THAT. The result, E(f, a), is the
-AI exposure of the work that firm gave to that age group before generative
-AI existed. From then on a worker needs only two things to enter the data:
-a birth year and a payslip. The occupation register is never used after
-2019, and the education register is not used at all.
+Because exposure is fixed in 2019 and the outcome uses payroll and birth
+year only, truncating a later register vintage changes nothing here; that
+is an invariance of the construction, not a test of it, and the as-of
+backtest of script 45 does not apply.
 
-  outcome    employment of employer x age band x month, 2019 to 2025-06
-  treatment  PostGPT x E(f,a), where E is fixed at the 2019 baseline
-  absorbed   employer x month  (every firm-time shock)
-             employer x age    (the firm's standing age structure)
-             age x month       (the economy-wide path of each age band)
-  left       PostGPT x E(f,a): among firms whose 22-25 year olds did more
-             exposed work in 2019, did employment of 22-25 year olds fall
-             further after ChatGPT than in firms whose 22-25 year olds did
-             less exposed work -- measured inside the same employer,
-             against its own other age groups, in the same month.
+INPUTS AND OUTPUTS
+Reads, in MONA, Arb_AGIIndivid201911_def joined to Individ_2019 for the
+baseline occupations and pay, the monthly employer declarations for 2019
+to 2025 joined to Individ_2023, 2021 and 2019 for the birth year, and the
+input file daioe_quartiles.dta. Caches L_baseline_2019.parquet,
+L_basepay_2019.parquet and L_counts_YYYY.parquet. Writes to output_47L/:
+agebase_estimates.csv, agebase_gradient.csv, exposure_support_floor.csv,
+exposure_support_shrunk.csv and 47L_summary.txt.
 
-That is the paper's question with the staleness removed rather than
-patched: the contrast is between MORE and LESS exposed young workers, and
-the exposure is measured on the work, not on the person's current record.
-
-WHAT IT COSTS, stated rather than buried.
-  1. Baseline noise. A firm's 22-25 cell in 2019 may hold few coded
-     workers. We report support, require a floor, and provide a shrunk
-     variant (the cell mean pulled toward the firm's own all-age mean).
-  2. The baseline inherits 2019's occupation coverage, about 29 per cent
-     missing among the under-30s. Missingness is reported by cell and the
-     estimate is repeated on cells above successively higher coverage.
-  3. Composition drift. E(f,a) describes 2019's work; if a firm changes
-     what its young people do for reasons unrelated to AI, the measure is
-     stale in a different sense. This is why the event study matters more
-     here than the single coefficient.
-  4. It is still a difference-in-differences across firms in the treatment
-     dimension. Employer x month absorbs a common firm shock; it does not
-     absorb a firm shock that falls differently on the young. The review
-     is explicit about this and so are we.
-
-THE BACKTEST DOES NOT APPLY, AND SAYING SO IS THE POINT. Exposure is fixed
-in 2019 and the outcome uses only payroll and birth year, so truncating
-later register vintages changes nothing here. That is an invariance, not a
-validation: a classifier unrelated to the work would be equally invariant.
-The script runs the truncation anyway and reports it AS an invariance
-check, labelled as such.
-
-THE COMPETING SHOCK WE MUST ADDRESS (review finding F5). A reduced employer
-contribution for young workers, on monthly remuneration up to SEK 25,000,
-expired on 31 March 2023 -- inside our post window and on our age band. An
-age x month effect removes the common response, not a response that differs
-across firms by their pay distribution. So the script builds, from 2019 pay
-alone, each firm-age cell's share of workers below that cap, and reports the
-estimate with and without that share interacted with the expiry date.
-
-  THE EXACT ELIGIBLE BIRTH COHORT IS NOT ASSERTED HERE. The rule has had
-  several versions and the cohort must be verified against Skatteverket
-  before anything is written; the pay-below-cap share is the part we can
-  build from our own data without taking the cohort on trust. Read the
-  coefficient as "did firms whose young were paid below the cap behave
-  differently after March 2023", which is the testable form.
+IN THE PAPER
+The L_counts_YYYY caches are the outcome counts behind every headline
+estimate (Section 3, Table 1, Online Appendix III.2). build_exposure,
+build_panel and fit_gradient are the continuous occupation-scaled route
+of Online Appendix Table III.2, Panel B, run by script 63 on three
+exposure measures. L_baseline_2019 also supplies the occupational
+classification of script 65 and the 2019 employment sizes used by script
+71. The pooled estimates in agebase_estimates.csv are not quoted.
 """
 
 import gc

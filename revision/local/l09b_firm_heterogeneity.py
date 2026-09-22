@@ -1,24 +1,37 @@
 #!/usr/bin/env python3
 """
-l09b_firm_heterogeneity.py -- T17 continued: WHERE the within-employer
-posting decline sits. Splits the l09 design by firm characteristics from
-the open register join.
+l09b_firm_heterogeneity.py: where the within-employer posting decline
+sits.
 
-Dimensions (all from open data; the SCB bulk has no size class -- that is
-API-only -- so size uses the Monitor's ML-approved accumulated-hiring
-proxy):
-  A. Industry section (SNI Ng1): C manufacturing, G trade, J ICT,
-     K finance, M professional services, N admin/support (incl. SNI 78),
-     other-private. Public orgnr (prefix 2) kept as its own stratum.
-  B. Firm age at ChatGPT (RegDatKtid): <10 years vs 10+ years.
-  C. Size proxy: terciles of pre-2022 total distinct ads per firm.
+QUESTION
+Is the post-launch fall in exposed advertisements within employers a
+technology-sector pattern, a young-firm pattern or a large-firm pattern?
+This script re-estimates script l09's design inside cells defined by
+employer characteristics from open data.
 
-Each cell re-runs the l09 Poisson DiD (firm x quartile + firm x month FE,
-identification restriction, balanced zero-filled panel). Comparisons are
-WITHIN each split's own sample; populations named in the output.
+DESIGN
+Three splits: industry section from the SCB register bulk (C
+manufacturing, G trade, J information and communication, K finance, M
+professional services, N administrative and support, other private, and
+public employers by organisation-number prefix); employer age at the
+launch (registered from 2013, under ten years, against older); and a size
+proxy, terciles of the employer's distinct advertisements before 2022,
+since the open register carries no size class. Within each cell, the
+Poisson difference-in-differences of script l09 (PostRB x High, PostGPT x
+High, employer-by-quartile and employer-by-month effects, the five-
+advertisement floor and the two-quartile screen, balanced zero-filled
+panel, clustered by employer); cells with fewer than 100 employers are
+skipped.
 
-Output: tables/firm_heterogeneity.csv
-Runtime: ~20-40 min (many medium fits); run in background.
+INPUTS AND OUTPUTS
+Reads the firm cube and register bulk through script l09, and
+data/processed/daioe_quartiles.csv. Writes
+revision/tables/firm_heterogeneity.csv.
+
+IN THE PAPER
+Online Appendix V, Table tab:firm_het (built by script l10): the
+post-launch interaction is negative in all thirteen cells, weakest in
+information and communication.
 """
 
 import importlib.util

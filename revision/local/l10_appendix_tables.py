@@ -1,16 +1,46 @@
 #!/usr/bin/env python3
 """
-l10_appendix_tables.py -- build the revision's appendix tables from their
-source files, and write them into the manuscript repo.
+l10_appendix_tables.py: the appendix tables of the posting margin, the
+within-employer posting design and the published aggregates, written into
+the manuscript repository.
 
-Every number the online appendix prints for the posting margin, the firm
-lane and the published SCB aggregates comes from here. Nothing is retyped:
-if a run changes, rerun this and the tables change with it.
+WHAT IT BUILDS
+Every table below is generated from the CSV its source script wrote, so a
+re-run changes the table and nothing is retyped.
 
-    python l10_appendix_tables.py
+  coverage_by_source.tex     the valid-code share by year and source
+                             system, from postings_coverage_monthly.csv
+                             (script l01); sources with fewer than 100
+                             advertisements in a year are omitted and the
+                             three advertisements dated outside the window
+                             are excluded
+  postings_extended.tex      Equation (1) on the windows to December 2025
+                             and to June 2026, OLS and Poisson, from
+                             postings_extended_did.csv (script l08)
+  postings_seasonality.tex   the seasonality variants, from
+                             postings_seasonality.csv (script l06)
+  firm_within_did.tex        the within-employer posting design, from
+                             firm_within_did.csv (script l09)
+  firm_heterogeneity.tex     the same design by industry, employer age and
+                             size, from firm_heterogeneity.csv (script l09b)
+  public_yreg.tex            the change since 2022 in the top-quartile gap
+                             by published age band, from
+                             public_yreg_check.csv (script l04)
+  postings_deciles.tex       the decile gradient, from
+                             postings_decile_gradient.csv (script l03)
 
-Sources: ../tables/*.csv (written by l01..l09b).
-Destination: ../../../canaries-sweden-paper/tables/ (the Overleaf repo).
+Coefficients print as estimate, stars at ten, five and one per cent, and
+the standard error in parentheses.
+
+INPUTS AND OUTPUTS
+Reads revision/tables/*.csv. Writes the .tex files into
+canaries-sweden-paper/tables/, the sibling manuscript repository, from
+which the online appendix inputs them.
+
+IN THE PAPER
+Online Appendix II.12 (tab:coverage_source), II.13 (tab:extended), II.14
+(tab:seasonality), II.15 (tab:deciles), III.5 (tab:public_yreg) and V
+(tab:firm_did, tab:firm_het).
 """
 
 from pathlib import Path
@@ -38,8 +68,8 @@ def write(name: str, body: str):
 
 
 def t_coverage():
-    """Monthly valid-SSYK share, collapsed to year x source; the editor asked
-    for it 'separately by source', and 72 months by five sources is a wall."""
+    """Monthly valid-SSYK share, collapsed to year x source, since 72 months
+    by five sources is unreadable."""
     d = pd.read_csv(SRC / "postings_coverage_monthly.csv")
     d["year"] = d["year_month"].str[:4]
     # Three ads carry dates outside the window (one 2051, two 2099) and 117

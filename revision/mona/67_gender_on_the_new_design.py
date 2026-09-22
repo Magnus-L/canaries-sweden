@@ -1,62 +1,54 @@
 #!/usr/bin/env python3
 """
-67_gender_on_the_new_design.py -- the gender split, on a design that survives.
+67_gender_on_the_new_design.py: the design split by sex, and the sex panel
+the gender estimates are fitted on.
 
-======================================================================
-  RUNS IN MONA. This one DOES pull SQL, because no cache carries sex.
-  Two pulls, both cached, then everything else reads them. Writes
-  output_67/. Budget three to six hours; it is meant to be the only
-  gender run we need.
-======================================================================
+QUESTION
+Does the decline of the young inside exposed employers fall on young
+women, on young men, or on both? Two coefficients estimated separately by
+sex cannot establish a difference between them; the difference needs its
+own interaction and standard error. This script adds sex as a fourth
+dimension of the cell and estimates the female differential directly,
+within the same employers and against the same older colleagues as the
+headline.
 
-WHY IT HAS TO BE RE-RUN AT ALL.
+DESIGN
+Panel (build_skeleton_sex): employer by age band by sex by month counts
+from January 2021, the young band beside the four incumbent bands, an
+employer entering if it holds the young band and an incumbent band, cells
+zero-filled, employer-band-sex cells that are zero in every month dropped.
+The fixed effects move with the cell: employer by month, employer by
+age-and-sex, and month by age-and-sex, so the national path of young
+women is absorbed as the national path of the young is in the headline.
+Exposure is the headline classification (script 47j's incumbent_exposure
+on the OL_daioe score book), true and as-of arms.
 
-"The decline is concentrated among young women" is in the introduction,
-the highlights and the cover letter. It rests on script 48, which splits
-the ORIGINAL occupation-classified design by sex and returns -0.151 for
-men and -0.200 for women at 22-25. Those coefficients sit on the scale
-of the -0.174 headline because they are that headline, split. The as-of
-backtest closed that design, so the claim now has no support, and it is
-already in text the editor has read. It must be re-estimated or removed.
+Terms (add_gender_terms): for each of the tightening date (April 2022)
+and the post date, the interactions with High x Young, High x Female and
+High x Young x Female. The last is the female differential and its t
+statistic is the test; the interaction with High alone is constant within
+an employer-month and is absorbed. The post date is the launch (December
+2022) and, separately, adoption (January 2024). Outcomes: the employment
+stock, hires and separations; both young bands; the as-of arm at 22-25 on
+the stock. Separate regressions by sex, with script 61's step terms, are
+fitted at 22-25 for the stock and hires. Poisson pseudo-maximum
+likelihood, standard errors clustered by employer.
 
-WHAT "GOOD ENOUGH TO NOT RUN AGAIN" MEANS HERE, and the list is
-deliberate rather than generous.
+INPUTS AND OUTPUTS
+Pulls, in MONA, the monthly employer declarations for 2021 to 2025 joined
+to Individ_2023, 2021 and 2019 for birth year and sex (Kon, a character
+column holding '1' for men and '2' for women), as counts and as consecutive
+month flows, cached as L_counts_sex_YYYY.parquet and flows_sex_YYYY.parquet.
+Reads script 47h's caches for the exposure. Writes to output_67/:
+gender_interaction.csv, gender_by_sex.csv and 67_summary.txt.
 
-1. THE SAME DESIGN AS THE HEADLINE. Within-employer, exposure from the
-   2019 education mix of incumbents aged 31 and over, young against
-   their own older colleagues. Anything else invites the question of
-   why the gender result uses a different estimator from the main one.
-
-2. A TEST OF THE DIFFERENCE, NOT TWO NUMBERS SIDE BY SIDE. Script 48
-   ran men and women separately and the paper then asserted a
-   concentration. Two separate coefficients cannot establish that one is
-   larger; that needs the interaction and its standard error. So the
-   primary specification adds a fourth interaction, post x high x young
-   x female, whose coefficient IS the gender difference and whose t is
-   the test. The per-sex regressions are reported too, because they are
-   what a reader wants to see, but the claim rests on the interaction.
-
-3. BOTH DATINGS. The launch dating for comparability with everything
-   else in the literature, the adoption dating because that is where the
-   effect is.
-
-4. ALL THREE MARGINS. If the female result is concentrated in hiring it
-   means one thing, and if it is in separations it means another. The
-   paper currently says "mainly through reduced hiring" without having
-   checked that for women separately.
-
-5. THE ARTEFACT, at the cell the claim is about, so the gender result
-   carries the same evidence of register-immunity as the headline.
-
-WHAT IT CANNOT DO. Sex is not in any existing cache, so this pulls two
-new series: monthly employment and monthly flows, each by employer, age
-band and sex. They are cached as L_counts_sex_YYYY and flows_sex_YYYY so
-a later script never repeats the pull.
-
-Output (output_67/):
-  gender_interaction.csv   the female differential, band x outcome x dating
-  gender_by_sex.csv        the separate per-sex estimates
-  67_summary.txt
+IN THE PAPER
+The sex panel (q_counts_sex, build_skeleton_sex) is the one script 68 fits
+with the calendar cycle removed, which gives the female differential of
+Table 1 and Section 3 (young women minus young men, and the estimate for
+young men beside it), and the one script 76 restricts to each education
+track. The coefficients in gender_interaction.csv and gender_by_sex.csv,
+estimated without the calendar terms, are not quoted.
 """
 
 import gc
@@ -111,9 +103,8 @@ def q_counts_sex(year: int, conn) -> pd.DataFrame:
     """
     47L's counts query with sex added to the SELECT and the GROUP BY.
 
-    Kon is a CHAR column, so it arrives as "1" and "2" rather than as
-    integers; script 48 lost a day to keying a dictionary on ints and the
-    normalisation here is deliberate rather than defensive.
+    Kon is a character column, so it arrives as "1" and "2" rather than as
+    integers, and is normalised on the way in.
     """
     suffix, max_month = ("_def", 12) if year < 2025 else ("_prel", 6)
     monthly = "\nUNION ALL\n".join(f"""

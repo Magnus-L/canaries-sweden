@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 """
-l16_fig_firststage.py -- do the firms we call exposed actually adopt AI?
+l16_fig_firststage.py: Figure A2, the first stage of the exposure measure.
 
-WHY THIS EXISTS, AND A WARNING. A finished version of this figure sat in
-`figures/figA2_first_stage.pdf` on 21 September with NO GENERATING
-SCRIPT anywhere in the tree, and it was overwritten by accident. That
-folder is gitignored, so there was no version history and the only
-surviving copy was a window someone happened to have open. No figure in
-this paper may depend on that again: every exhibit is produced by a
-script that reads an export, and the script is the artefact we keep.
-
-This reproduces that design from the export. If the original is
-recovered, diff against it rather than assuming this matches.
-
-WHAT IT SHOWS. Exposure is assigned from the 2019 education mix of
-incumbents aged 31 and over, and never from anything a firm did after
-the shock. The question is whether that assignment predicts AI adoption
-measured independently in SCB's own surveys.
-
-WHAT IS DELIBERATELY LEFT OUT. The R&D surveys and the IT-expenditure
-survey measure AI SPENDING, not use. They belong to a different
-construct, they would sit at +6.6 and +5.4 beside use rates near +20,
-and a reader would read that as disagreement rather than as a different
-question. They are reported in the appendix text instead.
+WHAT IT DRAWS
+The difference in reported AI use between employers in the top quartile of
+the 2019 education-mix exposure and the rest, in percentage points with
+95 per cent intervals, from the first-stage estimates of script 71 on the
+education route: any AI use in 2019, 2021 and 2023 and language generation
+in 2021 and 2023 from Statistics Sweden's ICT survey of enterprises
+(controlling for log 2019 employment), and generative AI use by the
+employer's workers in the 2024 survey of individuals (survey weighted).
+The expenditure surveys are left out because they measure AI spending
+rather than use and belong in the appendix text. A row whose estimate is
+missing from the export is reported as missing, never drawn as zero.
 
     python3 revision/local/l16_fig_firststage.py [export_dir]
+
+INPUTS AND OUTPUTS
+Reads itftg_firststage.csv and bita_firststage.csv from the script 71
+export directory the final-code manifest names (or from a directory given
+on the command line). Writes revision/figures/figA2_first_stage.pdf and
+.png through _figsafe.save.
+
+IN THE PAPER
+Online Appendix III.2, Figure fig:first_stage; the numbers are quoted in
+Section 2.
 """
 import sys
 from pathlib import Path
@@ -59,11 +59,9 @@ ROWS = [
 ]
 
 
-# The corrected lane 17 export the final-code manifest names. The first
-# lane 17 run (round3_20260921-lane17-adoption) built its adoption flag
-# from every survey item whose name contained "AI", barrier items
-# included, and is withdrawn; only the corrected export is read. Pass a
-# directory on the command line to read from there instead.
+# The script 71 export the final-code manifest names, whose adoption flag
+# is built from the technology items only. Pass a directory on the command
+# line to read from there instead.
 LANE17 = REV / "output" / "round3_20260921-lane17-adoption-corrected"
 
 
@@ -110,9 +108,8 @@ def main() -> int:
         ax.plot(r["pp"], y, r["marker"], mfc=r["face"], mec="black",
                 mew=1.1, ms=8 if r["marker"] == "D" else 9, zorder=3)
 
-    # group rules, and the section label ABOVE the rule so it never sits
-    # on the line -- that overlap is the defect in the version this
-    # replaces
+    # group rules, with the section label above the rule so it never sits
+    # on the line
     seen, rules = [], []
     for i, r in enumerate(got):
         if r["group"] not in seen:

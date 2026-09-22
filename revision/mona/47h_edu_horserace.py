@@ -1,84 +1,93 @@
 #!/usr/bin/env python3
 """
-47h_edu_horserace.py -- horse race of education-based AI-exposure designs,
-each judged by the as-of backtest it must survive.
+47h_edu_horserace.py: the education-to-exposure bridge, and a comparison
+of eight rules for building it, each judged by an as-of backtest.
 
-======================================================================
-  RUNS IN SCB's MONA SECURE ENVIRONMENT ONLY. Standalone: submit THIS
-  file to BatchClient. Writes output_47h/. Caches under cache/.
-  Local end-to-end test: revision/local/test_47h_synthetic.py
-======================================================================
+QUESTION
+The paper scores an employer's exposure to generative AI from the
+education of its workers rather than from their occupations, because the
+occupation register is published with a lag and the education register is
+a census. Which rule should turn an education into an exposure score, and
+which rule should assign a worker to an education? This script builds the
+score books and tests every candidate the same way: by re-estimating on
+years where the truth is observable, with the education register truncated
+as it will be truncated for 2024 and 2025.
 
-WHY (18 Sep 2026). Script 45 showed that the occupation register's lag
-manufactures the paper's 22-25 result out of nothing (artefact -0.307 at
-T=2021, -0.163 at T=2022, true +0.019). Script 47b showed the education
-design of script 47 fails the same test WORSE (-0.360, -0.294) because
-workers aged 22-25 are still completing the education the register
-records. Mapped shares moved by 0.1-0.4 per cent between the arms, so no
-coverage statistic can see this failure. Any education design therefore
-has to be tested, not argued, and the test is the deliverable.
+DESIGN
+A score rule gives each education (SUN 2020 level and field, mapped to an
+education group through the delivered key) the employment-weighted mean
+exposure of the four-digit occupations its holders worked in during a
+weight year; the exposure is the DAIOE generative-AI percentile, or the
+Eloundou et al. score, or the share of holders in top-quartile
+occupations. An assignment rule gives each worker an education from the
+register as it stands in a given year. The eight designs are:
 
-THE RACE. Every design below is a rule for scoring an education and for
-assigning a worker to one. All designs are estimated on the SAME unit as
-the paper (employer x exposure-quartile x month cells, Poisson,
-PostGPT x High, ages 22-25 first) and on the SAME years (2019-2023),
-twice each: with the year's own register (true) and with a register
-truncated at T in {2021, 2022} whose codes later years inherit (as-of).
-artefact = gamma2(as-of) - gamma2(true). The winner is the design with
-the smallest artefact at 22-25, subject to a near-zero artefact at 50+
-(the placebo band, where education really is predetermined). The winner
-is NEVER the design with the largest coefficient.
+  OL_exact       Eloundou score, 2019 stock of all coded workers, group
+                 detail (the mapping of Nordstrom Skans and Sokolow Romin
+                 on this data).
+  OL_daioe       the same with the DAIOE percentile. This is the rule the
+                 paper uses: script 47j takes its score book.
+  fresh_stock    OL_daioe with weights from codes assigned in 2019 only.
+  entrant        weights from recent completers (0 to 5 years since the
+                 exam year, aged 35 or under), 2019 to 2021 pooled, with
+                 the 2019 stock as fallback below MIN_CELL completers.
+  entrant_share  the share of the group's entrants in top-quartile
+                 occupations.
+  expband        a score per (group, years since completion) cell.
+  enrol          entrant, with workers under 30 who hold no tertiary
+                 degree in the truncated register scored by the field of
+                 their latest registration in the enrolment register.
+  full           entrant_share with level-by-field detail, expband and
+                 enrol combined.
 
-READ RULE, PRE-COMMITTED (identical to 47b): a design whose 22-25
-artefact is below 0.05 in absolute value at both truncations can carry
-register evidence; between 0.05 and half the occupation artefact
-(0.153 / 0.081) it is usable only with the artefact printed beside every
-estimate; at or above half it cannot.
+Every design is estimated on the withdrawn design's unit: employer by
+exposure quartile by month cells, Poisson pseudo-maximum likelihood,
+PostRB x High and PostGPT x High, employer-by-quartile and
+employer-by-month effects, standard errors clustered by employer,
+employers with a cumulative count of at least five, on 2019 to 2023. Each
+design is fitted twice: with each year's own education register (the true
+arm) and with the register truncated at 2021 or at 2022 and carried
+forward (the as-of arm). The artefact is the as-of coefficient minus the
+true one. Tier A runs every design at 22-25; Tier B runs 26-30 and 50-69
+for the reference designs and for every design that clears the rule; Tier
+C runs 31-34, 35-40 and 41-49 for the reference designs. A gate first
+re-estimates OL_daioe under the cascade of the earlier script 47b, as a
+check that the pull reproduces it; a discrepancy on the true arm stops the
+run, one on the legacy arm is reported.
 
-DESIGNS (score rule x assignment rule). "Score" is how an education gets
-its exposure; "assign" is how a worker gets an education.
+Read rule, fixed before the run: a design whose 22-25 artefact is below
+0.05 in absolute value at both truncations can carry register evidence;
+between 0.05 and half the occupation artefact of script 45 (0.153 at
+2021, 0.081 at 2022) it is usable only with the artefact stated beside
+every estimate; at or above half it is closed. The preferred design is
+the one with the smallest 22-25 artefact and a near-zero artefact at
+50-69, never the one with the largest coefficient.
 
-  OL_exact      Nordstrom Skans & Sokolow Romin (2026) mapping on our unit:
-                Eloundou beta, employment-weighted mean over the 2019 STOCK
-                of all coded workers (SCB's imputed codes included), SCB
-                education group; worker = cascaded register.
-  OL_daioe      same, DAIOE genAI percentile instead of Eloundou. This is
-                script 47b's design and is the GATE: its T=2021 numbers
-                must reproduce 47b (-0.3695 as-of, -0.0099 true) up to the
-                one documented change (NULLIF in the cascade, see pull_year).
-  fresh_stock   OL_daioe but weights from codes ASSIGNED in the weight year
-                (SsykAr_J16 = year), not carried forward or imputed.
-  entrant       weights from RECENT COMPLETERS only (0-5 years since ExamAr,
-                age <= 35), pooled 2019-2021, fresh codes; stock fallback
-                below MIN_CELL. The entry question needs the entry mapping:
-                47 measured 84.6 per cent quartile agreement between stock
-                and young weights, which is a different construct.
-  entrant_share score = share of the group's entrants in top-quartile
-                (high_exposure) occupations, the exact analogue of "High".
-  expband       score per (group, years since completion) so the business
-                graduate 25 years out is scored as the manager he is.
-  enrol         entrant + ENROLMENT ANCHORING: an as-of worker under 30 with
-                no tertiary completion in the truncated register but a
-                registration in HREG_AKTIVITET within three academic years
-                of T is scored by the FIELD ENROLLED IN. Fixed before the
-                shock, symmetric across periods.
-  full          entrant_share + two-tier detail (niva x inr scored directly
-                where >= MIN_CELL completers, else group) + expband + enrol.
+INPUTS AND OUTPUTS
+Reads, in MONA, Individ_YYYY for 2019 to 2021 (education, occupation,
+year of the code, exam year, birth year) for the weights; the monthly
+employer declarations for 2019 to 2023 joined to the education registers
+of 2019 to 2022 for the true and as-of records; HREG_AKTIVITET for the
+enrolment designs; and the input files
+utb_grupp2_sun2020_niva3_inr4_nyckel.dta (the education key),
+daioe_quartiles.dta and eloundou_ssyk4.dta, each verified by hash. Caches
+edu_hr_weights_YYYY.parquet, edu_hr_YYYY.parquet and the collapsed
+edu_hr_coll_<design>_<arm>_T<year>_<year>.parquet pieces. Writes to
+output_47h/: score_<design>.csv, score_diagnostics.csv,
+anchoring_rates.csv, horserace_estimates.csv, gate_decomposition.csv and
+47h_summary.txt. Completed fits are reused on a resubmission when the
+design list is unchanged; the environment variable CANARIES_47H_FRESH=1
+discards them.
 
-TIERS. Tier A: every design, ages 22-25, both arms, both T (32 fits).
-Tier B: 26-30 and 50+ for the two reference designs and for every design
-whose 22-25 artefact clears "usable" at both T. The estimation on
-2019-2025 for the winner is script 47i, not this one: the race decides
-the design first.
-
-EXPORT SAFETY. Coefficient tables; score tables with n >= 5 (groups) or
-n >= MIN_CELL (niva x inr); match and anchoring rates as shares of
-populations in the millions. No identifiers, no raw rows.
-
-RUNTIME (estimate, printed again at start): weights 3 x ~1 min; year
-pulls 5 x 10-15 min; collapses 5 x ~5 min; fits ~6 min each incl. the
-balanced panel: Tier A ~3.5 h, Tier B ~1 h. Total 5.5-6.5 h. Caches
-make a resubmit skip every pull.
+IN THE PAPER
+Section 2, the exposure definition: each education group is given the
+employment-weighted mean generative-AI exposure of the occupations its
+holders worked in during 2019 (the OL_daioe score book, built by
+ScoreBook.build from the 2019 weights and the key). The cached 2019 year
+frame and the score book are what scripts 47j, 61, 66, 67, 68, 70 to 77
+use to score employers. The estimates in horserace_estimates.csv concern
+worker-level education designs that the paper does not report and are not
+quoted.
 """
 
 import gc
@@ -110,10 +119,10 @@ ARMS = ("true", "asof")
 GATE_ARMS = ("true", "asof", "asof_legacy")   # the gate alone adds the legacy arm
 AGES_A = ["22-25"]
 AGES_B = ["26-30", "50+"]
-# ML's fallback (18 Sep): if the youngest band cannot be classified, does an
-# age gradient survive among bands where the classification IS
-# predetermined? Reference designs only, one truncation, three bands: the
-# artefact is reported for each, so the fallback gets the same test.
+# Tier C: if the youngest band cannot be classified, does an age gradient
+# survive among bands where the classification is predetermined? Reference
+# designs only, one truncation, three bands; the artefact is reported for
+# each, so the fallback gets the same test.
 AGES_C = ["31-34", "35-40", "41-49"]
 GRADIENT_TIER = True
 GRADIENT_T = 2022
@@ -132,7 +141,7 @@ OCC_ARTEFACT = {2021: -0.3068, 2022: -0.1627}   # script 45
 REFERENCE_DESIGNS = ("OL_exact", "OL_daioe")
 
 # Path(...) / name resolves on the UNC share and on POSIX alike, so the
-# local end-to-end test can run; "share + r'\\name'" (47/47b) cannot.
+# local end-to-end test can run.
 KEY_PATH = str(Path(mc.SHARE) / "utb_grupp2_sun2020_niva3_inr4_nyckel.dta")
 KEY_SHA256 = "c760361ba21554951a0744ee00de2f02f22f2e021b87f0863d9ece049e786637"
 ELOUNDOU_PATH = str(Path(mc.SHARE) / "eloundou_ssyk4.dta")
@@ -345,7 +354,7 @@ def pull_year(year: int, conn, enrol_ok: bool) -> pd.DataFrame:
         (niva_22, inr_22, expb_22, enr_22) the register truncated at 2022
     -> n_emp (distinct persons). Read in chunks and compacted to
     categoricals as they arrive, so a 50M-row year never sits in memory as
-    Python strings (memory rule, 29 Apr 2026).
+    Python strings.
     enr_T = SUN2020INR of the latest registration within ENROL_WINDOW
     academic years before T, from HREG_AKTIVITET (ends 2021, so T=2022 is
     served by registrations to 2021: a conservative test for that arm).
@@ -759,7 +768,7 @@ def estimate(coll: pd.DataFrame, age: str, tag: str) -> dict:
 # ----------------------------------------------------------------------
 
 def _append_row(path: Path, row: dict):
-    """Results go to disk as produced (standard, rule 3)."""
+    """Results go to disk as they are produced."""
     df = pd.DataFrame([row])
     df.to_csv(path, mode="a", index=False, header=not path.exists())
 
@@ -833,12 +842,12 @@ def main():
         return want
 
     for y in YEARS:
-        # The collapse costs ~27 minutes a year and the pull ~19, so a re-run
-        # that recomputes both is four hours before the first fit. Both are
-        # pure functions of the year frame and the scorebook, so a year whose
-        # pieces are all on disk needs neither: skip it entirely and never
-        # touch the frame. This is what makes adding ONE arm cheap instead of
-        # a full rebuild (19 Sep 2026: the legacy arm cost a four-hour redo).
+        # The collapse costs about half an hour a year and the pull about
+        # twenty minutes, so a re-run that recomputes both is hours before the
+        # first fit. Both are pure functions of the year frame and the score
+        # book, so a year whose pieces are all on disk needs neither: skip it
+        # entirely and never touch the frame. This is what makes adding one
+        # arm cheap instead of a full rebuild.
         missing = [(k, pth) for k, pth in wanted_pieces(y) if not pth.exists()]
         if not missing:
             print(f"  {y}: all {len(wanted_pieces(y))} collapse pieces cached, "
@@ -846,8 +855,7 @@ def main():
             continue
         cf = CACHE / f"edu_hr_{y}.parquet"
         # require= is what stops a cache written before a change to the pull
-        # from being reused: adding niva_21g/inr_21g on 19 Sep silently
-        # invalidated the previous night's frames and the run died hours in.
+        # from being reused.
         frame = mc.read_cache(cf, require=YEAR_COLS + ["n_emp"])
         if frame is None:
             t0 = time.time()
@@ -894,17 +902,12 @@ def main():
                           for y in YEARS], ignore_index=True)
 
     # ---- resume, rather than start the fits again from nothing ----
-    # This used to delete the results file on every run. On 19 Sep the job
-    # reached 95 GB against the server's 100 GB per-job cap four hours in,
-    # with roughly seventy fits behind it, and a memory kill would have
-    # thrown all of them away: the pulls are cached but the fits were not.
     # Each cell is a pure function of its cached collapse pieces, so a
-    # completed one can be read back instead of recomputed.
-    #
-    # The guard is a code tag. Reusing a coefficient computed under a
-    # DIFFERENT set of designs, arms or truncations would silently mix two
-    # versions of the script in one table, which is worse than recomputing,
-    # so a row is reused only when the tag matches exactly.
+    # completed fit can be read back instead of recomputed when a job is
+    # resubmitted. The guard is a code tag: reusing a coefficient computed
+    # under a different set of designs, arms or truncations would mix two
+    # versions of the script in one table, so a row is reused only when the
+    # tag matches exactly.
     results_path = OUT / "horserace_estimates.csv"
     code_tag = hashlib.sha256(
         repr((sorted(designs), tuple(ARMS), tuple(GATE_ARMS),
@@ -954,21 +957,20 @@ def main():
               f"(SE {row['se']:.4f}) n {row['n_obs']:,} {row['elapsed_s']:.0f}s "
               f"{row['status']}")
         # Each fit concatenates five years of collapse pieces and builds two
-        # string fixed-effect columns over ten million rows. Seventy of those
-        # without a collect is how a job reaches 95 GB.
+        # string fixed-effect columns over ten million rows; collect between
+        # fits.
         gc.collect()
         return row
 
-    # ---- gate: does the pull reproduce 47b, and if not, WHY ----
-    # 19 September. 47h's first run halted here: its as-of arm gave -0.156
-    # where 47b reported -0.370. That is either 47h's deliberate cascade fix
-    # (NULLIF, so '' falls through, and whole records instead of per-field
-    # COALESCE) or something we do not understand. Asserting the first would
-    # be assuming the answer, so the gate estimates 47b's EXACT cascade as a
+    # ---- gate: does the pull reproduce 47b, and if not, why ----
+    # The as-of arm here differs from script 47b's in two deliberate ways
+    # (NULLIF, so an empty string falls through the cascade, and whole
+    # records rather than per-field COALESCE). Rather than assume that those
+    # explain any difference, the gate estimates 47b's exact cascade as a
     # third arm and decides on that one:
     #   legacy reproduces 47b -> the pull is verified, the gap between the two
-    #                            as-of arms IS the fix, and the run proceeds
-    #   legacy does not       -> the pull differs for an unknown reason, halt
+    #                            as-of arms is the cascade change, proceed
+    #   legacy does not       -> the pull differs for an unknown reason
     print("\nGATE (OL_daioe = script 47b's design, three arms)")
     globals()["ARMS"] = GATE_ARMS
     gate = {arm: run_cell("OL_daioe", arm, 2021, "22-25", "gate")["gamma2"]
@@ -989,25 +991,13 @@ def main():
             OUT / "gate_decomposition.csv", index=False)
     except BaseException as ex:
         print(f"  [optional] gate_decomposition.csv FAILED ({type(ex).__name__})")
-    # 20 Sep 2026. The gate halted twice, and the reason it gives is not the
-    # reason it was built for. `asof_legacy` came back IDENTICAL to `asof`
-    # (-0.1562, same SE, same n), so 47b's cascade, reproduced verbatim at
-    # the SQL level, is not what separates the two scripts. The education
-    # key, the vintage list and the attrition at the key join were all
-    # checked against 47b's own exported match rates and are the same.
-    #
-    # The gate's premise was that 47b is the benchmark. That premise is the
-    # weak part: 47b is the script with the known defect, whose
-    # map_and_collapse emitted `edu_quartile` where the caller expected
-    # `exposure_quartile`. 47h has corroboration 47b does not, from a
-    # simulator calibrated on measured moments that never saw either
-    # script's output and predicts an artefact near -0.20 for this design.
-    #
-    # So the true arm still HALTS: if 47h cannot reproduce 47b where the
-    # two should agree exactly, the pull itself is suspect and nothing
-    # downstream is worth computing. The legacy arm now WARNS: the
-    # discrepancy is real, unexplained and recorded, and it is not a reason
-    # to refuse to estimate the other seven designs.
+    # The two gates are treated differently. The true arm halts: if this
+    # script cannot reproduce 47b where the two should agree exactly, the
+    # pull itself is suspect and nothing downstream is worth computing. The
+    # legacy arm warns: script 47b carried a defect of its own (its collapse
+    # emitted `edu_quartile` where the caller expected `exposure_quartile`),
+    # so a discrepancy on the as-of arm is recorded and reported beside every
+    # estimate rather than treated as a reason to refuse the other designs.
     if d_true > GATE_HALT:
         raise SystemExit(
             f"GATE FAILED on the TRUE arm: {gate['true']:+.4f} against 47b's "

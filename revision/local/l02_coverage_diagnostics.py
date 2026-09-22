@@ -1,26 +1,34 @@
 #!/usr/bin/env python3
 """
-l02_coverage_diagnostics.py -- Ed.2 / plan T1: posting-coverage diagnostics
-that run on the PROCESSED data (no re-streaming; pair with l01, which does
-the raw pass).
+l02_coverage_diagnostics.py: coverage of the occupation field on the
+processed posting data.
 
-Answers, from postings_ssyk4_monthly.csv + daioe_quartiles.csv:
-  (a) active occupations per month (how many SSYK4 codes post at all);
-  (b) zero-posting occupation-month cells over time, by exposure quartile
-      (relative to the balanced occupation set);
-  (c) the composition of coded ads across exposure quartiles over time --
-      if coding practice were drifting against exposed occupations, the Q4
-      share of coded ads would fall mechanically;
-  (d) the 400-vs-369 reconciliation: unique SSYK4 codes at each pipeline
-      stage (raw postings file, DAIOE-matched, regression panel with
-      n_ads > 0) with the named lists of codes lost at each step.
+QUESTION
+Could a drift in how advertisers code occupations produce the posting
+results? This script reports, on the processed occupation-by-month
+aggregates, how many occupations post in a month, how the share of
+zero-posting cells moves by exposure quartile, whether the exposed
+quartile's share of coded advertisements moves after the launch, and why
+369 of the 400 four-digit occupations enter the regression sample.
 
-Output:
-  tables/coverage_active_occupations.csv
-  tables/coverage_zero_cells.csv
-  tables/coverage_quartile_shares.csv
-  tables/occupation_reconciliation.csv   (one row per stage + lost-code lists)
-Runtime: seconds.
+WHAT IT BUILDS
+On the window January 2020 to December 2025: (a) the number of SSYK 2012
+codes with at least one advertisement, per month; (b) on the balanced
+occupation-by-month grid of DAIOE-matched occupations, the share of
+zero cells per month and exposure quartile; (c) each quartile's share of
+coded advertisements per month, with the mean before and after December
+2022; (d) the count of distinct occupation codes at each stage (the
+postings file, matched to DAIOE, with a positive count in the regression
+panel) and the codes lost at each step.
+
+INPUTS AND OUTPUTS
+Reads data/processed/postings_ssyk4_monthly.csv and daioe_quartiles.csv.
+Writes revision/tables/coverage_active_occupations.csv,
+coverage_zero_cells.csv, coverage_quartile_shares.csv,
+occupation_reconciliation.csv and occupation_reconciliation_lists.txt.
+
+IN THE PAPER
+Section 2: 369 of 400 occupations enter the sample; Online Appendix II.12.
 """
 
 import sys
@@ -94,7 +102,7 @@ def main():
     s1 = set(merged["ssyk4"].unique())
     stage["2_matched_to_DAIOE"] = len(s1)
     lost["lost_at_DAIOE_match"] = sorted(s0 - s1)
-    # regression panel: n_ads > 0 rows (v1 script 05 drops zeros)
+    # regression panel: n_ads > 0 rows (the OLS specification drops zeros)
     s2 = set(merged.loc[merged["n_ads"] > 0, "ssyk4"].unique())
     stage["3_regression_panel_nads_gt0"] = len(s2)
     lost["lost_at_zero_drop"] = sorted(s1 - s2)

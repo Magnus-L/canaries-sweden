@@ -1,22 +1,32 @@
 #!/usr/bin/env python3
 """
-l06_seasonality_variant.py -- T14/R1.9: the seasonality rider.
+l06_seasonality_variant.py: the posting difference-in-differences with
+group-specific seasonality.
 
-R1 (minor): "There is currently a lot of seasonality left in the event-
-study plots. Instead of month fixed effects, it might therefore be
-better to use industry-by-month fixed effects."
+QUESTION
+A referee noted seasonality in the posting event study and suggested
+industry-by-month effects. Platsbanken carries no industry, so the
+analogue is the one-digit occupation group: seasonal patterns allowed to
+differ by broad occupation group. Do the two period coefficients move?
 
-Platsbanken carries no industry, so the defensible analogue is the
-occupation GROUP: SSYK 1-digit x CALENDAR month FE (seasonality patterns
-allowed to differ by broad occupation group), added to the year-month FE
-the baseline carries. Estimated as the pooled DiD in three nested
-variants on ln(n_ads), plus a Poisson companion:
+DESIGN
+Occupation-by-month cells from January 2020 to June 2026 with a positive
+count, the outcome ln(postings); PostRB x High and PostGPT x High as in
+Equation (1). S0: occupation and month effects (the baseline). S1: adds
+one-digit occupation group by calendar month effects. S2: occupation and
+one-digit group by sample month effects, which nests S1. S1 is also fitted
+by Poisson on the counts. Standard errors clustered by occupation
+(pyfixest).
 
-  S0  ssyk4 + year_month                       (baseline, as submitted)
-  S1  ssyk4 + year_month + ssyk1 x calmonth     (the referee's fix)
-  S2  ssyk4 + ssyk1 x year_month                (spec 4; nests S1)
+INPUTS AND OUTPUTS
+Reads data/processed/postings_daioe_merged_extended.csv (script l08), or
+postings_daioe_merged.csv if absent. Writes
+revision/tables/postings_seasonality.csv.
 
-Output: tables/postings_seasonality.csv
+IN THE PAPER
+Section 3, the statement that the posting coefficients do not move with
+exposure-group-by-calendar-month effects; Online Appendix II.14, Table
+tab:seasonality (built by script l10).
 """
 
 import sys

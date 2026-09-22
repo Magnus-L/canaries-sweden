@@ -1,25 +1,38 @@
 #!/usr/bin/env Rscript
-# r_fepois_es.R -- Poisson PML event study by half-year interactions.
+# r_fepois_es.R: Poisson pseudo-maximum likelihood event study by half-year,
+# fitted in R with fixest and called from Python.
 #
-# Sister script to r_fepois.R but fits the canonical event-study form
-# rather than the pooled PostRB/PostGPT spec. Used by 36_eventstudy_*
-# to generate per-half-year coefficients for EduQuartile (script 34
-# cell panel) and PredQuartile (script 35 cell panel).
+# WHAT IT FITS
+#   n_emp ~ i(halfyear, high, ref = <ref>) | fe_emp_bin + fe_emp_t
+# one coefficient per half-year for the top exposure quartile against the
+# reference half-year (2022H1 by default), with standard errors clustered on
+# --cluster (employer_id by default). This is the event-study form of the
+# submitted occupation design; it is used by the vintage event studies
+# (script 41, Online Appendix Table IV.2) and the as-of backtest (script 45).
 #
-# Usage:
-#   Rscript r_fepois_es.R --input <input.csv> --output <output.csv> \
-#       [--cluster <colname>] [--ref <halfyear, e.g. 2022H1>]
+# USAGE
+#   Rscript r_fepois_es.R --input <in.csv[.gz]> --output <out.csv>
+#       [--cluster <col>] [--ref <halfyear>] [--nrows <n>] [--nthreads <k>]
 #
-# Required CSV columns (read from --input):
-#   n_emp        -- dependent variable (count)
-#   high         -- 0/1 treatment indicator (top-quartile = 1)
-#   halfyear     -- half-year period string, e.g. "2022H1", "2022H2", "2023H1"
-#   fe_emp_bin   -- FE 1 (employer x bin)
-#   fe_emp_t     -- FE 2 (employer x year-month)
-#   employer_id  -- cluster variable
+# INPUT COLUMNS
+#   n_emp        the count
+#   high         one in the top exposure quartile
+#   halfyear     the period label, for example 2022H1 (kept as text, since
+#                --ref names one of its levels)
+#   fe_emp_bin   employer by quartile key
+#   fe_emp_t     employer by month key
+#   <cluster>    the cluster column
 #
-# Output CSV columns (one row per non-reference half-year):
-#   period, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s, status
+# OUTPUT COLUMNS
+#   period, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s,
+#   status; the reference period is appended with a zero coefficient. A
+#   failure still writes the file with a status row.
+#
+# READER AND THREADS
+#   data.table::fread when installed; otherwise read.csv with the row count
+#   from --nrows and column classes inferred from a sample. The thread count
+#   comes from --nthreads, then CANARIES_R_THREADS, then 8. Output is ASCII
+#   only.
 
 args <- commandArgs(trailingOnly = TRUE)
 

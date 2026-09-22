@@ -1,28 +1,36 @@
 #!/usr/bin/env python3
 """
-l04_public_yreg_check.py -- T13/R2.2: the coverage-immune public-data check.
+l04_public_yreg_check.py: the age pattern in Statistics Sweden's published
+occupational employment, coded by the agency.
 
-Extends src/20 (SCB YREG54BAS, published Yrkesregistret aggregates). The
-revision's use of it is different from v1's: the published register is
-coded BY SCB, not by our cascade, so any decline in exposed occupations
-visible here cannot be an artefact of OUR coverage. This script:
+QUESTION
+The register results classify employers from their 2019 education mix and
+never code a worker's occupation. Statistics Sweden publishes employment
+by occupation and age band as an official aggregate in which the agency
+codes the worker, so any age pattern there cannot be an artefact of our
+coding. Does it show the same direction?
 
-  1. Re-downloads YREG54BAS taking WHATEVER years SCB has published (the
-     v1 download stopped at 2024; the query already asks for all years,
-     so a fresh pull picks up new releases automatically). Delete the
-     cached data/raw/scb_yreg54bas.json to force a refresh.
-  2. Computes, for the youngest published age band vs older bands, the
-     log change in employment in Q4 vs Q1-Q3 occupations, per year --
-     a public-data analogue of the register DiD at annual frequency.
-  3. States the two structural caveats in the output: the RAMS->BAS
-     switch at reference year 2022 (methodological break exactly at the
-     treatment boundary), and publication lag (the newest year available
-     lags the AGI window; 2025 will not exist before ~2027).
+WHAT IT BUILDS
+Downloads the published table YREG54BAS for every year the agency has
+released (through the downloader and parser of src/20, unchanged), merges
+the four-digit occupations with the DAIOE quartiles, and for each
+published age band computes the log employment gap between top-quartile
+occupations and the rest, per year, and its change since 2022, the last
+year before the launch. The output states the three caveats: the register
+switches from RAMS to BAS at reference year 2022, on the treatment
+boundary; the published series lags the employer declarations, so the
+check reaches 2024 and not 2025; and the published bands (16-24, 25-34
+and so on) are not the paper's.
 
-Reuses src/20's downloader and parser verbatim (imported), so the raw
-pull and the JSON-stat2 handling stay identical to the submitted OA.
+INPUTS AND OUTPUTS
+Reads the SCB API (cached in data/raw/scb_yreg54bas.json) and
+data/processed/daioe_quartiles.csv. Writes
+revision/tables/public_yreg_check.csv and public_yreg_summary.txt.
 
-Output: tables/public_yreg_check.csv, tables/public_yreg_summary.txt
+IN THE PAPER
+Section 3 (16-24 is the band whose top-quartile gap falls most by 2024,
+by 0.006) and Online Appendix III.5, Table tab:public_yreg (built by
+script l10 from public_yreg_check.csv).
 """
 
 import importlib.util
@@ -33,7 +41,7 @@ import numpy as np
 import pandas as pd
 
 REV = Path(__file__).resolve().parents[1]
-# Import the v2 config EXPLICITLY by path: src/ also has a config.py, and
+# Import the revision's config explicitly by path: src/ also has a config.py, and
 # whichever lands first on sys.path would shadow the other.
 _cfg_spec = importlib.util.spec_from_file_location("v2config", REV / "config.py")
 _cfg = importlib.util.module_from_spec(_cfg_spec)
@@ -62,7 +70,7 @@ def main():
                   how="inner")
     # exposure_quartile is stored as strings ("Q4 (highest)") in the
     # processed file, and newer pandas reads them as the Arrow-backed
-    # 'str' dtype -- which is NOT == object. Match on the string content,
+    # 'str' dtype, which is not object. Match on the string content,
     # not on the dtype.
     m["high"] = (m["exposure_quartile"].astype(str)
                  .str.startswith("Q4").astype(int))

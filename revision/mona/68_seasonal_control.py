@@ -1,74 +1,73 @@
 #!/usr/bin/env python3
 """
-68_seasonal_control.py -- the headline, with the seasonal taken out.
+68_seasonal_control.py: the headline estimates, with the calendar cycle
+removed.
 
-======================================================================
-  RUNS IN MONA. No SQL: reads the caches 47h, 47L, 54 and 67 wrote.
-  Writes output_68/. Budget two to three hours.
-======================================================================
+QUESTION
+The young-to-older employment ratio in exposed employers relative to less
+exposed ones has a calendar cycle: positive in the fourth quarter and
+negative in the first, in every year including the two before any
+treatment. Month-by-age effects absorb the cycle common to all employers,
+not the part that differs by exposure, and a post window whose quarters
+are mixed differently from the pre window inherits the difference. The
+pre-period test fixed in advance failed for that reason. This script
+estimates Equation (2) of the paper with three quarter-of-year
+interactions added, so that the treatment is identified within calendar
+quarter across years, and it is the source of the estimates the paper
+quotes.
 
-WHY THIS IS NOT OPTIONAL.
+DESIGN
+Panel and exposure are script 61's: employer by age band by month from
+January 2021 to June 2025, the young band (22-25 or 26-30) beside the four
+incumbent bands, exposure the top quartile of the employer's 2019
+education mix (script 47j's incumbent_exposure on the OL_daioe score
+book). Terms (add_seasonal_terms): PostRB x High x Young from April 2022,
+kept on through the window; Q1, Q2 and Q3 x High x Young with the fourth
+quarter omitted; Interim x High x Young for December 2022 to December
+2023; Post x High x Young from January 2024. With the Riksbank term kept
+on, the interim and post coefficients are steps from the level reached
+during the tightening months, as the posting coefficient beta_2 is.
+Fixed effects: employer by month, employer by age, month by age. Poisson
+pseudo-maximum likelihood, standard errors clustered by employer.
+Outcomes: the employment stock (script 47L's counts), hires and
+separations (script 54's flows); both young bands; the as-of arm (the
+2019 incumbents scored from the education register as it stood in 2021)
+at 22-25 on the stock.
 
-Script 64 ran the quarterly path and the pre-period failed its
-pre-committed test in all three specifications. The cause is visible in
-the coefficients and it is not a trend: the exposure-differential
-young-to-older ratio has a strong CALENDAR cycle. The fourth quarter is
-positive in every year, +0.076, +0.092, +0.062 and +0.025 from 2021 to
-2024, and the first quarter is around -0.065 to -0.077 in every year
-including the two before any treatment.
+Paths: on the stock, the post period is replaced by one interaction per
+year (2023, 2024, 2025, with December 2022 on its own), per quarter or per
+month from December 2022 onward, with the calendar terms and the Riksbank
+term kept. Because the Riksbank term stays in every path fit, each path
+coefficient is a step from the level of the tightening months; the
+summary file this script writes describes the paths as read against the
+pre-launch baseline, and the Figure 3 caption states the correct reading.
+The monthly path is a diagnostic: a month retains whatever separates it
+from its own quarter's mean.
 
-Month-by-age fixed effects do not remove this. They absorb the seasonal
-pattern COMMON to all firms; what is left is the part that differs
-between exposed and unexposed firms, and that part is what the triple
-interaction picks up. Pool a post window whose quarters are mixed
-differently from the pre window and the seasonal walks straight into the
-estimate. Our pre-period holds one Q4 against two of every other
-quarter, so the pooled estimate is inflated.
+Gender: the sex panel of script 67 at 22-25 on the stock, with the
+Riksbank and post terms interacted with High x Young, the post term
+interacted with High x Female and with High x Young x Female (the female
+differential), and the three quarter terms for High x Young and for
+High x Young x Female; no interim term, so the steps are from the level
+of April 2022 to December 2023 and the female interaction is the
+differential change from January 2021 to December 2023.
 
-Comparing like quarters across years gives about -0.03 at 22-25 rather
-than the -0.051 the pooled specification reported, with nothing in Q1
-and -0.03 to -0.06 in the other three. So the effect survives a crude
-seasonal correction and is smaller. This script does it properly.
+INPUTS AND OUTPUTS
+Reads the caches edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h),
+L_counts_2021 to 2025 (script 47L), flows_2021 to 2025 (script 54) and
+L_counts_sex_2021 to 2025 (script 67); performs no SQL. Writes to
+output_68/: seasonal_pooled.csv (every term, by young band, outcome and
+arm), seasonal_path.csv (year, quarter and month coefficients),
+seasonal_gender.csv and 68_summary.txt.
 
-WHAT IT CHANGES, AND IT IS ONE LINE OF ALGEBRA.
-
-Three extra terms: quarter-of-year interacted with high and young, with
-the fourth quarter omitted. The treatment term is then identified from
-variation WITHIN calendar quarter across years, which is the comparison
-the crude correction above makes by hand. Everything else, the panel,
-the exposure, the fixed effects and the dating, is unchanged from 61.
-
-This is also the employment analogue of what Referee 1 asked for on the
-posting side, where the answer was industry-by-month fixed effects.
-
-WHAT ELSE IT SETTLES, so that no further run is needed.
-
-  THE MECHANISM. Script 67 found hiring at 22-25 indistinguishable from
-  zero on the headline classification while separations rose, which
-  contradicts the paper's abstract and reverses what script 63 found on
-  the occupational measure. All three margins are re-estimated here with
-  the seasonal out, at both young bands, so the mechanism sentence rests
-  on one treatment variable and one specification.
-
-  TWO OF THE THREE FITS THAT CRASHED on 21 September, namely separations
-  at 22-25 and hires at 26-30. The third, 65's step function at 26-30,
-  is not re-run: 65 is now a robustness check on the register rather
-  than a headline, its pooled coefficients at both bands already exist,
-  and the step decomposition adds nothing there.
-
-  THE GENDER CLAIM, on the stock at 22-25, so the one result that came
-  through 67 cleanly is not left resting on a specification whose
-  pre-period failed.
-
-  THE ANNUAL PATH, net of the seasonal, as the exhibit the paper needs
-  in place of a quarterly figure that a reader cannot interpret without
-  this correction.
-
-Output (output_68/):
-  seasonal_pooled.csv   the headline by band, outcome and arm
-  seasonal_path.csv     year coefficients net of the quarterly cycle
-  seasonal_gender.csv   the female differential with the seasonal out
-  68_summary.txt
+IN THE PAPER
+Table 1: gamma_1 (+0.0214), gamma_2 (-0.0408) with the vintage re-scoring
+beside it, the 26-30 step (-0.0394), the hires and separations steps at
+22-25, and the female differential (-0.0659); Section 3, the same numbers
+and the estimate for young men; Figure 3 (the quarterly path, drawn by
+script l14) and the monthly diagnostic of Online Appendix III.2; Online
+Appendix Table III.2, Panel A (script l19) and the sample sizes of Online
+Appendix Table I.2 (script l22 reads this script's log).
 """
 
 import gc
@@ -89,8 +88,8 @@ OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 POST_FROM = "2024-01"
 REF_QUARTER = 4              # omitted, so the others read against Q4
-# The baseline for every specification: everything before the launch.
-# Nothing in this script assumes when the effect began.
+# The interim and post terms are estimated separately, so nothing in this
+# script assumes when the effect began.
 BASELINE = f"2021-01 to the month before {mc.CHATGPT_YM}"
 FAILURES = []
 
@@ -118,40 +117,31 @@ def quarter_of_year(ym: pd.Series) -> pd.Series:
 
 def add_seasonal_terms(bal: pd.DataFrame, extra: str = "post") -> tuple:
     """
-    The treatment, the Riksbank control, and the calendar cycle.
+    The treatment, the Riksbank control and the calendar cycle.
 
-    THE BASELINE IS THE PRE-CHATGPT WINDOW, and that is the point of this
-    version. An earlier draft compared the adoption window against
-    everything before January 2024, which assumes the onset is January
-    2024. If the effect in fact began in 2023 then part of the baseline is
-    treated and every estimate is attenuated. We do not know the onset,
-    only that it is later than November 2022 and earlier than 2025, so
-    nothing here may assume it.
+    Every specification carries the Riksbank interaction, equal to one from
+    April 2022 onward, and the calendar terms: three quarter-of-year
+    interactions with the fourth quarter omitted, or in the monthly shape
+    eleven month-of-year interactions with December omitted. With the
+    Riksbank term kept on, each later coefficient is a step from the level
+    reached during the tightening months, April to November 2022, net of
+    the calendar cycle:
 
-    So the reference is always 2021-01 to 2022-11, and 2022-12 onward is
-    described rather than assumed:
-
-      post     two steps, an interim from the launch and the adoption
-               window from POST_FROM, both against the pre-ChatGPT
-               baseline. The interim is estimated, not set to zero.
-      year     2023, 2024 and 2025 against the same baseline.
+      post     an interim term from the launch (December 2022) to December
+               2023 and the adoption step from POST_FROM. The interim is
+               estimated, not set to zero.
+      year     2023, 2024 and 2025, with December 2022 on its own.
       quarter  every calendar quarter from 2022Q4 onward.
-      month    the same, month by month.
+      month    every month from December 2022 onward.
 
-    Any pooled estimate for a candidate date the reader prefers is a
-    weighted average of the quarter or month coefficients, so one path fit
-    answers every dating rather than one.
-
-    Why the paths are built this way rather than by adding a control to an
-    ordinary event study: a full set of event-time dummies spanning the
-    WHOLE panel already spans the calendar cycle, so a seasonal control
-    beside them is collinear. Here the dummies start at the launch, the
+    A pooled estimate for any other candidate date is a weighted average of
+    the quarter or month coefficients, so one path fit answers every dating.
+    The period dummies start at the launch rather than spanning the whole
+    panel, because a full set of event-time dummies already spans the
+    calendar cycle and a seasonal control beside them is collinear; the
     cycle is identified off the twenty-three pre-launch months, which see
-    each season twice, and each later period reads against the seasonally
-    adjusted baseline.
-
-    The fourth quarter, and December, are the omitted seasons. That is a
-    normalisation and not a claim about the world.
+    each season twice. The omitted seasons are a normalisation, not a claim
+    about the world.
     """
     ym = bal["year_month"].astype(str)
     hy = bal["high"] * bal["young"]
@@ -307,25 +297,13 @@ def main():
                         c = g.loc[f"q{qq}_x_high_x_young"]
                         print(f"          Q{qq} against Q4 "
                               f"{float(c['coef']):+.4f} ({float(c['se']):.4f})")
-                # The paths, all cleaned of the cycle, on the stock only.
-                #
-                # MONTHLY NOW RUNS AT 26-30 TOO. It was 22-25 alone,
-                # because monthly carries thirty terms on a thirty-plus
-                # million row panel and 22-25 was "the cell the claim is
-                # about". The claim has since become the SPREADING
-                # pattern, so 26-30 is half of it, and the lead figure
-                # has to mix a monthly series with a quarterly one to
-                # show two bands at all.
-                #
-                # The memory reasoning has also moved on. What kills a
-                # fit is the number of FIXED EFFECTS, not the number of
-                # terms: 30.5M rows with three effects fitted on
-                # 21 September while 28.5M with four died. Terms are
-                # columns in X, not demeaned dimensions. And every fit
-                # now falls 8 -> 2 -> 1 threads before giving up, so a
-                # squeeze costs wall-clock rather than the coefficient.
-                # If it still dies it is recorded and the rest of the
-                # lane is unaffected.
+                # The paths, all cleaned of the cycle, on the stock only,
+                # at both young bands, so that Figure 3 draws two series
+                # from one specification. What limits a fit is the number
+                # of fixed effects, not the number of terms, and every fit
+                # falls back to fewer threads before giving up; a fit that
+                # still fails is recorded and the rest of the script is
+                # unaffected.
                 if label == "stock" and arm == "true":
                     shapes = ["year", "quarter", "month"]
                     for shape in shapes:

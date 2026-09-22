@@ -1,78 +1,70 @@
 #!/usr/bin/env python3
 """
-73_industry_and_credit.py -- the two things referees asked for that we
-                             still answer with argument instead of data.
+73_industry_and_credit.py: two rival explanations for the decline of the
+young inside exposed employers, tested directly.
 
-======================================================================
-  RUNS IN MONA. SQL against FDB and Serrano, which this project has not
-  used, so it DISCOVERS the schema first. Writes output_73/.
-======================================================================
+QUESTION
+Part A. Employer-by-month effects absorb industry-by-month shocks, since
+industry is fixed within an employer, but not an industry shock that
+falls differently on the young. Did exposed employers change their age
+composition differently from less exposed employers facing the same
+industry-specific age shock? Part B. If the decline were credit-driven it
+should be concentrated in leveraged employers, the ones a rate cycle
+binds on. Does the exposure term survive when the adoption step is
+interacted with the employer's 2019 leverage? Part C. Are the separations
+of the young exits from employers that failed?
 
-PART A. INDUSTRY x AGE x MONTH.
+DESIGN
+Panel and exposure are script 61's: employer by age band by month from
+January 2021 to June 2025, the young band beside the four incumbent bands,
+exposure the top quartile of the 2019 education mix. Baseline terms:
+PostRB x High x Young from April 2022 and Post x High x Young from
+January 2024; the calendar cycle is not removed in this script. Poisson
+pseudo-maximum likelihood, standard errors clustered by employer.
 
-ChatGPT and Fable named this independently as the most valuable missing
-specification, for the same reason. Employer-by-month already absorbs
-industry-by-month, because industry is fixed within an employer. It does
-NOT absorb industry-by-AGE-by-month. Our month-by-age effects absorb
-national age shocks; they do not absorb an age shock that hits one
-industry harder than another.
+Part A adds industry by age band by month effects, where industry is the
+employer's three-digit SNI 2007 code in 2019 from LISA's firm table
+(Ftg_2019, Org_Sni2007; the workplace table and the business register are
+fallbacks for other base years). The month-by-age effect is nested in the
+new one and is dropped. A second fit gives the quarterly path with
+industry absorbed: Q1 to Q3 x High x Young with the fourth quarter
+omitted, and one interaction per quarter from December 2022 onward.
 
-So the question this answers is exactly the one the referees keep
-asking in different words: did exposed employers change their age
-composition differently from less exposed employers facing the SAME
-industry-specific age shock?
+Part B: leverage is one minus equity over assets from the employer's
+latest balance sheet closing in 2019 (Serrano; the structural business
+statistics FE_2019 are used first where present), clipped to the range 0
+to 3, split at the sample median. On the employers with a balance sheet
+the baseline is re-estimated on that sample, then the terms
+Post x Young x LevHigh and Post x High x Young x LevHigh are added.
 
-Industry is taken from FDB_JE_2019, frozen pre-shock. Using a later
-vintage would let a firm's post-shock reclassification into the
-treatment, which is the kind of thing this whole revision exists to
-avoid.
+Part C drops employers flagged as bankrupt or in liquidation in the
+Serrano corporate events table up to 2019 and re-estimates the baseline.
 
-PART B. THE MONETARY CHANNEL, TESTED RATHER THAN ARGUED.
+Gates fixed before the run: an arm is estimated only if at least 500
+panel employers and 30 per cent of them carry the covariate. Read rule for
+Part B: the exposure step is judged monetary if it loses more than half
+its size or its significance once leverage is in and the leverage term is
+significantly negative, and AI survives if it keeps at least half its
+size and stays significant. The environment variables CANARIES_73_PARTS
+(default ABC) and CANARIES_73_OUT select the parts run and the output
+folder.
 
-R1.2, R1.3 and R2.1 all raise monetary transmission, and ChatGPT's
-verdict on our current answer is blunt: the objection "remains
-unanswered by the timing comparisons". We reply with a date and a
-teleworkability horse race, and the horse race is not the placebo we
-have been treating it as.
+INPUTS AND OUTPUTS
+Reads, in MONA, the INFORMATION_SCHEMA catalogue, Ftg_2019, the Serrano
+balance sheet and corporate events tables, the FE tables where present;
+the caches of scripts 47h and 47L; performs its own SQL for the
+covariates only. Writes to the output folder: schema_found.csv,
+industry_fe.csv, industry_path.csv, credit_test.csv, bankruptcy.csv,
+vcov_r73_*.csv (the clustered covariance of each fit) and 73_summary.txt.
 
-There is a direct test. If the decline is credit-driven it should be
-concentrated in LEVERAGED firms, because those are the firms a rate
-cycle actually binds on. Leverage comes from Serrano's financial
-statements for 2019, again frozen pre-shock.
-
-Read this as a discriminating test, not a horse race:
-
-  MONETARY  post x young x leverage is significantly negative AND the
-            exposure term loses at least half its size and its
-            significance once leverage is in. Then the paper has a
-            serious problem and we would rather know now.
-  AI SURVIVES  the exposure term keeps at least half its size and stays
-            significant with leverage in, whatever leverage itself does.
-            That is a far stronger answer to the referees than the
-            timing argument we currently make.
-  INCONCLUSIVE otherwise, and it is reported as inconclusive.
-
-PART C. ARE THE SEPARATIONS REAL?
-
-Serrano's corporate-event table carries bankruptcy and liquidation
-status. A worker leaving a firm that went bankrupt is not an AI effect.
-This drops those firms and re-estimates. It matters only if the paper
-ends up claiming anything about separations, so it runs last and its
-failure costs nothing else.
-
-GATES. Every arm counts its matched firms before it estimates, against
-thresholds fixed below before the run, and refuses rather than lowering
-them. The schema is discovered rather than assumed: our own dictionary
-lists no variables at all for Serrano_bokslut, so the debt and asset
-columns are found by pattern and REPORTED, and if nothing matches the
-script says which columns it did see instead of guessing again.
-
-Output (output_73/):
-  schema_found.csv    what the discovery step saw
-  industry_fe.csv     Part A
-  credit_test.csv     Part B
-  bankruptcy.csv      Part C
-  73_summary.txt
+IN THE PAPER
+Section 3: 88 per cent of the 22-25 estimate and 48 per cent of the 26-30
+estimate remain with industry by age by month absorbed; the credit test
+leaves the step whole at both ages, and leverage reaches the young at
+26-30 (-0.0147) and not at 22-25 (-0.0054). Online Appendix III.2 and
+Table tableA_industry_credit (script l25), whose Panel B reads the credit
+rows from a run of Part B alone with the baseline re-estimated on the
+balance-sheet sample. Part C is not quoted.
 """
 
 import gc
@@ -91,9 +83,9 @@ import mona_common as mc
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / os.environ.get("CANARIES_73_OUT", "output_73")
-# Which parts to run: A industry, B credit, C bankruptcy. Lane 24 runs B alone
-# after the leverage-year defect of 22 September; the baseline fit runs
-# whenever A or B runs, since B's comparison needs it on its own sample.
+# Which parts to run: A industry, B credit, C bankruptcy. Part B can be run
+# alone; the baseline fit runs whenever A or B runs, and B's comparison
+# re-estimates it on its own sample.
 PARTS = os.environ.get("CANARIES_73_PARTS", "ABC").upper()
 OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
@@ -155,10 +147,9 @@ def _rss_gb() -> float:
                         ("PagefileUsage", ctypes.c_size_t),
                         ("PeakPagefileUsage", ctypes.c_size_t)]
         m = _PMC(); m.cb = ctypes.sizeof(_PMC)
-        # The 15:07 run printed 0.0 GB: the call had failed and the
-        # struct stayed zeroed, because a BOOL failure returns 0 rather
-        # than raising. Try kernel32's K32 export first, which is the
-        # one present on a plain Windows install, and TRUST NOTHING that
+        # A failed call returns 0 rather than raising and leaves the
+        # struct zeroed, so try kernel32's K32 export first, which is the
+        # one present on a plain Windows install, and trust nothing that
         # does not return non-zero.
         ok = 0
         for dll, fn in (("kernel32", "K32GetProcessMemoryInfo"),
@@ -182,16 +173,12 @@ def _rss_gb() -> float:
             return float("nan")
 
 
-# THREADS. This is why 73 kept dying where 68 lived. fixest defaults to
-# every core and each thread carries its own demeaning workspace, so peak
-# memory scales with the core count while the job cap does not. 68 ran
-# when fewer lanes were up; 73 ran with three lanes on the same node, and
-# died at 26.4M rows on a fit 68 had done at 36.5M. The signature is
-# rc=3221225477 with "*** recursive gc invocation", R's collector giving
-# up, and the node reporting 468 GB free at that moment: the machine had
-# the memory, this job did not. Two threads costs wall-clock and buys the
-# fit. The env var CANARIES_R_THREADS cannot be set from the MONA batch
-# submitter, which is why this now travels on the command line.
+# Threads. fixest defaults to every core and each thread carries its own
+# demeaning workspace, so peak memory scales with the core count while the
+# job cap does not; the signature of running out is rc=3221225477 with
+# "*** recursive gc invocation", R's collector giving up. Two threads cost
+# wall-clock and buy the fit. The count travels on the command line
+# because the batch submitter cannot set environment variables.
 R_THREADS = 2
 
 
@@ -265,25 +252,23 @@ def firm_industry(conn, schema) -> pd.DataFrame:
     right source.
 
     FDB_JE is the business register's legal-entity file. It carries the
-    same key, which is why it looked right, but the delivered extract is
-    not the employer population: at ar=2019 it returned 139,203 entities
-    and matched 12.3 per cent of the 22-25 panel. Every Swedish employer
-    has an industry code, so a 12.3 per cent match measures the register
-    we chose, not the firms. FDB_JE is now the last resort.
+    same key, but the delivered extract is not the employer population and
+    matches only a small share of the panel. Every Swedish employer has an
+    industry code, so a low match there measures the register chosen, not
+    the firms. FDB_JE is the last resort.
 
     Arbst_<year> is the workplace file, keyed on the workplace but
     carrying the parent LopNr_PeOrgNr, so a firm with workplaces in
     several industries takes the industry of its largest workplace, IF
     a size column is present, and in this delivery none is: Arbst_YYYY
-    carries no `Anst`, so the tie is broken arbitrarily by row order and
-    the note says "first workplace" rather than "largest". It
-    is NOT a fallback at BASE_YEAR 2019: the delivery carries Ast_Sni92
-    to 2001 and Ast_Sni2002 to 2010, and from Arbst_2011 there is no
-    industry column at all, only sector and municipality. (The
-    mona-dictionary page lists AstSNI2007; the database does not have
-    it.) The branch stays for an earlier base year and falls through
-    silently for a later one, which is the correct behaviour and is why
-    the 15:07 run went to Ftg_2019 as intended.
+    carries no `Anst`, so the tie is broken by row order and the note says
+    "first workplace" rather than "largest". It is not a fallback at
+    BASE_YEAR 2019: the delivery carries Ast_Sni92 to 2001 and Ast_Sni2002
+    to 2010, and from Arbst_2011 there is no industry column at all, only
+    sector and municipality. (The dictionary page lists AstSNI2007; the
+    database does not have it.) The branch stays for an earlier base year
+    and falls through for a later one, so the 2019 industry comes from
+    Ftg_2019.
 
     Whichever source answers, the coverage it achieves is reported, and
     the gate below still applies: a source that cannot reach the match
@@ -444,11 +429,9 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
     """
     Frozen 2019 leverage.
 
-    FEK would be the better source, being SCB's own and population
-    level, but no FE_YYYY table answered a LIKE 'FE[_]%' probe on
-    21 September, so it may simply not be in this delivery. Serrano
-    carries the full balance sheet and is what actually runs; FEK stays
-    first in case it appears.
+    FEK would be the better source, being SCB's own and population level,
+    and is tried first; no FE table is in this delivery, so Serrano, which
+    carries the full balance sheet, is what runs.
     """
     fek = leverage_from_fek(conn, schema)
     if len(fek):
@@ -460,9 +443,8 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
         NOTES.append("no Serrano bokslut table either; Part B cannot run")
         return pd.DataFrame()
     cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
-    # Serrano uses abbreviated Swedish codes: no column contains the
-    # words skuld or tillgang, which is why the 21 September patterns
-    # found nothing. Verified names, from the live catalogue:
+    # Serrano uses abbreviated Swedish codes; the names below are from the
+    # live catalogue:
     #   TILLGSU total assets      EKSU   total equity
     #   LSKSU   long-term debt    KSKSU  short-term debt
     #   EKSKSU  equity+liabilities   NTOMS turnover
@@ -492,13 +474,11 @@ def firm_leverage(conn, schema) -> pd.DataFrame:
     if yr:
         sel += f", [{yr}] AS yr"
     d = pd.read_sql(f"SELECT {sel} FROM dbo.[{tab}]", conn)
-    # THE YEAR FILTER, done properly. BSLSLUT is a SQL date, and the 22
-    # September code review found that pd.to_numeric on a date column is
-    # NaN or nanoseconds, never 2019, so the filter below was skipped
-    # without a message and drop_duplicates kept an arbitrary year's
-    # balance sheet per firm. A numeric year column is still honoured;
-    # anything else is parsed as a date and its year taken. If no row
-    # matches the base year the arm refuses instead of falling through.
+    # The year filter. BSLSLUT is a SQL date, and pd.to_numeric on a date
+    # column gives NaN or nanoseconds, never a year, so a numeric year
+    # column is honoured and anything else is parsed as a date and its year
+    # taken. If no row matches the base year the arm refuses instead of
+    # falling through.
     if not (yr and "yr" in d):
         NOTES.append(f"{tab}: no accounting-year column found; Part B cannot run")
         return pd.DataFrame()
@@ -545,13 +525,11 @@ def firm_failed(conn, schema) -> set:
     """
     Firms recorded as bankrupt in Serrano.
 
-    NOT from `Serrano_bol_20230614`. That table holds only ORGNR, WORGNR,
-    `wstatdat`, `FUPLAN`, `FUTYP` and `status`, and matching `status` on
-    "Konkurs" returned 0 firms of 989,707 on 21 September: the literal is
-    not what that field contains. Rather than guess a second literal, use
-    the purpose-built flags in `Serrano_Serrano_20230614`, `bol_konkurs`
-    and `bol_kkfall`, which that table carries beside `ser_year` so the
-    year can be chosen directly.
+    Not from `Serrano_bol_20230614`, whose `status` field does not carry a
+    bankruptcy literal that can be matched, but from the purpose-built
+    flags in `Serrano_Serrano_20230614`, `bol_konkurs` and `bol_kkfall`,
+    which that table carries beside `ser_year` so the year can be chosen
+    directly.
 
     A flag that is a count or a code, not a 0/1, still works here: any
     non-zero, non-missing value marks the firm.
@@ -679,13 +657,12 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     skel = l61.build_skeleton(counts, band, j47)
     # counts is 43.8M rows and is not needed again in this band. main()
     # still holds it for the next band, so this only helps if main drops
-    # it too -- see the loop there.
+    # it too; see the loop there.
     if skel.empty:
         print(f"  {band}: skeleton empty"); return
-    # Normalise BEFORE the merge, not after. On 21 September both bands
-    # died here with "merge on float64 and object columns": main() had
-    # normalised expo to string while the skeleton still carried the
-    # float employer_id that L_counts supplies.
+    # Normalise before the merge, not after: main() normalises expo to a
+    # string while the skeleton still carries the float employer_id that
+    # the counts cache supplies.
     skel["employer_id"] = norm_id(skel["employer_id"])
     b0 = skel.merge(expo[["employer_id", "fq"]], on="employer_id",
                     how="inner")
@@ -716,13 +693,10 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
     del id_codes, id_labels, id_map
     gc.collect()
 
-    # THE BASELINE FIT, and the reason 73 kept dying where 68 did not.
-    # Python and R share ONE job allocation. 68 holds counts and a single
-    # panel when it spawns R; 73 was holding counts (43.8M rows), skel,
-    # b0 AND a .copy() of b0 -- four large frames -- so R got what was
-    # left. Build the terms in place, drop everything not needed, and
-    # say how much the process is using so the next run settles it
-    # instead of another guess.
+    # The baseline fit. Python and R share one job allocation, so every
+    # frame Python holds when it spawns R is memory R does not get. Build
+    # the terms in place, drop everything not needed, and print what the
+    # process is using.
     b0, terms = base_terms(b0)
     gc.collect()
     print(f"    python holding {_rss_gb():.1f} GB before the baseline fit")
@@ -745,18 +719,13 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
         b = add_ind_fe(b0, ind)
         if not b.empty:
             b, terms = base_terms(b)
-            # fe_t_age is DROPPED here, and this costs nothing.
-            # fe_ind_age_t is industry x age x month; fe_t_age is
-            # age x month. Every age-month cell is partitioned by
-            # industry, so the coarser effect is nested inside the finer
-            # one and absorbed by it. Including both identifies exactly
-            # the same model and makes fixest build, demean and discard
-            # a whole redundant dimension. That is not free: ind_26-30
-            # is the heaviest fit in the battery, 28,470,906 rows, and
-            # on 21 September it died with "recursive gc invocation"
-            # even at two threads, where the 26.4M-row baseline had
-            # survived. Four effects on the larger band is what tipped
-            # it, and one of the four was doing no work.
+            # fe_t_age is dropped here at no cost. fe_ind_age_t is
+            # industry x age x month and fe_t_age is age x month; every
+            # age-month cell is partitioned by industry, so the coarser
+            # effect is nested inside the finer one and absorbed by it.
+            # Including both identifies the same model and makes fixest
+            # demean a redundant dimension, which is what tips the larger
+            # band's fit over the memory a job has.
             fes = tuple(f for f in j47.FES if f != "fe_t_age") \
                 + ("fe_ind_age_t",)
             r = fit(b, terms, fes, f"ind_{band}")
@@ -765,28 +734,15 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
                                      **dict(zip(("coef", "se"),
                                                 r["post_x_high_x_young"]))})
 
-            # THE QUARTERLY PATH WITH INDUSTRY ABSORBED.
-            #
-            # The pooled fit above answers "how much of the decline is an
-            # industry-specific age shock". It cannot answer the question
-            # the spreading claim rests on, which is about TIMING: 26-30
-            # is said to overtake 22-25 during 2025, and a pooled
-            # coefficient averaged over the whole post period cannot see
-            # a crossing inside it.
-            #
-            # Without this fit the position on 21 September was that the
-            # crossing is untested rather than refuted, which is an
-            # honest thing to write but a weak one. One more fit settles
-            # it: if the 26-30 path still deepens through 2025 with
-            # industry x age x month absorbed, the spreading pattern is
-            # real and the pooled attenuation only says the LEVEL is
-            # partly industry. If it flattens, the crossing was the
-            # industry shock arriving late at that band, and the claim
-            # comes out of the paper.
-            #
-            # Same fixed effects as the pooled fit, so the two are
-            # directly comparable, and the same Q4-omitted normalisation
-            # as 68 so the coefficients can be read beside its paths.
+            # The quarterly path with industry absorbed. The pooled fit
+            # above answers how much of the decline is an industry-specific
+            # age shock; it cannot answer the timing question, whether the
+            # 26-30 path still deepens through 2025 once industry x age x
+            # month is absorbed, since a coefficient averaged over the
+            # whole post period cannot see a crossing inside it. Same fixed
+            # effects as the pooled fit, so the two are comparable, and the
+            # same Q4-omitted normalisation as script 68, so the
+            # coefficients can be read beside its paths.
             bq, qterms = quarter_path_terms(b)
             rq = fit(bq, qterms, fes, f"indq_{band}")
             if rq:
@@ -830,13 +786,12 @@ def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
                 NOTES.append(f"leverage/{band}: split at {cut:.3f} "
                              f"({op}), {share:.1%} high")
         if len(b):
-            # The credit arm runs on the firms WITH a balance sheet (limited
-            # companies, about 86 per cent of the panel). A comparison of
-            # its exposure term with the full-panel baseline would mix a
-            # sample change with a specification change (code review of
-            # 22 September, F2), so the baseline is re-estimated on this
-            # sample first. It runs only once the split is known to be
-            # identified: a refused Part B fits nothing and says so.
+            # The credit arm runs on the firms with a balance sheet (limited
+            # companies, most of the panel). A comparison of its exposure
+            # term with the full-panel baseline would mix a sample change
+            # with a specification change, so the baseline is re-estimated
+            # on this sample first. It runs only once the split is known to
+            # be identified: a refused Part B fits nothing and says so.
             bb, bterms = base_terms(b.copy())
             rb_ = fit(bb, bterms, j47.FES, f"levbase_{band}")
             del bb
@@ -902,14 +857,10 @@ def path_verdict(indq) -> list:
                    f"{last['coef']:+.4f} ({last['se']:.4f}) at "
                    f"{last['period']}")
     if {"22-25", "26-30"} <= set(piv.columns):
-        # THE TEST, AND WHY THE FIRST VERSION OF IT WAS WORTHLESS.
-        # It asked whether 26-30 sits below 22-25 in ANY 2025 quarter, of
-        # any size. On 21 September that returned CROSSING SURVIVES on a
-        # gap of -0.0071 against a standard error of 0.0204, t -0.35,
-        # in one of two quarters, while the other went the other way. A
-        # test that a coin flip passes is not a test. It now asks
-        # whether the gap is SIGNIFICANT, and reports the t so a reader
-        # can see how close it was.
+        # The test asks whether the gap between the bands in a 2025
+        # quarter is significant, and reports the t statistic so a reader
+        # can see how close it was; a sign alone, of any size, is passed
+        # by noise.
         sep = d.pivot_table(index="period", columns="band", values="se")
         late = [q for q in piv.index if q >= "2025Q1"]
         best = None

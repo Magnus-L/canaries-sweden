@@ -1,90 +1,60 @@
 #!/usr/bin/env python3
 """
-l09_firm_within_did.py -- NEW (ML, 28 Aug): the within-EMPLOYER posting
-design on public data, through June 2026.
+l09_firm_within_did.py: the within-employer design on public
+advertisements, through June 2026.
 
-THE IDEA
-========
-The paper's register headline is a within-employer composition DiD that
-MONA caps at the register frontier. Platsbanken ads carry the employer's
-organisationsnummer natively at ~99% from January 2021, so the SAME
-design runs on public data with no lag: employer x quartile and
-employer x month fixed effects, Poisson, on posting counts. Nobody
-publishes this (the Monitor's firm-dimension research found
-identifier-based posting-firm linkage unoccupied in the literature);
-for the revision it is a second within-employer margin, current through
-June 2026, that no coverage objection can touch -- SCB never codes these
-ads; the SSYK code is the advertiser's own, present or absent at
-publication, with a valid-code share of 100.0%% in the treatment window
-(L1).
-
-INPUT: the AIEL Monitor's firm cube (built 20 Aug 2026 from the cached
-corpus with the frozen v1.5 pipeline; distinct-ad unit):
-  demo/firm-dimension/firm_month_v2.csv.gz
-    orgnr, month, ssyk4, kommun, ads, ai, floor, genai, entry, ai_entry
-plus the SCB register bulk for the SNI-78 staffing flag
-  demo/firm-dimension/register/scb_bulkfil.zip (PeOrgNr 12-digit, cp1252).
-
-Population and unit are the CUBE's, not the paper pipeline's: distinct
-ads per the Monitor's dedup key, 2021-01..2026-06 (orgnr coverage begins
-2021). Both stated in every output (generator rule).
+QUESTION
+The register design identifies from recomposition inside employers. Each
+Platsbanken advertisement carries the employer's organisation number from
+January 2021 in about 99 per cent of cases, recorded at publication, so
+the same design runs on public data with no occupation register and no
+register lag: do advertisements in exposed occupations fall relative to
+the same employer's other advertisements after the launch, and is the
+response different for entry-level advertisements?
 
 DESIGN
-======
-  ads_{f,q,t} ~ PostRB_t x High_q + PostGPT_t x High_q
-                | firm x quartile + firm x month          (Poisson)
-  - firms observed in Q4 AND a lower quartile (identification restriction)
-  - balanced zero-filled firm x quartile x month panel
-  - cumulative >= 5 distinct ads per firm (small-firm noise floor)
-  - variants: (a) all firms; (b) excluding SNI 78 staffing agencies and
-    prefix-2 public orgnrs; (c) ENTRY-LEVEL ads only -- the public echo
-    of the age margin (entry ~ inexperienced), same FE
-  - half-year event study, ref 2022H1, for (a) and (c)
+Unit: distinct advertisements by employer, exposure quartile and month,
+January 2021 to June 2026, from the AIEL Monitor's firm cube (the Monitor's
+deduplication key and population, stated in every output). Sample:
+employers with at least five distinct advertisements over the window and
+advertisements in both an exposed and a less exposed occupation; the
+panel is balanced and zero-filled over employer by quartile by month.
+Specification: Poisson pseudo-maximum likelihood with PostRB x High (from
+April 2022) and PostGPT x High (from December 2022) under employer-by-
+quartile and employer-by-month effects, standard errors clustered by
+employer; and the half-year event study with reference the first half of
+2022. The pre-hike window is fifteen months, since organisation numbers
+begin in January 2021. Variants: (a) all identifying employers; (b)
+excluding staffing agencies (SNI 78, from the SCB register bulk) and
+public employers (organisation numbers with prefix 2); (c) entry-level
+advertisements only, flagged by the Monitor's keyword rule on the
+advertisement text (nyexaminerad, nyutexaminerad, junior, trainee or
+traineeprogram, ingen erfarenhet, utan erfarenhet, utan tidigare
+erfarenhet).
 
-Pre-period caveat, stated wherever results appear: orgnr exists from
-2021 only, so the pre-Riksbank window is Jan 2021 - Mar 2022 (15
-months), shorter than the register design's.
+With --variants: (d1, d2) the floor and the screen computed on January
+2021 to March 2022 only, so that nothing after the rate rise decides
+membership, keeping every quartile cell or only the quartiles used before
+the hike; (e) d1 without staffing agencies and public employers; (f) all
+advertisements and entry-level advertisements on the employers that pass
+both screens; (g) the entry-level differential in one panel of employer by
+quartile by entry flag by month, with employer-by-quartile-by-entry and
+employer-by-entry-by-month effects and the triple interaction PostGPT x
+High x Entry. The share of advertisements the entry rule flags, by year
+and by quartile, is written beside the estimates.
 
-Output: tables/firm_within_did.csv, tables/firm_within_es.csv,
-        tables/firm_within_meta.txt
-Runtime: ~5-10 min (the cube is 1.9M rows; panels are built per variant).
+INPUTS AND OUTPUTS
+Reads lab-infrastructure/ai-monitor/demo/firm-dimension/firm_month_v2.csv.gz
+and register/scb_bulkfil.zip, and data/processed/daioe_quartiles.csv.
+Writes revision/tables/firm_within_did.csv, firm_within_es.csv and
+firm_within_meta.txt; with --variants, firm_within_did_variants.csv,
+firm_within_variants.tex and firm_within_entry_audit.csv.
 
-VARIANTS (22 September 2026, `--variants`; the default run above is
-untouched and its outputs are not rewritten)
-==========================================================================
-The vetting round asked two questions of the design. First, the
-five-advertisement floor and the identification screen (an employer must
-post in an exposed and in a less exposed occupation) are computed on the
-whole window, so an employer's post-ChatGPT behaviour helps decide whether
-it is in the sample. Variant d recomputes both on advertisements published
-before the rate hike (January 2021 to March 2022) and then keeps every
-later cell for those employers, zeros included, through June 2026; nothing
-after March 2022 decides membership. Two forms are reported: every
-employer-by-quartile cell for the eligible employers (d1, the fully
-balanced panel), and only the quartile cells the employer used before the
-hike (d2). Variant e is d1 without staffing agencies and public employers.
-
-Second, the entry-level estimate (variant c) rests on 1,265 employers
-against 12,141 for all advertisements, so a more negative coefficient may
-be a different sample rather than a stronger response. Variant f estimates
-all advertisements and entry-level advertisements on the SAME employers,
-those that pass the screens on both counts, and variant g estimates the
-entry-level differential directly: one panel of employer by quartile by
-entry flag by month, with employer x quartile x entry-flag effects and
-employer x entry-flag x month effects, so that each employer's entry and
-non-entry advertising follows its own monthly path and the triple
-interaction PostGPT x High x Entry is the additional within-employer shift
-of entry-level advertisements towards or away from exposed occupations.
-
-The entry-level flag is the Monitor's keyword rule on the advertisement
-text: nyexaminerad, nyutexaminerad, junior, trainee (or traineeprogram),
-"ingen erfarenhet", "utan erfarenhet" or "utan tidigare erfarenhet"
-(bulk_pipeline_v11.py, ENTRY). The share of advertisements it flags, by
-year and by exposure quartile, is written beside the estimates so the rule
-can be audited.
-
-Output of `--variants`: tables/firm_within_did_variants.csv,
-        tables/firm_within_variants.tex, tables/firm_within_entry_audit.csv
+IN THE PAPER
+Section 3 (12,141 employers; +0.004 and -0.158; entry-level -0.196 against
+-0.160 on the same 1,265 employers, differential -0.044); Online Appendix
+V, Tables tab:firm_did (script l10) and tab:firm_variants (written here)
+and Figure fig:firm_entry_es (script l07).
 """
 
 import importlib.util

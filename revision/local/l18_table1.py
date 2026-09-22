@@ -1,55 +1,47 @@
 #!/usr/bin/env python3
 """
-l18_table1.py -- Table 1 of the paper, assembled from the exported estimates.
+l18_table1.py: Table 1 of the paper, assembled from the exported estimates.
 
-WHAT THE TABLE REPORTS. The estimates the paper rests on, all from the
-within-employer age design with the calendar cycle removed: employment of
-workers aged 22 to 25 relative to their older colleagues in the same
-employer, with exposure frozen at the employer's 2019 education mix.
+WHAT THE TABLE REPORTS
+The estimates the paper rests on, all from the within-employer age design
+with the calendar cycle removed: employment of workers aged 22 to 25
+relative to their older colleagues in the same employer, with exposure
+frozen at the employer's 2019 education mix.
 
-  Sequence for 22-25    the rise during the tightening months (gamma_1),
-                        the additional step once firms adopt AI (gamma_2)
-                        with the vintage re-scoring beside it, the step
-                        from the 2023 level (gamma_2 minus gamma_0, its
-                        standard error from the covariance of the two
-                        terms in the window specification of lane 21),
-                        and the level after adoption against the months
-                        before the rate hike.
-  26-30                 the additional step at adoption and the step from
-                        the 2023 level.
-  Profile               22-25 and 50 and over, each against 41-49, from
-                        one panel of all six bands.
-  Margin and incidence  hires, separations, the female differential and
-                        the part of it that lies within broad education
-                        tracks.
-
-INPUTS, read from the export directories the final-code manifest names.
-Nothing is typed in; a missing row stops the script rather than printing
-a blank that could be read as a zero.
-
-  lane 14  seasonal_pooled.csv    gamma_1, gamma_2, the as-of arm, hires,
-                                  separations (script 68)
-  lane 21  reference_window.csv   the level after adoption and, with the
-           vcov_s75_*_stock.csv     covariance files, the step from the 2023
-                                  level (script 75)
-  lane 20  contrast_seasonal.csv  the six-band profile (script 74)
-  lane 14  seasonal_gender.csv    the female differential (script 68)
-  lane 22  gender_split.csv       the within-track differential (script 76)
+  Ages 22-25         the rise during the tightening months (gamma_1); the
+                     additional step once firms adopt AI (gamma_2), with
+                     the vintage re-scoring beside it; the step from the
+                     2023 level (gamma_2 minus gamma_0, its standard error
+                     from the covariance of the post and interim terms of
+                     the window specification); the level after adoption
+                     against the months before the rate rise.
+  Ages 26-30         the additional step at adoption and the step from the
+                     2023 level.
+  Profile            22-25 and 50 and over, each against 41-49, from one
+                     panel of all six bands.
+  Margin, incidence  hires, separations, the female differential and the
+                     part of it within broad education tracks.
 
 The vintage re-scoring is the change in gamma_2 when each employer's 2019
-incumbents are re-scored from the education register as it stood in
-2021, the staleness the 2024-25 records inherit, and the same panel is
-re-estimated (the as-of arm of script 68). It is not the backtest of
-Online Appendix IV.3, which runs on 2019-2023 with a pseudo-dated
-treatment; the reported design admits no occupation code after 2019, so
-the backtest does not apply to it. The 26-30 arm was not re-scored, so
-that cell is left empty.
+incumbents are re-scored from the education register as it stood in 2021
+and the same panel is re-estimated (the as-of arm of script 68). It is
+not the backtest of Online Appendix IV.3, which the reported design admits
+no occupation code after 2019 and is therefore not exposed to. The 26-30
+arm was not re-scored, so that cell is empty.
 
-OUTPUT. revision/tables/table1_headline.tex, copied to the manuscript
-repository's tables/ folder. Pass one directory on the command line to
-read every input from there instead of the pinned locations.
+INPUTS AND OUTPUTS
+Reads, from the export directories the final-code manifest names (or one
+directory given on the command line): seasonal_pooled.csv and
+seasonal_gender.csv (script 68); reference_window.csv and
+vcov_s75_<band>_stock.csv (script 75); contrast_seasonal.csv (script 74);
+gender_split.csv (script 76). Nothing is typed in; a missing or ambiguous
+row stops the script. Writes revision/tables/table1_headline.tex and
+copies it to canaries-sweden-paper/tables/.
 
     python3 revision/local/l18_table1.py [export_dir]
+
+IN THE PAPER
+Table 1, Section 3.
 """
 import shutil
 import sys
@@ -96,7 +88,7 @@ def one(df: pd.DataFrame, **cond) -> tuple[float, float]:
 
 def step_from_2023(window: pd.DataFrame, band: str) -> tuple[float, float]:
     """The change from the 2023 level to the level after adoption, on the
-    window specification of lane 21 (post minus interim, both measured
+    window specification of script 75 (post minus interim, both measured
     against the months before the rate hike, so the difference equals
     gamma_2 minus gamma_0 of Equation (2)), with the standard error from
     the exported covariance of the two terms."""

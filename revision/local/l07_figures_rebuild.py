@@ -1,28 +1,39 @@
 #!/usr/bin/env python3
 """
-l07_figures_rebuild.py -- T6/E8: the figure overhaul.
+l07_figures_rebuild.py: Figure 1 of the paper and the within-employer
+posting event study of Online Appendix V.
 
-Editor: figures must be legible at journal size and self-contained;
-Figure 1's dual axes, small fonts, colour-only distinction and unlabeled
-event lines all named explicitly. And Figure 2's "Employment change (%)"
-axis is the ln(n+1) misreading (defect D5).
+WHAT IT DRAWS
+Figure 1 (fig1_two_panel): two stacked panels replacing a dual axis. The
+upper panel is the OMX Stockholm 30 index, the monthly mean of daily
+closes indexed to 100 at February 2020. The lower panel is Platsbanken
+postings by DAIOE generative-AI exposure quartile on the same base, as a
+three-month centred moving average, drawn from the series extended to
+June 2026 when script l08 has produced it and from the submitted series
+cut at December 2025 otherwise. Series are distinguished by line style
+and a legend rather than by colour alone, and the two event lines (the
+Riksbank's first rate rise, April 2022; the ChatGPT launch, November
+2022) carry their dates.
 
-Figure 1 (rebuilt here, local data):
-  Two stacked panels replacing the dual axis.
-    Top:    OMX Stockholm 30 Index, monthly mean of daily closes,
-            Feb 2020 = 100.
-    Bottom: Platsbanken postings by DAIOE genAI exposure quartile,
-            3-month centred moving average, Feb 2020 = 100.
-  Series distinguished by line STYLE and direct end labels, not colour
-  alone; event lines dated in their labels; descriptive series cut at
-  Dec 2025 (collection artefact rule).
+Figure fig:firm_entry_es (fig3_firm_entry_es): the half-year Poisson
+event-study coefficients of the within-employer posting design of script
+l09, all advertisements and entry-level advertisements, reference the
+first half of 2022, with 95 per cent intervals.
 
-Figure 2 (rebuilt when MONA output lands):
-  Poisson event-study coefficients for 22-25 from output_43/poisson_es.csv
-  (axis: "Poisson coefficient (log points)" -- no percent conversion).
-  If the file is absent the function prints what it is waiting for.
+A third function draws the Poisson event study of the withdrawn
+occupation design from mona/output_43/poisson_es.csv when that file is
+present; it belongs to the submitted version and produces nothing for the
+current manuscript.
 
-Output: figures/fig1_two_panel.pdf/.png, figures/fig2_poisson_es.pdf/.png
+INPUTS AND OUTPUTS
+Reads data/processed/omxs30_monthly.csv,
+revision/output/postings_quartile_indexed_extended.csv (or
+data/processed/postings_quartile_indexed.csv) and
+revision/tables/firm_within_es.csv. Writes revision/figures/
+fig1_two_panel.pdf and .png and fig3_firm_entry_es.pdf and .png.
+
+IN THE PAPER
+Figure 1 (Section 3) and Online Appendix V, Figure fig:firm_entry_es.
 """
 
 import sys
@@ -84,8 +95,8 @@ def fig1_two_panel():
     labels = {"Q1 (lowest)": "Q1 (least exposed)", "Q2": "Q2",
               "Q3": "Q3", "Q4 (highest)": "Q4 (most exposed)"}
     # The four series converge at the right edge, so end labels collide;
-    # a line-style legend is the self-contained alternative (E8 asks for
-    # style + label, not colour alone -- the legend carries both).
+    # a line-style legend is the self-contained alternative (style and
+    # label, not colour alone; the legend carries both).
     for qname, st in styles.items():
         sub = q[q["exposure_quartile"] == qname].sort_values("date").copy()
         sub["ma"] = sub["ads_idx"].rolling(3, center=True,
@@ -160,8 +171,8 @@ def fig2_poisson_es():
 
 
 def fig3_firm_entry_es():
-    """The T17 exhibit: within-employer event study on public postings,
-    entry-level ads, through June 2026 (l09 output)."""
+    """The within-employer posting event study of Online Appendix V,
+    entry-level advertisements, through June 2026 (script l09's export)."""
     src = REV / "tables" / "firm_within_es.csv"
     if not src.exists():
         print("  Figure 3: waiting for l09 output")
