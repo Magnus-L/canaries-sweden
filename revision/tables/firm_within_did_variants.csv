@@ -1,0 +1,15 @@
+variant,term,coef,se,pval,n_obs,n_firms,note
+d1_pre_eligible_all_quartiles,rb_x_high,-0.0034061491594691634,0.01121135507346937,0.761270787423673,624079,5277,"floor and screen on 2021-01..2022-03; all four quartiles per employer, zero-filled to 2026-06"
+d1_pre_eligible_all_quartiles,gpt_x_high,-0.1563448711539176,0.012999350556125524,0.0,624079,5277,"floor and screen on 2021-01..2022-03; all four quartiles per employer, zero-filled to 2026-06"
+d2_pre_eligible_pre_pairs,rb_x_high,0.007553194029315934,0.011193736168369228,0.4998220919415015,569624,5277,floor and screen on 2021-01..2022-03; only quartiles used before the hike
+d2_pre_eligible_pre_pairs,gpt_x_high,-0.15480036951183596,0.013016631489750977,0.0,569624,5277,floor and screen on 2021-01..2022-03; only quartiles used before the hike
+e_pre_eligible_excl_staffing_public,rb_x_high,-0.020133207752002374,0.022154207337472986,0.3634684770825971,414624,4230,"as d1, without SNI 78 and prefix-2 employers"
+e_pre_eligible_excl_staffing_public,gpt_x_high,-0.17965382542106392,0.02204481511658305,4.440892098500626e-16,414624,4230,"as d1, without SNI 78 and prefix-2 employers"
+f_all_ads_common_sample,rb_x_high,-0.005204873736136525,0.013590083294261465,0.7017267566495358,228317,1265,whole-window screens on all AND on entry-level advertisements; all-advertisement cells
+f_all_ads_common_sample,gpt_x_high,-0.15978181943307154,0.015696355348092213,0.0,228317,1265,whole-window screens on all AND on entry-level advertisements; all-advertisement cells
+f_entry_ads_common_sample,rb_x_high,-0.006768073198495551,0.11700620964060444,0.9538731213081748,49246,1265,the same employers; entry-level cells
+f_entry_ads_common_sample,gpt_x_high,-0.19557156781994653,0.06461205747523632,0.002471094462403789,49246,1265,the same employers; entry-level cells
+g_entry_triple,rb_x_high,-0.0076161339765921385,0.014403647883124296,0.5969690049902339,273809,1265,employer x quartile x entry and employer x entry x month effects; common employers
+g_entry_triple,gpt_x_high,-0.15175260579486732,0.015650824262701077,0.0,273809,1265,employer x quartile x entry and employer x entry x month effects; common employers
+g_entry_triple,rb_x_high_x_entry,0.0008480607780967736,0.11993647999637849,0.9943582722872779,273809,1265,employer x quartile x entry and employer x entry x month effects; common employers
+g_entry_triple,gpt_x_high_x_entry,-0.04381896202507877,0.06562178819236376,0.5042930616779724,273809,1265,employer x quartile x entry and employer x entry x month effects; common employers
