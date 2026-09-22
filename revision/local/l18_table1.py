@@ -180,18 +180,16 @@ def main() -> int:
     ]
 
     note = (
-        r"Poisson on employer $\times$ age $\times$ month counts; "
-        r"employer-by-month, employer-by-age and month-by-age effects; three "
-        r"calendar-quarter terms; exposure frozen at the employer's 2019 "
-        r"education mix; clustered by employer. Steps read from the tightening "
-        r"level, as the Riksbank interaction stays in the model; the level row "
-        r"uses it as a window (post term against January 2021 to March 2022), "
-        r"and the step from 2023 is that post term minus the interim term, "
-        r"standard error from their covariance. Profile rows: one six-band "
-        r"panel, 41--49 the reference. The female differential is the adoption "
-        r"term's female interaction, with employer-by-age-and-sex and "
-        r"month-by-age-and-sex effects and no interim term; the within-track "
-        r"row weights track differentials by young women's track shares. "
+        r"Poisson on employer $\times$ age $\times$ month counts, with the "
+        r"effects and calendar terms of Equation~(2); exposure frozen at the "
+        r"employer's 2019 education mix; clustered by employer. Steps read "
+        r"from the tightening level, the Riksbank interaction staying in the "
+        r"model; the level row uses it as a window against January 2021 to "
+        r"March 2022, and the step from 2023 is post minus interim. The "
+        r"female differential is the adoption "
+        r"term's female interaction, with sex-specific employer-by-age and "
+        r"month-by-age effects and no interim term; the within-track row "
+        r"weights track differentials by young women's track shares. "
         r"Vintage re-scoring: the change when the 2019 incumbents are re-scored "
         r"from the 2021 education register. Full tables in Online Appendix~III.2."
     )
