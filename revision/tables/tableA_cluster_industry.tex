@@ -1,0 +1,32 @@
+\begin{table}[ht!]
+\centering
+\caption{Every term of the headline design under two clusterings, employer and three-digit industry.}
+\label{tab:cluster_industry}
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+Term & Coefficient & Employer SE & Industry SE \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A. Ages 22--25, 5{,}545 industry clusters}} \\
+Tightening months ($\hat\gamma_1$) & $+0.0214$ & (0.0078)$^{*}$ & (0.0108)$^{*}$ \\
+Interim, through 2023 ($\hat\gamma_0$) & $-0.0143$ & (0.0095) & (0.0156) \\
+Adoption, from 2024 ($\hat\gamma_2$) & $-0.0408$ & (0.0150)$^{*}$ & (0.0301) \\
+Step from the 2023 level & $-0.0265$ & (0.0099)$^{*}$ & (0.0189) \\
+Quarter 1 & $-0.1254$ & (0.0116)$^{*}$ & (0.0396)$^{*}$ \\
+Quarter 2 & $-0.1214$ & (0.0093)$^{*}$ & (0.0242)$^{*}$ \\
+Quarter 3 & $-0.0897$ & (0.0125)$^{*}$ & (0.0349)$^{*}$ \\
+\addlinespace[4pt]
+\multicolumn{4}{l}{\textit{Panel B. Ages 26--30, 9{,}368 industry clusters}} \\
+Tightening months ($\hat\gamma_1$) & $+0.0222$ & (0.0043)$^{*}$ & (0.0064)$^{*}$ \\
+Interim, through 2023 ($\hat\gamma_0$) & $-0.0035$ & (0.0056) & (0.0079) \\
+Adoption, from 2024 ($\hat\gamma_2$) & $-0.0394$ & (0.0102)$^{*}$ & (0.0199)$^{*}$ \\
+Step from the 2023 level & $-0.0360$ & (0.0066)$^{*}$ & (0.0137)$^{*}$ \\
+Quarter 1 & $-0.0458$ & (0.0035)$^{*}$ & (0.0114)$^{*}$ \\
+Quarter 2 & $-0.0519$ & (0.0029)$^{*}$ & (0.0066)$^{*}$ \\
+Quarter 3 & $-0.0404$ & (0.0026)$^{*}$ & (0.0068)$^{*}$ \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.9\textwidth}\footnotesize\vspace{4pt}
+The headline specification of Equation~(2), re-estimated with standard errors clustered on the employer's three-digit NACE group in 2019 instead of on the employer. Coefficients are identical to four decimals under the two clusterings, so the exercise changes inference and nothing else and the coefficient is printed once. The step from the 2023 level is the adoption term minus the interim term; its employer-clustered standard error is the one Table~1 reports, from the window specification, and its industry-clustered standard error comes from the covariance of the two terms in this run. Stars mark $p<0.05$ under the clustering in whose column they stand. Source: script 78, part C.
+\end{minipage}
+\end{table}
