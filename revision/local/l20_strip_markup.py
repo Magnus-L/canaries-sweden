@@ -70,20 +70,52 @@ def words(t: str) -> int:
     return len([w for w in t.split() if re.search(r"[A-Za-z0-9]", w)])
 
 
+def mask_comments(t: str) -> tuple:
+    r"""
+    Hide whole-line LaTeX comments from the stripper.
+
+    The preamble documents the markup by writing \add{new text} and
+    \del{old text} in comments. Without this the stripper ate its own
+    instructions, which is why the note in main_v2.tex once read "drops
+    spans and unwraps ." with the examples deleted out of it.
+    """
+    kept, out = [], []
+    for line in t.split("\n"):
+        if line.lstrip().startswith("%"):
+            out.append(f"@@CMT{len(kept)}@@")
+            kept.append(line)
+        else:
+            out.append(line)
+    return "\n".join(out), kept
+
+
+def unmask_comments(t: str, kept: list) -> str:
+    for i, line in enumerate(kept):
+        t = t.replace(f"@@CMT{i}@@", line)
+    return t
+
+
 def main() -> int:
-    t = SRC.read_text(encoding="utf-8")
-    n_del, n_add = t.count(r"\del{") - 1, t.count(r"\add{") - 1
+    raw = SRC.read_text(encoding="utf-8")
+    t, kept = mask_comments(raw)
+    n_del, n_add, n_rem = (t.count(r"\del{"), t.count(r"\add{"),
+                           t.count(r"\rem{"))
     t = strip(t, "del", False)
     t = strip(t, "add", True)
+    t = strip(t, "rem", False)      # co-author comments never leave the house
+    t = unmask_comments(t, kept)
     # the macros are now unused; leave them defined but inert so the file
     # still compiles if a stray \add survives a future edit
     t = t.replace(r"\usepackage[normalem]{ulem}",
                   "% ulem not needed in the clean file")
     t = t.replace(r"\newcommand{\del}[1]{\textcolor{red}{\sout{#1}}}",
                   r"\newcommand{\del}[1]{}")
+    t = t.replace(r"\newcommand{\rem}[1]{\textcolor{red}{[#1]}}",
+                  r"\newcommand{\rem}[1]{}")
     DST.write_text(t, encoding="utf-8")
     print(f"  wrote {DST.name}: dropped {n_del} \\del span(s), "
-          f"unwrapped {n_add} \\add span(s)")
+          f"unwrapped {n_add} \\add span(s), "
+          f"dropped {n_rem} \\rem comment(s)")
 
     if "--count" in sys.argv:
         body = t.split(r"\begin{document}")[-1].split(r"\end{document}")[0]
