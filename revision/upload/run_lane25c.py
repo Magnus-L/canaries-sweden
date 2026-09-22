@@ -23,6 +23,7 @@ from pathlib import Path
 
 os.environ["CANARIES_78_PARTS"] = "EF"
 os.environ["CANARIES_78_OUT"] = "output_78c"
+os.environ["CANARIES_RWORK_TAG"] = "_25c"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402

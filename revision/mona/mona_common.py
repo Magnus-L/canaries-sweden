@@ -700,8 +700,12 @@ def _r_workdir(workdir: Path) -> Path:
     """
     import tempfile
     try:
+        # CANARIES_RWORK_TAG lets one script run as several batch jobs at
+        # once (lane 25 runs script 78 in three MONA slots): each job gets
+        # its own exchange directory, so their fits can never share a file
+        # and the sweep below only ever sees this job's own leftovers.
         d = (Path(tempfile.gettempdir()) / "canaries_rwork"
-             / Path(sys.argv[0]).stem)
+             / (Path(sys.argv[0]).stem + os.environ.get("CANARIES_RWORK_TAG", "")))
         d.mkdir(parents=True, exist_ok=True)
     except OSError:
         return workdir
