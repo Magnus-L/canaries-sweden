@@ -28,9 +28,12 @@ TWO CLUSTERINGS
 Exposure is a firm-level score built from a workforce composition that is
 correlated within industry, so every row that was re-estimated with
 three-digit industry clusters carries that standard error in its own
-column beside the employer-clustered one: the pooled young bands from
-lane 25, part C, and the three sex rows from lane 26, part A. Neither run
-changes a coefficient, and the script refuses to write the table unless
+column beside the employer-clustered one, the pooled young bands and the
+three sex rows alike, all of them from lane 27, part B, where the
+industry code is completed from a cascade across register years and the
+employers it cannot place share one residual group instead of each
+holding a cluster of its own. The fits change no coefficient, and the
+script refuses to write the table unless
 every one of them reproduces the employer-clustered run to four decimals.
 The level row and the drift rows come from specifications that were not
 re-clustered, so they carry one standard error only.
@@ -50,8 +53,8 @@ The three sex rows come from the sex split on Equation (2) (lane 25, part
 B): every treatment term interacted with female, sex-specific
 employer-by-age and month-by-age effects, so they sit on the same base as
 the rest of the table. Young women is the sum of the male step and the
-differential, its standard error from the exported covariance. Lane 26,
-part A re-computes the variance of that same fit on three-digit industry
+differential, its standard error from the exported covariance. Lane 27,
+part B re-computes the variance of that same fit on three-digit industry
 clusters, so all three rows carry an industry standard error too, the
 women's again from the covariance of the two terms. The
 within-track row is script 76's and sits on script 68's base, which has no
@@ -69,10 +72,12 @@ Reads, from the export directories the final-code manifest names (or one
 directory given on the command line): seasonal_pooled.csv (script 68);
 reference_window.csv and vcov_s75_<band>_stock.csv (script 75);
 contrast_seasonal.csv (script 74); gender_split.csv (script 76);
-gender_eq2.csv, vcov_s78_gender_eq2_22_25.csv, cluster_industry.csv and
-vcov_s78_clind_<band>.csv (script 78, lane 25b/c); predrift.csv (script
-78, lane 25a); gender_cluster_industry.csv and
-vcov_s79_gender_clind_22_25.csv (script 79, lane 26a). Nothing is typed
+gender_eq2.csv and vcov_s78_gender_eq2_22_25.csv (script 78, lane 25b);
+predrift.csv (script 78, lane 25a); cluster_industry_v2.csv with
+vcov_s80_clind2_<band>.csv and vcov_s80_gender_clind2_22_25.csv (script
+80, lane 27b), whose spec column separates the pooled rows from the sex
+rows and whose se_industry_complete is the industry standard error,
+se_industry_hybrid being the superseded column. Nothing is typed
 in; a missing or ambiguous row stops the script. Writes
 revision/tables/table1_headline.tex and copies it to
 canaries-sweden-paper/tables/.
@@ -100,6 +105,7 @@ LANE21_22 = OUT / "round3_20260922-0712-lanes21-22"
 LANE25 = OUT / "round3_20260922-1237-lane25bc-BCEF"
 LANE25A = OUT / "round3_20260922-1333-lane25a-ADG"
 LANE26 = OUT / "round3_20260922-lane26ab-AB"
+LANE27 = OUT / "round3_20260922-1820-lane27bc"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -177,20 +183,23 @@ def main() -> int:
     split = pd.read_csv(source(LANE21_22, "gender_split.csv"))
     sexes = pd.read_csv(source(LANE25, "gender_eq2.csv"))
     sexes = sexes[sexes.get("status", "ok") == "ok"]
-    clind = pd.read_csv(source(LANE25, "cluster_industry.csv"))
-    gsex = pd.read_csv(source(LANE26, "gender_cluster_industry.csv"))
-    gsex = gsex[gsex.get("status", "ok") == "ok"]
+    # Both the pooled rows and the sex rows now come from one export, the
+    # industry key completed from a cascade across register years.
+    clind2 = pd.read_csv(source(LANE27, "cluster_industry_v2.csv"))
+    clind2 = clind2[clind2.get("status", "ok") == "ok"]
+    clind = clind2[clind2.spec == "pooled"]
+    gsex = clind2[clind2.spec == "gender"]
     drift = pd.read_csv(source(LANE25A, "predrift.csv"))
     drift = drift[drift.get("status", "ok") == "ok"]
 
-    # Part C is an inference exercise and nothing else: if a coefficient
+    # Part B is an inference exercise and nothing else: if a coefficient
     # moved, the panel is not the one the rest of the table reports and no
     # industry-clustered standard error from it may be quoted.
     if not bool(clind.coef_match_4dp.all()):
-        raise SystemExit("  lane 25C: a coefficient does not reproduce to "
+        raise SystemExit("  lane 27B: a coefficient does not reproduce to "
                          "four decimals; no industry SE is quotable")
     if not bool(gsex.coef_match_4dp.all()):
-        raise SystemExit("  lane 26A: a coefficient does not reproduce to "
+        raise SystemExit("  lane 27B: a coefficient does not reproduce to "
                          "four decimals; no industry SE is quotable for the "
                          "sex rows")
 
@@ -198,7 +207,7 @@ def main() -> int:
         r = clind[(clind.young_band == band) & (clind.term == term)]
         if len(r) != 1:
             raise SystemExit(f"  expected one industry row for {band} {term}")
-        return float(r.se_industry.iloc[0])
+        return float(r.se_industry_complete.iloc[0])
 
     def check(band: str, term: str, c: float) -> None:
         r = clind[(clind.young_band == band) & (clind.term == term)]
@@ -209,7 +218,7 @@ def main() -> int:
     def sex_row(term: str) -> pd.Series:
         r = gsex[(gsex.young_band == "22-25") & (gsex.term == term)]
         if len(r) != 1:
-            raise SystemExit(f"  expected one lane 26A row for {term}, "
+            raise SystemExit(f"  expected one lane 27B sex row for {term}, "
                              f"found {len(r)}")
         return r.iloc[0]
 
@@ -218,7 +227,7 @@ def main() -> int:
         if abs(float(r.coef) - c) > 5e-5:
             raise SystemExit(f"  {term}: the industry-clustered sex run does "
                              f"not reproduce the reported coefficient")
-        return float(r.se_industry)
+        return float(r.se_industry_complete)
 
     # 22-25, the sequence
     g1 = one(pooled, young_band="22-25", outcome="stock", arm="true",
@@ -255,10 +264,10 @@ def main() -> int:
     # The same sum under three-digit industry clusters. Its standard error
     # comes from the covariance of the two terms in that run, so the
     # exported matrix has to be the one the row column reports.
-    vgi = vcov(LANE26, "vcov_s79_gender_clind_22_25.csv")
+    vgi = vcov(LANE27, "vcov_s80_gender_clind2_22_25.csv")
     for t in (TERM, FEMALE):
         if abs(float(vgi.loc[t, t]) ** 0.5
-               - float(sex_row(t).se_industry)) > 5e-5:
+               - float(sex_row(t).se_industry_complete)) > 5e-5:
             raise SystemExit(f"  {t}: the exported industry SE is not the "
                              f"square root of its own variance")
     women_ind = se_lin(vgi, TERM, FEMALE, +1)
@@ -270,8 +279,8 @@ def main() -> int:
     check("22-25", "rb_x_high_x_young", g1[0])
     check("22-25", TERM, g2[0])
     check("26-30", TERM, g2_26[0])
-    v22 = vcov(LANE25, "vcov_s78_clind_22_25.csv")
-    v26 = vcov(LANE25, "vcov_s78_clind_26_30.csv")
+    v22 = vcov(LANE27, "vcov_s80_clind2_22_25.csv")
+    v26 = vcov(LANE27, "vcov_s80_clind2_26_30.csv")
     INTER = "interim_x_high_x_young"
     step23_ind = se_lin(v22, TERM, INTER, -1)
     step23_26_ind = se_lin(v26, TERM, INTER, -1)
@@ -331,9 +340,11 @@ def main() -> int:
         r"from the tightening level, the Riksbank interaction staying in the "
         r"model; the level row is a window against January 2021 to "
         r"March 2022, and the step from 2023 is post minus interim. The third "
-        r"column clusters the same fits on three-digit industry, 265 groups "
-        r"with each employer lacking a 2019 code as its own cluster, which "
-        r"reproduces every coefficient, the sex rows included. Those "
+        r"column clusters the same fits on three-digit industry, the code "
+        r"completed from a cascade across register years: 260 groups at "
+        r"22--25 and in the sex fit, 263 at 26--30, with the employers it "
+        r"cannot place in one residual group (Online Appendix~III.2); "
+        r"every coefficient still reproduces, the sex rows included. Those "
         r"rows interact every treatment term with female, with sex-specific "
         r"effects; young women is the male step plus the differential, "
         r"each standard error from the covariance of the two terms in "
