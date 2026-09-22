@@ -100,6 +100,13 @@ incumbent employment rather than a quarter of employers. That is script
 47j's incumbent_exposure with the score taken from the occupation
 register instead of the education register, and nothing else changed.
 
+build_exposure() is the whole chain in one call, and it is the ONLY
+place the score is built. Script 83, which puts the rest of the paper's
+exhibits on this same score, imports it rather than rebuilding it: two
+constructions of one treatment variable would drift apart the first time
+either was corrected, and a published table would then mix two scores
+under one name.
+
 Part A (part_a). No fit. Where the cascade resolves each incumbent;
 the coverage of the code among incumbents by age band, before and after
 the cascade, as a coded share and as a scored share (a code outside the
@@ -1187,6 +1194,81 @@ def old_rule_scored(inc: pd.DataFrame) -> set:
     return set(s[s >= FLOOR_MAIN].index)
 
 
+def build_exposure(l47, l70, j47, arm: str = MAIN_LEVEL,
+                   floor: int = FLOOR_MAIN, years=None,
+                   daioe: pd.DataFrame = None,
+                   audit: bool = True) -> dict:
+    """
+    THE OCCUPATION-ROUTE SCORE, BUILT ONCE AND IN ONE PLACE.
+
+    The question it answers: which employers are highly exposed, when
+    the exposure comes from the occupations the employer's own
+    incumbents aged 31 to 69 held in 2019 and from no education record
+    at all.
+
+    WHY THIS IS A FUNCTION AND NOT A BLOCK INSIDE main(). Script 83 puts
+    the rest of the paper's exhibits on this same score, and a second
+    script that rebuilt it would be a second definition of the treatment
+    variable: the two would drift apart the first time either was
+    corrected, and a published table would then mix two scores under one
+    name. So the whole chain lives here and both scripts call it.
+
+    What it runs, in order: the cascade pull (cached the moment it is
+    built); the head-count audit against 47L's own baseline; the
+    three-digit book and what the coarsening costs; the incumbent frame;
+    the floor series and the unit it is in; and the firm score and
+    quartile. It prints what each step found, because both callers want
+    the same lines in their own log.
+
+    Inputs are the modules load_modules() returns, plus the arm
+    (uniform3 is the reported one), the floor and the cascade years.
+    Returns a dict: daioe, casc, book, cost, inc, nfloor, exposure,
+    basis, arm and floor.
+    """
+    if daioe is None:
+        daioe = l70.daioe_scores()
+    casc = baseline_cascade()
+    if audit:
+        opt("cascade audit", cascade_audit, casc)
+    book, cost = build_book3(casc, daioe)
+    print(f"  three-digit book: {len(book):,} groups from "
+          f"{cost.get('n_ssyk4', 0):,} four-digit codes; "
+          f"{cost.get('share_within', float('nan')):.1%} of the "
+          f"employment-weighted variance is WITHIN groups and is what the "
+          f"book discards (unweighted benchmark "
+          f"{BENCH3['share_within']:.1%}); mean absolute difference "
+          f"{cost.get('mean_abs_difference', float('nan')):.2f} against "
+          f"{BENCH3['mean_abs']:.2f}")
+    if cost.get("share_within", 0) > WITHIN_ALARM:
+        print(f"  *** the within-group share is above {WITHIN_ALARM:.0%}: "
+              f"the choice of {MAIN_LEVEL} as the primary arm should be "
+              f"revisited, not assumed")
+    inc = incumbent_frame(casc, daioe, book, j47)
+    nfloor = incumbent_floor_series(l47, casc, j47)
+    print(f"  floor basis: {BASIS}; {len(nfloor):,} employers carry one")
+    expo = occ_route_exposure(inc, nfloor, floor,
+                              years or ARM_YEARS[MAIN_ARM], arm=arm)
+    if expo.empty:
+        raise RuntimeError("no employer could be scored on the occupation "
+                           "route; there is nothing to estimate")
+    shares = (expo.groupby("fq")["n"].sum() / expo["n"].sum())
+    # The arm is named only when it is not the reported one, so the line
+    # this script has always printed is unchanged for the default call.
+    msg = (f"occupation route{'' if arm == MAIN_LEVEL else f' ({arm})'}: "
+           f"{len(expo):,} employers scored at a "
+           f"floor of {floor} {BASIS}, median coverage of the code "
+           f"{expo['coverage'].median():.1%}, "
+           f"{expo['share_not_2019'].mean():.1%} of coded incumbents from a "
+           f"year before {BASE_YEAR}; quartile shares of incumbent "
+           f"employment " + " ".join(f"Q{int(k)} {v:.2f}"
+                                     for k, v in shares.items()))
+    print(f"  {msg}")
+    NOTES.append(msg)
+    return {"daioe": daioe, "casc": casc, "book": book, "cost": cost,
+            "inc": inc, "nfloor": nfloor, "exposure": expo, "basis": BASIS,
+            "arm": arm, "floor": floor}
+
+
 # ----------------------------------------------------------------------
 # Part A: the score and what it covers. No fit.
 # ----------------------------------------------------------------------
@@ -2239,21 +2321,11 @@ def main():
     plan_cols = check_cascade_years()
     print("  cascade: " + ", ".join(f"{y} via {c}"
                                     for y, c in sorted(plan_cols.items())))
-    casc = baseline_cascade()
-    opt("cascade audit", cascade_audit, casc)
-    book, cost = build_book3(casc, daioe)
-    print(f"  three-digit book: {len(book):,} groups from "
-          f"{cost.get('n_ssyk4', 0):,} four-digit codes; "
-          f"{cost.get('share_within', float('nan')):.1%} of the "
-          f"employment-weighted variance is WITHIN groups and is what the "
-          f"book discards (unweighted benchmark "
-          f"{BENCH3['share_within']:.1%}); mean absolute difference "
-          f"{cost.get('mean_abs_difference', float('nan')):.2f} against "
-          f"{BENCH3['mean_abs']:.2f}")
-    if cost.get("share_within", 0) > WITHIN_ALARM:
-        print(f"  *** the within-group share is above {WITHIN_ALARM:.0%}: "
-              f"the choice of {MAIN_LEVEL} as the primary arm should be "
-              f"revisited, not assumed")
+    # The whole chain, in the one function script 83 also calls, so that
+    # the score has a single definition rather than two that drift.
+    built = build_exposure(l47, l70, j47, daioe=daioe)
+    casc, book, cost = built["casc"], built["book"], built["cost"]
+    inc, nfloor, occ = built["inc"], built["nfloor"], built["exposure"]
     if len(book):
         bk = book.copy()
         bk["item"] = "book"
@@ -2263,23 +2335,6 @@ def main():
                             for k, v in cost.items()])
         save(pd.concat([bk, cst], ignore_index=True),
              "occ_route_ssyk3_book.csv", count_col="n_weight")
-    inc = incumbent_frame(casc, daioe, book, j47)
-    nfloor = incumbent_floor_series(l47, casc, j47)
-    print(f"  floor basis: {BASIS}; {len(nfloor):,} employers carry one")
-    occ = occ_route_exposure(inc, nfloor, FLOOR_MAIN, ARM_YEARS[MAIN_ARM])
-    if occ.empty:
-        raise RuntimeError("no employer could be scored on the occupation "
-                           "route; there is nothing to estimate")
-    shares = (occ.groupby("fq")["n"].sum() / occ["n"].sum())
-    msg = (f"occupation route: {len(occ):,} employers scored at a floor of "
-           f"{FLOOR_MAIN} {BASIS}, median coverage of the code "
-           f"{occ['coverage'].median():.1%}, "
-           f"{occ['share_not_2019'].mean():.1%} of coded incumbents from a "
-           f"year before {BASE_YEAR}; quartile shares of incumbent "
-           f"employment " + " ".join(f"Q{int(k)} {v:.2f}"
-                                     for k, v in shares.items()))
-    print(f"  {msg}")
-    NOTES.append(msg)
 
     edu = None
     if "A" in PARTS:
