@@ -4,13 +4,13 @@
                           score that uses no education record at all.
 
 ======================================================================
-  RUNS IN MONA. Part A is counting only and needs no SQL if 47L's
-  baseline cache is on the share. Part B and Part C fit Poisson models
-  on the panels scripts 68, 74, 67 and 54 already build. Only Part C's
-  vintage check pulls: one read of the November 2019 declarations
-  joined to two Individ tables. Parts are chosen with the environment
-  variable CANARIES_82_PARTS (default ABC) and the folder with
-  CANARIES_82_OUT (default output_82); the lane runners set both.
+  RUNS IN MONA. Every part needs the occupation cascade, which is one
+  read of the November 2019 declarations joined to the Individ tables
+  of 2015 to 2021; it is cached as soon as it is built, so the part
+  that runs after another reads it rather than pulling again. Part C
+  pulls the 2021 vintage separately. Parts are chosen with the
+  environment variable CANARIES_82_PARTS (default ABC) and the folder
+  with CANARIES_82_OUT (default output_82); the lane runners set both.
 ======================================================================
 
 QUESTION
@@ -23,38 +23,65 @@ the firm, and a reader may reasonably ask how much of the result is the
 education register rather than the work. This script answers it by
 deleting the intermediate step: an employer is scored directly by the
 employment-weighted mean DAIOE percentile of the four-digit occupations
-its own incumbents aged 31 to 69 held in November 2019. The freeze year,
-the incumbent restriction, the person floor and the quartile logic are
-the paper's; no education record enters at any point.
+its own incumbents aged 31 to 69 held in 2019. The freeze year, the
+incumbent restriction, the person floor and the quartile logic are the
+paper's; no education record enters at any point.
+
+WHY THE SCORE IS BUILT HERE AND NOT TAKEN FROM SCRIPT 65
+Script 65's occupation_exposure drops the uncoded incumbents and only
+then applies the floor, so its floor counts CODED incumbents; and its
+weight is a single November head count while script 47j's is person-
+months summed over 2019. A floor of five therefore means five coded
+persons in one month on one route and five person-months on the other,
+which is about an order of magnitude stricter before any coverage
+question arises. That, and not missing codes, is most of why script
+70's route ladder falls from 172,396 employers to 60,704, and it is why
+that ladder is not the comparison this script makes. Two things are
+changed and both are reported.
+
+  The floor is on the firm's INCUMBENTS, not on its coded incumbents,
+  and on the same unit as the education route: incumbent person-months
+  in 2019, summed from script 47L's own monthly counts. The occupation
+  mix is then formed over whatever share of those incumbents carries a
+  code, and that share is reported per firm and in aggregate. When the
+  2019 monthly counts cannot be obtained the November head count is
+  used instead, the summary says so in those words, and the sensitivity
+  at floors of 1, 3 and 5 is reported either way.
+
+  The code is completed by a cascade over years, as script 80 completes
+  the industry code: each incumbent PERSON takes the occupation recorded
+  for him in 2019, failing that 2018, then 2017, 2016 and 2015. The
+  cascade is BACKWARD ONLY for the reported score. A post-2019 code
+  would break the paper's claim that no occupation code recorded after
+  2019 enters anything, which is the sentence the design rests on. The
+  source year travels with each person, so every fit can report the
+  share of its employers coded from a year other than 2019. A forward
+  variant (2020 and 2021, after the backward steps) is built and
+  reported as a SEPARATE arm, never as the score, so that the question
+  of what it would add has an answer.
 
 DESIGN
-Exposure (script 65's occupation_exposure, imported rather than
-rewritten): the worker-weighted mean DAIOE percentile of the 2019
-four-digit occupations of the employer's incumbents aged 31 to 69, from
-script 47L's baseline pull; an employer with fewer than five coded
-incumbents is not scored; the quartile cut points are weighted by
-incumbent employment, so the top quartile holds a quarter of incumbent
-employment rather than a quarter of employers. That is script 47j's
-incumbent_exposure line for line with the score taken from the
-occupation register instead of the education register, which is what
-makes the two routes comparable.
+Exposure (occ_route_exposure): the head-count-weighted mean DAIOE
+percentile of the cascade occupations of the employer's incumbents aged
+31 to 69 in November 2019; an employer with fewer incumbent person-
+months than the floor, or with no coded incumbent at all, is not scored;
+the quartile cut points are weighted by the same incumbent employment
+the floor is applied to, so the top quartile holds a quarter of
+incumbent employment rather than a quarter of employers. That is script
+47j's incumbent_exposure with the score taken from the occupation
+register instead of the education register, and nothing else changed.
 
-One unit differs and is stated rather than hidden. The education route
-weights an employer's incumbents by person-months summed over 2019, so
-its floor of five is five person-months; the occupation register has a
-single November reference, so here the weight is the November head count
-and the floor is five incumbents. The floor binds on the same object in
-both routes (an employer too thin to classify) and on a different scale.
-
-Part A (part_a). No fit. The coverage of the 2019 occupation code among
-incumbent person-months by age band, both as a coded share and as a
-scored share, since a code outside the DAIOE file cannot carry an
-exposure; the employers each route can score, alone and on the two young
-panels; the occupation quartile against the education quartile among the
-employers both routes score, with the share on the diagonal and the
-Spearman rank correlation of the underlying continuous scores; and the
-size and longevity of the employers one route scores and the other does
-not, read off the panel the fits themselves run on.
+Part A (part_a). No fit. Where the cascade resolves each incumbent;
+the coverage of the code among incumbents by age band, before and after
+the cascade, as a coded share and as a scored share (a code outside the
+DAIOE file carries no exposure); the decomposition of the employers the
+old rule lost into those the floor lost, those missing codes lost after
+the full backward cascade, and those both lost; the floor sensitivity at
+1, 3 and 5; the occupation quartile against the education quartile among
+the employers both routes score, with the share on the diagonal and the
+Spearman rank correlation; and the size and longevity of the employers
+one route scores and the other does not, read off the panels the fits
+themselves build.
 
 Part B (part_b). Equation (2) on the employment stock at 22-25 and at
 26-30: the cumulative tightening switch from April 2022, the interim
@@ -64,21 +91,24 @@ omitted, each interacted with High x Young, under employer-by-month,
 employer-by-age and month-by-age effects, Poisson pseudo-maximum
 likelihood, standard errors clustered by employer. The term set is
 script 78's, which is script 68's. Then the six-band profile of script
-74's seasonal arm: the same terms per band with 41-49 omitted, on
-script 70's six-band skeleton, so every coefficient is a difference from
-the prime-aged band.
+74's seasonal arm on script 70's six-band skeleton, so every coefficient
+is a difference from the prime-aged band; then the 22-25 headline at
+floors of 1 and 3, and on the forward-cascade arm.
 
 Part C (part_c). The sex specification of Equation (2) at 22-25 on
 script 67's panel, every term entered as High x Young, High x Female and
 High x Young x Female, with employer-by-age-and-sex and
 month-by-age-and-sex effects; hires and separations at 22-25 on script
-54's flows with the same terms as the stock; and a vintage check, the
-analogue of the education re-scoring the paper reports, in which the
-same November 2019 incumbents are re-scored from the occupation code the
-Individ register of 2021 holds for them. The birth year and therefore
-the population come from the 2019 register in both arms, so a person
-absent from the later register loses his code rather than leaving the
-sample, and the two arms differ in the code and in nothing else.
+54's flows with the same terms as the stock; and a vintage check in
+three arms on one panel and one set of employers, the reported backward
+cascade, the 2019 code alone and the 2019 incumbents re-scored from the
+2021 register, so that what the later register moves and what the
+cascade adds are separated rather than summed. The three do not score
+the same employers, so every fit is restricted to the ones all three
+score and the difference between the arms is the score and not the
+sample; how many each can score is Part A's question. The birth year and therefore the population come
+from the 2019 register in every arm, so a person absent from a later
+register loses his code rather than leaving the sample.
 
 READ RULES
 Fixed before the run and printed at the start and in the summary. There
@@ -87,14 +117,17 @@ Three questions are settled in advance and answered explicitly whichever
 way they fall, with every point estimate beside the education-route one.
 
 INPUTS AND OUTPUTS
-Reads the caches L_baseline_2019, L_counts_2021 to 2025 (script 47L),
-flows_2021 to 2025 (script 54), L_counts_sex_2021 to 2025 (script 67)
-and edu_hr_weights_2019 to 2021 and edu_hr_2019 (script 47h, for the
-education route Part A compares against), and the input file
-daioe_quartiles.dta. Caches L_baseline_2019_asof2021.parquet. Writes to
-output_82/: occ_route_coverage.csv, occ_route_headline.csv,
-occ_route_profile.csv, occ_route_gender.csv, occ_route_flows.csv,
-occ_route_vintage.csv, the vcov_s82_*.csv files and 82_summary.txt.
+Reads the caches L_counts_2019 to 2025 (script 47L), flows_2021 to 2025
+(script 54), L_counts_sex_2021 to 2025 (script 67), edu_hr_weights_2019
+to 2021 and edu_hr_2019 (script 47h, for the education route Part A
+compares against) and L_baseline_2019 (script 47L, for the head-count
+audit), and the input file daioe_quartiles.dta. Pulls and caches
+L_baseline_2019_cascade.parquet and L_baseline_2019_asof2021.parquet,
+and pulls L_counts_2019 through 47L's own query if it is not on the
+share. Writes to output_82/: occ_route_coverage.csv,
+occ_route_headline.csv, occ_route_profile.csv, occ_route_gender.csv,
+occ_route_flows.csv, occ_route_vintage.csv, the vcov_s82_*.csv files and
+82_summary.txt.
 
 IN THE PAPER
 Online Appendix III.2, the robustness of the exposure route: whether the
@@ -131,9 +164,31 @@ PROFILE_REF = "41-49"            # the omitted band of the profile
 FLOOR = 5                        # the export floor, as in mona_common
 SIG5 = 1.959963984540054         # two-sided five per cent
 SIG1 = 2.5758293035489004        # two-sided one per cent
-BASE_CACHE = CACHE / f"L_baseline_{BASE_YEAR}.parquet"
+
+# The cascade. BACKWARD ONLY for the reported score: a code recorded
+# after 2019 would break the paper's claim that no occupation code from
+# after the freeze year enters anything. The forward years are a
+# separate arm and are never the score.
+CASCADE_BACK = [2019, 2018, 2017, 2016, 2015]
+CASCADE_FWD = [2020, 2021]
+MAIN_ARM = "backward"
+ARM_YEARS = {"backward": CASCADE_BACK, "2019_only": [BASE_YEAR],
+             "forward": CASCADE_BACK + CASCADE_FWD}
+SSYK_COL = "Ssyk4_2012_J16"
+PERSON_COL = "P1207_LopNr_PersonNr"
+
+# The incumbent floor. Five, as script 47j's, and on the same unit when
+# the 2019 monthly counts can be read; the sensitivity is reported at
+# all three either way.
+FLOOR_MAIN = 5
+FLOORS = (1, 3, 5)
+
+CASC_CACHE = CACHE / f"L_baseline_{BASE_YEAR}_cascade.parquet"
+CASC_COLS = ["employer_id", "age_group", "ssyk4", "source_year", "n"]
 VINT_CACHE = CACHE / f"L_baseline_{BASE_YEAR}_asof{VINTAGE}.parquet"
-BASE_COLS = ["employer_id", "age_group", "ssyk4", "n"]
+VINT_COLS = ["employer_id", "age_group", "ssyk4", "n"]
+BASE_CACHE = CACHE / f"L_baseline_{BASE_YEAR}.parquet"
+COUNTS_2019_CACHE = CACHE / f"L_counts_{BASE_YEAR}.parquet"
 
 # What the education route prints, taken from the exports the paper
 # quotes: script 68's seasonal_pooled.csv (the stock and flow steps),
@@ -150,6 +205,11 @@ EDU_FEMALE = (-0.0746, 0.0142)
 
 NOTES = []
 FAILURES = []
+# Set by incumbent_floor_series(): "person-months" when 47L's 2019 monthly
+# counts are available and "November head count" when they are not.
+# Printed wherever the floor is mentioned, because a floor of five means
+# different things in the two units.
+BASIS = "unknown"
 
 READ_RULES = [
     "READ RULES, FIXED BEFORE THE RUN:",
@@ -167,6 +227,9 @@ READ_RULES = [
     "    3. THE SEX RESULT REPRODUCES if the female differential is",
     "       negative and distinguishable from zero at the one per cent",
     "       level.",
+    "  All three are read on the REPORTED score: the backward cascade at",
+    f"  a floor of {FLOOR_MAIN}. The floor variants and the forward arm are",
+    "  reported beside it and settle nothing.",
     "  Each verdict is reported explicitly and whatever the numbers are,",
     "  and every point estimate is reported beside the education-route",
     "  one in every table.",
@@ -207,12 +270,14 @@ def load_modules():
     61 builds the balanced employer by band by month skeleton, 67 the
     same skeleton with sex as a fourth dimension, 70 the six-band
     skeleton and the education exposure, 74 the per-band profile terms,
-    78 the term sets of Equation (2) and of its sex split, 65 the
-    occupation score, 80 the description of a panel's employers, 47L the
-    baseline pull, 47j the fixed-effect list and the incumbent bands.
+    78 the term sets of Equation (2) and of its sex split, 80 the
+    description of a panel's employers, 47L the 2019 pulls, 47j the
+    fixed-effect list and the incumbent bands.
     Importing them rather than copying is the point: this script must be
     68, 74, 67 and 54 with one column changed, and a copied term list
-    could drift away from the estimates the paper quotes.
+    could drift away from the estimates the paper quotes. Script 65 is
+    NOT reused; its floor counts coded incumbents, which is the defect
+    this script exists to remove, and occ_route_exposure replaces it.
     """
     s61 = _mod("61_redated_triple.py", "s61")
     s67 = _mod("67_gender_on_the_new_design.py", "s67")
@@ -220,22 +285,21 @@ def load_modules():
     s78 = _mod("78_final_checks.py", "s78")
     s80 = _mod("80_industry_key.py", "s80")
     l47 = _mod("47L_age_baseline_exposure.py", "l47")
-    l65 = _mod("65_occupation_arm.py", "l65")
     l70 = _mod("70_respecifications.py", "l70")
     j47 = s61._j47()
     # 78's module-level OUT and CACHE are its own. Point them here so that
     # anything reached through it lands with this script's exports.
     s78.OUT, s78.CACHE = OUT, CACHE
-    # Four hard guards. Each of them is a place where this script's
+    # Five hard guards. Each of them is a place where this script's
     # docstring and read rules would describe a model it is not fitting.
     if s78.POST_FROM != POST_FROM:
         raise RuntimeError(
             f"78's adoption date is {s78.POST_FROM} and this script says "
             f"{POST_FROM}; the terms come from 78, so settle it there first")
-    if l65.MIN_FIRM_INCUMBENTS != j47.MIN_FIRM_INCUMBENTS:
+    if FLOOR_MAIN != j47.MIN_FIRM_INCUMBENTS:
         raise RuntimeError(
-            f"65's incumbent floor is {l65.MIN_FIRM_INCUMBENTS} and 47j's is "
-            f"{j47.MIN_FIRM_INCUMBENTS}; the two routes would then differ in "
+            f"47j's incumbent floor is {j47.MIN_FIRM_INCUMBENTS} and this "
+            f"script says {FLOOR_MAIN}; the two routes would then differ in "
             f"the floor as well as in the register, and nothing here would "
             f"be a comparison")
     if list(s74.BANDS) != list(l70.CONTRAST_BANDS):
@@ -247,7 +311,12 @@ def load_modules():
         raise RuntimeError(
             f"70's reference band is {l70.REF_BAND} and this script says "
             f"{PROFILE_REF}; read rule 2 names the band explicitly")
-    return s61, s67, s74, s78, s80, l47, l65, l70, j47
+    if max(CASCADE_BACK) > BASE_YEAR:
+        raise RuntimeError(
+            f"the reported cascade reaches {max(CASCADE_BACK)}, after the "
+            f"freeze year {BASE_YEAR}; the paper's claim that no occupation "
+            f"code recorded after {BASE_YEAR} enters anything would be false")
+    return s61, s67, s74, s78, s80, l47, l70, j47
 
 
 def load_counts(prefix: str, years, require=None):
@@ -299,7 +368,7 @@ def cnt(v) -> str:
     return "(suppressed)" if 0 < v < FLOOR else f"{v:,}"
 
 
-def save(rows: list, name: str, count_col: str = "n_firms") -> pd.DataFrame:
+def save(rows, name: str, count_col: str = "n_firms") -> pd.DataFrame:
     """
     Write one export, with the floor applied on the way out.
 
@@ -320,160 +389,524 @@ def tstat(coef, se) -> float:
 
 
 # ----------------------------------------------------------------------
-# The score: the occupation route, and the education route beside it
+# The cascade pull
 # ----------------------------------------------------------------------
 
-def daioe_scores(l70) -> pd.DataFrame:
-    """ssyk4 and the generative-AI percentile, through 70's loader."""
-    return l70.daioe_scores()
+def individ_years(conn, wanted) -> tuple:
+    """
+    Which Individ vintages are on this delivery and carry the four-digit
+    occupation code, in the order the cascade asks for them.
+
+    Read out of INFORMATION_SCHEMA rather than assumed, as scripts 79 and
+    80 read theirs: a delivery can change, a guessed table name is how
+    three MONA rounds were lost in September, and a year that is absent
+    must shorten the cascade rather than fail the pull.
+    """
+    names = ", ".join("'" + f"Individ_{y}" + "'" for y in wanted)
+    q = (f"SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+         f"WHERE TABLE_NAME IN ({names})")
+    cat = pd.read_sql(q, conn)
+    have, missing = [], []
+    for y in wanted:
+        cols = cat[cat["TABLE_NAME"].astype(str).str.lower()
+                   == f"individ_{y}"]["COLUMN_NAME"].astype(str).tolist()
+        if cols and any(c.lower() == SSYK_COL.lower() for c in cols):
+            have.append(y)
+        else:
+            missing.append(y)
+    if missing:
+        NOTES.append(f"cascade: Individ_{{{', '.join(str(y) for y in missing)}}} "
+                     f"is absent or carries no {SSYK_COL}; those steps are "
+                     f"skipped and the cascade is {have}")
+    return have, missing
 
 
-def baseline(l47) -> pd.DataFrame:
+def _clean(alias: str) -> str:
     """
-    47L's 2019 baseline: employer by age band by four-digit occupation by
-    head count in November 2019, with '____' for a worker the register
-    leaves uncoded. Read from the cache when it is there; pulled through
-    47L's own query when it is not, so there is one pull of this frame in
-    the project and not two.
+    One vintage's code with Statistics Sweden's missing conventions
+    removed, so that a '****' in 2019 does not block the 2018 code.
+
+    The conventions are 47L's: a true null, an empty string and a value
+    beginning with an asterisk. Applying them BEFORE the COALESCE is the
+    whole point of writing the cascade this way; applying them after
+    would file a firm's conventions as a code.
     """
-    b = mc.read_cache(BASE_CACHE, require=BASE_COLS)
+    c = f"{alias}.{SSYK_COL}"
+    return (f"CASE WHEN {c} IS NULL OR LTRIM({c}) = '' "
+            f"OR LEFT(LTRIM({c}), 1) = '*' THEN NULL "
+            f"ELSE RIGHT('0000' + CAST({c} AS VARCHAR(4)), 4) END")
+
+
+def cascade_sql(years) -> str:
+    """
+    47L's baseline pull with the occupation resolved per PERSON by a
+    cascade over vintages, and the year that answered carried out beside
+    the code.
+
+    The population is 47L's and does not move: the November 2019
+    declarations, aged 22 to 69 on the 2019 register's birth year. Only
+    the code travels through the cascade, so a person no later vintage
+    holds keeps his place and takes the '____' convention.
+    """
+    if BASE_YEAR not in years:
+        raise RuntimeError(
+            f"Individ_{BASE_YEAR} is not usable, so the population of the "
+            f"score cannot be defined as 47L defines it; refusing to pull a "
+            f"different population under the same name")
+    age_case = "\n".join(
+        f"             WHEN {BASE_YEAR} - TRY_CAST(b.FodelseAr AS INT) "
+        f"BETWEEN {lo} AND {hi} THEN '{lab}'"
+        for lab, (lo, hi) in mc.AGE_GROUPS.items())
+    age_case = f"CASE\n{age_case}\n             ELSE NULL END"
+    code = ("COALESCE(" + ", ".join(_clean(f"i{y}") for y in years)
+            + ", '____')")
+    src = ("CASE " + " ".join(f"WHEN {_clean(f'i{y}')} IS NOT NULL "
+                              f"THEN '{y}'" for y in years)
+           + " ELSE 'none' END")
+    joins = "\n".join(
+        f"    LEFT JOIN dbo.Individ_{y} i{y}\n"
+        f"      ON agi.P1207_LOPNR_PERSONNR = i{y}.{PERSON_COL}"
+        for y in years)
+    return f"""
+    SELECT agi.P1207_LOPNR_PEORGNR AS employer_id,
+           {age_case} AS age_group,
+           {code} AS ssyk4,
+           {src} AS source_year,
+           COUNT(DISTINCT agi.P1207_LOPNR_PERSONNR) AS n
+    FROM dbo.Arb_AGIIndivid{BASE_YEAR}11_def agi
+    LEFT JOIN dbo.Individ_{BASE_YEAR} b
+      ON agi.P1207_LOPNR_PERSONNR = b.{PERSON_COL}
+{joins}
+    WHERE {BASE_YEAR} - TRY_CAST(b.FodelseAr AS INT) BETWEEN 22 AND 69
+    GROUP BY agi.P1207_LOPNR_PEORGNR, {age_case}, {code}, {src}
+    """
+
+
+def baseline_cascade() -> pd.DataFrame:
+    """The cascade frame, cached the moment it is built so that three
+    jobs building it at once cost one pull and the write is atomic."""
+    b = mc.read_cache(CASC_CACHE, require=CASC_COLS)
     if b is not None:
-        print(f"  baseline {BASE_YEAR}: cached ({len(b):,} rows)")
+        print(f"  cascade baseline: cached ({len(b):,} rows)")
         return b
     t = time.time()
     conn = mc.connect()
     try:
-        b = l47.q_baseline(conn)
+        years, _ = individ_years(conn, CASCADE_BACK + CASCADE_FWD)
+        use = [y for y in CASCADE_BACK if y in years] \
+            + [y for y in CASCADE_FWD if y in years]
+        b = pd.read_sql(cascade_sql(use), conn)
     finally:
         try:
             conn.close()
         except Exception:
             pass
-    mc.write_cache(b, BASE_CACHE)
-    print(f"  baseline {BASE_YEAR}: {len(b):,} rows ({time.time()-t:.0f}s)")
+    b["source_year"] = b["source_year"].astype(str)
+    mc.write_cache(b, CASC_CACHE)
+    print(f"  cascade baseline: {len(b):,} rows ({time.time()-t:.0f}s)")
     return b
 
 
 def baseline_vintage_sql(vintage: int) -> str:
     """
-    47L's baseline query with the register that supplies the occupation
-    code separated from the register that supplies the birth year.
+    The same query with ONE vintage supplying the code and the 2019
+    register supplying the birth year.
 
     The population must not move. 47L reads the band and the code from
     one Individ table, so simply joining a later one would drop every
     worker the later register does not hold, and the vintage check would
-    then measure attrition as well as re-coding. Here the birth year, and
-    therefore the age band and the sample filter, come from the 2019
-    register in both arms, and the code comes from the vintage register;
-    a worker the later register does not hold keeps his place and loses
-    his code to the '____' convention, which is what the coverage column
-    then counts.
-
-    At vintage = BASE_YEAR the two joins are the same table and this is
-    47L's q_baseline.
+    then measure attrition as well as re-coding. Here the birth year,
+    and therefore the age band and the sample filter, come from the 2019
+    register in every arm; a worker the later register does not hold
+    keeps his place and loses his code to the '____' convention.
     """
     age_case = "\n".join(
         f"             WHEN {BASE_YEAR} - TRY_CAST(b.FodelseAr AS INT) "
         f"BETWEEN {lo} AND {hi} THEN '{lab}'"
         for lab, (lo, hi) in mc.AGE_GROUPS.items())
     age_case = f"CASE\n{age_case}\n             ELSE NULL END"
-    code = ("""CASE WHEN v.Ssyk4_2012_J16 IS NULL
-                      OR LTRIM(v.Ssyk4_2012_J16) = ''
-                      OR LEFT(LTRIM(v.Ssyk4_2012_J16), 1) = '*'
-                 THEN '____'
-                 ELSE RIGHT('0000' + CAST(v.Ssyk4_2012_J16 AS VARCHAR(4)), 4)
-                 END""")
+    code = f"COALESCE({_clean('v')}, '____')"
     return f"""
     SELECT agi.P1207_LOPNR_PEORGNR AS employer_id,
            {age_case} AS age_group,
            {code} AS ssyk4,
-           LTRIM(RTRIM(v.SsykStatus_J16)) AS ssyk_status,
            COUNT(DISTINCT agi.P1207_LOPNR_PERSONNR) AS n
     FROM dbo.Arb_AGIIndivid{BASE_YEAR}11_def agi
     LEFT JOIN dbo.Individ_{BASE_YEAR} b
-      ON agi.P1207_LOPNR_PERSONNR = b.P1207_LopNr_PersonNr
+      ON agi.P1207_LOPNR_PERSONNR = b.{PERSON_COL}
     LEFT JOIN dbo.Individ_{vintage} v
-      ON agi.P1207_LOPNR_PERSONNR = v.P1207_LopNr_PersonNr
+      ON agi.P1207_LOPNR_PERSONNR = v.{PERSON_COL}
     WHERE {BASE_YEAR} - TRY_CAST(b.FodelseAr AS INT) BETWEEN 22 AND 69
-    GROUP BY agi.P1207_LOPNR_PEORGNR, {age_case}, {code},
-             LTRIM(RTRIM(v.SsykStatus_J16))
+    GROUP BY agi.P1207_LOPNR_PEORGNR, {age_case}, {code}
     """
 
 
 def baseline_vintage(vintage: int) -> pd.DataFrame:
     """The same incumbents, coded as the register of `vintage` has them."""
-    b = mc.read_cache(VINT_CACHE, require=BASE_COLS)
-    if b is not None:
-        print(f"  baseline {BASE_YEAR} as of {vintage}: cached "
-              f"({len(b):,} rows)")
-        return b
-    t = time.time()
-    conn = mc.connect()
-    try:
-        b = pd.read_sql(baseline_vintage_sql(vintage), conn)
-    finally:
+    b = mc.read_cache(VINT_CACHE, require=VINT_COLS)
+    if b is None:
+        t = time.time()
+        conn = mc.connect()
         try:
-            conn.close()
-        except Exception:
-            pass
-    mc.write_cache(b, VINT_CACHE)
-    print(f"  baseline {BASE_YEAR} as of {vintage}: {len(b):,} rows "
-          f"({time.time()-t:.0f}s)")
+            b = pd.read_sql(baseline_vintage_sql(vintage), conn)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+        mc.write_cache(b, VINT_CACHE)
+        print(f"  baseline as of {vintage}: {len(b):,} rows "
+              f"({time.time()-t:.0f}s)")
+    else:
+        print(f"  baseline as of {vintage}: cached ({len(b):,} rows)")
+    b = b.copy()
+    b["source_year"] = str(vintage)
     return b
 
 
-def occ_exposure(base: pd.DataFrame, daioe: pd.DataFrame, l65,
-                 j47) -> pd.DataFrame:
+def cascade_audit(casc: pd.DataFrame) -> None:
     """
-    The occupation-route firm score and quartile, through 65's own
-    builder, so the two scripts cannot hold two versions of it.
+    The head count per employer and band must equal 47L's own baseline.
+
+    The cascade joins seven register tables to one declaration table. A
+    vintage holding two rows for one person would split him across two
+    codes and, because the count is a COUNT(DISTINCT person), inflate the
+    employer's total. That is the one way this pull can differ from 47L's
+    without failing, so it is checked against 47L's frame when that frame
+    is on the share rather than assumed away.
     """
-    return l65.occupation_exposure(base, daioe, j47.INCUMBENT_BANDS)
+    ref = mc.read_cache(BASE_CACHE, require=["employer_id", "age_group", "n"])
+    if ref is None:
+        NOTES.append("cascade audit: L_baseline_2019 is not on the share, so "
+                     "the head counts are not checked against 47L's own pull")
+        return
+    a = casc.groupby(["employer_id", "age_group"], observed=True)["n"].sum()
+    b = ref.groupby(["employer_id", "age_group"], observed=True)["n"].sum()
+    j = pd.concat([a.rename("casc"), b.rename("ref")], axis=1).fillna(0)
+    bad = int((j["casc"] != j["ref"]).sum())
+    msg = (f"cascade audit: {len(j):,} employer-band cells, {bad:,} disagree "
+           f"with 47L's head count"
+           + ("" if not bad else
+              f"; total {int(j['casc'].sum()):,} against "
+              f"{int(j['ref'].sum()):,}. A disagreement means a vintage holds "
+              f"more than one row for a person and the totals are NOT the "
+              f"head count; say so before quoting any coverage figure"))
+    print(f"  {msg}")
+    NOTES.append(msg)
+
+
+def floor_counts_2019(l47):
+    """
+    47L's monthly counts for the base year, which is what the education
+    route's floor is summed from. Read from the cache, pulled through
+    47L's own query when it is not there, and None when neither works.
+    """
+    need = ["employer_id", "year_month", "age_group", "n_emp"]
+    c = mc.read_cache(COUNTS_2019_CACHE, require=need)
+    if c is not None:
+        return c
+    try:
+        t = time.time()
+        conn = mc.connect()
+        try:
+            c = l47.q_counts(BASE_YEAR, conn)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+        mc.write_cache(c, COUNTS_2019_CACHE)
+        print(f"  {BASE_YEAR} monthly counts: {len(c):,} cells "
+              f"({time.time()-t:.0f}s)")
+        return c
+    except BaseException as ex:
+        print(f"  {BASE_YEAR} monthly counts FAILED ({type(ex).__name__}: "
+              f"{str(ex)[:120]})")
+        return None
+
+
+def incumbent_floor_series(l47, casc: pd.DataFrame, j47) -> pd.Series:
+    """
+    The per-employer quantity the floor and the quartile cuts use, and
+    the unit it is in.
+
+    The education route floors on incumbent person-months summed over
+    2019, so that is what this one floors on too. If those counts cannot
+    be had, the November head count is used, the summary says so in
+    those words, and the sensitivity at 1, 3 and 5 is the answer rather
+    than a reassurance: the two are not the same unit and a floor of
+    five means different things in them.
+    """
+    global BASIS
+    c = floor_counts_2019(l47)
+    if c is not None:
+        BASIS = "person-months"
+        NOTES.append(f"floor: on incumbent PERSON-MONTHS in {BASE_YEAR}, the "
+                     f"same unit as the education route's, so the two floors "
+                     f"are commensurable")
+        d = c[c["age_group"].astype(str).isin(j47.INCUMBENT_BANDS)]
+        s = d.groupby("employer_id", observed=True)["n_emp"].sum()
+    else:
+        BASIS = "November head count"
+        NOTES.append(f"floor: the {BASE_YEAR} monthly counts could not be "
+                     f"read, so the floor is on the NOVEMBER HEAD COUNT and "
+                     f"is NOT commensurable with the education route's "
+                     f"person-months; the sensitivity at "
+                     + ", ".join(str(f) for f in FLOORS)
+                     + " is the answer to that")
+        d = casc[casc["age_group"].astype(str).isin(j47.INCUMBENT_BANDS)]
+        s = d.groupby("employer_id", observed=True)["n"].sum()
+    return s.rename("n_floor")
+
+
+# ----------------------------------------------------------------------
+# The score
+# ----------------------------------------------------------------------
+
+def incumbent_frame(casc: pd.DataFrame, daioe: pd.DataFrame,
+                    j47) -> pd.DataFrame:
+    """
+    One row per employer, band, code and source year, restricted to the
+    incumbents, with the code marked coded and scorable.
+
+    `coded` is the register having given a code at all; `scorable` is
+    that code also being in the DAIOE file. The second is what can carry
+    an exposure, and reporting only the first would overstate what the
+    route can see.
+    """
+    b = casc.copy()
+    b["ssyk4"] = b["ssyk4"].astype(str).str.zfill(4)
+    b["source_year"] = b["source_year"].astype(str)
+    b["n"] = pd.to_numeric(b["n"], errors="coerce").fillna(0).astype(int)
+    b = b[b["age_group"].astype(str).isin(j47.INCUMBENT_BANDS) & (b["n"] > 0)]
+    codes = set(daioe["ssyk4"].astype(str))
+    b["coded"] = (b["ssyk4"] != "____").astype(int)
+    b["scorable"] = b["coded"] * b["ssyk4"].isin(codes).astype(int)
+    return b
+
+
+def occ_route_exposure(inc: pd.DataFrame, daioe: pd.DataFrame,
+                       nfloor: pd.Series, floor: int = FLOOR_MAIN,
+                       years=None) -> pd.DataFrame:
+    """
+    The firm score and quartile, on 47j's rules with the occupation
+    register in place of the education register.
+
+    THE FLOOR IS ON THE FIRM'S INCUMBENTS, not on its coded incumbents:
+    an employer qualifies on the same basis as on the education route,
+    and the mix is then formed over whatever share of those incumbents
+    carries a code. An employer with no coded incumbent at all cannot
+    have a mix and is not scored; that is a different loss from the
+    floor and Part A counts the two separately.
+
+    The quartile cut points are weighted by the same incumbent
+    employment the floor is applied to, so the top quartile holds a
+    quarter of incumbent employment rather than a quarter of employers.
+
+    Returns employer_id, fq, mix, n (the weight), n_coded, n_nov,
+    coverage and share_not_2019.
+    """
+    years = [str(y) for y in (years or ARM_YEARS[MAIN_ARM])]
+    tot = inc.groupby("employer_id", observed=True)["n"].sum().rename("n_nov")
+    use = inc[(inc["scorable"] == 1) & inc["source_year"].isin(years)]
+    if use.empty:
+        return pd.DataFrame(columns=["employer_id", "fq", "mix", "n",
+                                     "n_coded", "n_nov", "coverage",
+                                     "share_not_2019"])
+    u = use.merge(daioe, on="ssyk4", how="inner")
+    u["ws"] = u["score"] * u["n"]
+    fy = (u.groupby("employer_id", observed=True)
+          .agg(ws=("ws", "sum"), n_coded=("n", "sum")).reset_index())
+    old = (u[u["source_year"] != str(BASE_YEAR)]
+           .groupby("employer_id", observed=True)["n"].sum()
+           .rename("n_not_2019"))
+    fy = fy.merge(old, on="employer_id", how="left")
+    fy["n_not_2019"] = fy["n_not_2019"].fillna(0)
+    fy = fy.merge(tot, on="employer_id", how="left")
+    fy = fy.merge(nfloor.rename("n"), on="employer_id", how="left")
+    # An employer with no floor quantity at all is one the 2019 counts do
+    # not hold; it cannot pass a floor it has no value for, and dropping
+    # it silently would hide that, so it is dropped and counted.
+    lost = int(fy["n"].isna().sum())
+    if lost:
+        NOTES.append(f"score: {lost:,} employers carry a coded incumbent but "
+                     f"no 2019 {BASIS}, and cannot be put to the floor")
+    fy = fy[fy["n"].notna()]
+    fy = fy[fy["n"] >= floor]
+    if fy.empty:
+        return pd.DataFrame(columns=["employer_id", "fq", "mix", "n",
+                                     "n_coded", "n_nov", "coverage",
+                                     "share_not_2019"])
+    fy["mix"] = fy["ws"] / fy["n_coded"]
+    fy["coverage"] = fy["n_coded"] / fy["n_nov"].clip(lower=1)
+    fy["share_not_2019"] = fy["n_not_2019"] / fy["n_coded"].clip(lower=1)
+    o = np.argsort(fy["mix"].to_numpy(), kind="stable")
+    v, w = fy["mix"].to_numpy()[o], fy["n"].to_numpy()[o]
+    cum = np.cumsum(w) / w.sum()
+    cuts = [float(v[np.searchsorted(cum, q, side="left")])
+            for q in (0.25, 0.5, 0.75)]
+    fy["fq"] = np.searchsorted(np.asarray(cuts), fy["mix"].to_numpy(),
+                               side="right") + 1
+    return fy[["employer_id", "fq", "mix", "n", "n_coded", "n_nov",
+               "coverage", "share_not_2019"]].reset_index(drop=True)
+
+
+def old_rule_scored(inc: pd.DataFrame) -> set:
+    """
+    The employers script 65's rule scores: at least five CODED
+    incumbents in November 2019 on the 2019 code alone. Kept only so
+    that Part A can decompose what that rule lost.
+    """
+    u = inc[(inc["scorable"] == 1)
+            & (inc["source_year"] == str(BASE_YEAR))]
+    if u.empty:
+        return set()
+    s = u.groupby("employer_id", observed=True)["n"].sum()
+    return set(s[s >= FLOOR_MAIN].index)
 
 
 # ----------------------------------------------------------------------
 # Part A: the score and what it covers. No fit.
 # ----------------------------------------------------------------------
 
-def coverage_by_band(base: pd.DataFrame, daioe: pd.DataFrame, j47) -> list:
-    """
-    The share of incumbent head count carrying a usable 2019 occupation
-    code, by age band.
+def cascade_rows(casc: pd.DataFrame, j47) -> list:
+    """Where the cascade resolves each incumbent, step by step."""
+    b = casc[casc["age_group"].astype(str).isin(j47.INCUMBENT_BANDS)]
+    tot = int(b["n"].sum())
+    rows = []
+    for y in [str(x) for x in CASCADE_BACK + CASCADE_FWD] + ["none"]:
+        k = int(b.loc[b["source_year"].astype(str) == y, "n"].sum())
+        if k == 0 and y not in (str(BASE_YEAR), "none"):
+            continue
+        rows.append({"panel": "cascade", "block": "step", "group": y,
+                     "item": "incumbents_resolved", "n_employers": np.nan,
+                     "n_obs": k, "share": k / max(tot, 1), "value": float(k)})
+    rows.append({"panel": "cascade", "block": "step", "group": "all",
+                 "item": "incumbents", "n_employers": np.nan, "n_obs": tot,
+                 "share": 1.0, "value": float(tot)})
+    return rows
 
-    Two shares, not one. `coded` is the share the register gives a code
-    at all, which is the '____' convention counted from the other side.
-    `scored` is the share whose code is also in the DAIOE file, which is
-    the share that can actually carry an exposure; a code outside the
-    file is as useless to this route as no code, and reporting only the
-    first would overstate what the route can see.
+
+def coverage_by_band(casc: pd.DataFrame, daioe: pd.DataFrame, j47) -> list:
     """
-    b = base.copy()
+    The share of incumbent head count carrying a usable occupation code,
+    by age band, BEFORE and AFTER the cascade.
+
+    Four shares per band. `coded` is the register having given a code at
+    all and `scored` is that code also being in the DAIOE file; each is
+    reported on the 2019 code alone and on the full backward cascade,
+    since the difference between the two pairs is exactly what the
+    cascade recovers.
+    """
+    b = casc.copy()
     b["ssyk4"] = b["ssyk4"].astype(str).str.zfill(4)
+    b["source_year"] = b["source_year"].astype(str)
     b["n"] = pd.to_numeric(b["n"], errors="coerce").fillna(0).astype(int)
     b = b[b["age_group"].notna() & (b["n"] > 0)]
-    scored_codes = set(daioe["ssyk4"].astype(str))
-    b["is_coded"] = (b["ssyk4"] != "____").astype(int)
-    b["is_scored"] = b["is_coded"] * b["ssyk4"].isin(scored_codes).astype(int)
+    codes = set(daioe["ssyk4"].astype(str))
+    b["coded"] = (b["ssyk4"] != "____").astype(int)
+    b["scored"] = b["coded"] * b["ssyk4"].isin(codes).astype(int)
+    arms = {"2019_only": [str(BASE_YEAR)],
+            "backward": [str(y) for y in CASCADE_BACK],
+            "forward": [str(y) for y in CASCADE_BACK + CASCADE_FWD]}
+    order = [a for a in mc.AGE_GROUPS] + ["31-69 incumbents"]
     rows = []
-    # The incumbent total is taken from 47j's band list, not from a list
-    # written here, so the coverage figure describes the same workers the
-    # score is built from.
-    for band, d in list(b.groupby("age_group", observed=True)) + \
-            [("31-69 incumbents",
-              b[b["age_group"].isin(j47.INCUMBENT_BANDS)])]:
+    for band in order:
+        d = (b[b["age_group"] == band] if band != "31-69 incumbents"
+             else b[b["age_group"].astype(str).isin(j47.INCUMBENT_BANDS)])
+        if d.empty:
+            continue
         tot = int(d["n"].sum())
-        cod = int((d["n"] * d["is_coded"]).sum())
-        sco = int((d["n"] * d["is_scored"]).sum())
         firms = int(d["employer_id"].nunique())
-        rows.append({"panel": "baseline 2019", "block": "coverage",
-                     "group": str(band), "item": "coded_share",
-                     "n_employers": firms, "n_obs": tot,
-                     "share": cod / max(tot, 1), "value": float(cod)})
-        rows.append({"panel": "baseline 2019", "block": "coverage",
-                     "group": str(band), "item": "scored_share",
-                     "n_employers": firms, "n_obs": tot,
-                     "share": sco / max(tot, 1), "value": float(sco)})
+        for arm, yrs in arms.items():
+            m = d["source_year"].isin(yrs)
+            for what in ("coded", "scored"):
+                k = int((d["n"] * d[what] * m).sum())
+                rows.append({"panel": "baseline 2019", "block": "coverage",
+                             "group": band, "item": f"{what}_share_{arm}",
+                             "n_employers": firms, "n_obs": tot,
+                             "share": k / max(tot, 1), "value": float(k)})
     return rows
+
+
+def loss_rows(panel: str, emp_ids, inc: pd.DataFrame, nfloor: pd.Series,
+              scored_old: set, scored_new: set) -> tuple:
+    """
+    The employers the old rule lost, split by what lost them.
+
+    The old rule (script 65's) needed five CODED November incumbents on
+    the 2019 code alone. The new one needs the firm's incumbents to reach
+    the floor and one coded incumbent after the backward cascade. Every
+    employer that the old rule failed is placed in exactly one group:
+    recovered because the floor moved, recovered because the cascade
+    found a code, still lost to the floor, still lost to missing codes,
+    or lost to both. The five groups partition the loss, so a reader can
+    see which of the three causes is doing the work rather than take it
+    on trust.
+    """
+    ids = pd.Index(sorted(set(emp_ids)))
+    nf = nfloor.reindex(ids).fillna(0)
+    sc = (inc[inc["scorable"] == 1]
+          .groupby(["employer_id", "source_year"], observed=True)["n"].sum()
+          .unstack(fill_value=0))
+    back = [str(y) for y in CASCADE_BACK if str(y) in sc.columns]
+    c19 = (sc[str(BASE_YEAR)] if str(BASE_YEAR) in sc.columns
+           else pd.Series(0, index=sc.index)).reindex(ids).fillna(0)
+    cbk = (sc[back].sum(axis=1) if back
+           else pd.Series(0, index=sc.index)).reindex(ids).fillna(0)
+    old = pd.Series(ids.isin(list(scored_old)), index=ids)
+    new = pd.Series(ids.isin(list(scored_new)), index=ids)
+    big = nf >= FLOOR_MAIN
+    groups = {
+        "scored_by_both_rules": old & new,
+        "recovered_by_the_floor": (~old) & new & (c19 >= 1),
+        "recovered_by_the_cascade": (~old) & new & (c19 < 1),
+        "lost_to_the_floor_only": (~old) & (~new) & (~big) & (cbk >= 1),
+        "lost_to_missing_codes_only": (~old) & (~new) & big & (cbk < 1),
+        "lost_to_both": (~old) & (~new) & (~big) & (cbk < 1),
+        "scored_old_but_not_new": old & (~new),
+    }
+    n = int(len(ids))
+    rows = [{"panel": panel, "block": "loss", "group": "all",
+             "item": "employers", "n_employers": n, "n_obs": n,
+             "share": 1.0, "value": float(n)}]
+    for name, m in groups.items():
+        k = int(m.sum())
+        rows.append({"panel": panel, "block": "loss", "group": name,
+                     "item": "n_employers", "n_employers": k, "n_obs": n,
+                     "share": k / max(n, 1), "value": float(k)})
+    summ = {"panel": panel, "n": n,
+            **{k: int(v.sum()) for k, v in groups.items()}}
+    return rows, summ
+
+
+def floor_rows(panel: str, inc: pd.DataFrame, daioe: pd.DataFrame,
+               nfloor: pd.Series, emp_ids=None) -> tuple:
+    """
+    How many employers the score reaches at each floor, and how much
+    incumbent employment they hold.
+
+    The floor is a choice, the two routes measure it in different units
+    when the 2019 monthly counts are missing, and a reader is entitled to
+    see what the choice costs rather than to be told it is small.
+    """
+    rows, summ = [], {}
+    for f in FLOORS:
+        e = occ_route_exposure(inc, daioe, nfloor, floor=f)
+        if emp_ids is not None:
+            e = e[e["employer_id"].isin(set(emp_ids))]
+        k = int(len(e))
+        rows.append({"panel": panel, "block": "floor", "group": f"floor_{f}",
+                     "item": "n_employers", "n_employers": k,
+                     "n_obs": int(nfloor.shape[0]),
+                     "share": k / max(int(nfloor.shape[0]), 1),
+                     "value": float(e["n"].sum()) if k else 0.0})
+        rows.append({"panel": panel, "block": "floor", "group": f"floor_{f}",
+                     "item": "median_coverage", "n_employers": k,
+                     "n_obs": k, "share": np.nan,
+                     "value": float(e["coverage"].median()) if k else np.nan})
+        summ[f] = k
+    return rows, summ
 
 
 def route_rows(occ: pd.DataFrame, edu: pd.DataFrame) -> tuple:
@@ -487,7 +920,7 @@ def route_rows(occ: pd.DataFrame, edu: pd.DataFrame) -> tuple:
                     ("education_only", eo)):
         rows.append({"panel": "all scored employers", "block": "route",
                      "group": name, "item": "n_employers",
-                     "n_employers": len(s), "n_obs": len(s),
+                     "n_employers": len(s), "n_obs": len(o | e),
                      "share": len(s) / max(len(o | e), 1),
                      "value": float(len(s))})
     return rows, both
@@ -545,15 +978,16 @@ def crosstab_rows(occ: pd.DataFrame, edu: pd.DataFrame,
                   "top_edu": n_top_edu}
 
 
-def panel_rows(band: str, counts, occ, edu, s61, s80, j47) -> tuple:
+def panel_rows(band: str, counts, occ, edu, inc, nfloor, scored_old,
+               s61, s80, j47) -> tuple:
     """
-    The two routes on the panel the fits themselves run on, and the size
-    and longevity of the employers one route places and the other does
-    not.
+    The two routes on the panel the fits themselves run on, the loss
+    decomposition on those same employers, and the size and longevity of
+    the employers one route places and the other does not.
 
     The panel is rebuilt rather than approximated by an employer list,
     because the question is how many of THOSE employers each route can
-    score, and any other population answers a different question.
+    score, and any other population answers a different one.
     """
     skel = s61.build_skeleton(counts, band, j47)
     if skel.empty:
@@ -589,11 +1023,15 @@ def panel_rows(band: str, counts, occ, edu, s61, s80, j47) -> tuple:
         for r in s80.size_rows(panel, name, d):
             r["n_obs"] = int(len(d))
             rows.append(r)
+    lr, ls = loss_rows(panel, ids, inc, nfloor, scored_old,
+                       set(occ["employer_id"]))
+    rows += lr
     summ = {"panel": panel, "n": n,
             "n_occ": int(in_o.sum()), "n_edu": int(in_e.sum()),
             "n_both": int(len(groups["scored_by_both"])),
             "n_occ_only": int(len(groups["occupation_only"])),
-            "n_edu_only": int(len(groups["education_only"]))}
+            "n_edu_only": int(len(groups["education_only"])),
+            "loss": ls}
     for name, key in (("occupation_only", "occ_only"),
                       ("education_only", "edu_only"),
                       ("scored_by_both", "both")):
@@ -607,17 +1045,27 @@ def panel_rows(band: str, counts, occ, edu, s61, s80, j47) -> tuple:
     return rows, summ
 
 
-def part_a(counts, occ, edu, base, daioe, s61, s80, j47) -> tuple:
-    """What the occupation route scores, and how it lines up with the
-    education route. No fit runs here."""
-    rows = coverage_by_band(base, daioe, j47)
+def part_a(counts, occ, edu, casc, inc, nfloor, daioe, s61, s80,
+           j47) -> tuple:
+    """What the occupation route scores, where the employers went, and
+    how the score lines up with the education route. No fit runs here."""
+    scored_old = old_rule_scored(inc)
+    rows = cascade_rows(casc, j47)
+    rows += coverage_by_band(casc, daioe, j47)
+    all_ids = sorted(set(inc["employer_id"]))
+    lr, ls_all = loss_rows("all employers", all_ids, inc, nfloor,
+                           scored_old, set(occ["employer_id"]))
+    rows += lr
+    fr, fs = floor_rows("all employers", inc, daioe, nfloor)
+    rows += fr
     r, both = route_rows(occ, edu)
     rows += r
     r, cross = crosstab_rows(occ, edu, both)
     rows += r
     summaries = []
     for band in BANDS:
-        r, s = panel_rows(band, counts, occ, edu, s61, s80, j47)
+        r, s = panel_rows(band, counts, occ, edu, inc, nfloor, scored_old,
+                          s61, s80, j47)
         if not r:
             FAILURES.append(f"A/{band}/empty")
             continue
@@ -633,9 +1081,11 @@ def part_a(counts, occ, edu, base, daioe, s61, s80, j47) -> tuple:
     # A share and a published denominator reproduce a suppressed count, so
     # the share and the value go with their own numerator.
     gone = tab["n_employers"].isna()
-    tab.loc[gone, ["share", "value"]] = np.nan
+    tab.loc[gone & tab["block"].isin(["route", "crosstab", "panel", "loss",
+                                      "floor"]),
+            ["share", "value"]] = np.nan
     tab = save(tab, "occ_route_coverage.csv", count_col="n_employers")
-    return tab, summaries, cross
+    return tab, summaries, cross, ls_all, fs
 
 
 # ----------------------------------------------------------------------
@@ -647,92 +1097,133 @@ def edu_pair(d: dict, key: str) -> tuple:
     return c, s
 
 
-def part_b(counts, occ, s61, s74, s78, l70, j47) -> tuple:
+def stock_fit(counts, expo, band, arm, floor, s61, s78, j47, head) -> None:
+    """One stock fit of Equation (2), appended to the headline table."""
+    skel = s61.build_skeleton(counts, band, j47)
+    if skel.empty:
+        FAILURES.append(f"B/{band}/{arm}/empty")
+        return
+    b = s78.with_exposure(skel, expo)
+    del skel
+    gc.collect()
+    if b.empty:
+        FAILURES.append(f"B/{band}/{arm}/no exposure")
+        return
+    n_firms = int(b["employer_id"].nunique())
+    share_old = float(expo.loc[expo["employer_id"].isin(
+        set(b["employer_id"])), "share_not_2019"].mean()) \
+        if "share_not_2019" in expo.columns else np.nan
+    b, terms = s78.eq2_terms(b)
+    tag = f"stock_{band.replace('-', '_')}_{arm}_f{floor}"
+    g, _ = fit(b, tag, terms, j47.FES)
+    del b
+    gc.collect()
+    if g is None:
+        return
+    ec, es = edu_pair(EDU_STOCK, band)
+    for r in s78.rows_of(g, terms, young_band=band, outcome="stock",
+                         arm=arm, floor=floor, n_firms=n_firms,
+                         share_not_2019=share_old):
+        r["t"] = tstat(r["coef"], r["se"])
+        post = r["term"] == "post_x_high_x_young"
+        r["edu_coef"] = ec if post else np.nan
+        r["edu_se"] = es if post else np.nan
+        head.append(r)
+    save(head, "occ_route_headline.csv")
+    p = [h for h in head if h["young_band"] == band and h["arm"] == arm
+         and h["floor"] == floor and h["term"] == "post_x_high_x_young"]
+    if p:
+        print(f"  B: {band} {arm} floor {floor} adoption step "
+              f"{p[0]['coef']:+.4f} ({p[0]['se']:.4f}) t {p[0]['t']:+.2f}"
+              f"   education route {ec:+.4f} ({es:.4f})")
+
+
+def part_b(counts, inc, daioe, nfloor, s61, s74, s78, l70, j47) -> tuple:
     """
-    Equation (2) on the stock at both young bands, and the six-band
-    profile against 41-49, on the occupation-route quartile.
+    Equation (2) on the stock at both young bands, the six-band profile
+    against 41-49, the floor sensitivity and the forward-cascade arm.
 
     The terms are 78's, which are 68's; the profile terms are 74's
     seasonal arm on 70's six-band skeleton. Only the column that says
     which employers are highly exposed differs from the paper's route.
     """
     head, prof = [], []
+    occ = occ_route_exposure(inc, daioe, nfloor, floor=FLOOR_MAIN,
+                             years=ARM_YEARS[MAIN_ARM])
+    if occ.empty:
+        FAILURES.append("B/no exposure")
+        return head, prof
     for band in BANDS:
-        skel = s61.build_skeleton(counts, band, j47)
-        if skel.empty:
-            FAILURES.append(f"B/{band}/empty")
-            continue
-        b = s78.with_exposure(skel, occ)
-        del skel
-        gc.collect()
-        if b.empty:
-            FAILURES.append(f"B/{band}/no exposure")
-            continue
-        n_firms = int(b["employer_id"].nunique())
-        b, terms = s78.eq2_terms(b)
-        g, _ = fit(b, f"stock_{band.replace('-', '_')}", terms, j47.FES)
-        del b
-        gc.collect()
-        if g is None:
-            continue
-        ec, es = edu_pair(EDU_STOCK, band)
-        for r in s78.rows_of(g, terms, young_band=band, outcome="stock",
-                             n_firms=n_firms):
-            r["t"] = tstat(r["coef"], r["se"])
-            post = r["term"] == "post_x_high_x_young"
-            r["edu_coef"] = ec if post else np.nan
-            r["edu_se"] = es if post else np.nan
-            head.append(r)
-        save(head, "occ_route_headline.csv")
-        p = [h for h in head if h["young_band"] == band
-             and h["term"] == "post_x_high_x_young"]
-        if p:
-            print(f"  B: {band} adoption step {p[0]['coef']:+.4f} "
-                  f"({p[0]['se']:.4f}) t {p[0]['t']:+.2f}   education route "
-                  f"{ec:+.4f} ({es:.4f})")
+        stock_fit(counts, occ, band, MAIN_ARM, FLOOR_MAIN, s61, s78, j47,
+                  head)
     # ---- the six-band profile ----------------------------------------
     skel = l70.all_band_skeleton(counts)
     if skel.empty:
         FAILURES.append("B/profile/empty")
-        return head, prof
-    b = s78.with_exposure(skel, occ)
-    del skel
+    else:
+        b = s78.with_exposure(skel, occ)
+        del skel
+        gc.collect()
+        if b.empty:
+            FAILURES.append("B/profile/no exposure")
+        else:
+            n_firms = int(b["employer_id"].nunique())
+            b, terms = s74.build_terms(b, l70, seasonal=True)
+            g, _ = fit(b, "profile_six_band", terms, j47.FES)
+            del b
+            gc.collect()
+            if g is not None:
+                for band in s74.BANDS:
+                    ec, es = edu_pair(EDU_PROFILE, band)
+                    if band == PROFILE_REF:
+                        prof.append({"band": band, "coef": 0.0, "se": 0.0,
+                                     "t": np.nan, "n_firms": n_firms,
+                                     "n_obs": int(g["n_obs"].max()),
+                                     "status": "reference", "edu_coef": ec,
+                                     "edu_se": es})
+                        continue
+                    t_ = l70.band_col("gpt_x_high", band)
+                    if t_ not in g.index:
+                        continue
+                    prof.append({"band": band,
+                                 "coef": float(g.loc[t_, "coef"]),
+                                 "se": float(g.loc[t_, "se"]),
+                                 "t": tstat(float(g.loc[t_, "coef"]),
+                                            float(g.loc[t_, "se"])),
+                                 "n_firms": n_firms,
+                                 "n_obs": int(g.loc[t_, "n_obs"]),
+                                 "status": str(g.loc[t_].get("status", "ok")),
+                                 "edu_coef": ec, "edu_se": es})
+                if prof:
+                    save(prof, "occ_route_profile.csv")
+                    for r in prof:
+                        print(f"  B: profile {r['band']:<6} {r['coef']:+.4f} "
+                              f"({r['se']:.4f})   education route "
+                              f"{r['edu_coef']:+.4f} ({r['edu_se']:.4f})")
+    del occ
     gc.collect()
-    if b.empty:
-        FAILURES.append("B/profile/no exposure")
-        return head, prof
-    n_firms = int(b["employer_id"].nunique())
-    b, terms = s74.build_terms(b, l70, seasonal=True)
-    g, _ = fit(b, "profile_six_band", terms, j47.FES)
-    del b
-    gc.collect()
-    if g is None:
-        return head, prof
-    for band in s74.BANDS:
-        ec, es = edu_pair(EDU_PROFILE, band)
-        if band == PROFILE_REF:
-            prof.append({"band": band, "coef": 0.0, "se": 0.0, "t": np.nan,
-                         "n_firms": n_firms, "n_obs": int(g["n_obs"].max()),
-                         "status": "reference", "edu_coef": ec,
-                         "edu_se": es})
+    # ---- the floor sensitivity, at 22-25 ------------------------------
+    for f in FLOORS:
+        if f == FLOOR_MAIN:
             continue
-        t_ = l70.band_col("gpt_x_high", band)
-        if t_ not in g.index:
+        e = occ_route_exposure(inc, daioe, nfloor, floor=f,
+                               years=ARM_YEARS[MAIN_ARM])
+        if e.empty:
+            FAILURES.append(f"B/floor{f}/no exposure")
             continue
-        prof.append({"band": band, "coef": float(g.loc[t_, "coef"]),
-                     "se": float(g.loc[t_, "se"]),
-                     "t": tstat(float(g.loc[t_, "coef"]),
-                                float(g.loc[t_, "se"])),
-                     "n_firms": n_firms,
-                     "n_obs": int(g.loc[t_, "n_obs"]),
-                     "status": str(g.loc[t_].get("status", "ok")),
-                     "edu_coef": ec, "edu_se": es})
-    if prof:
-        save(prof, "occ_route_profile.csv")
-        for r in prof:
-            print(f"  B: profile {r['band']:<6} {r['coef']:+.4f} "
-                  f"({r['se']:.4f})   education route "
-                  f"{r['edu_coef']:+.4f} ({r['edu_se']:.4f})")
+        stock_fit(counts, e, BANDS[0], MAIN_ARM, f, s61, s78, j47, head)
+        del e
+        gc.collect()
+    # ---- the forward-cascade arm, reported and never the score --------
+    e = occ_route_exposure(inc, daioe, nfloor, floor=FLOOR_MAIN,
+                           years=ARM_YEARS["forward"])
+    if e.empty:
+        FAILURES.append("B/forward/no exposure")
+    else:
+        stock_fit(counts, e, BANDS[0], "forward", FLOOR_MAIN, s61, s78, j47,
+                  head)
+        del e
+        gc.collect()
     return head, prof
 
 
@@ -847,63 +1338,104 @@ def part_c_flows(flows, occ, s61, s78, j47) -> list:
     return rows
 
 
-def vintage_stability(true_e: pd.DataFrame, asof_e: pd.DataFrame) -> dict:
-    """How far the later register moves the 2019 classifier."""
-    j = true_e.merge(asof_e, on="employer_id", suffixes=("_t", "_a"))
+def vintage_stability(a: pd.DataFrame, b: pd.DataFrame) -> dict:
+    """How far a different vintage moves the 2019 classifier."""
+    j = a.merge(b, on="employer_id", suffixes=("_t", "_a"))
     if j.empty:
         return {}
-    keep = float((j["fq_t"] == j["fq_a"]).mean())
-    top = float(((j["fq_t"] == 4) == (j["fq_a"] == 4)).mean())
-    shift = float(np.mean(np.abs(j["mix_a"] - j["mix_t"])
-                          / j["mix_t"].abs().clip(lower=1e-9)))
-    rho = float(j["mix_t"].corr(j["mix_a"], method="spearman"))
-    return {"n_both": int(len(j)), "share_keeping_quartile": keep,
-            "share_keeping_top": top, "mean_relative_mix_shift": shift,
-            "spearman": rho,
-            "n_true_only": int(len(set(true_e["employer_id"])
-                                   - set(asof_e["employer_id"]))),
-            "n_asof_only": int(len(set(asof_e["employer_id"])
-                                   - set(true_e["employer_id"])))}
+    return {"n_both": int(len(j)),
+            "share_keeping_quartile": float((j["fq_t"] == j["fq_a"]).mean()),
+            "share_keeping_top": float(((j["fq_t"] == 4)
+                                        == (j["fq_a"] == 4)).mean()),
+            "mean_relative_mix_shift": float(np.mean(
+                np.abs(j["mix_a"] - j["mix_t"])
+                / j["mix_t"].abs().clip(lower=1e-9))),
+            "spearman": float(j["mix_t"].corr(j["mix_a"], method="spearman")),
+            "n_true_only": int(len(set(a["employer_id"])
+                                   - set(b["employer_id"]))),
+            "n_asof_only": int(len(set(b["employer_id"])
+                                   - set(a["employer_id"])))}
 
 
-def part_c_vintage(counts, occ, daioe, l65, s61, s78, j47) -> tuple:
+def part_c_vintage(counts, inc, daioe, nfloor, j47, s61, s78) -> tuple:
     """
-    The same 2019 incumbents, re-scored from the register of a later
-    year, and the distance that moves the adoption step.
+    Three scores on one panel: the reported backward cascade, the 2019
+    code alone, and the 2019 incumbents re-scored from the 2021 register.
 
-    Both arms are fitted here rather than one being read from Part B, so
-    the artefact comes from one panel and two scores. That is how script
-    47j measures the education artefact and it is the only way the
-    difference is the re-scoring and not the sample.
+    Three and not two, because the as-of arm has no cascade: comparing
+    it with the reported score would sum the re-coding with the loss of
+    the cascade's extra coverage and call the total an artefact. With
+    the 2019-only arm in between, the re-coding artefact is the as-of
+    arm against it and the cascade's contribution is the reported score
+    against it, and the two are reported separately.
+
+    All three fit on the employers all three can score, so the
+    difference between the arms is the score and not the sample.
     """
-    base_v = baseline_vintage(VINTAGE)
-    occ_v = occ_exposure(base_v, daioe, l65, j47)
-    del base_v
+    vint = baseline_vintage(VINTAGE)
+    inc_v = incumbent_frame(vint, daioe, j47)
+    del vint
     gc.collect()
-    if occ_v.empty:
-        FAILURES.append("C/vintage/no exposure")
-        return [], {}
-    stab = vintage_stability(occ, occ_v)
-    rows = [{"block": "stability", "arm": f"{BASE_YEAR} vs {VINTAGE}",
-             "item": k, "coef": np.nan, "se": np.nan, "t": np.nan,
-             "value": v, "n_firms": stab.get("n_both", np.nan),
-             "n_obs": stab.get("n_both", np.nan), "status": "descriptive"}
-            for k, v in stab.items()]
-    if stab:
-        print(f"  C: vintage stability, "
-              f"{stab['share_keeping_quartile']:.1%} of employers keep their "
-              f"quartile, {stab['share_keeping_top']:.1%} keep their place in "
-              f"or out of the top one, mean relative shift in the score "
-              f"{stab['mean_relative_mix_shift']:.2%}")
+    expos = {
+        f"cascade_back_{BASE_YEAR}": occ_route_exposure(
+            inc, daioe, nfloor, FLOOR_MAIN, ARM_YEARS[MAIN_ARM]),
+        f"code_{BASE_YEAR}_only": occ_route_exposure(
+            inc, daioe, nfloor, FLOOR_MAIN, ARM_YEARS["2019_only"]),
+        f"asof_{VINTAGE}": occ_route_exposure(
+            inc_v, daioe, nfloor, FLOOR_MAIN, [VINTAGE]),
+    }
+    del inc_v
+    gc.collect()
+    # THE THREE ARMS MUST RUN ON THE SAME EMPLOYERS. They do not score
+    # the same ones: the cascade reaches firms the 2019 code alone
+    # cannot, and the later register reaches others again. Comparing
+    # them on their own samples would report a sample change as an
+    # artefact. The fits are therefore restricted to the employers ALL
+    # THREE can score, so the difference between them is the score and
+    # nothing else; how many each can score is Part A's question and is
+    # answered there. The quartile is NOT recomputed on the restriction:
+    # each arm classifies on its own whole distribution, as it would in
+    # its own fit, and only the comparison sample is narrowed.
+    live = [e for e in expos.values() if not e.empty]
+    common = (set.intersection(*[set(e["employer_id"]) for e in live])
+              if live else set())
+    msg = ("vintage: the three arms score "
+           + ", ".join(f"{k} {len(v):,}" for k, v in expos.items())
+           + f"; the {len(common):,} employers all three score are the "
+             f"sample of every fit")
+    print(f"  {msg}")
+    NOTES.append(msg)
+    expos = {k: v[v["employer_id"].isin(common)] for k, v in expos.items()}
+    rows, stab = [], {}
+    base = expos[f"code_{BASE_YEAR}_only"]
+    for other in (f"asof_{VINTAGE}", f"cascade_back_{BASE_YEAR}"):
+        if base.empty or expos[other].empty:
+            continue
+        s = vintage_stability(base, expos[other])
+        stab[other] = s
+        rows += [{"block": "stability", "arm": f"{BASE_YEAR}_only vs {other}",
+                  "item": k, "coef": np.nan, "se": np.nan, "t": np.nan,
+                  "value": v, "n_firms": s.get("n_both", np.nan),
+                  "n_obs": s.get("n_both", np.nan), "status": "descriptive"}
+                 for k, v in s.items()]
+        print(f"  C: {other} against the 2019 code alone: "
+              f"{s['share_keeping_quartile']:.1%} of employers keep their "
+              f"quartile, mean relative shift in the score "
+              f"{s['mean_relative_mix_shift']:.2%}")
     skel = s61.build_skeleton(counts, SEX_BAND, j47)
     if skel.empty:
         FAILURES.append("C/vintage/empty panel")
+        save(rows, "occ_route_vintage.csv")
         return rows, stab
     got = {}
-    for arm, e in ((f"true_{BASE_YEAR}", occ), (f"asof_{VINTAGE}", occ_v)):
+    ec, es = edu_pair(EDU_STOCK, SEX_BAND)
+    for arm, e in expos.items():
+        if e.empty:
+            FAILURES.append(f"C/vintage/{arm}/no exposure")
+            continue
         b = s78.with_exposure(skel, e)
         if b.empty:
-            FAILURES.append(f"C/vintage/{arm}/no exposure")
+            FAILURES.append(f"C/vintage/{arm}/no overlap")
             continue
         n_firms = int(b["employer_id"].nunique())
         b, terms = s78.eq2_terms(b)
@@ -912,7 +1444,6 @@ def part_c_vintage(counts, occ, daioe, l65, s61, s78, j47) -> tuple:
         gc.collect()
         if g is None:
             continue
-        ec, es = edu_pair(EDU_STOCK, SEX_BAND)
         for r in s78.rows_of(g, terms, block="fit", arm=arm,
                              n_firms=n_firms):
             r["item"] = r.pop("term")
@@ -922,28 +1453,35 @@ def part_c_vintage(counts, occ, daioe, l65, s61, s78, j47) -> tuple:
         post = "post_x_high_x_young"
         if post in g.index:
             got[arm] = float(g.loc[post, "coef"])
-            print(f"  C: vintage {arm:<12} adoption step "
-                  f"{got[arm]:+.4f} ({float(g.loc[post, 'se']):.4f})"
-                  f"   education route {ec:+.4f} ({es:.4f})")
+            print(f"  C: vintage {arm:<22} adoption step {got[arm]:+.4f} "
+                  f"({float(g.loc[post, 'se']):.4f})   education route "
+                  f"{ec:+.4f} ({es:.4f})")
     del skel
     gc.collect()
-    if len(got) == 2:
-        a = got[f"asof_{VINTAGE}"] - got[f"true_{BASE_YEAR}"]
-        rows.append({"block": "artefact", "arm": "asof minus true",
-                     "item": "post_x_high_x_young", "coef": a, "se": np.nan,
-                     "t": np.nan, "value": a, "n_firms": np.nan,
-                     "n_obs": np.nan, "status": "derived"})
-        stab["artefact"] = a
-        print(f"  C: vintage artefact on the adoption step {a:+.4f}")
+    b19 = f"code_{BASE_YEAR}_only"
+    for other, label in ((f"asof_{VINTAGE}", "recoding_artefact"),
+                         (f"cascade_back_{BASE_YEAR}", "cascade_effect")):
+        if b19 in got and other in got:
+            a = got[other] - got[b19]
+            rows.append({"block": "artefact", "arm": f"{other} minus {b19}",
+                         "item": label, "coef": a, "se": np.nan, "t": np.nan,
+                         "value": a, "n_firms": np.nan, "n_obs": np.nan,
+                         "status": "derived"})
+            stab.setdefault(other, {})["artefact"] = a
+            print(f"  C: {label} on the adoption step {a:+.4f}")
     save(rows, "occ_route_vintage.csv")
     return rows, stab
 
 
-def part_c(counts, sexcounts, flows, occ, daioe, s61, s67, s78, l65,
+def part_c(counts, sexcounts, flows, inc, daioe, nfloor, s61, s67, s78,
            j47) -> tuple:
+    occ = occ_route_exposure(inc, daioe, nfloor, FLOOR_MAIN,
+                             ARM_YEARS[MAIN_ARM])
     g_rows, steps = part_c_gender(sexcounts, occ, s67, s78, j47)
     f_rows = part_c_flows(flows, occ, s61, s78, j47)
-    v_rows, stab = part_c_vintage(counts, occ, daioe, l65, s61, s78, j47)
+    del occ
+    gc.collect()
+    v_rows, stab = part_c_vintage(counts, inc, daioe, nfloor, j47, s61, s78)
     return g_rows, steps, f_rows, v_rows, stab
 
 
@@ -951,10 +1489,18 @@ def part_c(counts, sexcounts, flows, occ, daioe, s61, s67, s78, l65,
 # The three verdicts
 # ----------------------------------------------------------------------
 
+def _main_rows(head: list) -> list:
+    """The reported arm only: the backward cascade at the main floor."""
+    return [r for r in head
+            if r.get("arm", MAIN_ARM) == MAIN_ARM
+            and r.get("floor", FLOOR_MAIN) == FLOOR_MAIN]
+
+
 def verdict_headline(head: list) -> tuple:
     """Read rule 1, at 22-25, with the 26-30 band reported beside it."""
     L, verdict = [], "NO VERDICT"
-    p = [r for r in head if r["young_band"] == "22-25"
+    main = _main_rows(head)
+    p = [r for r in main if r["young_band"] == "22-25"
          and r["term"] == "post_x_high_x_young"]
     if not p:
         return verdict, ["  NO VERDICT on rule 1: the 22-25 stock fit did "
@@ -973,7 +1519,7 @@ def verdict_headline(head: list) -> tuple:
                  "distinguishable from zero is a failure of this rule and "
                  "not a zero.")
     for band in BANDS[1:]:
-        q = [r for r in head if r["young_band"] == band
+        q = [r for r in main if r["young_band"] == band
              and r["term"] == "post_x_high_x_young"]
         if q:
             bc, bs = float(q[0]["coef"]), float(q[0]["se"])
@@ -981,6 +1527,13 @@ def verdict_headline(head: list) -> tuple:
             L.append(f"     {band}, not part of the rule: {bc:+.4f} "
                      f"({bs:.4f}) t {tstat(bc, bs):+.2f}; education route "
                      f"{e2[0]:+.4f} ({e2[1]:.4f})")
+    other = [r for r in head if r not in main
+             and r["term"] == "post_x_high_x_young"]
+    for r in other:
+        L.append(f"     {r['young_band']} {r['arm']} floor {r['floor']}, "
+                 f"reported and settling nothing: {float(r['coef']):+.4f} "
+                 f"({float(r['se']):.4f}) t {float(r['t']):+.2f}, "
+                 f"{cnt(r['n_firms'])} employers")
     return verdict, L
 
 
@@ -1003,7 +1556,8 @@ def verdict_profile(prof: list) -> tuple:
          f"(education route {EDU_PROFILE['50+'][0]:+.4f}), so the older band "
          f"{'gains' if gains else 'does NOT gain'}",
          f"     22-25 is ranked {rank} of six from the bottom "
-         f"{'(lowest or second lowest, as the rule requires)' if rank <= 2 else '(the rule requires first or second)'}",
+         + ("(lowest or second lowest, as the rule requires)" if rank <= 2
+            else "(the rule requires first or second)"),
          "     the whole profile, lowest first:"]
     for b in order:
         e = EDU_PROFILE.get(b, (np.nan, np.nan))
@@ -1051,17 +1605,26 @@ def main():
     print("\n".join(READ_RULES))
     print(mc.mem_line("  "))
 
-    s61, s67, s74, s78, s80, l47, l65, l70, j47 = load_modules()
-    daioe = daioe_scores(l70)
-    base = baseline(l47)
-    occ = occ_exposure(base, daioe, l65, j47)
+    s61, s67, s74, s78, s80, l47, l70, j47 = load_modules()
+    daioe = l70.daioe_scores()
+    casc = baseline_cascade()
+    opt("cascade audit", cascade_audit, casc)
+    inc = incumbent_frame(casc, daioe, j47)
+    nfloor = incumbent_floor_series(l47, casc, j47)
+    print(f"  floor basis: {BASIS}; {len(nfloor):,} employers carry one")
+    occ = occ_route_exposure(inc, daioe, nfloor, FLOOR_MAIN,
+                             ARM_YEARS[MAIN_ARM])
     if occ.empty:
         raise RuntimeError("no employer could be scored on the occupation "
                            "route; there is nothing to estimate")
     shares = (occ.groupby("fq")["n"].sum() / occ["n"].sum())
-    msg = (f"occupation route: {len(occ):,} employers scored, quartile "
-           f"shares of incumbent employment "
-           + " ".join(f"Q{int(k)} {v:.2f}" for k, v in shares.items()))
+    msg = (f"occupation route: {len(occ):,} employers scored at a floor of "
+           f"{FLOOR_MAIN} {BASIS}, median coverage of the code "
+           f"{occ['coverage'].median():.1%}, "
+           f"{occ['share_not_2019'].mean():.1%} of coded incumbents from a "
+           f"year before {BASE_YEAR}; quartile shares of incumbent "
+           f"employment " + " ".join(f"Q{int(k)} {v:.2f}"
+                                     for k, v in shares.items()))
     print(f"  {msg}")
     NOTES.append(msg)
 
@@ -1086,25 +1649,26 @@ def main():
                         require=["employer_id", "year_month", "age_group",
                                  "n_hire", "n_sep"]) if "C" in PARTS else None
 
-    cov_tab, cov_summ, cross = None, [], {}
+    cov_tab, cov_summ, cross, loss_all, floor_summ = None, [], {}, {}, {}
     head, prof, g_rows, steps, f_rows, v_rows, stab = [], [], [], {}, [], [], {}
     if "A" in PARTS:
-        r = opt("Part A", part_a, counts, occ, edu, base, daioe, s61, s80,
-                j47)
+        r = opt("Part A", part_a, counts, occ, edu, casc, inc, nfloor, daioe,
+                s61, s80, j47)
         if r:
-            cov_tab, cov_summ, cross = r
-    del base, edu
+            cov_tab, cov_summ, cross, loss_all, floor_summ = r
+    del casc, edu, occ
     gc.collect()
     if "B" in PARTS:
-        r = opt("Part B", part_b, counts, occ, s61, s74, s78, l70, j47)
+        r = opt("Part B", part_b, counts, inc, daioe, nfloor, s61, s74, s78,
+                l70, j47)
         if r:
             head, prof = r
     if "C" in PARTS:
-        r = opt("Part C", part_c, counts, sexcounts, flows, occ, daioe, s61,
-                s67, s78, l65, j47)
+        r = opt("Part C", part_c, counts, sexcounts, flows, inc, daioe,
+                nfloor, s61, s67, s78, j47)
         if r:
             g_rows, steps, f_rows, v_rows, stab = r
-    del counts, sexcounts, flows
+    del counts, sexcounts, flows, inc
     gc.collect()
 
     # ---- summary ------------------------------------------------------
@@ -1115,27 +1679,71 @@ def main():
          "its incumbents aged 31 to 69. Here the intermediate step is",
          "deleted: an employer is ranked by the mean DAIOE percentile of",
          "the 2019 four-digit occupations of its OWN incumbents aged 31 to",
-         "69. Same freeze year, same incumbent restriction, same floor,",
-         "same quartile weighting, no education record anywhere.", ""]
+         "69. Same freeze year, same incumbent restriction, same quartile",
+         "weighting, no education record anywhere.", "",
+         "THE FLOOR AND ITS UNIT. The floor is on the firm's INCUMBENTS and",
+         f"not on its coded incumbents, at {FLOOR_MAIN}, applied to the",
+         f"{BASIS}."] + ([
+             "That is the education route's own unit, so the two floors are",
+             "commensurable."] if BASIS == "person-months" else [
+             "That is NOT the education route's unit, which is person-months",
+             "summed over 2019, so a floor of five means something stricter",
+             "here. The floor sensitivity below is the answer to that rather",
+             "than a reassurance."]) + ["",
+         "THE CASCADE. Each incumbent takes the occupation recorded for him",
+         f"in {BASE_YEAR}, failing that "
+         + ", ".join(str(y) for y in CASCADE_BACK[1:])
+         + ". Backward only:",
+         "a code recorded after the freeze year would break the paper's",
+         "claim that none enters anything. The forward arm (2020, 2021) is",
+         "reported and is never the score.", ""]
     if "A" in PARTS:
         L += ["A. THE SCORE AND WHAT IT COVERS (no fit):"]
         if cov_tab is not None:
-            cv = cov_tab[(cov_tab["block"] == "coverage")]
-            L.append("  share of incumbent head count carrying a 2019 code,")
-            L.append("  and the share whose code also carries a DAIOE score:")
-            order = [a for a in mc.AGE_GROUPS if a in set(cv["group"])] \
-                + [g_ for g_ in sorted(set(cv["group"]))
-                   if g_ not in mc.AGE_GROUPS]
+            st = cov_tab[cov_tab["block"] == "step"]
+            if len(st):
+                L.append("  where the cascade resolves each incumbent:")
+                for _, r_ in st[st["item"] == "incumbents_resolved"].iterrows():
+                    sh = r_["share"]
+                    L.append(f"    {str(r_['group']):<6} "
+                             + ("       " if sh != sh else f"{sh:7.2%}"))
+            cv = cov_tab[cov_tab["block"] == "coverage"]
+            L.append("  coverage of the code among incumbents, before and")
+            L.append("  after the cascade, coded and scored:")
+            order = [a for a in mc.AGE_GROUPS
+                     if a in set(cv["group"])] + ["31-69 incumbents"]
             for grp in order:
                 d = cv[cv["group"] == grp].set_index("item")
-                cs = d.loc["coded_share", "share"] \
-                    if "coded_share" in d.index else np.nan
-                ss = d.loc["scored_share", "share"] \
-                    if "scored_share" in d.index else np.nan
-                L.append(f"    {grp:<18} coded "
-                         + ("      " if cs != cs else f"{cs:6.1%}")
-                         + "   scored "
-                         + ("      " if ss != ss else f"{ss:6.1%}"))
+                if d.empty:
+                    continue
+
+                def _s(i):
+                    return (f"{float(d.loc[i, 'share']):6.1%}"
+                            if i in d.index and d.loc[i, "share"] ==
+                            d.loc[i, "share"] else "      ")
+                L.append(f"    {grp:<18} coded {_s('coded_share_2019_only')}"
+                         f" -> {_s('coded_share_backward')}   scored "
+                         f"{_s('scored_share_2019_only')} -> "
+                         f"{_s('scored_share_backward')}")
+            if loss_all:
+                L.append("  where the employers the OLD rule lost went "
+                         "(all employers with an incumbent):")
+                for k in ("scored_by_both_rules", "recovered_by_the_floor",
+                          "recovered_by_the_cascade",
+                          "lost_to_the_floor_only",
+                          "lost_to_missing_codes_only", "lost_to_both",
+                          "scored_old_but_not_new"):
+                    if k in loss_all:
+                        L.append(f"    {k:<28} {cnt(loss_all[k]):>12}   "
+                                 f"{loss_all[k] / max(loss_all['n'], 1):7.2%}")
+                L.append("    The first three are the employers the new rule "
+                         "scores. The next two name")
+                L.append("    the causes separately and the third is both "
+                         "at once.")
+            if floor_summ:
+                L.append("  the floor sensitivity, employers scored:")
+                for f_, k in sorted(floor_summ.items()):
+                    L.append(f"    floor {f_:<3} {cnt(k):>12}")
             rt = cov_tab[cov_tab["block"] == "route"].set_index("group")
             if len(rt):
                 L.append("  employers each route can score:")
@@ -1161,6 +1769,14 @@ def main():
                          f"{cnt(s['n_edu'])} on the education route "
                          f"({s['n_edu'] / max(s['n'], 1):.1%}), "
                          f"{cnt(s['n_both'])} on both")
+                ls = s.get("loss", {})
+                if ls:
+                    L.append(f"    of the employers the old rule lost here: "
+                             f"{cnt(ls.get('lost_to_the_floor_only'))} to the "
+                             f"floor, "
+                             f"{cnt(ls.get('lost_to_missing_codes_only'))} to "
+                             f"missing codes after the cascade, "
+                             f"{cnt(ls.get('lost_to_both'))} to both")
                 if s["med_occ_only"] == s["med_occ_only"] \
                         and s["med_edu_only"] == s["med_edu_only"]:
                     L.append(f"    median monthly headcount "
@@ -1178,10 +1794,11 @@ def main():
     verdicts = []
     if "B" in PARTS:
         L += ["B. THE HEADLINE:"]
-        if head:
+        main = _main_rows(head)
+        if main:
             L.append(f"  {'band':<6} {'term':<28} {'coef':>9} {'se':>9} "
                      f"{'t':>7}")
-            for r in head:
+            for r in main:
                 if r["term"] not in ("rb_x_high_x_young",
                                      "interim_x_high_x_young",
                                      "post_x_high_x_young"):
@@ -1189,7 +1806,7 @@ def main():
                 L.append(f"  {r['young_band']:<6} {r['term']:<28} "
                          f"{r['coef']:+9.4f} {r['se']:9.4f} {r['t']:+7.2f}")
         else:
-            L.append("  no stock fit came back")
+            L.append("  no stock fit came back on the reported arm")
         v, lines = verdict_headline(head)
         verdicts.append(("1 adoption step at 22-25", v))
         L += [""] + lines
@@ -1214,20 +1831,20 @@ def main():
         else:
             L.append("  no flow fit came back")
         if stab:
-            L.append(f"  the vintage check: the same {BASE_YEAR} incumbents "
-                     f"re-scored from the {VINTAGE} register.")
-            if "share_keeping_quartile" in stab:
-                L.append(f"    {stab['share_keeping_quartile']:.1%} of "
-                         f"employers keep their quartile, "
-                         f"{stab['share_keeping_top']:.1%} keep their place "
-                         f"in or out of the top one, mean relative shift in "
-                         f"the score {stab['mean_relative_mix_shift']:.2%}, "
-                         f"Spearman {stab['spearman']:+.3f}")
-            if "artefact" in stab:
-                L.append(f"    the adoption step at 22-25 moves "
-                         f"{stab['artefact']:+.4f} when the later codes are "
-                         f"used. The education route's own re-scoring moves "
-                         f"it +0.0113 (-0.0408 to -0.0295).")
+            L.append("  the vintage check, every arm against the 2019 code "
+                     "alone:")
+            for arm, s in stab.items():
+                if "share_keeping_quartile" in s:
+                    L.append(f"    {arm:<22} "
+                             f"{s['share_keeping_quartile']:.1%} keep their "
+                             f"quartile, mean relative shift "
+                             f"{s['mean_relative_mix_shift']:.2%}, Spearman "
+                             f"{s['spearman']:+.3f}")
+                if "artefact" in s:
+                    L.append(f"    {arm:<22} moves the adoption step "
+                             f"{s['artefact']:+.4f}")
+            L.append("    The education route's own re-scoring moved it "
+                     "+0.0113 (-0.0408 to -0.0295).")
         else:
             L.append("  the vintage check produced nothing")
         L.append("")
@@ -1244,23 +1861,25 @@ def main():
     L += READ_RULES + [
         "",
         "WHAT TO EXPECT, SO IT IS NOT READ AS A BUG:",
-        "  1. This route scores far fewer employers. The occupation",
-        "     register samples about half the workforce and imputes the",
-        "     rest, so an employer needs five CODED incumbents rather than",
-        "     five classified ones. Script 70's ladder put the education",
-        "     route at 311,227 employers and this one at 65,146. Standard",
-        "     errors here will therefore be larger, and read rule 1 asks",
-        "     for significance on that smaller sample.",
-        "  2. About a third of 2019 occupation codes were assigned in an",
-        "     earlier year. That is measurement error in the regressor, it",
-        "     attenuates towards zero, and it cannot manufacture a result.",
+        "  1. This route still scores fewer employers than the education",
+        "     route. The occupation register samples about half the",
+        "     workforce and imputes the rest, so a firm with incumbents",
+        "     can have no coded incumbent at all. What Part A settles is",
+        "     how much of the gap is that and how much was the floor:",
+        "     script 65's rule counted CODED November persons, which is",
+        "     roughly an order of magnitude stricter than the education",
+        "     route's five person-months, and script 70's ladder (172,396",
+        "     to 60,704) is that rule and not this one.",
+        "  2. A carried-forward code is noisier than a contemporaneous",
+        "     one. That attenuates towards zero and cannot manufacture a",
+        "     result, and the share of coded incumbents from before the",
+        "     freeze year is on every fit's row.",
         "  3. The two routes are standardised on their own distributions",
         "     and rank employers differently, so agreement in SIZE is not",
         "     expected and is not what any of the three rules asks for.",
-        "  4. The weight and the floor are November head counts here and",
-        "     person-months on the education route. The floor binds on the",
-        "     same object, an employer too thin to classify, on a",
-        "     different scale.",
+        "  4. The forward arm and the floor variants are reported and",
+        "     settle nothing. The read rules are on the backward cascade",
+        f"     at a floor of {FLOOR_MAIN} and on nothing else.",
         "", f"Runtime {(time.time()-t0)/60:.1f} min. " + mc.mem_line()]
     (OUT / "82_summary.txt").write_text("\n".join(L), encoding="utf-8")
     print("\n" + "\n".join(L))
