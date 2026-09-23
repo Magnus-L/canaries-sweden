@@ -4,19 +4,20 @@ l36_fig_age_profile_v3.py: Figure 2 of the v3 paper, the age profile
 inside exposed employers after adoption, on the occupation route.
 
 WHAT IT DRAWS
-Each age band against 41-49, from script 82's part B: six bands in one
-panel of 153,845 employers, with employer-by-month, employer-by-age and
-month-by-age effects, the calendar-quarter terms in, treatment from
-January 2024, and exposure frozen at the employer's 2019 OCCUPATION mix.
-Filled markers are the paper's score. Hollow markers are the same profile
-with exposure routed through education instead, the specification v2
-reported, which the export carries on every row so the two are drawn from
-one file and cannot drift apart.
+Each age band against 41-49, six bands in one panel of 153,845 employers,
+with employer-by-month, employer-by-age and month-by-age effects,
+treatment from January 2024, and exposure frozen at the employer's 2019
+OCCUPATION mix. Filled markers are the paper's specification, with three
+quarter-of-year interactions per band; hollow markers omit them. That is
+the pair v2's figure drew, on the score the paper now reports: it shows
+what the calendar control costs, which at 22-25 is the difference between
+-0.0381 (SE 0.0134) and -0.0192 (0.0125).
 
-l23 draws the v2 figure, where the hollow series was the same score
-without the calendar terms. That comparison asked whether the cycle drove
-the profile and the appendix keeps it; this one asks whether the routing
-did, which is the question a referee puts to v3.
+Both arms come from one job on one frame, and the arm with the terms was
+checked against lane 28b's profile to four decimals before the export
+left MONA, so the two series are known to sit on one panel. No education
+route is drawn: an education-based exposure appears in this paper as the
+track heterogeneity and nowhere else.
 
 The reference band is drawn at zero without an interval. Whiskers are 95
 per cent intervals clustered by employer, and stars mark ten, five and one
@@ -24,8 +25,8 @@ per cent from the exported standard errors against the normal thresholds.
 A negative value means the band declined more than 41-49.
 
 INPUTS AND OUTPUTS
-Reads occ_route_profile.csv from the lane 28b export (or a directory given
-on the command line). Writes revision/figures/fig2_age_profile_v3.pdf and
+Reads occ_route_profile_arms.csv from the lane 31 export (or a directory
+given on the command line). Writes revision/figures/fig2_age_profile_v3.pdf and
 .png through _figsafe.save and copies both to canaries-sweden-paper/figures/.
 
     python3 revision/local/l36_fig_age_profile_v3.py [export_dir]
@@ -48,7 +49,7 @@ from _figsafe import save  # noqa: E402
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PAPER = REPO.parent / "canaries-sweden-paper"
-DEFAULT = REPO / "revision/output/round3_20260923-0655-lanes28b-29bcd"
+DEFAULT = REPO / "revision/output/round3_20260923-1001-lane31-profile-arms"
 
 DARK = "#222222"
 MID = "#666666"
@@ -64,25 +65,29 @@ def stars(coef, se):
 
 
 def main(export_dir: Path) -> int:
-    d = pd.read_csv(export_dir / "occ_route_profile.csv").set_index("band")
-    missing = [b for b in ORDER if b not in d.index]
-    if missing:
-        raise SystemExit(f"  the profile export is missing {missing}")
-    n_firms = int(d["n_firms"].iloc[0])
+    raw = pd.read_csv(export_dir / "occ_route_profile_arms.csv")
+    raw = raw[raw["status"].isin(["ok", "reference"])]
+    arms = {a: raw[raw["arm"] == a].set_index("band") for a in ("plain",
+                                                               "seasonal")}
+    for a, d in arms.items():
+        missing = [b for b in ORDER if b not in d.index]
+        if missing:
+            raise SystemExit(f"  the {a} arm is missing {missing}")
+    n_firms = int(raw["n_firms"].iloc[0])
     plt.rcParams.update({"font.family": "serif", "font.size": 10})
     fig, ax = plt.subplots(figsize=(7.4, 4.0))
     xs = list(range(len(ORDER)))
-    series = (("edu", -0.14, dict(mfc="white", mec=MID, color=MID),
-               "Exposure routed through education (the earlier score)"),
-              ("occ", +0.14, dict(mfc=DARK, mec=DARK, color=DARK),
-               "Exposure from the employer's 2019 occupation mix (the paper's score)"))
+    series = (("plain", -0.14, dict(mfc="white", mec=MID, color=MID),
+               "Plain"),
+              ("seasonal", +0.14, dict(mfc=DARK, mec=DARK, color=DARK),
+               "Calendar cycle removed (the paper's specification)"))
     for which, off, style, label in series:
+        d = arms[which]
         for i, b in enumerate(ORDER):
             if b == REF:
                 continue
             r = d.loc[b]
-            c = float(r["coef"] if which == "occ" else r["edu_coef"])
-            se = float(r["se"] if which == "occ" else r["edu_se"])
+            c, se = float(r["coef"]), float(r["se"])
             x = xs[i] + off
             lo, hi = c - 1.96 * se, c + 1.96 * se
             ax.plot([x, x], [lo, hi], color=style["color"], lw=1.2, zorder=2)
