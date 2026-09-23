@@ -197,16 +197,14 @@ def main() -> int:
     tex += rows
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.88\textwidth}\footnotesize\vspace{4pt}",
-            r"The contrast of Table~\ref{tab:profile_seasonal} with the oldest "
-            r"band split at 65, all seven bands in one panel of "
-            f"{thousands(n_split)} employers; Poisson, employer-by-month, "
-            r"employer-by-age and month-by-age effects, exposure frozen at the "
-            r"2019 education mix, treatment January 2024, clustered by "
-            f"employer. The panel holds {thousands(n_split)} employers against "
-            f"the {thousands(n_six)} of the six-band panel of "
-            r"Table~\ref{tab:profile_seasonal}, so the two are the same "
-            r"contrast on different samples and the split is read beside the "
-            r"six-band profile rather than in place of it. Of the bands here, "
+            r"The age profile with the oldest band split at 65, all seven "
+            f"bands in one panel of {thousands(n_split)} employers; Poisson, "
+            r"employer-by-month, employer-by-age and month-by-age effects, "
+            r"exposure frozen at the 2019 education mix, treatment January "
+            r"2024, clustered by employer. The panel is smaller than the "
+            f"six-band one ({thousands(n_six)} employers), so the split is "
+            r"read beside the profile rather than in place of it. Of the "
+            r"bands here, "
             r"only 65--69 contains the ages the 2020 and 2023 increases in the "
             r"pension age reach; the 50--64 band gains without them. "
             r"$^{*}$ $p<0.05$. Source: script 78, part E.",
