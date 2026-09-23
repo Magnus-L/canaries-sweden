@@ -207,10 +207,17 @@ def main() -> int:
            r"employed 22--25 year olds by sex, inside and outside "
            f"top-quartile employers, {YEAR}." + "}",
            r"\label{tab:education_mix}", r"\footnotesize",
+           # Seven columns beside the long track labels: the same
+           # overflow as the gender split, and the same remedy.
+           r"\setlength{\tabcolsep}{3.5pt}",
            r"\begin{tabular}{lcccccc}", r"\toprule",
            r" & \multicolumn{2}{c}{Top quartile (\%)} & "
            r"\multicolumn{2}{c}{Other quartiles (\%)} & "
-           r"\multicolumn{2}{c}{Mean DAIOE score, top quartile} \\",
+           # "Mean DAIOE score, top quartile" is wider than the two
+           # columns under it and pushed the table past the text block
+           # even at a reduced column separation; the top-quartile
+           # restriction moves into the note.
+           r"\multicolumn{2}{c}{Mean DAIOE score} \\",
            r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}",
            r" & Women & Men & Women & Men & Women & Men \\",
            r"\midrule"]
@@ -225,7 +232,8 @@ def main() -> int:
             r"the generative-AI percentile of the education group's "
             r"occupations in 2019, the education route's own score, "
             r"averaged over the workers in the cell with a scored group "
-            f"({lo} to {hi} per cent of each cell). Tracks as in "
+            f"({lo} to {hi} per cent of each cell), in top-quartile "
+            r"employers. Tracks as in "
             r"Table~\ref{tab:gender_split}. Source: script 76.",
             r"\end{minipage}", r"\end{table}"]
 

@@ -254,6 +254,10 @@ def main() -> int:
            r"\caption{The female differential at 22--25 by education track, "
            r"and its split into composition and within-track components.}",
            r"\label{tab:gender_split}", r"\footnotesize",
+           # The track labels are long and the table ran past the text
+           # block in both the online appendix and its v2 predecessor,
+           # losing the right-hand column off the page.
+           r"\setlength{\tabcolsep}{3.5pt}",
            r"\begin{tabular}{lcccr}", r"\toprule",
            r"Track & Young men & Young women minus men & Weight & Employers \\",
            r"\midrule"]
