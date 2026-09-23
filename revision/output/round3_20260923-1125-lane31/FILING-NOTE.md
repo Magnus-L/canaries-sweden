@@ -9,8 +9,12 @@ and it carries no descriptive and no split section. The three-part job (parts PD
 10:13 and had written `occ_route_descriptive_full.csv` and `occ_route_split65.csv` by the time
 the folder was copied at 11:25, but had not yet written its own summary. So the exports are
 complete and the script's own text for parts D and S is missing; the verdicts below were read
-off the CSVs, which is not how the read rules are meant to be settled. **If `output_85` is still
-on the share, its `85_summary.txt` is now the PDS one and is worth collecting.**
+off the CSVs, which is not how the read rules are meant to be settled. **The share was checked at 12:37 and it is not there.** A second copy of `output_85` was handed
+over as `~/Downloads/MyFiles1237`; all seven files are byte-identical to these, and
+`85_summary.txt` is still the 09:21 job's. So the three-part run never wrote a summary: it got
+through parts D and S, whose CSVs are here, and did not reach the end. Nothing is lost but the
+printed verdicts, because both jobs fit the same arms on the same panel and part P's export is
+identical; the verdicts below were read off the CSVs instead.
 
 ## What the exports say
 

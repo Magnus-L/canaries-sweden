@@ -73,7 +73,14 @@ sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
 OUT = REV / "output"
+# Lane 32 ran script 78's part A on the occupation route, the score the
+# paper reports. Lane 25a's export is the education route's and stays
+# reachable by passing its directory; the two name the same files
+# differently, so every name is tried in turn.
+LANE32 = OUT / "round3_20260923-1234-lane32"
 LANE25A = OUT / "round3_20260922-1333-lane25a-ADG"
+PATH_NAMES = ("occ_route_prepath.csv", "prepath_plain.csv")
+SUMMARY_NAMES = ("86_summary.txt", "78_summary.txt")
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there, inside the float that carries its caption.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -83,10 +90,21 @@ REFERENCE = "2022Q1"
 QUARTERS = [f"{y}Q{q}" for y in range(2019, 2026) for q in (1, 2, 3, 4)
             if not (y == 2025 and q > 2)]
 CELL = re.compile(r"^\$([-+])\$([0-9.]+)(\$\^\{\*\}\$)? \(([0-9.]+)\)$")
-SUMMARY_BAND = re.compile(r"^\s+(22-25|26-30):\s*$")
+SUMMARY_BAND = re.compile(r"^\s+(22-25|26-30):(\s*$|\s+\d+ quarters)")
 SUMMARY_ROW = re.compile(
     r"^\s+(\d{4}Q\d)\s+([-+][0-9.]+) \(([0-9.]+)\)(\s+\*)?\s*$")
 SUMMARY_REF = re.compile(r"^\s+(\d{4}Q\d)\s+reference\s*$")
+
+
+def first_of(default_dir: Path, names) -> Path:
+    """The first of `names` that the directory holds."""
+    d = Path(sys.argv[1]) if len(sys.argv) > 1 else default_dir
+    for n in names:
+        p = d / n
+        if p.exists():
+            print(f"  reading {p}")
+            return p
+    raise SystemExit(f"  missing input: none of {names} in {d}")
 
 
 def source(default_dir: Path, name: str) -> Path:
@@ -125,8 +143,16 @@ def summary_part_a(path: Path) -> dict[tuple[str, str], str]:
     printed coefficient of every quarter, with its star. This is a second
     record of the same fits, and the table is written only if the two
     agree."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    # 78 prints the path first and ends it at A(ii); 86 prints a gate and a
+    # drift block before it, so there the collection starts at its header.
+    marker = "THE PLAIN PATH:"
+    started = marker not in text
     said, band = {}, None
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for line in text.splitlines():
+        if not started:
+            started = line.strip() == marker
+            continue
         if "(ii)" in line:
             break
         m = SUMMARY_BAND.match(line)
@@ -151,8 +177,8 @@ def summary_part_a(path: Path) -> dict[tuple[str, str], str]:
 
 
 def main() -> int:
-    d = pd.read_csv(source(LANE25A, "prepath_plain.csv"))
-    said = summary_part_a(source(LANE25A, "78_summary.txt"))
+    d = pd.read_csv(first_of(LANE32, PATH_NAMES))
+    said = summary_part_a(first_of(LANE32, SUMMARY_NAMES))
     cells, panel = {}, {}
     for band in BANDS:
         b = d[d.young_band == band]
@@ -171,7 +197,7 @@ def main() -> int:
             raise SystemExit(f"  {band}: one panel size expected, found {n}")
         panel[band] = n[0]
 
-        v = pd.read_csv(source(LANE25A,
+        v = pd.read_csv(source(LANE32,
                                f"vcov_s78_prepath_{band.replace('-', '_')}.csv"),
                         index_col=0)
         if f"pq_{REFERENCE}_x_high_x_young" in v.index:

@@ -57,8 +57,13 @@ from _figsafe import save  # noqa: E402
 from config import DARK_BLUE, ORANGE, TEAL, GRAY, DARK_TEXT  # noqa: E402
 
 PAPER = REV.parent.parent / "canaries-sweden-paper"
-# The script 78 export (lane 25a) the final-code manifest names.
+# Lane 32 ran script 78's part A on the occupation route, which is the
+# score the paper reports. Lane 25a's own export is the education route's
+# and stays reachable by passing its directory on the command line; the
+# two name the same frame differently, so both names are tried.
+LANE32 = REV / "output" / "round3_20260923-1234-lane32"
 LANE25A = REV / "output" / "round3_20260922-1333-lane25a-ADG"
+NAMES = ("occ_route_prepath.csv", "prepath_plain.csv")
 
 BAND = "22-25"
 REFERENCE = "2022Q1"
@@ -73,9 +78,11 @@ STYLE = {
 
 
 def main(export_dir: Path) -> int:
-    src = export_dir / "prepath_plain.csv"
-    if not src.exists():
-        raise SystemExit(f"  missing input: {src}")
+    src = next((export_dir / n for n in NAMES if (export_dir / n).exists()),
+               None)
+    if src is None:
+        raise SystemExit(f"  missing input: none of {NAMES} in {export_dir}")
+    print(f"  reading {src}")
     d = pd.read_csv(src)
     d = d[d["young_band"] == BAND].copy()
     if d.empty:
@@ -143,4 +150,4 @@ def main(export_dir: Path) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(Path(sys.argv[1]) if len(sys.argv) > 1 else LANE25A))
+    raise SystemExit(main(Path(sys.argv[1]) if len(sys.argv) > 1 else LANE32))
