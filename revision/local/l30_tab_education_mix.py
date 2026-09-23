@@ -21,7 +21,7 @@ a sex and a payslip (script 76, lane 22). The first four columns are the
 field and the level of education by sex, in top-quartile employers and in
 the other three quartiles. The last two columns give the mean DAIOE
 score of the education group's occupations, which is the score the
-paper's exposure is built from, averaged over the workers in the cell
+education route's own score, averaged over the workers in the cell
 whose group is scored. Shares are of the sex-and-quartile column, so each
 block of six adds to a hundred.
 
@@ -223,7 +223,7 @@ def main() -> int:
             f"at least {FLOOR_IN_WORDS[FLOOR]} persons on average. The mean DAIOE "
             "score is "
             r"the generative-AI percentile of the education group's "
-            r"occupations, the score the paper's exposure is built from, "
+            r"occupations in 2019, the education route's own score, "
             r"averaged over the workers in the cell with a scored group "
             f"({lo} to {hi} per cent of each cell). Tracks as in "
             r"Table~\ref{tab:gender_split}. Source: script 76.",

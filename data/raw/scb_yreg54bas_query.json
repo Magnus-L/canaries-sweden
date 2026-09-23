@@ -1,0 +1,6 @@
+{"query":[
+ {"code":"Yrke2012","selection":{"filter":"all","values":["*"]}},
+ {"code":"Alder","selection":{"filter":"item","values":["16-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64"]}},
+ {"code":"Kon","selection":{"filter":"item","values":["1","2"]}},
+ {"code":"Tid","selection":{"filter":"item","values":["2024"]}}],
+ "response":{"format":"json-stat2"}}
