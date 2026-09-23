@@ -111,6 +111,9 @@ PRIOR_FILE = "occ_route_profile.csv"
 # The descriptive windows, as script 66 fixes them.
 PRE = ("2022-01", "2023-12")
 POST_FROM = "2024-01"
+# The two windows are of unequal length, which is why nothing compares
+# their sums without dividing first: 2022-01..2023-12 and 2024-01..2025-06.
+MONTHS_PRE, MONTHS_POST = 24, 18
 # The education route's own split at 65, for the summary alone.
 EDU_SPLIT = {"50-64": (+0.0343, 0.0038), "65-69": (+0.1672, 0.0313)}
 EDU_ARMS = {"22-25": (-0.0288, 0.0130, -0.0099, 0.0121),
@@ -270,8 +273,14 @@ def part_descriptive(counts, occ, s66, j47) -> pd.DataFrame:
     piv = g.pivot_table(index=["fq", "age_group"], columns="period",
                         values="total")
     if {"pre", "post"} <= set(piv.columns):
-        piv["change"] = piv["post"] / piv["pre"] - 1.0
-        print("  D: total headcount per month, change from the pre window:")
+        # The totals are WINDOW SUMS: 24 months before and 18 after, so a
+        # ratio of them carries a mechanical -25 per cent. The appendix
+        # table divides by the month counts before it computes anything;
+        # this line does the same rather than printing a change that has
+        # to be corrected by whoever reads the log.
+        piv["change"] = (piv["post"] / MONTHS_POST) / \
+                        (piv["pre"] / MONTHS_PRE) - 1.0
+        print("  D: headcount per month, change from the pre window:")
         for (fq, band), r in piv.iterrows():
             print(f"      Q{int(fq)} {band:6s} {float(r['change']):+.1%}")
     return g
