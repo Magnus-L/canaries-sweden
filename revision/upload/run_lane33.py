@@ -4,6 +4,7 @@ run_lane33.py -- LANE 33. Submit this file to BatchClient.
 
   87  the female differential split into composition and within, on lane
       28's occupation-route score
+  88  the young against 41-49 by education track, on the same score
 
 WHY LANE 33 EXISTS. Table 1 carries one row the rest of the table does
 not share: the part of the female differential that survives within broad
@@ -24,6 +25,17 @@ the only register that can cut the young here. What changes is the
 FIRM's score, from the 2019 education mix to the 2019 occupation mix of
 its own incumbents aged 31 to 69.
 
+WHY 88 IS IN THE SAME LANE. Script 77 cuts the three-band contrast by
+track, and it is the exhibit the paper credits Nordstrom Skans and
+Sokolow Romin for, in Online Appendix III.2 and in one sentence of
+Section 3. It scores employers the same old way. 87 alone would leave it
+there, so the two run together and between them nothing in the paper
+measures exposure with the education register any more. 88 has no
+four-decimal gate and says so: 77's gate was the education route's
+three-band contrast, and this route has no three-band all-worker figure
+yet, so the all-worker fit run there IS the base and every track cell is
+read against it.
+
 TWO THINGS THAT COME WITH IT.
   1. The specification is Equation (2) itself, through 78's
      gender_eq2_terms, so the pooled differential this produces is the
@@ -43,8 +55,10 @@ the top.
 
 WHAT RUNS HERE. Six Poisson fits of the sex panel at 22-25: one on all
 workers, which is the gate, and one inside each of the five broad tracks,
-plus the descriptive composition, which is not a fit. 76 took 76 minutes
-for the same six fits on the same machine, so budget ninety minutes.
+plus the descriptive composition, which is not a fit; then six more of
+the three-band panel, one on all workers and one per track. 76 took 76
+minutes for its six and 77 took 30 for its six, so budget two hours for
+the lane.
 
 SQL. NONE, and the script refuses to open a connection. The counts by
 sex and education are 76's own pull and are cached from lane 21-22; if
@@ -53,8 +67,10 @@ read of the monthly declarations. Safe beside any job.
 
 Export: output_87/87_summary.txt, occ_route_gender_split.csv,
 occ_route_gender_by_track.csv, occ_route_education_mix_by_sex.csv and
-the vcov_s87_* files. 76's export names are not reused, because two
-exposure routes must never share an export name.
+the vcov_s87_* files; output_88/88_summary.txt,
+occ_route_contrast_by_track.csv and the vcov_s88_* files. 76's and 77's
+export names are not reused, because two exposure routes must never
+share an export name.
 """
 
 import os
@@ -62,6 +78,7 @@ import sys
 from pathlib import Path
 
 os.environ["CANARIES_87_OUT"] = "output_87"
+os.environ["CANARIES_88_OUT"] = "output_88"
 # 82 is imported for its score builder; its own OUT is pointed here so a
 # run of this lane leaves no stray output_82 folder behind.
 os.environ["CANARIES_82_OUT"] = "output_87"
@@ -72,6 +89,8 @@ import _lane  # noqa: E402
 
 STAGES = [
     ("87_occupation_route_gender_split.py", "output_87/87_summary.txt", 150),
+    ("88_occupation_route_contrast_by_track.py",
+     "output_88/88_summary.txt", 90),
 ]
 
 if __name__ == "__main__":
