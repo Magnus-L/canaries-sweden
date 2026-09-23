@@ -269,6 +269,19 @@ def main() -> int:
                 if g is None:
                     continue
                 sc, ss = step_from_interim(g, v)
+                # The estimation sample must be the same across arms. Only
+                # the indicators change, so fepois should separate out the
+                # same cells every time; if it does not, the arms are not
+                # comparable and the sweep is measuring two things at once.
+                n_obs = int(g.loc[POST, "n_obs"]) if "n_obs" in g.columns \
+                    else -1
+                seen = [r["n_obs"] for r in rows
+                        if r["young_band"] == band and r["n_obs"] > 0]
+                if n_obs > 0 and seen and n_obs != seen[0]:
+                    FAILURES.append(
+                        f"{band}/{boundary}: the estimation sample is "
+                        f"{n_obs:,} cells against {seen[0]:,} at the first "
+                        f"boundary, so the arms are not the same sample")
                 rows.append({
                     "young_band": band, "boundary": boundary,
                     "is_reported": boundary == REPORTED,
