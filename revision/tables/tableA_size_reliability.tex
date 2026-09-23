@@ -1,0 +1,41 @@
+\begin{table}[ht!]
+\centering
+\caption{The precision of a firm score averaged over its incumbents, and what it does to the adoption step}
+\label{tab:size_reliability}
+\footnotesize
+\begin{tabular}{lrr}
+\toprule
+\multicolumn{3}{l}{\textit{Panel A. Reliability of the firm score}} \\
+ & Incumbents & Reliability \\
+\midrule
+10th percentile of employers & 1 & 0.43 \\
+25th percentile of employers & 1 & 0.43 \\
+50th percentile of employers & 2 & 0.60 \\
+75th percentile of employers & 5 & 0.79 \\
+90th percentile of employers & 13 & 0.91 \\
+10th percentile of incumbent employment & 5 & 0.791 \\
+25th percentile of incumbent employment & 30 & 0.958 \\
+50th percentile of incumbent employment & 645 & 0.998 \\
+75th percentile of incumbent employment & 5,210 & 1.000 \\
+90th percentile of incumbent employment & 13,527 & 1.000 \\
+\addlinespace[2pt]
+Below a reliability of one half & 40.6\% of employers & 3.0\% of employment \\
+\addlinespace[4pt]
+\midrule
+\multicolumn{3}{l}{\textit{Panel B. The adoption step by the number of incumbents behind the score}} \\
+ & Ages 22--25 & Ages 26--30 \\
+\midrule
+Reported floor, five incumbent person-months & $-0.0578$ (0.0155) & $-0.0482$ (0.0104) \\
+\quad employers in the panel & 104,217 & 117,090 \\
+Floor of sixty person-months & $-0.0537$ (0.0169) & $-0.0498$ (0.0110) \\
+\quad employers in the panel & 52,333 & 57,113 \\
+Employers with 1 to 3 incumbents & $-0.0578$ (0.0223) & $+0.0286$ (0.0183) \\
+\quad employers in the panel & 39,215 & 45,195 \\
+Employers with 4 or more incumbents & $-0.0569$ (0.0165) & $-0.0499$ (0.0108) \\
+\quad employers in the panel & 65,002 & 71,895 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}
+Panel A. The firm score is the employment-weighted mean of its incumbents' occupation percentiles, so its sampling variance falls with the number of incumbents behind it. Reliability is $\sigma^2_b/(\sigma^2_b+\sigma^2_w/n)$ with the between-firm component net of the sampling noise it contains: 319 against a within-firm 422. It is reported and never used to correct an estimate: the measurement error here is not classical, and the answer to a low reliability is a design that raises it. Panel B. Poisson on the specification of Equation~(2), clustered by employer. The national exposure quartile is carried into every arm unchanged and is never recut inside a subsample. The two size groups are the thirds of the incumbent count as the export cut them; the count is skewed enough that the lower cut point falls at one incumbent, so the first group is empty and the split is the two-way one shown.
+\end{minipage}
+\end{table}

@@ -14,7 +14,7 @@ never modifies the marked file. Nesting and escaped braces are handled
 the same way as the daioe original, which this is adapted from
 (`projects/daioe/scripts/strip_markup.py`, hardcoded to that paper).
 
-    python3 revision/local/l20_strip_markup.py [--count]
+    python3 revision/local/l20_strip_markup.py [v2|v3] [--count]
 
 --count also prints the clean word count by section, which is the number
 that matters against the journal limit: the marked file counts deleted
@@ -25,8 +25,12 @@ import sys
 from pathlib import Path
 
 PAPER = Path("/Users/mslk/Documents/Workspace/projects/canaries-sweden-paper")
-SRC = PAPER / "main_v2.tex"
-DST = PAPER / "main_v2_clean.tex"
+# The manuscript version to clean. v2 stays the default so every existing
+# call is unchanged; v3 is the occupation-route draft, and the two are
+# maintained side by side until one is chosen.
+VERSION = next((a for a in sys.argv[1:] if not a.startswith("-")), "v2")
+SRC = PAPER / f"main_{VERSION}.tex"
+DST = PAPER / f"main_{VERSION}_clean.tex"
 TAIL = ("Declaration of competing interest", "Funding", "Data availability",
         "Acknowledgements", "generative AI")
 
