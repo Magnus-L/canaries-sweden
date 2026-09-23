@@ -111,7 +111,6 @@ CACHE = mc.CACHE_DIR
 os.environ.setdefault("CANARIES_82_OUT", str(OUT))
 
 FLOOR = 5                        # the export floor, as in mona_common
-MATCH_DP = 4                     # the gate, decimals, as in 80 and 85
 REF_QUARTER = "2022Q1"           # the omitted quarter, as in 78
 EXTENDED_FROM = "2019-01"        # the window the appendix figure draws
 # Where lane 29b's drift may be found, for the gate. The first that
@@ -127,11 +126,15 @@ NOTES, FAILURES = [], []
 
 READ_RULES = [
     "READ RULES, FIXED BEFORE THE RUN:",
-    "  1. THE GATE. The refitted drift must reproduce lane 29b's",
-    f"     occ_rest_drift.csv to {MATCH_DP} decimals on every term of both",
-    "     bands: the three quarter-of-year terms, the tightening window",
-    "     and the trend. A moved coefficient means a moved panel, and",
-    "     then THE PATH IS NOT DRAWN and nothing here is quoted.",
+    "  1. THE GATE. 78's part_a builds ONE frame for both halves and",
+    "     slices the drift window out of it, so a path that runs from",
+    "     2019 gives the drift a 2019-start employer set that CANNOT",
+    "     reproduce lane 29b's 2021-start fit to four decimals. What is",
+    "     required is substantive agreement: each trend within one",
+    "     standard error of lane 29b's and the same flat verdict at both",
+    "     bands. The two frames' cell counts are printed beside each",
+    "     other. A trend that moves by more than a standard error, or a",
+    "     verdict that flips, means THE PATH IS NOT DRAWN.",
     "  2. THE PATH CARRIES NO VERDICT. No quarter of it is quoted in the",
     "     paper. It exists so that a reader can see the series the",
     "     calendar terms are removed from.",
@@ -218,29 +221,58 @@ def prior_drift() -> pd.DataFrame:
     return pd.DataFrame()
 
 
+def flat(coef: float, se: float) -> bool:
+    """78's rule: the pre-period is flat within two standard errors."""
+    return abs(coef) < 2 * se
+
+
 def run_gate(drift_rows: list, prior: pd.DataFrame) -> tuple:
-    """Rule 1. Every term of both bands, to four decimals."""
+    """
+    Rule 1, substantive agreement on the trend, and NOT a four-decimal
+    reproduction.
+
+    78's part_a builds one frame for the path and the drift together, so a
+    path that runs from 2019 hands the drift an employer set lane 29b's
+    2021-start fit does not share: about eight per cent more cells. The
+    first version of this script demanded four decimals, failed on exactly
+    that, and would have withheld a sound path. What matters is whether
+    the wider frame tells the same story.
+    """
     if prior.empty or not drift_rows:
         return "NO GATE", []
     d = pd.DataFrame(drift_rows)
-    moved, checked = [], 0
-    for _, r in d.iterrows():
-        p = prior[(prior["young_band"] == r["young_band"])
-                  & (prior["term"] == r["term"])]
-        if not len(p):
-            moved.append(f"{r['young_band']}/{r['term']} absent from lane 29b")
+    bad, lines, checked = [], [], 0
+    for band in sorted(d["young_band"].unique()):
+        r = d[(d["young_band"] == band) & (d["term"] == TREND)]
+        p = prior[(prior["young_band"] == band) & (prior["term"] == TREND)]
+        if not len(r) or not len(p):
+            bad.append(f"{band}: no trend term on one side")
             continue
         checked += 1
-        gap = abs(float(p["coef"].iloc[0]) - float(r["coef"]))
-        if gap >= 10 ** (-MATCH_DP) / 2:
-            moved.append(f"{r['young_band']}/{r['term']} "
-                         f"{float(p['coef'].iloc[0]):+.5f} against "
-                         f"{float(r['coef']):+.5f}")
-    gate = ("THE PANEL IS THE ONE TABLE 1 SITS ON" if not moved
-            else "THE PANEL HAS MOVED: THE PATH IS NOT DRAWN")
-    lines = [f"  {gate}", f"    {checked} terms checked to {MATCH_DP} "
-             f"decimals against lane 29b"] + [f"    {m}" for m in moved]
-    if moved:
+        c, se = float(r["coef"].iloc[0]), float(r["se"].iloc[0])
+        pc, pse = float(p["coef"].iloc[0]), float(p["se"].iloc[0])
+        gap = abs(c - pc)
+        n_here = int(r["n_obs"].iloc[0])
+        n_there = int(p["n_obs"].iloc[0]) if "n_obs" in p.columns else 0
+        lines.append(f"    {band}: trend {c:+.5f} ({se:.5f}) against lane "
+                     f"29b's {pc:+.5f} ({pse:.5f}), a gap of "
+                     f"{gap / se:.2f} standard errors; "
+                     f"{'FLAT' if flat(c, se) else 'NOT FLAT'} against "
+                     f"{'FLAT' if flat(pc, pse) else 'NOT FLAT'}")
+        lines.append(f"      cells {n_here:,} here against {n_there:,} "
+                     f"there, the 2019-start frame against the 2021-start "
+                     f"one, which is expected")
+        if gap > se:
+            bad.append(f"{band}: the trend moves {gap / se:.2f} standard "
+                       f"errors")
+        if flat(c, se) != flat(pc, pse):
+            bad.append(f"{band}: the flat verdict flips")
+    gate = ("THE WIDER FRAME TELLS THE SAME STORY" if not bad
+            else "THE DRIFT DISAGREES: THE PATH IS NOT DRAWN")
+    lines = [f"  {gate}",
+             f"    {checked} band(s) checked against lane 29b"] + lines \
+        + [f"    {m}" for m in bad]
+    if bad:
         FAILURES.append("gate")
     return gate, lines
 

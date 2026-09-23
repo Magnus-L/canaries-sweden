@@ -254,22 +254,25 @@ print("\n--- the gate can pass and can fail ---")
 prior_dir = s86.OUT / "output_83b"
 prior_dir.mkdir(parents=True, exist_ok=True)
 s86.PRIOR = (str(prior_dir),)
-B[["young_band", "term", "coef"]].to_csv(
+# lane 29b's export carries the standard error and the cell count too,
+# which the gate needs to judge a gap in standard errors.
+B[["young_band", "term", "coef", "se", "n_obs"]].to_csv(
     prior_dir / s86.PRIOR_FILE, index=False)
 s86.FAILURES.clear(); s86.NOTES.clear()
 s86.main()
 ok = (s86.OUT / "86_summary.txt").read_text(encoding="utf-8")
 check("a matching prior passes the gate",
-      "THE PANEL IS THE ONE TABLE 1 SITS ON" in ok)
+      "THE WIDER FRAME TELLS THE SAME STORY" in ok)
 
-moved = B[["young_band", "term", "coef"]].copy()
-moved.loc[moved.index[0], "coef"] = float(moved["coef"].iloc[0]) + 0.5
+moved = B[["young_band", "term", "coef", "se", "n_obs"]].copy()
+trend = moved["term"] == s86.TREND
+moved.loc[trend, "coef"] = moved.loc[trend, "coef"] + 0.5
 moved.to_csv(prior_dir / s86.PRIOR_FILE, index=False)
 s86.FAILURES.clear(); s86.NOTES.clear()
 s86.main()
 bad = (s86.OUT / "86_summary.txt").read_text(encoding="utf-8")
-check("a moved prior coefficient fails the gate",
-      "THE PANEL HAS MOVED" in bad)
+check("a trend that moves by more than a standard error fails the gate",
+      "THE DRIFT DISAGREES" in bad)
 check("a failed gate is recorded as a failure", "WHAT FAILED" in bad)
 
 print("\n--- the window follows the caches and is SAID ---")

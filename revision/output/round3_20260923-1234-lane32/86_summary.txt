@@ -1,0 +1,115 @@
+THE PLAIN QUARTERLY PATH AND THE DRIFT TEST, OCCUPATION ROUTE
+==========================================================
+
+Script 78's part A, unchanged, on the score the paper reports:
+an employer ranked by the DAIOE generative-AI percentile of the
+2019 occupations of its own incumbents aged 31 to 69. The path
+carries no calendar terms and omits 2022Q1; the drift
+test beneath it is the row Table 1 of the paper prints, refitted
+here so that the gate can prove the two sit on one panel.
+
+THE GATE:
+  THE PANEL HAS MOVED: THE PATH IS NOT DRAWN
+    10 terms checked to 4 decimals against lane 29b
+    22-25/q1_x_high_x_young -0.15501 against -0.15507
+    22-25/q2_x_high_x_young -0.13320 against -0.13325
+    26-30/q1_x_high_x_young -0.04589 against -0.04600
+    26-30/q2_x_high_x_young -0.04111 against -0.04119
+    26-30/q3_x_high_x_young -0.04180 against -0.04185
+
+THE DRIFT TEST, REFITTED:
+  22-25: trend +0.00037 (0.00077) t +0.48   FLAT   lane 29b gave +0.00038 (0.00077)
+  26-30: trend +0.00159 (0.00044) t +3.65   NOT FLAT   lane 29b gave +0.00161 (0.00044)
+
+THE PLAIN PATH:
+  22-25: 26 quarters, 2019Q1 to 2025Q2, 2022Q1 the reference
+    2019Q1   +0.0789 (0.0153)  *
+    2019Q2   +0.0920 (0.0183)  *
+    2019Q3   +0.1367 (0.0233)  *
+    2019Q4   +0.2197 (0.0175)  *
+    2020Q1   +0.0737 (0.0120)  *
+    2020Q2   +0.0592 (0.0179)  *
+    2020Q3   +0.0568 (0.0211)  *
+    2020Q4   +0.1512 (0.0143)  *
+    2021Q1   -0.0023 (0.0090)
+    2021Q2   +0.0194 (0.0119)
+    2021Q3   +0.0411 (0.0190)  *
+    2021Q4   +0.1580 (0.0121)  *
+    2022Q1   reference
+    2022Q2   +0.0287 (0.0096)  *
+    2022Q3   +0.0609 (0.0182)  *
+    2022Q4   +0.1686 (0.0133)  *
+    2023Q1   +0.0036 (0.0118)
+    2023Q2   +0.0150 (0.0145)
+    2023Q3   +0.0354 (0.0210)
+    2023Q4   +0.1326 (0.0172)  *
+    2024Q1   -0.0170 (0.0161)
+    2024Q2   -0.0100 (0.0176)
+    2024Q3   -0.0123 (0.0223)
+    2024Q4   +0.0924 (0.0197)  *
+    2025Q1   -0.0133 (0.0250)
+    2025Q2   -0.0436 (0.0250)
+  26-30: 26 quarters, 2019Q1 to 2025Q2, 2022Q1 the reference
+    2019Q1   -0.0034 (0.0115)
+    2019Q2   -0.0016 (0.0114)
+    2019Q3   +0.0042 (0.0113)
+    2019Q4   +0.0481 (0.0108)  *
+    2020Q1   -0.0054 (0.0087)
+    2020Q2   -0.0071 (0.0088)
+    2020Q3   -0.0147 (0.0085)
+    2020Q4   +0.0206 (0.0077)  *
+    2021Q1   -0.0219 (0.0054)  *
+    2021Q2   -0.0111 (0.0054)  *
+    2021Q3   -0.0080 (0.0056)
+    2021Q4   +0.0407 (0.0049)  *
+    2022Q1   reference
+    2022Q2   +0.0070 (0.0029)  *
+    2022Q3   +0.0137 (0.0047)  *
+    2022Q4   +0.0607 (0.0050)  *
+    2023Q1   +0.0049 (0.0067)
+    2023Q2   +0.0043 (0.0074)
+    2023Q3   +0.0027 (0.0083)
+    2023Q4   +0.0427 (0.0086)  *
+    2024Q1   -0.0112 (0.0099)
+    2024Q2   -0.0148 (0.0105)
+    2024Q3   -0.0225 (0.0111)  *
+    2024Q4   +0.0155 (0.0114)
+    2025Q1   -0.0599 (0.0139)  *
+    2025Q2   -0.0785 (0.0160)  *
+
+WHAT FAILED: gate
+A missing row is a missing fit, never a zero, and the figure must not be drawn through it.
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  the score is 82's build_exposure(): 262,089 employers, uniform3, floor 5
+  78: A(i): path from 2019-01 (2019 and 2020 counts cached)
+  the gate read lane 29b's drift from output_83b
+
+READ RULES, FIXED BEFORE THE RUN:
+  1. THE GATE. The refitted drift must reproduce lane 29b's
+     occ_rest_drift.csv to 4 decimals on every term of both
+     bands: the three quarter-of-year terms, the tightening window
+     and the trend. A moved coefficient means a moved panel, and
+     then THE PATH IS NOT DRAWN and nothing here is quoted.
+  2. THE PATH CARRIES NO VERDICT. No quarter of it is quoted in the
+     paper. It exists so that a reader can see the series the
+     calendar terms are removed from.
+  3. THE WINDOW IS WHATEVER THE COUNTS ALLOW. With L_counts_2019 and
+     L_counts_2020 on the share the path runs from 2019Q1, the
+     window the appendix figure draws; without them it runs from
+     2021-01 and the summary says so. This lane does NOT pull to
+     extend it.
+  4. The drift rule is 78's: the pre-period is flat if the trend
+     lies within two standard errors of zero. Lane 29b gives
+     +0.000383 (0.000773) at 22-25, flat, and +0.001608 (0.000436)
+     at 26-30, not flat.
+  NOTHING HERE NEEDS SUPPRESSING. Neither export carries a count
+  of employers: a path row holds a coefficient and the number of
+  CELLS behind it, which is millions, and the drift rows the same.
+  The floor is still checked against 82's, because the score the
+  path is drawn on is built under it.
+
+Runtime 64.3 min. memory available: 613.4 GB
