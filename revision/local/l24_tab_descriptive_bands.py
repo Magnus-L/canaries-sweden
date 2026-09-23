@@ -26,9 +26,11 @@ coefficients in Table 1 are within-employer contrasts net of the fixed
 effects; this table is the raw movement they are a contrast within.
 
 INPUTS AND OUTPUTS
-Reads output_66__plain_stock.csv (script 66; columns fq, age_group,
-period, mean_value, total, n_firms, n_cells) from the export directory the
-final-code manifest names (or one given on the command line). Writes
+Reads occ_route_descriptive_full.csv (script 85 part D, lane 31) from the
+export directory pinned below, or output_66__plain_stock.csv if that is
+what the directory holds, which is the education route's own version and
+what this table stood on until 23 September 2026. Both carry the same
+columns: fq, age_group, period, mean_value, total, n_firms, n_cells. Writes
 revision/tables/tableA_descriptive_bands.tex and copies it to
 canaries-sweden-paper/tables/.
 
@@ -47,7 +49,10 @@ REV = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
+LANE31 = REV / "output" / "round3_20260923-1125-lane31"
+# The education route's own export, kept reachable by passing its directory.
 ROUND2_66 = REV / "output" / "round2_20260921-0733-jobs646567"
+NAMES = ("occ_route_descriptive_full.csv", "output_66__plain_stock.csv")
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
 
 BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
@@ -55,12 +60,16 @@ QUARTILES = [1, 2, 3, 4]
 MONTHS = {"pre": 24, "post": 18}   # 2022-01 to 2023-12; 2024-01 to 2025-06
 
 
-def source(default_dir: Path, name: str) -> Path:
+def source(default_dir: Path, names=NAMES) -> Path:
+    """The two routes name the same frame differently, so the file is found
+    by trying both rather than by assuming which directory was given."""
     d = Path(sys.argv[1]) if len(sys.argv) > 1 else default_dir
-    p = d / name
-    if not p.exists():
-        raise SystemExit(f"  missing input: {p}")
-    return p
+    for n in names:
+        p = d / n
+        if p.exists():
+            print(f"  reading {p}")
+            return p
+    raise SystemExit(f"  missing input: none of {names} in {d}")
 
 
 def change(d: pd.DataFrame, value: str) -> pd.DataFrame:
@@ -73,7 +82,7 @@ def change(d: pd.DataFrame, value: str) -> pd.DataFrame:
 
 
 def main() -> int:
-    d = pd.read_csv(source(ROUND2_66, "output_66__plain_stock.csv"))
+    d = pd.read_csv(source(LANE31))
     d = d[d.fq.isin(QUARTILES) & d.age_group.isin(BANDS)].copy()
     d["per_month"] = d.total / d.period.map(MONTHS)
     a = change(d, "per_month")

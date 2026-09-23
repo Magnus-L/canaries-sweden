@@ -7,18 +7,18 @@
 \toprule
 Band & Outcome & Balanced cells & Zero throughout & Skeleton & Estimated \\
 \midrule
-22-25 & stock & 43,763,490 & 7,216,236 (16\%) & 36,547,254 & 26,410,806 \\
-22-25 & hires & 41,088,060 & 10,351,692 (25\%) & 30,736,368 & 21,536,928 \\
-22-25 & seps & 41,088,060 & 10,633,464 (26\%) & 30,454,596 & 22,229,208 \\
-26-30 & stock & 53,649,270 & 9,443,358 (18\%) & 44,205,912 & 30,535,812 \\
-26-30 & hires & 49,355,460 & 13,040,028 (26\%) & 36,315,432 & 24,375,654 \\
-26-30 & seps & 49,355,460 & 13,165,416 (27\%) & 36,190,044 & 25,479,684 \\
+22-25 & stock & 43,763,490 & 7,216,236 (16\%) & 36,547,254 & 24,884,226 \\
+22-25 & hires & 41,088,060 & 10,351,692 (25\%) & 30,736,368 & 20,182,122 \\
+22-25 & seps & 41,088,060 & 10,633,464 (26\%) & 30,454,596 & 20,839,734 \\
+26-30 & stock & 53,649,270 & 9,443,358 (18\%) & 44,205,912 & 28,077,246 \\
+26-30 & hires & 49,355,460 & 13,040,028 (26\%) & 36,315,432 & --- \\
+26-30 & seps & 49,355,460 & 13,165,416 (27\%) & 36,190,044 & --- \\
 \midrule
-\multicolumn{2}{l}{Firms carrying an exposure score} & \multicolumn{4}{r}{311{,}227} \\
-\multicolumn{2}{l}{Firms in the 22-25 panel} & \multicolumn{4}{r}{111,459} \\
-\multicolumn{2}{l}{Firms in the 26-30 panel} & \multicolumn{4}{r}{128,193} \\
+\multicolumn{2}{l}{Firms carrying an exposure score} & \multicolumn{4}{r}{262{,}089} \\
+\multicolumn{2}{l}{Firms in the 22-25 panel} & \multicolumn{4}{r}{104,217} \\
+\multicolumn{2}{l}{Firms in the 26-30 panel} & \multicolumn{4}{r}{117,090} \\
 \bottomrule
 \end{tabular}
-\begin{minipage}{0.95\textwidth}\footnotesize\vspace{4pt}The panel is balanced over employers, age bands and months and zero-filled, so \textbf{a firm whose young headcount falls to zero contributes those months}: the extensive margin is in the estimate, which is why Poisson rather than a log transform. ``Zero throughout'' counts employer-band cells with no employment in any month of the window; these are perfectly predicted by the employer-by-age effect and fixest separates them regardless, so they are removed before estimation at no cost to any coefficient. ``Skeleton'' is what remains, and ``Estimated'' the cells surviving the merge with the 2019 exposure score. A firm enters only if it holds the young band and at least one older band at some point from January 2021, which is a pre-treatment property and not an outcome. Exposure is scored for 311{,}227 firms; the panel firm counts come from the specification of Online Appendix III.2, which is built on the same skeleton.
+\begin{minipage}{0.95\textwidth}\footnotesize\vspace{4pt}The panel is balanced over employers, age bands and months and zero-filled, so \textbf{a firm whose young headcount falls to zero contributes those months}: the extensive margin is in the estimate, which is why Poisson rather than a log transform. ``Zero throughout'' counts employer-band cells with no employment in any month of the window; these are perfectly predicted by the employer-by-age effect and fixest separates them regardless, so they are removed before estimation at no cost to any coefficient. The first three columns are counted before the exposure merge and so are the same whatever the score. ``Skeleton'' is what remains, and ``Estimated'' the cells surviving the merge with the employer's 2019 occupation mix. A firm enters only if it holds the young band and at least one older band at some point from January 2021, which is a pre-treatment property and not an outcome. Exposure is scored for 262{,}089 firms. The paper reports the flow margins at 22--25 only, so the two 26--30 flow rows carry a skeleton and no estimate; nothing is carried across from another score.
 \end{minipage}
 \end{table}
