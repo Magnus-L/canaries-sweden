@@ -125,8 +125,8 @@ pd.DataFrame([(e, f"2019-{m:02d}", a, size_mult(e))
              columns=["employer_id", "year_month", "age_group", "n_emp"]
              ).to_parquet(mc.CACHE_DIR / "L_counts_2019.parquet", index=False)
 
-(s82, s61, s74, s78, l47, l70, j47) = s85.load_modules()
-for m_ in (s82, s61, s74, s78, l47, l70, j47):
+(s82, s61, s66, s74, s78, l47, l70, j47) = s85.load_modules()
+for m_ in (s82, s61, s66, s74, s78, l47, l70, j47):
     m_.OUT, m_.CACHE = s85.OUT, mc.CACHE_DIR
 s85.OUT.mkdir(parents=True, exist_ok=True)
 MONTHS = [f"{y}-{m:02d}" for y in s61.PANEL_YEARS
@@ -161,6 +161,24 @@ C = panel()
 for y in s61.PANEL_YEARS:
     C[C["year_month"].str.slice(0, 4) == str(y)].to_parquet(
         mc.CACHE_DIR / f"L_counts_{y}.parquet", index=False)
+
+# The split-at-65 counts, as the earlier lane cached them: the same panel
+# with the oldest band divided. 78's own puller would go to the database
+# for these, and the lane promises no SQL, so the cache is what part S
+# must find.
+SPLIT = C.copy()
+SPLIT["age_group"] = SPLIT["age_group"].where(
+    SPLIT["age_group"] != "50+",
+    ["50-64" if i % 3 else "65-69"
+     for i in range(int((SPLIT["age_group"] == "50+").sum()) or 1)][0]
+    if False else "50-64")
+extra = C[C["age_group"] == "50+"].copy()
+extra["age_group"] = "65-69"
+extra["n_emp"] = (extra["n_emp"] // 3).clip(lower=1)
+SPLIT = pd.concat([SPLIT, extra], ignore_index=True)
+for y in s61.PANEL_YEARS:
+    SPLIT[SPLIT["year_month"].str.slice(0, 4) == str(y)].to_parquet(
+        mc.CACHE_DIR / f"L_counts_split_{y}.parquet", index=False)
 
 print("\n--- the score and the terms ---")
 built = s82.build_exposure(l47, l70, j47)
@@ -216,6 +234,20 @@ if len(A):
           f"{s['coef']:+.4f} t {s['t']:+.2f}")
 summ = (s85.OUT / "85_summary.txt").read_text(encoding="utf-8")
 check("the summary reports the gate", "THE GATE:" in summ)
+D = s85.OUT / "occ_route_descriptive_full.csv"
+check("the descriptive export exists, with totals", D.exists()
+      and "total" in pd.read_csv(D).columns)
+check("the summary reports the descriptive",
+      "THE DESCRIPTIVE COUNTERPART" in summ)
+S = s85.OUT / "occ_route_split65.csv"
+check("the split-at-65 export exists", S.exists())
+if S.exists():
+    sp = pd.read_csv(S)
+    check("the split holds both halves of the oldest band",
+          {"50-64", "65-69"} <= set(sp["band"]),
+          str(sorted(set(sp["band"]))))
+check("no stray prof_split.csv is left for export",
+      not (s85.OUT / "prof_split.csv").exists())
 check("the summary reports what the terms do",
       "WHAT THE CALENDAR TERMS DO:" in summ)
 check("the summary prints the read rules",

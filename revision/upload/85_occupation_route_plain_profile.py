@@ -91,6 +91,9 @@ import mona_common as mc
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / os.environ.get("CANARIES_85_OUT", "output_85")
+# P the profile arms, D the descriptive counterpart, S the oldest band
+# split at 65. Each is independent; a part that dies costs that part.
+PARTS = os.environ.get("CANARIES_85_PARTS", "PDS").upper()
 OUT.mkdir(exist_ok=True)
 CACHE = mc.CACHE_DIR
 os.environ.setdefault("CANARIES_82_OUT", str(OUT))
@@ -105,6 +108,11 @@ PRIOR_FILE = "occ_route_profile.csv"
 # The education route's own pair, for the summary alone. It is the
 # comparison the figure used to draw and no longer does; it is printed
 # here so the two are on one page for us, and it enters no export.
+# The descriptive windows, as script 66 fixes them.
+PRE = ("2022-01", "2023-12")
+POST_FROM = "2024-01"
+# The education route's own split at 65, for the summary alone.
+EDU_SPLIT = {"50-64": (+0.0343, 0.0038), "65-69": (+0.1672, 0.0313)}
 EDU_ARMS = {"22-25": (-0.0288, 0.0130, -0.0099, 0.0121),
             "26-30": (-0.0146, 0.0086, -0.0096, 0.0084),
             "50+": (+0.0616, 0.0065, +0.0589, 0.0062)}
@@ -126,6 +134,17 @@ READ_RULES = [
     "  3. The difference between the arms is reported at every band",
     "     whichever way it falls, and any band where the two disagree",
     "     in SIGN is named.",
+    "  4. THE DESCRIPTIVE COUNTERPART CARRIES NO VERDICT. It is raw",
+    "     totals and raw per-cell means by quartile and age band, with",
+     "     composition, firm size and the business cycle inside them.",
+    "     It exists so the appendix table can be built on the score the",
+    "     paper reports instead of on the education route.",
+    "  5. THE PENSION-AGE RIVAL IS DISMISSED if, with the oldest band",
+    "     split at 65, the 50-64 half gains against 41-49 and is",
+    "     distinguishable from zero at five per cent: the half the",
+    "     retirement-age reforms do not reach then gains on its own.",
+    "     The education route gives +0.0343 (0.0038) at 50-64 and",
+    "     +0.1672 (0.0313) at 65-69.",
     "  On the education route the pair ran -0.0288 (0.0130) plain and",
     "  -0.0099 (0.0121) with the cycle removed at 22-25.",
     f"  Employer counts below {FLOOR} are suppressed before anything",
@@ -209,6 +228,13 @@ def load_modules():
     s82 = _mod("82_occupation_route.py", "s82")
     s82.OUT = OUT
     s61, s67, s74, s78, s80, l47, l70, j47 = s82.load_modules()
+    s66 = _mod("66_plain_magnitudes.py", "s66")
+    for m_ in (s66, s78):
+        m_.OUT, m_.CACHE = OUT, CACHE
+    if tuple(s66.PRE) != tuple(PRE) or s66.POST_FROM != POST_FROM:
+        raise RuntimeError(f"66's descriptive windows are {s66.PRE} and "
+                           f"{s66.POST_FROM}, not {PRE} and {POST_FROM}; "
+                           f"refusing to run.")
     if s74.POOLED_FROM != l70.POOLED_FROM:
         raise RuntimeError("74 and 70 disagree on when the post period "
                            "opens; refusing to run.")
@@ -219,19 +245,122 @@ def load_modules():
             or s82.FLOOR_MAIN != FLOOR:
         raise RuntimeError("82's primary arm is not the one the paper "
                            "reports; refusing to run.")
-    return s82, s61, s74, s78, l47, l70, j47
+    return s82, s61, s66, s74, s78, l47, l70, j47
+
+
+def part_descriptive(counts, occ, s66, j47) -> pd.DataFrame:
+    """
+    The descriptive counterpart of the design, on the reported score.
+
+    Script 66's own describe(), which returns the total and the per-cell
+    mean by quartile, age band and window. Lane 29a called the same
+    function and exported only the means, so the appendix table's Panel A,
+    the totals, could not be rebuilt and the table stayed on the education
+    route. This writes the whole frame.
+
+    No fit, no verdict: raw totals and raw means, with composition, firm
+    size and the business cycle inside them.
+    """
+    g = s66.describe(counts, occ, "n_emp", j47.YOUNG_BANDS,
+                     j47.INCUMBENT_BANDS)
+    if g is None or g.empty:
+        FAILURES.append("D/empty")
+        return pd.DataFrame()
+    save(g, "occ_route_descriptive_full.csv")
+    piv = g.pivot_table(index=["fq", "age_group"], columns="period",
+                        values="total")
+    if {"pre", "post"} <= set(piv.columns):
+        piv["change"] = piv["post"] / piv["pre"] - 1.0
+        print("  D: total headcount per month, change from the pre window:")
+        for (fq, band), r in piv.iterrows():
+            print(f"      Q{int(fq)} {band:6s} {float(r['change']):+.1%}")
+    return g
+
+
+def part_split65(occ, s61, s78, j47) -> list:
+    """
+    The oldest band split at 65, on the reported score.
+
+    Script 78's own part_e: the seven-band panel, the reference 41-49,
+    74's seasonal terms. The counts with the oldest band split are 78's
+    own pull and are cached from the earlier lane, so this is one fit and
+    no SQL. What it settles is whether the gain of the oldest band is a
+    retirement-age effect: if the 50-64 half, which the 2020 and 2023
+    reforms do not reach, gains on its own, it is not.
+
+    78 writes its rows to prof_split.csv under its own OUT. That name
+    belongs to the education route's version, so the rows are written
+    here under a name of their own and the stray file is removed: two
+    exposure routes must never share an export name.
+    """
+    # 78's part_e pulls the split counts if they are not cached, which is
+    # a full read of every monthly declaration. This lane promises no SQL,
+    # so the caches are checked first and the arm is skipped rather than
+    # allowed to start a pull nobody scheduled.
+    missing = [y for y in s61.PANEL_YEARS
+               if not (CACHE / f"L_counts_split_{y}.parquet").exists()]
+    if missing:
+        FAILURES.append(f"S/split counts not cached for {missing}")
+        print(f"  S: L_counts_split_* missing for {missing}; the split at 65 "
+              f"is skipped rather than pulled")
+        NOTES.append("the oldest band split at 65 was skipped: its counts are "
+                     "not on the share and this lane does not pull")
+        return []
+    rows = s78.part_e(occ, s61, j47)
+    for n in list(getattr(s78, "FAILURES", [])):
+        FAILURES.append(f"78/{n}")
+    stray = OUT / "prof_split.csv"
+    if stray.exists():
+        stray.unlink()
+    if not rows:
+        FAILURES.append("S/no rows")
+        return []
+    for r in rows:
+        r["t"] = tstat(r.get("coef"), r.get("se"))
+    save(rows, "occ_route_split65.csv")
+    print("  S: the oldest band split at 65:")
+    for r in rows:
+        if r.get("se", 0) > 0:
+            print(f"      {r['band']:6s} {r['coef']:+.4f} ({r['se']:.4f}) "
+                  f"t {r['t']:+.2f}")
+    return rows
+
+
+def split_verdict(rows: list) -> tuple:
+    """Rule 5: the half the reforms do not reach must gain on its own."""
+    r = [x for x in rows if x.get("band") == "50-64" and x.get("se", 0) > 0]
+    if not r:
+        return "NO VERDICT, the 50-64 band did not fit", []
+    r = r[0]
+    ok = r["coef"] > 0 and abs(r["t"]) >= SIG5
+    v = ("THE PENSION-AGE RIVAL IS DISMISSED" if ok
+         else "THE PENSION-AGE RIVAL IS NOT DISMISSED")
+    lines = [f"  5 the split at 65          {v}",
+             f"     50-64 {r['coef']:+.4f} ({r['se']:.4f}) t {r['t']:+.2f}; "
+             f"the education route gives {EDU_SPLIT['50-64'][0]:+.4f} "
+             f"({EDU_SPLIT['50-64'][1]:.4f})"]
+    o = [x for x in rows if x.get("band") == "65-69" and x.get("se", 0) > 0]
+    if o:
+        lines.append(f"     65-69 {o[0]['coef']:+.4f} ({o[0]['se']:.4f}); "
+                     f"the education route gives "
+                     f"{EDU_SPLIT['65-69'][0]:+.4f} "
+                     f"({EDU_SPLIT['65-69'][1]:.4f})")
+    return v, lines
 
 
 def main():
     mc.Tee(OUT / "85_log.txt")
     t0 = time.time()
     print("=" * 70)
-    print("85: THE AGE PROFILE WITH AND WITHOUT THE CALENDAR TERMS")
+    print(f"85: THE PROFILE ARMS, THE DESCRIPTIVE AND THE SPLIT AT 65"
+          f"   parts {PARTS}")
     print("=" * 70)
     print("\n".join(READ_RULES))
     print(mc.mem_line("  "))
 
-    s82, s61, s74, s78, l47, l70, j47 = load_modules()
+    if not set(PARTS) & set("PDS"):
+        raise RuntimeError(f"CANARIES_85_PARTS={PARTS} selects no part.")
+    s82, s61, s66, s74, s78, l47, l70, j47 = load_modules()
     built = s82.build_exposure(l47, l70, j47)
     occ = built["exposure"]
     for n in list(getattr(s82, "NOTES", [])):
@@ -244,20 +373,29 @@ def main():
         raise RuntimeError("L_counts_* missing: run 47L first.")
     print(f"  counts: {len(counts):,} employer-age-months")
 
-    skel = l70.all_band_skeleton(counts)
-    if skel.empty:
-        raise RuntimeError("the six-band skeleton is empty; refusing to run.")
-    b0 = s78.with_exposure(skel, occ)
-    del skel
-    gc.collect()
-    if b0.empty:
-        raise RuntimeError("no employer on the six-band panel carries the "
-                           "exposure quartile; refusing to run.")
-    n_firms = int(b0["employer_id"].nunique())
-    print(f"  the six-band panel: {n_firms:,} employers, {len(b0):,} cells")
+    b0, n_firms = pd.DataFrame(), 0
+    if "P" in PARTS:
+        skel = l70.all_band_skeleton(counts)
+        if skel.empty:
+            raise RuntimeError("the six-band skeleton is empty; refusing to "
+                               "run.")
+        b0 = s78.with_exposure(skel, occ)
+        del skel
+        gc.collect()
+        if b0.empty:
+            raise RuntimeError("no employer on the six-band panel carries the "
+                               "exposure quartile; refusing to run.")
+        n_firms = int(b0["employer_id"].nunique())
+        print(f"  the six-band panel: {n_firms:,} employers, "
+              f"{len(b0):,} cells")
+
+    dsc = part_descriptive(counts, occ, s66, j47) if "D" in PARTS \
+        else pd.DataFrame()
+    split = part_split65(occ, s61, s78, j47) if "S" in PARTS else []
 
     rows = []
-    for arm, seasonal in (("seasonal", True), ("plain", False)):
+    for arm, seasonal in (("seasonal", True), ("plain", False)) \
+            if "P" in PARTS else ():
         b, terms = s74.build_terms(b0, l70, seasonal=seasonal)
         g = fit(b, f"profile_{arm}", terms, j47.FES)
         if g is None:
@@ -322,6 +460,10 @@ def main():
             f"{p['t']:+.2f}   cycle removed {s['coef']:+.4f} ({s['se']:.4f}) "
             f"t {s['t']:+.2f}   the terms move it {s['coef']-p['coef']:+.4f}")
 
+    if split:
+        sv, slines = split_verdict(split)
+        print("\nTHE OLDEST BAND SPLIT AT 65:")
+        print("\n".join(slines))
     print("\nTHE GATE:")
     print("\n".join(gate_lines) or "  not run")
     print("\nWHAT THE CALENDAR TERMS DO:")
@@ -340,6 +482,15 @@ def main():
          "THE GATE:"]
     L += gate_lines or ["  not run"]
     L += ["", "WHAT THE CALENDAR TERMS DO:"] + diff_lines
+    if len(dsc):
+        L += ["", "THE DESCRIPTIVE COUNTERPART: "
+              f"{len(dsc):,} quartile-band-window cells exported with the "
+              "total and the per-cell mean, so the appendix table can be "
+              "built on this score. No verdict: raw numbers, with "
+              "composition, firm size and the cycle inside them."]
+    if split:
+        sv, slines = split_verdict(split)
+        L += ["", "THE OLDEST BAND SPLIT AT 65:"] + slines
     if flips:
         L.append(f"  THE TWO ARMS DISAGREE IN SIGN AT: {', '.join(flips)}")
     L += ["", "THE EDUCATION ROUTE'S OWN PAIR, for reference and not for "

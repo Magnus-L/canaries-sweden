@@ -2,8 +2,10 @@
 """
 run_lane31.py -- LANE 31. Submit this file to BatchClient.
 
-  85  the age profile WITHOUT the calendar terms, beside a refit of the
-      arm WITH them, on lane 28's occupation-route score
+  85  three things on lane 28's occupation-route score: the age profile
+      without the calendar terms beside a refit of the arm with them, the
+      descriptive counterpart with its totals, and the oldest band split
+      at 65
 
 WHY LANE 31 EXISTS. Figure 2 of the paper draws each age band against
 41-49 twice: on the paper's specification, with three quarter-of-year
@@ -33,12 +35,25 @@ THE SCORE IS LANE 28'S AND THE TERMS ARE 74'S. The quartile comes from
 and True, so the plain arm is the paper's specification minus the
 calendar terms and nothing else.
 
-WHAT RUNS HERE. Two Poisson fits of the six-band panel (22-25, 26-30,
-31-34, 35-40, 41-49 and 50 and over, the reference 41-49), with
-employer-by-month, employer-by-age and month-by-age effects, clustered
-by employer, on the 153,845 employers lane 28b fitted.
-  Runtime: twenty to thirty minutes. The score is cached by lane 28a and
-  the counts by 47L, so nothing is pulled.
+WHAT RUNS HERE, three parts, chosen with CANARIES_85_PARTS (default PDS).
+  P  Two Poisson fits of the six-band panel (22-25, 26-30, 31-34, 35-40,
+     41-49 and 50 and over, the reference 41-49), with employer-by-month,
+     employer-by-age and month-by-age effects, clustered by employer, on
+     the 153,845 employers lane 28b fitted. This is Figure 2.
+  D  The descriptive counterpart, script 66's own describe(), which
+     returns the TOTAL and the per-cell mean by quartile, age band and
+     window. No fit, seconds. Lane 29a called the same function and
+     exported only the means, which is why the appendix table's Panel A
+     could not be rebuilt and that table is still the education route's.
+  S  The oldest band split at 65, script 78's own part_e on the seven-band
+     panel: one fit. It settles whether the gain of the oldest band is a
+     retirement-age effect. Its counts are 78's own pull and are cached
+     from the earlier lane; if they are NOT on the share this part skips
+     itself rather than starting a pull, because this lane promises no
+     SQL and a full read of the monthly declarations is not something to
+     begin by accident.
+  Runtime: thirty to forty minutes for all three. The score is cached by
+  lane 28a and the counts by 47L, so nothing is pulled.
 
 READ RULES, fixed before the run and printed by the script at the start
 and in the summary.
@@ -59,14 +74,16 @@ and in the summary.
 SQL. None, provided lane 28a's cascade cache and 47L's counts are on the
 share, which they are. Safe beside any job.
 
-Export: output_85/85_summary.txt and occ_route_profile_arms.csv, with the
-two vcov_s85_profile_*.csv files.
+Export: output_85/85_summary.txt, occ_route_profile_arms.csv with the two
+vcov_s85_profile_*.csv files, occ_route_descriptive_full.csv, and
+occ_route_split65.csv with its vcov.
 """
 
 import os
 import sys
 from pathlib import Path
 
+os.environ["CANARIES_85_PARTS"] = "PDS"
 os.environ["CANARIES_85_OUT"] = "output_85"
 # 82 is imported for its score builder; its own OUT is pointed here so a
 # run of this lane leaves no stray output_82 folder behind.
@@ -77,7 +94,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402
 
 STAGES = [
-    ("85_occupation_route_plain_profile.py", "output_85/85_summary.txt", 30),
+    ("85_occupation_route_plain_profile.py", "output_85/85_summary.txt", 40),
 ]
 
 if __name__ == "__main__":
