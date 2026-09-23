@@ -1,0 +1,398 @@
+#!/usr/bin/env python3
+"""
+86_occupation_route_prepath.py -- the plain quarterly path from 2019 and
+                                  the pre-launch drift test, on lane 28's
+                                  occupation-route score.
+
+======================================================================
+  RUNS IN MONA. The output folder is CANARIES_86_OUT (default
+  output_86); the lane runner sets it. No database connection is needed
+  once lane 28a has cached the cascade and 47L has cached the counts,
+  which they have: lane 25a's own summary records that L_counts_2019 and
+  L_counts_2020 were read from the share.
+======================================================================
+
+QUESTION
+Online Appendix III.2 draws the quarterly path of the design on the plain
+specification, 2019Q1 to 2025Q2 with 2022Q1 omitted and no calendar terms
+(Figure A5 and its table), and reports the drift test on the pre-launch
+months beneath it. Script 78's part A produces both. It has only ever run
+on the education-mix score, so the figure and its table classify
+employers on a route the paper no longer reports, while the drift test
+printed beside them is the row Table 1 of the paper prints, which comes
+from the occupation route. The two disagreed on the page: 0.00060 and
+0.00187 in the appendix against 0.0004 and 0.0016 in the table.
+
+This script runs 78's part A unchanged on the occupation-route score, so
+that the figure, its table and the test beneath them are one measure.
+
+THE DRIFT REFIT IS THE GATE, AND THAT IS WHY IT IS REFITTED
+The drift test already exists on this route, in lane 29b's
+occ_rest_drift.csv. Running part A produces it again, because part A
+fits the path and the drift together on one frame and this script does
+not edit 78. That is not waste: the refit is checked against lane 29b's
+coefficients to four decimals, and a match is the only evidence that the
+panel behind the new path is the panel Table 1 of the paper sits on. IF
+THE CHECK FAILS THE PATH IS NOT DRAWN, and the summary says so at the
+top in those words.
+
+THE SCORE IS LANE 28'S AND IS NOT REBUILT
+The quartile comes from 82_occupation_route.build_exposure(), the primary
+arm: uniform3, the backward cascade, a floor of five incumbent
+person-months, as in lanes 29, 30 and 31.
+
+WHAT IS NOT CLAIMED
+The path is a picture and not an estimate. Its quarters carry no
+calendar terms, so each of them holds whatever separates it from its own
+quarter of the year; that is the point of drawing it beside the
+specification the paper reports, and it is why the paper reads the drift
+test rather than any quarter of this path.
+
+READ RULES, fixed before the run and printed at the start and in the
+summary.
+
+  1. THE GATE. The refitted drift must reproduce lane 29b's
+     occ_rest_drift.csv to four decimals on every term of both bands:
+     the three quarter-of-year terms, the tightening window and the
+     trend. A moved coefficient means a moved panel, and then THE PATH
+     IS NOT DRAWN and nothing here is quoted.
+  2. THE PATH CARRIES NO VERDICT. It is not a rival estimate of the
+     profile and no quarter of it is quoted in the paper. It exists so
+     that a reader can see the series the calendar terms are removed
+     from.
+  3. THE WINDOW IS WHATEVER THE COUNTS ALLOW. If L_counts_2019 and
+     L_counts_2020 are on the share the path runs from 2019Q1, which is
+     the window the appendix figure draws; if they are not it runs from
+     2021-01 and the summary says so in those words. This lane does NOT
+     pull to extend it: a full read of the monthly declarations is not
+     something to begin by accident.
+  4. The drift rule is unchanged from 78: the pre-period is flat if the
+     trend lies within two standard errors of zero. On this route lane
+     29b gives +0.000383 (0.000773) at 22-25, flat, and +0.001608
+     (0.000436) at 26-30, not flat.
+
+INPUTS AND OUTPUTS
+Reads, through the modules it imports: L_baseline_2019_cascade and
+L_baseline_2019 (script 82's pull, cached by lane 28a), and L_counts_2019
+to L_counts_2025 (47L). Reads lane 29b's occ_rest_drift.csv for the gate
+if it is on the share; if it is not, the gate cannot run and the summary
+says so rather than passing. Performs no SQL of its own.
+
+Writes to output_86/: occ_route_prepath.csv (young_band, quarter, coef,
+se, n_obs, status), occ_route_predrift.csv (the refit), the vcov files
+and 86_summary.txt. Part A is 78's, so its fits are tagged s78_prepath_*
+and s78_predrift_* and the vcov files carry those names; they are this
+script's output all the same, and the two files 78 writes under its own
+export names are renamed here, because two exposure routes must never
+share an export name.
+
+IN THE PAPER
+Online Appendix III.2, Figure fig:prepath and Table tab:prepath, and the
+drift paragraph beneath them.
+"""
+
+import gc
+import os
+import sys
+import time
+import traceback
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mona_common as mc
+
+HERE = Path(__file__).resolve().parent
+OUT = HERE / os.environ.get("CANARIES_86_OUT", "output_86")
+OUT.mkdir(exist_ok=True)
+CACHE = mc.CACHE_DIR
+os.environ.setdefault("CANARIES_82_OUT", str(OUT))
+
+FLOOR = 5                        # the export floor, as in mona_common
+MATCH_DP = 4                     # the gate, decimals, as in 80 and 85
+REF_QUARTER = "2022Q1"           # the omitted quarter, as in 78
+EXTENDED_FROM = "2019-01"        # the window the appendix figure draws
+# Where lane 29b's drift may be found, for the gate. The first that
+# exists is used; a run that finds none reports NO GATE.
+PRIOR = ("output_83b", "output_83", "output_86", ".")
+PRIOR_FILE = "occ_rest_drift.csv"
+TREND = "trend_x_high_x_young"
+# Lane 29b's own numbers, for the summary alone. They enter no export.
+PRIOR_TREND = {"22-25": (0.000383, 0.000773),
+               "26-30": (0.001608, 0.000436)}
+
+NOTES, FAILURES = [], []
+
+READ_RULES = [
+    "READ RULES, FIXED BEFORE THE RUN:",
+    "  1. THE GATE. The refitted drift must reproduce lane 29b's",
+    f"     occ_rest_drift.csv to {MATCH_DP} decimals on every term of both",
+    "     bands: the three quarter-of-year terms, the tightening window",
+    "     and the trend. A moved coefficient means a moved panel, and",
+    "     then THE PATH IS NOT DRAWN and nothing here is quoted.",
+    "  2. THE PATH CARRIES NO VERDICT. No quarter of it is quoted in the",
+    "     paper. It exists so that a reader can see the series the",
+    "     calendar terms are removed from.",
+    "  3. THE WINDOW IS WHATEVER THE COUNTS ALLOW. With L_counts_2019 and",
+    "     L_counts_2020 on the share the path runs from 2019Q1, the",
+    "     window the appendix figure draws; without them it runs from",
+    "     2021-01 and the summary says so. This lane does NOT pull to",
+    "     extend it.",
+    "  4. The drift rule is 78's: the pre-period is flat if the trend",
+    "     lies within two standard errors of zero. Lane 29b gives",
+    "     +0.000383 (0.000773) at 22-25, flat, and +0.001608 (0.000436)",
+    "     at 26-30, not flat.",
+    "  NOTHING HERE NEEDS SUPPRESSING. Neither export carries a count",
+    "  of employers: a path row holds a coefficient and the number of",
+    "  CELLS behind it, which is millions, and the drift rows the same.",
+    "  The floor is still checked against 82's, because the score the",
+    "  path is drawn on is built under it.",
+]
+
+
+def _mod(fname: str, name: str):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, HERE / fname)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def drain(mod, tag: str) -> None:
+    """Move an imported script's own notes and failures into ours."""
+    for n in list(getattr(mod, "NOTES", [])):
+        NOTES.append(f"{tag}: {n}")
+    for f in list(getattr(mod, "FAILURES", [])):
+        FAILURES.append(f"{tag}/{f}")
+    if hasattr(mod, "NOTES"):
+        mod.NOTES.clear()
+    if hasattr(mod, "FAILURES"):
+        mod.FAILURES.clear()
+
+
+def load_counts(prefix: str, years):
+    out = []
+    for y in years:
+        c = mc.read_cache(CACHE / f"{prefix}_{y}.parquet")
+        if c is None:
+            return None
+        out.append(c)
+    return pd.concat(out, ignore_index=True) if out else None
+
+
+def load_modules():
+    s82 = _mod("82_occupation_route.py", "s82")
+    s82.OUT = OUT
+    s61, s67, s74, s78, s80, l47, l70, j47 = s82.load_modules()
+    # 82 already points 78's OUT and CACHE here; say it again rather than
+    # rely on it, since part A writes two files of its own.
+    s78.OUT, s78.CACHE = OUT, CACHE
+    if s78.REF_QUARTER != REF_QUARTER:
+        raise RuntimeError(f"78 omits {s78.REF_QUARTER} and this script "
+                           f"names {REF_QUARTER}; refusing to run.")
+    if s78.EXTENDED_FROM != EXTENDED_FROM:
+        raise RuntimeError(f"78 extends from {s78.EXTENDED_FROM} and this "
+                           f"script names {EXTENDED_FROM}; refusing to run.")
+    if s82.MAIN_LEVEL != "uniform3" or s82.MAIN_ARM != "backward" \
+            or s82.FLOOR_MAIN != FLOOR:
+        raise RuntimeError("82's primary arm is not the one the paper "
+                           "reports; refusing to run.")
+    return s82, s61, s78, l47, l70, j47
+
+
+def prior_drift() -> pd.DataFrame:
+    """Lane 29b's drift, for the gate."""
+    for d in PRIOR:
+        p = HERE / d / PRIOR_FILE
+        if p.exists():
+            print(f"  the gate reads {p}")
+            NOTES.append(f"the gate read lane 29b's drift from {d}")
+            return pd.read_csv(p)
+    FAILURES.append("no prior drift for the gate")
+    print("  NO PRIOR DRIFT FOUND: the gate cannot run")
+    NOTES.append("lane 29b's occ_rest_drift.csv was not on the share, so the "
+                 "four-decimal gate could not run and the refitted drift "
+                 "here is unchecked against it")
+    return pd.DataFrame()
+
+
+def run_gate(drift_rows: list, prior: pd.DataFrame) -> tuple:
+    """Rule 1. Every term of both bands, to four decimals."""
+    if prior.empty or not drift_rows:
+        return "NO GATE", []
+    d = pd.DataFrame(drift_rows)
+    moved, checked = [], 0
+    for _, r in d.iterrows():
+        p = prior[(prior["young_band"] == r["young_band"])
+                  & (prior["term"] == r["term"])]
+        if not len(p):
+            moved.append(f"{r['young_band']}/{r['term']} absent from lane 29b")
+            continue
+        checked += 1
+        gap = abs(float(p["coef"].iloc[0]) - float(r["coef"]))
+        if gap >= 10 ** (-MATCH_DP) / 2:
+            moved.append(f"{r['young_band']}/{r['term']} "
+                         f"{float(p['coef'].iloc[0]):+.5f} against "
+                         f"{float(r['coef']):+.5f}")
+    gate = ("THE PANEL IS THE ONE TABLE 1 SITS ON" if not moved
+            else "THE PANEL HAS MOVED: THE PATH IS NOT DRAWN")
+    lines = [f"  {gate}", f"    {checked} terms checked to {MATCH_DP} "
+             f"decimals against lane 29b"] + [f"    {m}" for m in moved]
+    if moved:
+        FAILURES.append("gate")
+    return gate, lines
+
+
+def rename_78_exports() -> None:
+    """
+    78 writes prepath_plain.csv and predrift.csv under its own export
+    names. Those names belong to the education route's lane 25a export,
+    so the rows are kept here under names of this route's own and the
+    originals are removed. Two exposure routes must never share an
+    export name.
+    """
+    for src, dst in (("prepath_plain.csv", "occ_route_prepath.csv"),
+                     ("predrift.csv", "occ_route_predrift.csv")):
+        s, d = OUT / src, OUT / dst
+        if s.exists():
+            d.write_bytes(s.read_bytes())
+            s.unlink()
+            print(f"    {src} -> {dst}")
+        else:
+            FAILURES.append(f"78 wrote no {src}")
+
+
+def main():
+    mc.Tee(OUT / "86_log.txt")
+    t0 = time.time()
+    print("=" * 70)
+    print("86: THE PLAIN PATH FROM 2019 AND THE DRIFT TEST, "
+          "OCCUPATION ROUTE")
+    print("=" * 70)
+    print("\n".join(READ_RULES))
+    print(mc.mem_line("  "))
+
+    s82, s61, s78, l47, l70, j47 = load_modules()
+    built = s82.build_exposure(l47, l70, j47)
+    occ = built["exposure"]
+    drain(s82, "82")
+    print(f"  the score: {len(occ):,} employers on the {built['arm']} arm "
+          f"at a floor of {built['floor']} {built['basis']}")
+    NOTES.append(f"the score is 82's build_exposure(): {len(occ):,} "
+                 f"employers, {built['arm']}, floor {built['floor']}")
+
+    counts = load_counts("L_counts", s61.PANEL_YEARS)
+    if counts is None:
+        raise RuntimeError("L_counts_* missing: run 47L first.")
+    print(f"  counts: {len(counts):,} employer-age-months")
+
+    # Rule 3: extend the window only from what is already cached.
+    early = load_counts("L_counts", [2019, 2020])
+    if early is None:
+        extended = None
+        msg = ("L_counts_2019 and L_counts_2020 are NOT on the share: the "
+               "path runs from 2021-01 and not from 2019Q1, so it is not "
+               "the window the appendix figure draws")
+        print(f"  {msg}")
+        NOTES.append(msg)
+    else:
+        extended = pd.concat([early, counts], ignore_index=True)
+        print(f"  the path runs from {EXTENDED_FROM}: "
+              f"{len(extended):,} employer-age-months with 2019 and 2020")
+        del early
+        gc.collect()
+
+    try:
+        path_rows, drift_rows = s78.part_a(counts, occ, s61, j47, extended)
+    except BaseException as ex:
+        print(f"  Part A FAILED: {type(ex).__name__}: {ex}")
+        traceback.print_exc()
+        FAILURES.append("A")
+        path_rows, drift_rows = [], []
+    finally:
+        drain(s78, "78")
+        del extended, counts
+        gc.collect()
+
+    rename_78_exports()
+
+    gate, gate_lines = run_gate(drift_rows, prior_drift())
+
+    # ---- what the run says -------------------------------------------
+    path_lines = []
+    if path_rows:
+        P = pd.DataFrame(path_rows)
+        for band in sorted(P["young_band"].unique()):
+            rs = P[P["young_band"] == band].sort_values("quarter")
+            path_lines.append(f"  {band}: {len(rs)} quarters, "
+                              f"{rs['quarter'].min()} to {rs['quarter'].max()}"
+                              f", {REF_QUARTER} the reference")
+            for _, d in rs.iterrows():
+                if d["status"] == "reference":
+                    path_lines.append(f"    {d['quarter']:<8} reference")
+                else:
+                    star = "" if abs(d["coef"]) < 2 * d["se"] else "  *"
+                    path_lines.append(f"    {d['quarter']:<8} "
+                                      f"{d['coef']:+.4f} ({d['se']:.4f}){star}")
+    else:
+        FAILURES.append("no path rows")
+
+    drift_lines = []
+    if drift_rows:
+        D = pd.DataFrame(drift_rows)
+        for band in sorted(D["young_band"].unique()):
+            r = D[(D["young_band"] == band) & (D["term"] == TREND)]
+            if not len(r):
+                drift_lines.append(f"  {band}: no trend term")
+                continue
+            c, se = float(r["coef"].iloc[0]), float(r["se"].iloc[0])
+            flat = "FLAT" if abs(c) < 2 * se else "NOT FLAT"
+            pc, ps = PRIOR_TREND.get(band, (np.nan, np.nan))
+            drift_lines.append(
+                f"  {band}: trend {c:+.5f} ({se:.5f}) t "
+                f"{(c / se if se else np.nan):+.2f}   {flat}   "
+                f"lane 29b gave {pc:+.5f} ({ps:.5f})")
+    else:
+        FAILURES.append("no drift rows")
+
+    print("\nTHE GATE:")
+    print("\n".join(gate_lines) or "  not run")
+    print("\nTHE DRIFT TEST, REFITTED:")
+    print("\n".join(drift_lines) or "  none")
+    print("\nTHE PLAIN PATH:")
+    print("\n".join(path_lines) or "  none")
+
+    L = ["THE PLAIN QUARTERLY PATH AND THE DRIFT TEST, OCCUPATION ROUTE",
+         "=" * 58, "",
+         "Script 78's part A, unchanged, on the score the paper reports:",
+         "an employer ranked by the DAIOE generative-AI percentile of the",
+         "2019 occupations of its own incumbents aged 31 to 69. The path",
+         "carries no calendar terms and omits " + REF_QUARTER + "; the drift",
+         "test beneath it is the row Table 1 of the paper prints, refitted",
+         "here so that the gate can prove the two sit on one panel.", "",
+         "THE GATE:"]
+    L += gate_lines or ["  not run"]
+    L += ["", "THE DRIFT TEST, REFITTED:"] + (drift_lines or ["  none"])
+    L += ["", "THE PLAIN PATH:"] + (path_lines or ["  none"])
+    L.append("")
+    if FAILURES:
+        L.append(f"WHAT FAILED: {', '.join(FAILURES)}")
+        L.append("A missing row is a missing fit, never a zero, and the "
+                 "figure must not be drawn through it.")
+        L.append("")
+    if NOTES:
+        L.append("NOTES:")
+        L += [f"  {n}" for n in NOTES]
+        L.append("")
+    L += READ_RULES
+    L.append("")
+    L.append(f"Runtime {(time.time()-t0)/60:.1f} min. {mc.mem_line('')}")
+    (OUT / "86_summary.txt").write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"\n  wrote {OUT / '86_summary.txt'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
