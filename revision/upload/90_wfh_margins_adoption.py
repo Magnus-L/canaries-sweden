@@ -156,10 +156,12 @@ def part_c(flows, ai, wfh, s61, s78, j47) -> list:
         FAILURES.append("C/no flows cache")
         print("  C: flows_* missing, the margins are skipped")
         return []
+    # 78's with_exposure defines high as the FOURTH quartile; the
+    # teleworkability indicator uses the same convention rather than
+    # max(fq), so the two are the same object on the two scores.
     w = wfh["exposure"][["employer_id", "fq"]].rename(
         columns={"fq": "fq_wfh"})
-    top = int(w["fq_wfh"].max())
-    w["highwfh"] = (w["fq_wfh"] == top).astype(int)
+    w["highwfh"] = (w["fq_wfh"] == 4).astype(int)
     rows = []
     for outcome, col in (("hires", "n_hire"), ("seps", "n_sep")):
         src = flows.rename(columns={col: "n_emp"})
@@ -291,10 +293,12 @@ def main():
     wfh = s82.build_exposure(l47, l70, j47, daioe=s89.wfh_book(),
                              audit=False)
     drain(s82, "82/wfh")
-    m = ai["exposure"][["employer_id", "score"]].merge(
-        wfh["exposure"][["employer_id", "score"]], on="employer_id",
+    # `mix` is the firm-level mean; `score` is the occupation-level
+    # column of the book and is not on this frame.
+    m = ai["exposure"][["employer_id", "mix"]].merge(
+        wfh["exposure"][["employer_id", "mix"]], on="employer_id",
         suffixes=("_ai", "_wfh"))
-    rho = float(m["score_ai"].corr(m["score_wfh"], method="spearman")) \
+    rho = float(m["mix_ai"].corr(m["mix_wfh"], method="spearman")) \
         if not m.empty else float("nan")
     print(f"  the two firm scores: Spearman {rho:+.3f} on "
           f"{len(m):,} employers")

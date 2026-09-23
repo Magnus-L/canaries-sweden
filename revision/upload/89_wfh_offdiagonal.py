@@ -234,16 +234,20 @@ def overlap(a: pd.DataFrame, w: pd.DataFrame) -> pd.DataFrame:
     the summary says so and the reader discounts that fit rather than
     reading its width as evidence.
     """
-    m = a[["employer_id", "score", "fq"]].merge(
-        w[["employer_id", "score", "fq"]], on="employer_id",
+    # The firm-level mean is `mix`, not `score`: `score` is the
+    # OCCUPATION-level column the book carries, and occ_route_exposure
+    # returns employer_id, fq, mix, n, n_coded, n_nov, coverage,
+    # share_not_2019 and share_three_digit.
+    m = a[["employer_id", "mix", "fq"]].merge(
+        w[["employer_id", "mix", "fq"]], on="employer_id",
         suffixes=("_ai", "_wfh"))
     if m.empty:
         raise RuntimeError("the two scores share no employer.")
-    rho = m["score_ai"].corr(m["score_wfh"], method="spearman")
-    pear = m["score_ai"].corr(m["score_wfh"])
-    med_a, med_w = m["score_ai"].median(), m["score_wfh"].median()
-    m["hi_ai"] = (m["score_ai"] > med_a).astype(int)
-    m["hi_wfh"] = (m["score_wfh"] > med_w).astype(int)
+    rho = m["mix_ai"].corr(m["mix_wfh"], method="spearman")
+    pear = m["mix_ai"].corr(m["mix_wfh"])
+    med_a, med_w = m["mix_ai"].median(), m["mix_wfh"].median()
+    m["hi_ai"] = (m["mix_ai"] > med_a).astype(int)
+    m["hi_wfh"] = (m["mix_wfh"] > med_w).astype(int)
     rows = [{"item": "n_employers_both_scores", "value": float(len(m))},
             {"item": "spearman", "value": float(rho)},
             {"item": "pearson", "value": float(pear)},
@@ -356,21 +360,25 @@ def part_b(allf, ai, wfh, s67, s76, s78, j47) -> list:
     b = s78.with_exposure(skel, ai["exposure"])
     del skel
     gc.collect()
-    w = wfh["exposure"][["employer_id", "score"]].rename(
-        columns={"score": "score_wfh"})
-    b = b.merge(w, on="employer_id", how="inner")
+    # with_exposure merges the QUARTILE alone, so neither continuous
+    # mean is on the panel yet. Both are merged on here by name.
+    a_mix = ai["exposure"][["employer_id", "mix"]].rename(
+        columns={"mix": "mix_ai"})
+    w_mix = wfh["exposure"][["employer_id", "mix"]].rename(
+        columns={"mix": "mix_wfh"})
+    b = b.merge(a_mix, on="employer_id", how="inner")
+    b = b.merge(w_mix, on="employer_id", how="inner")
     if b.empty:
         FAILURES.append("B/no overlap")
         return []
     # standardised, so the two gradients are on one axis and comparable
-    for col, src in (("z_ai", "score"), ("z_wfh", "score_wfh")):
+    for col, src in (("z_ai", "mix_ai"), ("z_wfh", "mix_wfh")):
         if src not in b.columns:
             FAILURES.append(f"B/missing {src}")
             return []
         s = b[src].astype(float)
         b[col] = (s - s.mean()) / (s.std(ddof=0) or 1.0)
     ym = b["year_month"].astype(str)
-    quarters = sorted(q for q in ym.str[:4].astype(int).astype(str).unique())
     b["q"] = ym.str[:4] + "Q" + (((ym.str[5:7].astype(int) - 1) // 3) + 1).astype(str)
     terms = []
     for q in sorted(b["q"].unique()):
