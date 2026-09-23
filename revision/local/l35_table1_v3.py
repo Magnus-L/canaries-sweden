@@ -17,13 +17,18 @@ Same rows, same base, same two clusterings as l18. Every row is read
 from the lane 28 and lane 29 exports and nothing is typed in; a missing
 or ambiguous row stops the script.
 
-THE ONE EDUCATION ROW, AND WHY IT STAYS
+THE WITHIN-TRACK ROW, AND WHAT CHANGED UNDER IT
 The last row, the part of the female differential that survives within
-broad education tracks, is script 76's and is education-based by
-construction: it asks how much of the differential is composition across
-tracks. It is the one place the paper still uses the education register,
-it is credited to Nordstrom Skans and Sokolow Romin in the text, and the
-note says so. It is read from the education-route export unchanged.
+broad education tracks, asks how much of the differential is composition
+across tracks, so it is cut by the worker's own education. Until lane 33
+it was ALSO scored by the employer's 2019 education mix, script 76's
+route, and its pooled counterpart was -0.0659 where this table printed
+-0.0858; the note had to say the row was not comparable with the row
+above it. Script 87 refits it on this table's own score, so the two are
+now one measure and the note says what the row retains instead. The cut
+stays education because the design classifies no young worker by
+occupation after 2019, which is a use of the education register to
+divide the sample and not to measure exposure.
 
 THE INDUSTRY COLUMN
 Script 80's Part B was refitted on THIS quartile in lane 29b, with its
@@ -39,8 +44,9 @@ command line): occ_route_headline.csv and occ_route_profile.csv (script
 vcov_s82_gender_22_25.csv (script 82, part C); occ_rest_window.csv with
 vcov_s83_window_<band>.csv, occ_rest_drift.csv, occ_rest_cluster.csv with
 vcov_s80_clind2_<band>.csv and vcov_s80_gender_clind2_22_25.csv (script
-83, part B). Reads gender_split.csv from the education route's lane 21-22
-export for the within-track row alone. Writes
+83, part B). Reads occ_route_gender_split.csv from the lane 33 export for
+the within-track row, and refuses to write unless its pooled differential
+is this table's own female differential. Writes
 revision/tables/table1_headline_v3.tex and copies it to
 canaries-sweden-paper/tables/.
 
@@ -63,8 +69,9 @@ OUT = REV / "output"
 # Lane 28b and lanes 29b, c, d came back in one folder, which also carries
 # lane 28c's tables, so one directory holds every occupation-route input.
 OCC = OUT / "round3_20260923-0655-lanes28b-29bcd"
-# The within-track row alone is the education route's.
-EDU = OUT / "round3_20260922-0712-lanes21-22"
+# The within-track row is cut by education, but since lane 33 it is
+# scored on THIS route, so it sits on the same panel as the rows above.
+SPLIT = OUT / "round3_20260923-1352-lane33-script87"
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
 
 TERM = "post_x_high_x_young"
@@ -128,7 +135,7 @@ def main() -> int:
     drift = read("occ_rest_drift.csv")
     clind2 = read("occ_rest_cluster.csv")
     clind, gsex = clind2[clind2.spec == "pooled"], clind2[clind2.spec == "gender"]
-    split = read("gender_split.csv", EDU)
+    split = read("occ_route_gender_split.csv", SPLIT)
 
     # Inference only: a moved coefficient means a moved panel, and no
     # industry standard error from that fit may be quoted.
@@ -205,8 +212,19 @@ def main() -> int:
                              f"square root of its own variance")
     women_ind = se_lin(vgi, TERM, FEMALE, +1)
     if len(split) != 1:
-        raise SystemExit("  gender_split.csv should hold one row")
+        raise SystemExit("  occ_route_gender_split.csv should hold one row")
+    # The gate that makes the row quotable beside the rows above it: the
+    # split is fitted on the education frame collapsed over education,
+    # so its pooled differential must BE this table's female
+    # differential. Before lane 33 the two sat on different scores and
+    # this check could not be made.
+    if abs(float(split.pooled.iloc[0]) - fem[0]) > 5e-5:
+        raise SystemExit(f"  the split's pooled differential "
+                         f"{float(split.pooled.iloc[0]):+.6f} is not this "
+                         f"table's female differential {fem[0]:+.6f}, so the "
+                         f"within-track row is not on this panel")
     within = (float(split.within.iloc[0]), float(split.within_se.iloc[0]))
+    ratio = float(split.ratio_within.iloc[0])
 
     v22, v26 = vcov("vcov_s80_clind2_22_25.csv"), vcov("vcov_s80_clind2_26_30.csv")
     step23_ind = se_lin(v22, TERM, INTER, -1)
@@ -270,11 +288,10 @@ def main() -> int:
         r"three-digit industry. The sex rows interact every treatment term "
         r"with female; young women is the male step plus the differential. "
         r"The drift rows are a linear monthly trend to November 2022. The "
-        r"within-track row alone is cut by education, and it alone is "
-        r"estimated on the earlier education-mix score, whose pooled "
-        r"differential on that panel is $-0.0659$ (0.0131); three quarters "
-        r"of it survives within tracks, and it is not comparable with the "
-        r"row above. Full tables in Online Appendix~III.2."
+        r"within-track row is cut by the worker's own education on the same "
+        f"exposure as every row above it, and retains {100 * ratio:.0f} per "
+        r"cent of the "
+        r"differential. Full tables in Online Appendix~III.2."
     )
 
     tex = [r"\begin{table}[ht!]", r"\centering",

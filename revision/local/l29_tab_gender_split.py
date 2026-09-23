@@ -15,20 +15,31 @@ gender specification inside each track and splits the pooled differential
 between the two.
 
 WHAT IS ESTIMATED
-Script 68's gender specification, re-estimated by script 76 (lane 22):
+Equation (2)'s sex specification, estimated by script 87 (lane 33):
 Poisson pseudo-maximum likelihood on employer by age by sex by month
 counts, with employer-by-month, employer-by-age-and-sex and
 month-by-age-and-sex effects, three quarter-of-year terms so that the
 calendar cycle is removed, exposure frozen at the employer's 2019
-education mix, treatment dated January 2024, and standard errors
-clustered by employer. Young men is the post by exposure by young term;
+OCCUPATION mix, treatment dated January 2024, and standard errors
+clustered by employer.
+
+THE CUT IS EDUCATION AND THE SCORE IS NOT. Until lane 33 this table sat
+on script 76, which scored the employer by its 2019 education mix, and
+its pooled differential was therefore -0.0659 where Table 1 printed
+-0.0858. Script 87 refits it on the occupation-route score, so the
+pooled figure here IS Table 1's and the within-track row beneath it is
+comparable with the row above. What does not change is the cut: the
+reported design classifies no young worker by occupation after 2019, so
+the worker's own SUN 2020 record is the only register that can divide
+the young, and it divides the sample rather than measuring exposure. Young men is the post by exposure by young term;
 young women minus men is its female interaction. The same fit is run on
 all workers and then separately inside each broad education track, so
 that young women are compared with young men holding the same broad
 education, against their same-track older colleagues.
 
 The split weights the five track differentials by young women's track
-shares in top-quartile employers in 2023 and reads the residual as
+shares in this measure's top-quartile employers in 2023, rebuilt on this
+route because which employers are exposed is what the change redefines and reads the residual as
 composition. The weighted within-track figure treats the five track fits
 as independent, which they are not exactly, so its standard error is a
 working approximation and is reported as such. The reporting rule was
@@ -43,12 +54,14 @@ that is the reason the tracks are broad.
 
 INPUTS AND OUTPUTS
 Reads, from the export directory the final-code manifest names or one
-given on the command line: gender_by_track.csv (script 76; the male
-effect and the female differential per track, with employer counts and a
-status), gender_split.csv (the same run's split of the pooled
-differential), vcov_s76_<track>.csv (the exported covariance of each
-track fit), education_mix_by_sex.csv (the track shares that are the
-weights) and 76_summary.txt, the run's own report of the same fits.
+given on the command line: occ_route_gender_by_track.csv (script 87;
+the male effect and the female differential per track, with employer
+counts and a status), occ_route_gender_split.csv (the same run's split
+of the pooled differential), vcov_s87_<track>.csv (the exported
+covariance of each track fit), occ_route_education_mix_by_sex.csv (the
+track shares that are the weights) and 87_summary.txt, the run's own
+report of the same fits. The names carry the route: two exposure routes
+must never share an export name, so 76's names are not reused.
 Nothing is typed in. Writes revision/tables/tableA_gender_split.tex and
 copies it to canaries-sweden-paper/tables/.
 
@@ -88,7 +101,7 @@ sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
 OUT = REV / "output"
-LANE22 = OUT / "round3_20260922-0712-lanes21-22"
+LANE33 = OUT / "round3_20260923-1352-lane33-script87"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -111,7 +124,7 @@ SUMMARY_ROW = re.compile(
     r"^\s+(\S+)\s+men ([-+][0-9.]+) \(([0-9.]+)\)\s+women minus men "
     r"([-+][0-9.]+) \(([0-9.]+)\) t ([-+][0-9.]+)\s+firms ([0-9,]+)\s*$")
 SUMMARY_SPLIT = re.compile(
-    r"^\s+(pooled differential|within tracks|composition \(residual\)|"
+    r"^\s+(pooled differential|within tracks|composition(?: \(residual\))?|"
     r"ratio within / pooled)\s+([-+]?[0-9.]+)(?: \(([0-9.]+)\))?")
 
 
@@ -153,7 +166,9 @@ def summary(path: Path) -> tuple[dict, dict]:
             continue
         s = SUMMARY_SPLIT.match(line)
         if s:
-            split[s.group(1)] = (s.group(2), s.group(3))
+            key = s.group(1)
+            split["composition" if key.startswith("composition")
+                  else key] = (s.group(2), s.group(3))
     if not rows or len(split) != 4:
         raise SystemExit(f"  {path.name}: does not report the tracks and the "
                          f"four lines of the split")
@@ -161,20 +176,21 @@ def summary(path: Path) -> tuple[dict, dict]:
 
 
 def main() -> int:
-    d = pd.read_csv(source(LANE22, "gender_by_track.csv"))
+    d = pd.read_csv(source(LANE33, "occ_route_gender_by_track.csv"))
     bad = [k for k, _ in TRACKS if (d.track == k).sum() != 1]
     if bad or len(d) != len(TRACKS):
-        raise SystemExit(f"  gender_by_track.csv: one row expected per track, "
+        raise SystemExit(f"  occ_route_gender_by_track.csv: one row expected per "
+                         f"track, "
                          f"wrong for {bad or 'the row count'}")
     if not (d.status == "ok").all():
-        raise SystemExit(f"  gender_by_track.csv: a track reports a status "
+        raise SystemExit(f"  occ_route_gender_by_track.csv: a track reports a status "
                          f"other than ok, so it is not quotable")
     d = d.set_index("track")
 
     # Each exported standard error must be the square root of its own
     # variance in the covariance matrix the same fit exported.
     for key, _ in TRACKS:
-        v = pd.read_csv(source(LANE22, f"vcov_s76_{key}.csv"), index_col=0)
+        v = pd.read_csv(source(LANE33, f"vcov_s87_{key}.csv"), index_col=0)
         for term, col in ((MALE, "male_se"), (DIFF, "diff_se")):
             diag = float(v.loc[term, term]) ** 0.5
             got = float(d.loc[key, col])
@@ -184,15 +200,16 @@ def main() -> int:
                                  f"own variance {diag:.6f}")
 
     # The weights: young women's track shares in top-quartile employers.
-    mix = pd.read_csv(source(LANE22, "education_mix_by_sex.csv"))
+    mix = pd.read_csv(source(LANE33, "occ_route_education_mix_by_sex.csv"))
     mix = mix[(mix.dimension == "track") & (mix.exposed == 1)
               & (mix.gender == "women")].set_index("cell")
     weights = {k: float(mix.loc[k, "share"]) for k in WEIGHTED}
 
     # The split, and the identities it must satisfy.
-    s = pd.read_csv(source(LANE22, "gender_split.csv"))
+    s = pd.read_csv(source(LANE33, "occ_route_gender_split.csv"))
     if len(s) != 1:
-        raise SystemExit(f"  gender_split.csv: one split expected, found {len(s)}")
+        raise SystemExit(f"  occ_route_gender_split.csv: one split expected, "
+                         f"found {len(s)}")
     s = s.iloc[0]
     pooled, pooled_se = float(s.pooled), float(s.pooled_se)
     within, within_se = float(s.within), float(s.within_se)
@@ -215,10 +232,10 @@ def main() -> int:
         raise SystemExit(f"  the split renormalises its weights over {over}, "
                          f"not over the five tracks the table prints")
 
-    said, said_split = summary(source(LANE22, "76_summary.txt"))
+    said, said_split = summary(source(LANE33, "87_summary.txt"))
     for key, quoted in (("pooled differential", f"{pooled:+.4f}"),
                         ("within tracks", f"{within:+.4f}"),
-                        ("composition (residual)", f"{composition:+.4f}"),
+                        ("composition", f"{composition:+.4f}"),
                         ("ratio within / pooled", f"{ratio:.3f}")):
         if said_split[key][0] != quoted:
             raise SystemExit(f"  the split's '{key}' is {quoted} in the CSV "
@@ -273,21 +290,24 @@ def main() -> int:
             f"Ratio within / pooled & & {ratio:.2f}" + r" & & \\",
             r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}",
-            r"Script 68's gender specification (Poisson; employer-by-month, "
+            r"Equation~(2)'s sex specification (Poisson; employer-by-month, "
             r"employer-by-age-and-sex and month-by-age-and-sex effects; "
             r"calendar cycle removed; treatment January 2024; clustered by "
             r"employer), on all workers and within each broad education track. "
+            r"Exposure is the employer's 2019 occupation mix, the measure of "
+            r"Table~\ref{tab:headline}; education cuts the sample and does not "
+            r"measure exposure. "
             r"Young men is the post $\times$ high $\times$ young term; young "
             r"women minus men is its female interaction. Tracks are two-digit "
             r"SUN 2020 fields: ICT is data; engineering is technology, "
             r"materials and construction; business is social science, "
             r"business, administration and law; health is teaching, health "
             r"care and social work; other is the rest. Weights are young "
-            r"women's track shares in top-quartile employers in 2023; the "
-            r"within-track standard error treats the track fits as "
-            r"independent. The education record is the worker's own, carried "
-            r"forward from 2023 in 2024 and 2025. $^{*}$ $p<0.05$. "
-            r"Source: script 76.",
+            r"women's track shares in this measure's top-quartile employers "
+            r"in 2023; the within-track standard error treats the track fits "
+            r"as independent. The education record is the worker's own, "
+            r"carried forward from 2023 in 2024 and 2025. $^{*}$ $p<0.05$. "
+            r"Source: script 87.",
             r"\end{minipage}", r"\end{table}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)

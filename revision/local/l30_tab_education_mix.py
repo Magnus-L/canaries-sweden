@@ -17,13 +17,16 @@ shares.
 WHAT IS REPORTED
 Shares of person-months in 2023, the last year with a contemporaneous
 education record, among employed workers aged 22 to 25 with a birth year,
-a sex and a payslip (script 76, lane 22). The first four columns are the
+a sex and a payslip (script 87, lane 33). The first four columns are the
 field and the level of education by sex, in top-quartile employers and in
-the other three quartiles. The last two columns give the mean DAIOE
-score of the education group's occupations, which is the score the
-education route's own score, averaged over the workers in the cell
-whose group is scored. Shares are of the sex-and-quartile column, so each
-block of six adds to a hundred.
+the other three quartiles. THE QUARTILES ARE THE OCCUPATION ROUTE'S: an
+employer is scored by the 2019 occupations of its incumbents aged 31 to
+69, as in Table 1, which is why this table is rebuilt on this route
+rather than carried over from script 76. The last two columns give the
+mean DAIOE score of the education group's occupations, which prices the
+education GROUP and is not the employer exposure; it is loaded from
+47h's score book for the descriptive columns alone. Shares are of the
+sex-and-quartile column, so each block of six adds to a hundred.
 
 Reading the columns beside each other is the point: young women in
 exposed employers are concentrated in business, law and administration
@@ -32,7 +35,7 @@ employers hold more post-secondary education than their counterparts
 elsewhere.
 
 INPUTS AND OUTPUTS
-Reads education_mix_by_sex.csv (script 76, lane 22; columns dimension,
+Reads occ_route_education_mix_by_sex.csv (script 87, lane 33; columns dimension,
 exposed, gender, cell, person_months, persons_avg, share, mean_score,
 scored_share, year) from the export directory the final-code manifest
 names or one given on the command line. Nothing is typed in; the scored
@@ -74,7 +77,7 @@ sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
 OUT = REV / "output"
-LANE22 = OUT / "round3_20260922-0712-lanes21-22"
+LANE33 = OUT / "round3_20260923-1352-lane33-script87"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -139,11 +142,11 @@ def score_cell(what: str, x: float) -> str:
 
 
 def main() -> int:
-    d = pd.read_csv(source(LANE22, "education_mix_by_sex.csv"))
+    d = pd.read_csv(source(LANE33, "occ_route_education_mix_by_sex.csv"))
     years = sorted(set(int(y) for y in d.year))
     if years != [YEAR]:
-        raise SystemExit(f"  education_mix_by_sex.csv: the caption names "
-                         f"{YEAR}, the export covers {years}")
+        raise SystemExit(f"  occ_route_education_mix_by_sex.csv: the "
+                         f"caption names {YEAR}, the export covers {years}")
 
     blocks = {"track": [k for k, _ in TRACKS], "level": [k for k, _ in LEVELS]}
     for dimension, cells in blocks.items():
@@ -162,18 +165,19 @@ def main() -> int:
                                  f"shares of this column")
 
     if (d.persons_avg < FLOOR).any():
-        raise SystemExit(f"  education_mix_by_sex.csv: a cell holds fewer than "
-                         f"{FLOOR} persons on average, below the disclosure "
-                         f"floor")
+        raise SystemExit(f"  occ_route_education_mix_by_sex.csv: a cell "
+                         f"holds fewer than {FLOOR} persons on average, below "
+                         f"the disclosure floor")
     off = (d.person_months - MONTHS * d.persons_avg).abs().max()
     if off > 1e-6:
-        raise SystemExit(f"  education_mix_by_sex.csv: person-months are not "
-                         f"{MONTHS} times the average person count "
-                         f"(off by {off:.2e})")
+        raise SystemExit(f"  occ_route_education_mix_by_sex.csv: "
+                         f"person-months are not {MONTHS} times the average "
+                         f"person count (off by {off:.2e})")
     scored = d.scored_share > 0
     if (scored != d.mean_score.notna()).any():
-        raise SystemExit("  education_mix_by_sex.csv: a mean score is present "
-                         "without a scored worker, or absent with one")
+        raise SystemExit("  occ_route_education_mix_by_sex.csv: a mean "
+                         "score is present without a scored worker, or "
+                         "absent with one")
     lo = int(100 * d.loc[scored, "scored_share"].min())
     hi = int(round(100 * d.loc[scored, "scored_share"].max()))
 
@@ -230,11 +234,12 @@ def main() -> int:
             f"at least {FLOOR_IN_WORDS[FLOOR]} persons on average. The mean DAIOE "
             "score is "
             r"the generative-AI percentile of the education group's "
-            r"occupations in 2019, the education route's own score, "
-            r"averaged over the workers in the cell with a scored group "
-            f"({lo} to {hi} per cent of each cell), in top-quartile "
-            r"employers. Tracks as in "
-            r"Table~\ref{tab:gender_split}. Source: script 76.",
+            r"occupations in 2019, averaged over the workers in the cell "
+            f"with a scored group ({lo} to {hi} per cent of each cell), in "
+            r"top-quartile employers; it prices the education group and is "
+            r"not the exposure that defines the quartiles, which is the "
+            r"employer's 2019 occupation mix. Tracks as in "
+            r"Table~\ref{tab:gender_split}. Source: script 87.",
             r"\end{minipage}", r"\end{table}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)
