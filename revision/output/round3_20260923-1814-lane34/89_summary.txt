@@ -1,0 +1,73 @@
+AI EXPOSURE AGAINST WORKING FROM HOME, ON THE OCCUPATION ROUTE
+==============================================================
+
+Both firm scores come from 82's build_exposure() on the same
+employers, the same freeze year, the same incumbents aged 31 to
+69 and the same floor. Only the occupation score book differs:
+the DAIOE generative-AI percentile for one, the Dingel and
+Neiman teleworkable share for the other.
+
+HOW CLOSE THE SCORES ARE: the two firm scores correlate at Spearman +0.862 (Pearson +0.881); 74.6% share a quartile
+
+PART A, THE OFF-DIAGONAL. The two discriminating cells are
+marked; the diagonal cells are reported without comment.
+  ai_in_low_wfh    +0.0032 (0.0826) t +0.04   firms 59,325  <- discriminating
+  ai_in_high_wfh   -0.0687 (0.0205) t -3.35   firms 44,892
+  wfh_in_low_ai    -0.0920 (0.0616) t -1.49   firms 62,860  <- discriminating
+  wfh_in_high_ai   -0.0556 (0.0209) t -2.66   firms 41,357
+  A cell that is imprecise is imprecise, never a zero;
+  every standard error is printed above for that reason.
+  For reference only, and not a gate: the headline at 22-25 on the whole panel is -0.0578 (0.0155). Each fit above is a half of that
+  panel and cannot reproduce it.
+
+PART B, TIMING: 34 quarter-by-score coefficients in
+wfh_timing_path.csv, both scores standardised, 2022Q1 omitted,
+no calendar terms. Nothing here is pre-committed: the AI and
+teleworkability gradients are plotted together and read off the
+figure. A WFH gradient that opens LATER than the AI one is the
+return-to-office backlash, which is a finding and not a defect.
+
+WHAT THIS LANE DOES NOT CLAIM:
+  The 50-and-over gain. Online Appendix III.2 already reports that
+  on the continuous route the oldest band's gain loads as strongly
+  on teleworkability and is not specific to AI exposure. The young-
+  worker margin is kept and the oldest band is conceded. Fixed
+  before the run.
+
+NOTES:
+  82/ai: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82/ai: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/ai: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  82/wfh: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/wfh: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.24 Q2 0.26 Q3 0.25 Q4 0.25
+  the two firm scores correlate at Spearman +0.862 (Pearson +0.881); 74.6% share a quartile
+
+READ RULES, FIXED BEFORE THE RUN:
+  1. WHAT IS FIXED IN ADVANCE IS THE READING, NOT THE REPORTING.
+     Every one of the four fits runs and every coefficient is
+     exported and printed below, whichever way it falls; nothing
+     here is conditional on any rule. The rule fixed before
+     the run is only this: AI is called the operative score if the
+     young decline appears among firms in the LOW-teleworkability
+     half and not among firms in the LOW-AI half. It constrains the
+     sentence the paper may write, not what we get to look at.
+  2. NO CELL IS READ AS A ZERO. Each of the four fits is roughly a
+     half of the panel, so its standard error will be larger than
+     Table 1's. A cell that is imprecise is reported as imprecise
+     and not as an absence of effect; the summary prints every
+     standard error beside its coefficient for that reason.
+  3. PART B IS DESCRIPTIVE AND NOTHING IS PRE-COMMITTED. All three
+     shapes are reported as they come, including a WFH gradient
+     that opens LATER than the AI one, which would be the
+     return-to-office backlash rather than a defect.
+  4. THE 50-AND-OVER GAIN IS NOT CLAIMED. Online Appendix III.2
+     already reports that on the continuous route the oldest band's
+     gain loads as strongly on teleworkability and is not specific
+     to AI exposure. This lane concedes that band and keeps the
+     young-worker margin. Fixed before the run, not after.
+  5. NO SQL. If the caches are missing the lane says so and stops,
+     rather than starting a full read.
+  Employer counts below 5 are suppressed before anything
+  leaves MONA.
+
+Runtime 92.3 min. memory available: 375.6 GB
