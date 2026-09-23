@@ -99,10 +99,14 @@ READ_RULES = [
     "     other, so both terms are entered together and the two scores'",
     "     correlation is printed beside them. A wide interval is",
     "     reported as wide.",
-    "  2. THE RECONCILIATION IS PRE-COMMITTED. It holds only if",
-    "     teleworkability is the larger term on HIRES and AI exposure",
-    "     the larger on SEPARATIONS. Any other pattern is reported as",
-    "     it falls and the reconciliation is DROPPED, not rephrased.",
+    "  2. WHAT IS FIXED IN ADVANCE IS THE CLAIM, NOT THE EXPORT. All",
+    "     four coefficients are fitted, exported and printed whichever",
+    "     way they fall, and none of that is conditional on the rule.",
+    "     The rule is only this: the paper may say the two literatures",
+    "     measure different margins if teleworkability is the larger",
+    "     term on HIRES and AI exposure the larger on SEPARATIONS. On",
+    "     any other pattern that SENTENCE is not written; the numbers",
+    "     are reported either way and are worth seeing either way.",
     "  3. PART D IS AN EXISTENCE CHECK AND PRE-COMMITS NOTHING. If no",
     "     remote-work item is found in the surveys the part says so and",
     "     stops; the absence is one sentence in the appendix and is not",
@@ -346,11 +350,16 @@ def main():
                            "teleworkability leads on hires and AI on "
                            "separations")
             else:
-                verdict = ("THE RECONCILIATION IS DROPPED on rule 2: "
+                verdict = ("THE RECONCILIATION SENTENCE IS NOT WRITTEN, "
+                           "on rule 2, though the coefficients above "
+                           "stand and are reported: "
                            f"teleworkability leads on hires "
                            f"{str(wfh_leads_hires).upper()}, AI leads on "
                            f"separations {str(ai_leads_seps).upper()}")
-            L += [f"  VERDICT: {verdict}"]
+            L += ["  The four coefficients above are the result. The line",
+                  "  below is only the label rule 2 attaches to them, and it",
+                  "  decides one sentence in the paper, not what is reported.",
+                  f"  VERDICT: {verdict}"]
         L += ["  For reference only, and not a gate: 82's own margins on",
               f"  this panel are hires {OCC_FLOW['hires'][0]:+.4f} "
               f"({OCC_FLOW['hires'][1]:.4f}) and separations "

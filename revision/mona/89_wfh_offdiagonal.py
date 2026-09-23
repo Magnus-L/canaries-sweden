@@ -105,11 +105,15 @@ NOTES, FAILURES = [], []
 
 READ_RULES = [
     "READ RULES, FIXED BEFORE THE RUN:",
-    "  1. PART A IS THE TEST, AND ITS RULE IS PRE-COMMITTED. AI is the",
-    "     operative score if the young decline appears among firms in",
-    "     the LOW-teleworkability half and not among firms in the LOW-AI",
-    "     half. Both discriminating cells are reported whichever way",
-    "     they fall, and so are the two uninformative diagonal cells.",
+    "  1. WHAT IS FIXED IN ADVANCE IS THE READING, NOT THE REPORTING.",
+    "     Every one of the four fits runs and every coefficient is",
+    "     exported and printed below, whichever way it falls; nothing",
+    "     here is conditional on the verdict, which is computed at the",
+    "     end from numbers already on the page. The rule fixed before",
+    "     the run is only this: AI is called the operative score if the",
+    "     young decline appears among firms in the LOW-teleworkability",
+    "     half and not among firms in the LOW-AI half. It constrains the",
+    "     sentence the paper may write, not what we get to look at.",
     "  2. NO CELL IS READ AS A ZERO. Each of the four fits is roughly a",
     "     half of the panel, so its standard error will be larger than",
     "     Table 1's. A cell that is imprecise is reported as imprecise",
@@ -484,7 +488,10 @@ def main():
                 verdict = "BOTH CELLS BITE; rule 1 does not discriminate"
             else:
                 verdict = "NEITHER CELL BITES; rule 1 does not discriminate"
-            L += [f"  VERDICT on the rule fixed before the run: {verdict}",
+            L += ["  The four coefficients above are the result and stand",
+                  "  on their own. The line below is only the label the rule",
+                  "  fixed before the run attaches to them.",
+                  f"  VERDICT on that rule: {verdict}",
                   "  A cell that is imprecise is imprecise, never a zero;",
                   "  every standard error is printed above for that reason."]
         L += [f"  For reference only, and not a gate: the headline at "
