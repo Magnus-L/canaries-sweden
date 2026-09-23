@@ -270,7 +270,7 @@ aggregates in `revision/output/` and `data/output/` may be reused with attributi
   author = {Lodefalk, Magnus and L{\"o}thman, Lydia and Koch, Michael and Engberg, Erik},
   year   = {2026},
   type   = {Working Paper},
-  note   = {{\"O}rebro University Working Paper 2026:2; Ratio Working Paper 388}
+  note   = { {\"O}rebro University Working Paper 2026:2; Ratio Working Paper 388}
 }
 ```
 
