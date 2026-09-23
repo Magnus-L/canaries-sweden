@@ -82,6 +82,7 @@ def main() -> int:
          r"\caption{The estimation sample: employer $\times$ age band "
          r"$\times$ month, 2021:01--2025:06.}",
          r"\label{tab:sumstats_employment_new}",
+         r"\setlength{\tabcolsep}{3.5pt}",
          r"\begin{tabular}{llrrrr}", r"\toprule",
          r"Band & Outcome & Balanced cells & Zero throughout & Skeleton & "
          r"Estimated \\", r"\midrule"]

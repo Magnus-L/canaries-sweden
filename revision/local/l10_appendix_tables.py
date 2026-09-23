@@ -94,6 +94,7 @@ def t_coverage():
         "--" if pd.isna(piv.loc[y, c]) else f"{piv.loc[y, c]:.1f}" for c in cols)
         + r" \\" for y in piv.index]
     write("coverage_by_source.tex", "\n".join([
+        r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{l" + "r" * len(cols) + "}", r"\hline\hline",
         "Year & " + head + r" \\", r"\hline", *rows, r"\hline\hline",
         r"\end{tabular}"]))
@@ -121,6 +122,7 @@ def t_extended():
                         f"{coef(gp.coef, gp.se, gp.pval)} & "
                         f"{int(rb.n_obs):,}" + r" \\")
     write("postings_extended.tex", "\n".join([
+        r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{llccr}", r"\hline\hline",
         r"Window & Estimator & PostRB $\times$ High & PostGPT $\times$ High & $N$ \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
@@ -142,6 +144,7 @@ def t_seasonality():
         rows.append(f"{v} & {coef(rb.coef, rb.se, rb.pval)} & "
                     f"{coef(gp.coef, gp.se, gp.pval)}" + r" \\")
     write("postings_seasonality.tex", "\n".join([
+        r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{lcc}", r"\hline\hline",
         r"Specification & PostRB $\times$ High & PostGPT $\times$ High \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))

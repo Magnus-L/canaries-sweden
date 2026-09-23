@@ -190,7 +190,8 @@ def main():
                 "n_out_of_range", "n_duplicate", "n_parse_error", "n_kept"]
         hdr = ["Year", "Raw ads", "No occ.\\ field", "Invalid code", "No date",
                "Out of range", "Duplicate", "Parse error", "Kept"]
-        lines = [r"\begin{tabular}{l" + "r" * (len(cols) - 1) + "}",
+        lines = [r"\setlength{\tabcolsep}{3pt}",
+                 r"\begin{tabular}{l" + "r" * (len(cols) - 1) + "}",
                  r"\hline\hline", " & ".join(hdr) + r" \\", r"\hline"]
         for _, r in df.iterrows():
             vals = [str(r["year"])] + [f"{int(r[c]):,}" for c in cols[1:]]

@@ -103,6 +103,7 @@ def main() -> int:
            r"employment by exposure quartile and age band, per cent change "
            r"from the pre-adoption months to the adoption window.}",
            r"\label{tab:descriptive_bands}", r"\footnotesize",
+           r"\setlength{\tabcolsep}{3.5pt}",
            r"\begin{tabular}{lcccc}", r"\toprule",
            r" & \multicolumn{4}{c}{Exposure quartile of the employer "
            r"(2019 occupation mix)} \\",

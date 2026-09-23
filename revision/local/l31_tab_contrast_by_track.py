@@ -259,6 +259,9 @@ def main() -> int:
            r"\caption{The young against 41--49 inside exposed firms after "
            r"adoption, by education track, calendar cycle removed.}",
            r"\label{tab:contrast_by_track}", r"\footnotesize",
+           # The track labels are long and the table ran 60 per cent past
+           # the text block; the same remedy as the gender split.
+           r"\setlength{\tabcolsep}{3.5pt}",
            r"\begin{tabular}{lccr}", r"\toprule",
            f"Track & {BANDS[0].replace('-', '--')} vs {REFERENCE} & "
            f"{BANDS[1].replace('-', '--')} vs {REFERENCE} & Employers " + r"\\",
