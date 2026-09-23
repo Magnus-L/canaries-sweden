@@ -121,10 +121,11 @@ This export retires that, and 88 retires the last of it.
   - One defect caught in the rewrite: `f"{ratio:.0%}"` put a bare `%` into the note, which
     LaTeX reads as a comment and which would have swallowed the rest of the sentence.
 
-## Still owed
+## Nothing owed: script 88 landed at 14:07
 
-**Script 88 alone.** `tableA_contrast_by_track.tex` is still the education route's, and
-`appendix_v3.tex:672` now says so in a sentence that comes out when 88 lands.
+Filed as `round3_20260923-1407-lane33-script88/`, which closes lane 33. The disclosure sentence
+this note called for at `appendix_v3.tex:672` was written and then removed, because the contrast
+by track is no longer on the education score.
 
 ## The prose, applied 23 September 15:05
 

@@ -29,6 +29,7 @@ OCC = OUT / "round3_20260923-0655-lanes28b-29bcd"
 LANE28A = OUT / "round3_20260922-2232-lane28a"
 # The track split and the mix behind its weights (script 87, lane 33).
 SPLIT = OUT / "round3_20260923-1352-lane33-script87"
+CONTRAST = OUT / "round3_20260923-1407-lane33-script88"
 
 TERM = "post_x_high_x_young"
 INTER = "interim_x_high_x_young"
@@ -189,6 +190,18 @@ def main() -> int:
             & (mix.gender == "women")].set_index("cell")["share"]
     print(f"    ICT share of exposed firms' young women "
           f"{100 * float(w['ict']):.1f} per cent")
+    print()
+
+    print("OA III.2, THE THREE-BAND CONTRAST BY TRACK  "
+          "(occ_route_contrast_by_track.csv)")
+    ct = pd.read_csv(CONTRAST / "occ_route_contrast_by_track.csv")
+    for band in ("22-25", "26-30"):
+        b = ct[ct.band_vs_ref == band].set_index("track")
+        print(f"  {band} against 41-49:")
+        for k in ["all"] + [x for x in b.index if x != "all"]:
+            r = b.loc[k]
+            print(f"    {k:<22} {float(r.coef):+.4f} ({float(r.se):.4f}) "
+                  f"t {float(r.t):+.2f}   {int(r.n_firms):>7,} firms")
     print()
 
     print("SECTION 3, THE PRE-TEST AND THE TWO CLUSTERINGS")

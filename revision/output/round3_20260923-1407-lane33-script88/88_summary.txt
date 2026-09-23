@@ -1,0 +1,55 @@
+THE YOUNG AGAINST 41-49 BY EDUCATION TRACK, OCCUPATION ROUTE
+==========================================================
+
+77's three-band panel and its own seasonal terms, with the
+employer scored by the 2019 occupations of its own incumbents
+aged 31 to 69. The cut is the worker's own SUN 2020 record,
+because the design classifies no young worker by occupation
+after 2019; Individ ends at 2023 and later years carry it
+forward.
+
+THE BASE, fitted here and the figure every track is read against:
+  all workers, 22-25 vs 41-49  -0.0241 (0.0130) t -1.85   firms 110,653
+  all workers, 26-30 vs 41-49  -0.0090 (0.0088) t -1.02   firms 110,653
+  For reference only, and not a gate: the education route's three-band contrast at 22-25 was -0.0153 (0.0126), and this route's SIX-band profile gives -0.0192 (0.0125) on another panel.
+
+BY TRACK:
+  ict                      22-25  -0.1194 (0.0500) t -2.39   firms 6,837
+  ict                      26-30  -0.1407 (0.0350) t -4.02   firms 6,837
+  engineering              22-25  -0.0253 (0.0222) t -1.14   firms 48,374
+  engineering              26-30  -0.0177 (0.0158) t -1.12   firms 48,374
+  business_law_social      22-25  -0.0733 (0.0215) t -3.41   firms 37,689
+  business_law_social      26-30  -0.0171 (0.0157) t -1.08   firms 37,689
+  health_education_care    22-25  -0.0251 (0.0233) t -1.07   firms 25,379
+  health_education_care    26-30  -0.0438 (0.0168) t -2.60   firms 25,379
+  other                    22-25  -0.0029 (0.0183) t -0.16   firms 72,889
+  other                    26-30  -0.0421 (0.0100) t -4.23   firms 72,889
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  the score is 82's build_exposure(): 262,089 employers, uniform3, floor 5
+
+READ RULES, FIXED BEFORE THE RUN:
+  1. THE BASE IS FITTED HERE. The all-worker three-band contrast on
+     this score is the figure every track cell is read against. It
+     is NOT required to reproduce the six-band profile, which is
+     another panel, and it is NOT compared with the education
+     route's -0.0153 except for reference.
+  2. NO TRACK IS PROMOTED ABOVE THE POOLED PROFILE. Every track is
+     reported whichever way it falls, and a track that does not fit
+     is named, never read as a zero.
+  3. THE CUT STAYS EDUCATION AND MUST. The reported design
+     classifies no young worker by occupation after 2019, so
+     occupation cannot cut the young. Only the FIRM's score
+     changes, from the 2019 education mix to the 2019 occupation
+     mix of its incumbents aged 31 to 69.
+  4. NO SQL. If L_counts_sex_edu_* are not cached the lane reports
+     that and stops rather than starting a full read.
+  5. The education record ends in 2023 and 2024-25 carry it
+     forward, which is why the tracks are broad.
+  Employer counts below 5 are suppressed before anything
+  leaves MONA.
+
+Runtime 31.0 min. memory available: 664.5 GB

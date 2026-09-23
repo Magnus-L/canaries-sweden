@@ -80,9 +80,13 @@ sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
 OUT = REV / "output"
-LANE20 = OUT / "round3_20260922-0105-lane20-seasonal-contrast"
-LANE22 = OUT / "round3_20260922-0712-lanes21-22"
-LANE23 = LANE22 / "lane23-0807"
+# Script 88 (lane 33) refits 77's three-band panel on the occupation
+# route. The six-band figure the note compares with is this route's own
+# profile, not lane 20's education-route seasonal contrast, and the ICT
+# shares are script 87's, rebuilt on this route's exposed employers.
+LANE33_88 = OUT / "round3_20260923-1407-lane33-script88"
+LANE33_87 = OUT / "round3_20260923-1352-lane33-script87"
+OCC = OUT / "round3_20260923-0655-lanes28b-29bcd"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -99,11 +103,15 @@ TRACKS = [
 BANDS = ["22-25", "26-30"]
 REFERENCE = "41--49"
 # The band whose six-band counterpart the note compares the panel with.
-SIX_BAND_KEY = "22_25"
+SIX_BAND = "22-25"
 CELL = re.compile(r"^\$([-+][0-9.]+)\$(\$\^\{\*\}\$)? \(([0-9.]+)\)$")
+# 88 lays its summary out differently from 77: the base rows name
+# "all workers," and carry "vs 41-49", the track rows carry neither, and
+# both print a t ratio where 77 printed a trailing star. One pattern
+# reads both shapes; the star is derived from the t and checked.
 SUMMARY_ROW = re.compile(
-    r"^\s+(\S+)\s+(\S+) vs 41-49\s+([-+][0-9.]+) \(([0-9.]+)\) "
-    r"firms ([0-9,]+)(\s+\*)?\s*$")
+    r"^\s+(?:(all) workers,|(\S+))\s+(\d\d-\d\d)(?: vs 41-49)?\s+"
+    r"([-+][0-9.]+) \(([0-9.]+)\) t ([-+][0-9.]+)\s+firms ([0-9,]+)\s*$")
 
 
 def source(defaults: tuple[Path, ...], name: str) -> Path:
@@ -134,21 +142,23 @@ def cell(what: str, c: float, se: float) -> str:
         raise SystemExit(f"  {what}: the formatted estimate is unreadable")
     if abs(float(m.group(1)) - c) > 5e-5 or abs(float(m.group(3)) - se) > 5e-5:
         raise SystemExit(f"  {what}: the printed estimate {out} disagrees "
-                         f"with contrast_by_track.csv ({c:+.6f}, {se:.6f})")
+                         f"with occ_route_contrast_by_track.csv ({c:+.6f}, {se:.6f})")
     return out
 
 
-def summary_rows(path: Path) -> dict[tuple[str, str], tuple[str, int]]:
+def summary_rows(path: Path) -> dict[tuple[str, str], tuple[str, float, int]]:
     """The run's own report of the same fits: the printed estimate of
-    each track and band, with its star, and the employer count."""
+    each track and band without its star, the t ratio the run printed,
+    and the employer count. The star is not taken from the summary but
+    derived from the estimate and checked against this t."""
     said = {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         m = SUMMARY_ROW.match(line)
         if m is None:
             continue
-        track, band, coef, se, firms, star = m.groups()
-        said[(track, band)] = (f"${coef}${'$^{*}$' if star else ''} ({se})",
-                               int(firms.replace(",", "")))
+        base, track, band, coef, se, t_ratio, firms = m.groups()
+        said[(base or track, band)] = (f"${coef}$ ({se})", float(t_ratio),
+                                       int(firms.replace(",", "")))
     if not said:
         raise SystemExit(f"  {path.name}: reports no track against 41-49, so "
                          f"there is nothing to check the export against")
@@ -156,23 +166,25 @@ def summary_rows(path: Path) -> dict[tuple[str, str], tuple[str, int]]:
 
 
 def main() -> int:
-    d = pd.read_csv(source((LANE23, LANE22), "contrast_by_track.csv"))
+    d = pd.read_csv(source((LANE33_88,), "occ_route_contrast_by_track.csv"))
     if not (d.status == "ok").all():
-        raise SystemExit("  contrast_by_track.csv: a fit reports a status "
+        raise SystemExit("  occ_route_contrast_by_track.csv: a fit reports a "
+                         "status "
                          "other than ok, so it is not quotable")
     for key, _ in TRACKS:
         for band in BANDS:
             if ((d.track == key) & (d.band_vs_ref == band)).sum() != 1:
-                raise SystemExit(f"  contrast_by_track.csv: one row expected "
+                raise SystemExit(f"  occ_route_contrast_by_track.csv: one row expected "
                                  f"for {key} at {band}")
     if len(d) != len(TRACKS) * len(BANDS):
-        raise SystemExit(f"  contrast_by_track.csv: {len(d)} rows, expected "
+        raise SystemExit(f"  occ_route_contrast_by_track.csv: {len(d)} rows, "
+                         f"expected "
                          f"{len(TRACKS) * len(BANDS)}")
 
     # Each exported standard error must be the square root of its own
     # variance in the covariance matrix the same fit exported.
     for key, _ in TRACKS:
-        v = pd.read_csv(source((LANE23, LANE22), f"vcov_s77_{key}.csv"),
+        v = pd.read_csv(source((LANE33_88,), f"vcov_s88_{key}.csv"),
                         index_col=0)
         for band in BANDS:
             term = f"gpt_x_high_{band.replace('-', '_')}"
@@ -183,7 +195,7 @@ def main() -> int:
                                  f"{got:.6f} is not the square root of its "
                                  f"own variance {diag:.6f}")
 
-    said = summary_rows(source((LANE23, LANE22), "77_summary.txt"))
+    said = summary_rows(source((LANE33_88,), "88_summary.txt"))
     d = d.set_index(["track", "band_vs_ref"])
 
     rows, counts = [], {}
@@ -195,10 +207,20 @@ def main() -> int:
             if (key, band) not in said:
                 raise SystemExit(f"  {key} {band}: the run's summary does not "
                                  f"report it")
-            quoted, firms = said[(key, band)]
-            if text != quoted:
+            quoted, t_said, firms = said[(key, band)]
+            if text.replace("$^{*}$", "") != quoted:
                 raise SystemExit(f"  {key} {band}: the table would print "
                                  f"{text}, the run's summary reports {quoted}")
+            t_own = float(r.coef) / float(r.se)
+            if abs(t_own - t_said) > 5e-3:
+                raise SystemExit(f"  {key} {band}: the summary's t {t_said} is "
+                                 f"not the estimate over its standard error "
+                                 f"({t_own:+.4f})")
+            # The star the table prints must agree with that same t.
+            if ("$^{*}$" in text) != (abs(t_said) > 1.96):
+                raise SystemExit(f"  {key} {band}: the table prints "
+                                 f"{'a star' if '$^{*}$' in text else 'no star'}"
+                                 f" and the run's summary reports t {t_said}")
             if firms != int(r.n_firms):
                 raise SystemExit(f"  {key} {band}: the summary reports "
                                  f"{firms:,} employers and the CSV "
@@ -215,14 +237,15 @@ def main() -> int:
 
     # The two figures the note compares the panel with: the same contrast
     # on the six-band panel, and the ICT shares of the mix table.
-    six = pd.read_csv(source((LANE20,), "contrast_seasonal.csv"))
-    six = six[(six.arm == "seasonal") & (six.band_vs_ref == SIX_BAND_KEY)]
+    six = pd.read_csv(source((OCC,), "occ_route_profile.csv"))
+    six = six[(six.band == SIX_BAND) & (six.status == "ok")]
     if len(six) != 1:
-        raise SystemExit(f"  contrast_seasonal.csv: one seasonal row expected "
-                         f"for {SIX_BAND_KEY}, found {len(six)}")
+        raise SystemExit(f"  occ_route_profile.csv: one row expected for "
+                         f"{SIX_BAND}, found {len(six)}")
     six_cell = cell("six-band 22-25", float(six.coef.iloc[0]),
                     float(six.se.iloc[0])).replace("$^{*}$", "")
-    mix = pd.read_csv(source((LANE22,), "education_mix_by_sex.csv"))
+    mix = pd.read_csv(source((LANE33_87,),
+                             "occ_route_education_mix_by_sex.csv"))
     mix = mix[(mix.dimension == "track") & (mix.exposed == 1)
               & (mix.cell == "ict")].set_index("gender")
     ict = {g: 100 * float(mix.loc[g, "share"]) for g in ("women", "men")}
@@ -247,14 +270,15 @@ def main() -> int:
             r"and the reference 41--49): employer-by-month, employer-by-age "
             r"and month-by-age effects; one adoption, one Riksbank and three "
             r"quarter-of-year terms per young band; exposure frozen at the "
-            r"2019 education mix; clustered by employer. Negative means the "
-            r"band declined more than 41--49. On this panel of "
+            r"employer's 2019 occupation mix; clustered by employer. Negative "
+            r"means the band declined more than 41--49. On this panel of "
             f"{thousands(counts['all'])} employers the all-worker contrast is "
-            f"{all_cell}, a null. Tracks as in "
+            f"{all_cell}, which is not distinguishable from zero at five per "
+            r"cent. Tracks as in "
             r"Table~\ref{tab:gender_split}; the ICT track is small "
             f"({ict['women']:.1f} per cent of exposed firms' young women, "
             f"{ict['men']:.1f} per cent of their young men). "
-            r"$^{*}$ $p<0.05$. Source: script 77.",
+            r"$^{*}$ $p<0.05$. Source: script 88.",
             r"\end{minipage}", r"\end{table}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)
