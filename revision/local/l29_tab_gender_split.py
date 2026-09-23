@@ -294,8 +294,11 @@ def main() -> int:
             r"employer-by-age-and-sex and month-by-age-and-sex effects; "
             r"calendar cycle removed; treatment January 2024; clustered by "
             r"employer), on all workers and within each broad education track. "
+            # NOT \ref{tab:headline}: that label lives in the paper, not
+            # in the appendix, so the reference printed as ?? and ML
+            # caught it in the read of 23 September.
             r"Exposure is the employer's 2019 occupation mix, the measure of "
-            r"Table~\ref{tab:headline}; education cuts the sample and does not "
+            r"Table~1 of the paper; education cuts the sample and does not "
             r"measure exposure. "
             r"Young men is the post $\times$ high $\times$ young term; young "
             r"women minus men is its female interaction. Tracks are two-digit "
