@@ -270,7 +270,7 @@ def main() -> int:
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{The female differential at 22--25 by education track, "
            r"and its split into composition and within-track components.}",
-           r"\label{tab:gender_split}", r"\footnotesize",
+           r"\label{tab:gender_split}", r"\scriptsize",
            # The track labels are long and the table ran past the text
            # block in both the online appendix and its v2 predecessor,
            # losing the right-hand column off the page.

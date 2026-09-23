@@ -94,6 +94,7 @@ def t_coverage():
         "--" if pd.isna(piv.loc[y, c]) else f"{piv.loc[y, c]:.1f}" for c in cols)
         + r" \\" for y in piv.index]
     write("coverage_by_source.tex", "\n".join([
+        r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{l" + "r" * len(cols) + "}", r"\hline\hline",
         "Year & " + head + r" \\", r"\hline", *rows, r"\hline\hline",
@@ -122,6 +123,7 @@ def t_extended():
                         f"{coef(gp.coef, gp.se, gp.pval)} & "
                         f"{int(rb.n_obs):,}" + r" \\")
     write("postings_extended.tex", "\n".join([
+        r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{llccr}", r"\hline\hline",
         r"Window & Estimator & PostRB $\times$ High & PostGPT $\times$ High & $N$ \\",
@@ -144,6 +146,7 @@ def t_seasonality():
         rows.append(f"{v} & {coef(rb.coef, rb.se, rb.pval)} & "
                     f"{coef(gp.coef, gp.se, gp.pval)}" + r" \\")
     write("postings_seasonality.tex", "\n".join([
+        r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{lcc}", r"\hline\hline",
         r"Specification & PostRB $\times$ High & PostGPT $\times$ High \\",
@@ -166,6 +169,8 @@ def t_firm_lane():
                     f"{coef(gp.coef, gp.se, gp.pval)} & "
                     f"{int(rb.n_firms):,} & {int(rb.n_obs):,}" + r" \\")
     write("firm_within_did.tex", "\n".join([
+        r"\scriptsize",
+        r"\setlength{\tabcolsep}{3pt}",
         r"\begin{tabular}{lccrr}", r"\hline\hline",
         r"Sample & PostRB $\times$ High & PostGPT $\times$ High & Employers & $N$ \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
@@ -186,6 +191,8 @@ def t_firm_lane():
             f"{LEV.get(r.level, r.level)} & {coef(r.coef, r.se, r.pval)} "
             f"& {int(r.n_firms):,}" + r" \\" for r in h.itertuples()]
     write("firm_heterogeneity.tex", "\n".join([
+        r"\scriptsize",
+        r"\setlength{\tabcolsep}{3pt}",
         r"\begin{tabular}{llcr}", r"\hline\hline",
         r"Dimension & Cell & PostGPT $\times$ High & Employers \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))

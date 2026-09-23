@@ -331,7 +331,8 @@ def _tex(rows_df, trip):
               ("e_pre_eligible_excl_staffing_public", "As d1, excluding staffing agencies and public employers"),
               ("f_all_ads_common_sample", "All advertisements, employers passing both screens"),
               ("f_entry_ads_common_sample", "Entry-level advertisements, the same employers")]
-    lines = [r"\setlength{\tabcolsep}{3.5pt}",
+    lines = [r"\scriptsize",
+             r"\setlength{\tabcolsep}{3.5pt}",
              r"\begin{tabular}{lccrr}", r"\toprule",
              r"Sample & PostRB $\times$ High & PostGPT $\times$ High & Employers & $N$ \\", r"\midrule"]
     for v, lab in labels:

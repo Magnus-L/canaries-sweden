@@ -108,7 +108,7 @@ def coverage() -> None:
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{What the exposure score is built from: the 2019 "
            r"occupation codes of the employer's own incumbents}",
-           r"\label{tab:occ_coverage}", r"\footnotesize",
+           r"\label{tab:occ_coverage}", r"\scriptsize",
            r"\setlength{\tabcolsep}{5pt}",
            r"\begin{tabular}{lrrrr}", r"\toprule",
            r" & Incumbents & Coded from & Coded, with & Scored \\",
