@@ -55,6 +55,8 @@ B40 = OUT / "round2_20260918-1640"
 B45 = OUT / "round2_20260918-1736-script45"
 B41 = OUT / "round2_20260920-exportpack"
 LANE14 = OUT / "round3_20260921-2152-lane14-seasonal-complete"
+# Script 82 part C, the occupation route's own vintage arms.
+LANE28C = OUT / "round3_20260922-2327-lane28c"
 # The manuscript repository is a sibling of this one; the appendix
 # \input{}s the tables from there.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -177,24 +179,38 @@ def t2():
           f"{mp[mp.year == 2022].n_pairs.sum():,})")
 
 
-def rescoring_artefact() -> float:
-    """The vintage-sensitivity check on the reported design: the change
-    in its adoption step when the 2019 incumbents are re-scored from the
-    education register as it stood in 2021 (script 68, as-of arm). This
-    is not the backtest, which the reported design is immune to by
-    construction; it is quoted in the note so the reader sees both."""
-    d = pd.read_csv(LANE14 / "seasonal_pooled.csv")
-    d = d[(d.young_band == "22-25") & (d.outcome == "stock")
-          & (d.term == "post_x_high_x_young")]
-    true = float(d[d.arm == "true"].coef.iloc[0])
-    asof = float(d[d.arm == "asof"].coef.iloc[0])
+def rescoring_artefact() -> tuple[float, float]:
+    """The vintage-sensitivity check on the reported design, script 82's
+    cascade arm: the change in its adoption step when the score is
+    restricted to the codes observed in 2019, rather than carried back
+    from earlier files, and the share of employers that keep their
+    quartile under that restriction.
+
+    THIS IS NOT A LATER-VINTAGE RE-SCORING AND MUST NOT BE WRITTEN AS
+    ONE. The arm that re-scores the 2019 incumbents from the 2021
+    register scored zero employers on this route and produced no fit, so
+    the occupation route has no later-vintage check to quote. The
+    education route had one, +0.0113, and it is not this design's.
+    """
+    d = pd.read_csv(LANE28C / "occ_route_vintage.csv")
+    fit = d[(d.block == "fit") & (d.arm == "cascade_back_2019")
+            & (d.item == "post_x_high_x_young")]
+    only = d[(d.block == "fit") & (d.arm == "code_2019_only")
+             & (d.item == "post_x_high_x_young")]
+    keep = d[(d.block == "stability")
+             & (d.item == "share_keeping_quartile")]
+    if len(fit) != 1 or len(only) != 1 or len(keep) != 1:
+        raise SystemExit("  occ_route_vintage.csv: expected one cascade "
+                         "fit, one 2019-only fit and one quartile share")
+    return (float(only.coef.iloc[0]) - float(fit.coef.iloc[0]),
+            float(keep.value.iloc[0]))
     return asof - true
 
 
 def t3():
     """The as-of backtest. Artefact = as-of minus true."""
     a = pd.read_csv(B45 / "asof_estimates.csv")
-    rescored = rescoring_artefact()
+    rescored, keep_share = rescoring_artefact()
     L = [r"\begin{table}[ht!]", r"\centering", r"\footnotesize",
          r"\caption{The as-of backtest: what the register's lag alone "
          r"produces in years where the true age gap is observable.}",
@@ -224,13 +240,15 @@ def t3():
           r"$-0.307$. The submitted headline was $-0.174$, so the lag alone "
           r"can manufacture more than the whole of it. The design the paper "
           r"reports admits no occupation code recorded after 2019, so this "
-          r"test does not apply to it; re-scoring its 2019 exposure from the "
-          r"education register as it stood in 2021 moves its adoption step "
-          f"by ${rescored:+.3f}$, of the wrong sign to manufacture a "
-          r"decline. Source: scripts 45 and 68."
+          r"test does not apply to it. Its own 2019 codes are not all fresh: "
+          r"restricting the score to those observed in 2019, rather than "
+          r"carried back from earlier files, moves its adoption step by "
+          f"${rescored:+.3f}$, and {100 * keep_share:.1f} per cent of "
+          r"employers keep their quartile. Source: scripts 45, 68 and 82."
           r"\end{minipage}", r"\end{table}"]
     (V2_TAB / "tableIV3_backtest.tex").write_text("\n".join(L) + "\n")
-    print(f"  tableIV3_backtest.tex  (re-scoring artefact {rescored:+.4f})")
+    print(f"  tableIV3_backtest.tex  (vintage restriction {rescored:+.4f}, "
+          f"{100 * keep_share:.1f} per cent keep their quartile)")
 
 
 def main() -> int:

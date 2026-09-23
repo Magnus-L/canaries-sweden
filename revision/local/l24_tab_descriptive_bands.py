@@ -105,7 +105,7 @@ def main() -> int:
            r"\label{tab:descriptive_bands}", r"\footnotesize",
            r"\begin{tabular}{lcccc}", r"\toprule",
            r" & \multicolumn{4}{c}{Exposure quartile of the employer "
-           r"(2019 education mix)} \\",
+           r"(2019 occupation mix)} \\",
            r"\cmidrule(lr){2-5}"]
     tex += block(a, "Panel A. Total headcount per month")
     tex += [r"\addlinespace[6pt]"]
