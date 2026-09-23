@@ -244,8 +244,11 @@ def main() -> int:
             r"score. ``Skeleton'' is what remains, and ``Estimated'' the "
             r"cells surviving the merge with the employer's 2019 occupation "
             r"mix. A firm enters only if it holds the young band and at "
-            r"least one older band at some point from January 2021, which is "
-            r"a pre-treatment property and not an outcome. Exposure is "
+            r"least one older band at some point from January 2021. That "
+            r"condition is evaluated over the whole window rather than over "
+            r"the pre-treatment months alone, so it is not a pre-treatment "
+            r"screen; it is weak, since one month with one worker in each "
+            r"band satisfies it. Exposure is "
             rf"scored for {tex_thousands(n_scored)} firms.")
     if missing_fit:
         note += (r" The paper reports the flow margins at 22--25 only, so "

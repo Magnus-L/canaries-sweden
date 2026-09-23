@@ -57,8 +57,12 @@ from config import DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT  # noqa: E402
 
 PAPER = REV.parents[1] / "canaries-sweden-paper"
 # Statistics Sweden's firm AI-use series, published and not estimated
-# here, as in l14.
-SCB_ADOPTION = {"2023": 10, "2024": 25, "2025": 35}
+# here, as in l14. 2025 IS DELIBERATELY EXCLUDED: ML ruled on 23 September
+# 2026 that no figure in the paper carries an adoption number later than
+# 2024, because the argument for dating the window to January 2024 rests
+# on the 2023-to-2024 change and a 2025 bar invites a question the paper
+# does not need. The bar was drawn and cited nowhere.
+SCB_ADOPTION = {"2023": 10, "2024": 25}
 LAUNCH_Q = "2022Q4"
 # Lane 30's export. The folder is named on the day it is filed; pass it
 # on the command line until this constant is updated to match.
