@@ -177,6 +177,13 @@ def main() -> int:
 
     # 22-25, the sequence
     g1 = one(head, young_band="22-25", term="rb_x_high_x_young")
+    # gamma_0, the thirteen months from the launch to the end of 2023. Printed
+    # since 23 Sep 2026: the paper says the whole post-launch period enters,
+    # split at January 2024, and a reader cannot check that unless both halves
+    # are on the page. It was previously recoverable only as gamma_2 minus the
+    # step from the 2023 level.
+    g0 = one(head, young_band="22-25", term=INTER)
+    g0_26 = one(head, young_band="26-30", term=INTER)
     g2 = one(head, young_band="22-25", term=TERM)
     level = one(window, young_band="22-25", outcome="stock", term=TERM)
     step23 = step_from_2023("22-25")
@@ -242,6 +249,8 @@ def main() -> int:
          r"against the older bands pooled}} \\", None, None),
         (r"Tightening months, April to November 2022 ($\hat\gamma_1$)",
          est(*g1), ind(se_ind("22-25", "rb_x_high_x_young", g1[0]))),
+        (r"Interim, December 2022 to December 2023 ($\hat\gamma_0$)",
+         est(*g0), ind(se_ind("22-25", INTER, g0[0]))),
         (r"Additional step at adoption, from January 2024 ($\hat\gamma_2$)",
          est(*g2), ind(se_ind("22-25", TERM, g2[0]))),
         (r"Step from the 2023 level ($\hat\gamma_2 - \hat\gamma_0$)",
@@ -253,6 +262,8 @@ def main() -> int:
         (r"\addlinespace[3pt]", None, None),
         (r"\multicolumn{3}{l}{\textit{Ages 26--30, employment stock, "
          r"against the older bands pooled}} \\", None, None),
+        (r"Interim, December 2022 to December 2023 ($\hat\gamma_0$)",
+         est(*g0_26), ind(se_ind("26-30", INTER, g0_26[0]))),
         (r"Additional step at adoption ($\hat\gamma_2$)",
          est(*g2_26), ind(se_ind("26-30", TERM, g2_26[0]))),
         (r"Step from the 2023 level ($\hat\gamma_2 - \hat\gamma_0$)",

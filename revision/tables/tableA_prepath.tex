@@ -28,16 +28,31 @@ Quarter & 22--25 & 26--30 \\
 2024Q4 & $+$0.0924$^{*}$ (0.0197) & $+$0.0155 (0.0114) \\
 2025Q1 & $-$0.0133 (0.0250) & $-$0.0599$^{*}$ (0.0139) \\
 2025Q2 & $-$0.0436 (0.0250) & $-$0.0785$^{*}$ (0.0160) \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{The pre-launch drift test, January 2021 to November 2022}} \\
+\addlinespace[2pt]
+Linear trend per month & $+$0.00038 (0.00077) & $+$0.00161$^{*}$ (0.00044) \\
+Over the twenty-three months & $+$0.0088 (0.0178) & $+$0.0370$^{*}$ (0.0100) \\
+The tightening window & $+$0.0031 (0.0074) & $-$0.0024 (0.0034) \\
+Flat within two standard errors & Yes & No \\
+Employers & 100{,}631 & 113{,}287 \\
 \bottomrule
 \end{tabular}
 
 \vspace{0.5em}
 \begin{minipage}{0.86\textwidth}
-\footnotesize \textit{Notes:} Poisson on employer-by-age-by-month counts, with
+\footnotesize \textit{Notes:} The upper panel is Poisson on employer-by-age-by-month counts, with
 employer-by-month, employer-by-age and month-by-age effects and no calendar
 terms; 2022Q1 is the reference. Entries are the coefficient with the standard
 error clustered by employer in parentheses; $^{*}$ marks significance at the five
 per cent level. The panel holds 43{,}749{,}654 cells at 22--25 and 48{,}918{,}480
 at 26--30. Figure~\ref{fig:prepath} draws the same coefficients by calendar
 quarter.
+The lower panel is a separate fit: a linear trend on the pre-launch months,
+January 2021 to November 2022, estimated with the calendar terms and the
+tightening window in, on the occupation route. The trend is per month and the
+row beneath it scales the trend and its standard error by the twenty-three
+months of that window. The pre-period counts as flat if the trend lies within
+two standard errors of zero. That fit holds 100{,}631 employers at 22--25 and
+113{,}287 at 26--30. Source: script 83.
 \end{minipage}

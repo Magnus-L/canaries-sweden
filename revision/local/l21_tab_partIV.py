@@ -239,7 +239,7 @@ def t3():
           r"indistinguishable from zero, to $-0.288$; the artefact is "
           r"$-0.307$. A design of that kind returns about $-0.17$ on these data, "
           r"so the lag alone can produce more than the whole of it. "
-          r"can manufacture more than the whole of it. The design the paper "
+          r"The design the paper "
           r"reports admits no occupation code recorded after 2019, so this "
           r"test does not apply to it. Its own 2019 codes are not all fresh: "
           r"restricting the score to those observed in 2019, rather than "

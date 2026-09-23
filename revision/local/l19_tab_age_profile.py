@@ -27,6 +27,21 @@ kept below, unused, because nothing else assembles them.
            adoption. A different estimand, reported as a check on the
            measure.
 
+WHICH MEASURES THE NOTE NAMES, ADDED 23 SEPTEMBER 2026 ON A CO-AUTHOR'S
+ASKING. The note cited nothing for the second and third column and did
+not say which Eloundou rating was used. The Eloundou column is the
+model-graded beta rating, dv_rating_beta of Eloundou, Manning, Mishkin
+and Rock (2024), which counts a task as exposed once software built on
+top of the model is allowed, as distinct from their alpha (direct model
+access only) and zeta. src/10_eloundou_robustness.py reads that column
+and calls it the standard exposure measure, and it is the score book
+handed to the secure environment as mona_package/eloundou_ssyk4.txt. It
+is crosswalked O*NET SOC 2010 to ISCO-08 to SSYK 2012 on a plain
+groupby mean at each of the three aggregation steps, so unweighted
+throughout. The teleworkable column is Dingel and Neiman (2020) on the
+same route, as Online Appendix II.3 already states. The bib keys are
+eloundou2024gpts and dingel2020many, both already in references.bib.
+
 The 22-25 contrast against 41-49 with the cycle removed is read here
 for the summary line but no longer quoted in the note (it is in the paper's
 Results and in the six-band profile table); the note is kept short
@@ -218,9 +233,15 @@ def main() -> int:
             r"continuously rather than cut into quartiles, so exposure varies "
             r"within an employer-month and a coefficient is per standard "
             r"deviation of the 2019 firm-age baseline on that measure's own "
-            r"scale. This is a different estimand from the paper's and is "
-            r"reported as a check on the measure, not as a second estimate of "
-            r"the step.",
+            r"scale. The Eloundou column uses the model-graded $\beta$ "
+            r"exposure rating of \citet{eloundou2024gpts}, which counts a "
+            r"task as exposed once software built on top of the model is "
+            r"allowed, crosswalked from O*NET SOC 2010 to ISCO-08 to SSYK "
+            r"2012 on unweighted means at each step; the teleworkable column "
+            r"is the classification of \citet{dingel2020many}, crosswalked by "
+            r"the same route. This is a different estimand from the paper's "
+            r"and is reported as a check on the measure, not as a second "
+            r"estimate of the step.",
             r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "tableA_age_profile.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")

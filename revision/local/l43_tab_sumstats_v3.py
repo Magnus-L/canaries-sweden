@@ -37,6 +37,14 @@ estimated cells and the panel employer counts; occ_route_coverage.csv
 revision/tables/tableI2_sumstats_employment.tex and copies it to
 canaries-sweden-paper/tables/.
 
+PANEL B, ADDED 23 SEPTEMBER 2026. A within-employer age comparison can
+only be identified by employers that hold both of the ages compared, so
+each comparison in the paper has its own panel and the employer counts
+are not interchangeable. Online Appendix I.2 explained that in prose and
+quoted six counts, one of them (111,459) left over from the education
+route. Panel B prints them instead, each read from the export of the fit
+that uses it, so no count in the appendix is typed.
+
 IN THE PAPER
 Online Appendix I.2, Table tab:sumstats_employment_new.
 """
@@ -56,6 +64,8 @@ OUT = REV / "output"
 LOG = OUT / "round3_20260921-lane14-seasonal/68_log.txt"
 LANE28A = OUT / "round3_20260922-2232-lane28a"
 LANE28B = OUT / "round3_20260923-0655-lanes28b-29bcd"
+LANE31 = OUT / "round3_20260923-1125-lane31"
+LANE33B = OUT / "round3_20260923-1407-lane33-script88"
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
 
 ROWS = [("22-25", "stock"), ("22-25", "hires"), ("22-25", "seps"),
@@ -136,6 +146,25 @@ def tex_thousands(n: int) -> str:
     return f"{n:,}".replace(",", "{,}")
 
 
+def one_firm_count(path: Path, what: str, **restrict) -> int:
+    """The single employer count an export reports, or a loud failure.
+
+    Every panel in Panel B is read from the export of the fit that runs on
+    it, never typed, so the appendix cannot drift from the estimates the
+    way the education route's 111,459 did.
+    """
+    if not path.exists():
+        raise SystemExit(f"  missing input for {what}: {path}")
+    d = pd.read_csv(path)
+    for k, v in restrict.items():
+        d = d[d[k] == v]
+    n = sorted(set(int(x) for x in d.n_firms.dropna()))
+    if len(n) != 1:
+        raise SystemExit(f"  {what}: one employer count expected in "
+                         f"{path.name}, found {n}")
+    return n[0]
+
+
 def main() -> int:
     log, fit = parse_log(), fitted()
     n_scored = scored()
@@ -165,18 +194,42 @@ def main() -> int:
               f"{drop:>11,} ({pct:2d}%)  skeleton {skel:>12,}  "
               f"estimated {est_s:>12}")
 
-    L += [r"\midrule",
-          r"\multicolumn{2}{l}{Firms carrying an exposure score} & "
-          rf"\multicolumn{{4}}{{r}}{{{tex_thousands(n_scored)}}} \\"]
     for b in ("22-25", "26-30"):
         if (b, "stock") not in fit:
             raise SystemExit(f"  no stock fit for {b}, so its panel count "
                              f"cannot be reported")
-        n = fit[(b, "stock")][1]
-        L.append(f"\\multicolumn{{2}}{{l}}{{Firms in the {b} panel}} & "
-                 f"\\multicolumn{{4}}{{r}}{{{n:,}}} \\\\")
-        print(f"  panel firms {b}: {n:,}")
-    print(f"  employers carrying a score: {n_scored:,}")
+
+    # Panel B. Which employers identify which comparison. Each count comes
+    # from the export of the fit that runs on that panel.
+    panels = [
+        ("Scored: incumbents aged 31--69 on the 2019 payroll",
+         "no age band required", n_scored),
+        ("Headline, 22--25 against the older bands pooled",
+         "holds 22--25 and an older band", fit[("22-25", "stock")][1]),
+        ("Headline, 26--30 against the older bands pooled",
+         "holds 26--30 and an older band", fit[("26-30", "stock")][1]),
+        ("Age profile, six bands against 41--49",
+         "holds 41--49 and another band",
+         one_firm_count(LANE28B / "occ_route_profile.csv",
+                        "the six-band profile")),
+        ("Age profile, seven bands, 50 and over split at 65",
+         "holds 41--49 and another band",
+         one_firm_count(LANE31 / "occ_route_split65.csv",
+                        "the seven-band split")),
+        ("Contrast by field of education, three bands",
+         "holds 41--49, 22--25 or 26--30",
+         one_firm_count(LANE33B / "occ_route_contrast_by_track.csv",
+                        "the three-band contrast", track="all")),
+    ]
+    L += [r"\midrule",
+          r"\multicolumn{6}{l}{\textit{Panel B. Which employers identify "
+          r"which comparison}} \\",
+          r"\multicolumn{3}{l}{Comparison} & "
+          r"\multicolumn{2}{l}{An employer enters if it} & Employers \\"]
+    for label, rule, n in panels:
+        L.append(f"\\multicolumn{{3}}{{l}}{{{label}}} & "
+                 f"\\multicolumn{{2}}{{l}}{{{rule}}} & {n:,} \\\\")
+        print(f"  {label:58s} {rule:34s} {n:>9,}")
 
     note = (r"The panel is balanced over employers, age bands and months and "
             r"zero-filled, so \textbf{a firm whose young headcount falls to "
@@ -198,6 +251,18 @@ def main() -> int:
         note += (r" The paper reports the flow margins at 22--25 only, so "
                  r"the two 26--30 flow rows carry a skeleton and no "
                  r"estimate; nothing is carried across from another score.")
+    note += (
+        r" Panel~B is why the employer counts differ across the paper's "
+        r"exhibits. A within-employer age comparison can only be identified "
+        r"by an employer that holds both of the ages being compared, so each "
+        r"comparison has its own panel. The headline panels are anchored on "
+        r"the young band, the profile panels on the reference band 41--49; "
+        r"the profile panels therefore include employers with no worker aged "
+        r"22--25 at all, whose cells are zero throughout and which contribute "
+        r"nothing to that band's coefficient. A count printed beside a "
+        r"profile estimate is the panel's and not the number of employers "
+        r"identifying that coefficient, and the two are not comparable. The "
+        r"widest row imposes no age requirement at all.")
     L += [r"\bottomrule", r"\end{tabular}",
           r"\begin{minipage}{0.95\textwidth}\footnotesize\vspace{4pt}" + note,
           r"\end{minipage}", r"\end{table}"]
