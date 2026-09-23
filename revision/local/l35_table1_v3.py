@@ -270,8 +270,11 @@ def main() -> int:
         r"three-digit industry. The sex rows interact every treatment term "
         r"with female; young women is the male step plus the differential. "
         r"The drift rows are a linear monthly trend to November 2022. The "
-        r"within-track row alone is cut by education. "
-        r"Full tables in Online Appendix~III.2."
+        r"within-track row alone is cut by education, and it alone is "
+        r"estimated on the earlier education-mix score, whose pooled "
+        r"differential on that panel is $-0.0659$ (0.0131); three quarters "
+        r"of it survives within tracks, and it is not comparable with the "
+        r"row above. Full tables in Online Appendix~III.2."
     )
 
     tex = [r"\begin{table}[ht!]", r"\centering",
