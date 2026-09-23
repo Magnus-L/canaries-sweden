@@ -92,3 +92,5 @@ paper/em-main-only.zip
 # PUBLIC and the paper's data-availability statement points at it.
 # The file stays on disk for the MONA upload; it must not be tracked.
 revision/upload/utb_grupp2_sun2020_niva3_inr4_nyckel.dta
+paper/appendix_offline_v1.tex
+appendix_offline*

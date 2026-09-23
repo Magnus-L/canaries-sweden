@@ -16,10 +16,9 @@ employees using AI, which is the series the timing is read against.
 
 WHAT IS NEW AGAINST l14. Exposure is the employer's 2019 OCCUPATION mix,
 not its education mix, so this is the path that belongs beside Table 1 of
-v3. The education route's own path is drawn behind it as a thin dashed
-line, one per band, without an interval: the comparison a referee wants
-is whether the dating moves with the routing, and two shaded bands per
-colour would make the chart unreadable to answer it.
+v3. Only that route is drawn: an education-based exposure appears in this
+paper as the education-track heterogeneity and nowhere else, and a second
+series in the figure would make a robustness arm into a co-headline.
 
 A MISSING QUARTER IS DRAWN AS A GAP, NOT INTERPOLATED. A fit that failed
 leaves no row in the export, and a line drawn straight across the hole
@@ -32,8 +31,7 @@ evidence does, and the script says which quarters it broke for.
 
 INPUTS AND OUTPUTS
 Reads occ_route_path.csv from the lane 30 export directory (or one given
-on the command line) and seasonal_path.csv from the lane 14 export the
-final-code manifest names, for the education-route comparison. Writes
+on the command line). Writes
 revision/figures/fig2_spreading_v3.pdf and .png, and with --monthly
 fig2_spreading_monthly_v3.pdf and .png, through _figsafe.save, and copies
 both to canaries-sweden-paper/figures/.
@@ -64,7 +62,7 @@ SCB_ADOPTION = {"2023": 10, "2024": 25, "2025": 35}
 LAUNCH_Q = "2022Q4"
 # Lane 30's export. The folder is named on the day it is filed; pass it
 # on the command line until this constant is updated to match.
-LANE30 = REV / "output" / "round3_20260923-lane30-path"
+LANE30 = REV / "output" / "round3_20260923-0917-lane30-path"
 # The education route's own path, the script 68 export the final-code
 # manifest names.
 LANE14 = REV / "output" / "round3_20260921-2152-lane14-seasonal-complete"
@@ -116,19 +114,13 @@ def quarterly(d: pd.DataFrame, edu: pd.DataFrame) -> int:
         gridspec_kw={"height_ratios": [3.4, 1.0], "hspace": 0.12})
 
     for band, (colour, marker) in BANDS.items():
-        e = qe[qe["young_band"] == band].sort_values("period")
-        if not e.empty:
-            e = e.assign(x=e["period"].map(xof))
-            ax.plot(e["x"], e["coef"], "--", color=colour, lw=1.0,
-                    alpha=0.55, zorder=2,
-                    label=f"{band}, education route")
         b = gaps(q[q["young_band"] == band], order, band)
         b = b.assign(x=b["period"].map(xof))
         ax.fill_between(b["x"], b["coef"] - 1.96 * b["se"],
                         b["coef"] + 1.96 * b["se"], alpha=0.13,
                         color=colour, lw=0, zorder=2)
         ax.plot(b["x"], b["coef"], "-", color=colour, lw=1.9, zorder=3,
-                label=f"{band}, occupation route")
+                label=band)
         post = b[b["period"] != LAUNCH_Q]
         pre = b[b["period"] == LAUNCH_Q]
         ax.plot(post["x"], post["coef"], marker, color=colour, ms=5,
@@ -146,7 +138,7 @@ def quarterly(d: pd.DataFrame, edu: pd.DataFrame) -> int:
                     fontsize=8, color=GRAY, va="top")
     ax.set_ylabel("Employment, log points\ncycle removed", fontsize=9.5)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.legend(frameon=False, fontsize=8, loc="lower left", ncol=2)
+    ax.legend(frameon=False, fontsize=9, loc="lower left")
     ax.tick_params(axis="y", labelsize=8.5)
 
     for yr, pct in SCB_ADOPTION.items():

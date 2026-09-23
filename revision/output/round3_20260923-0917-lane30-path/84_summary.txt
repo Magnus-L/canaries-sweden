@@ -1,0 +1,84 @@
+THE PATH OF FIGURE 3, ON THE OCCUPATION ROUTE
+====================================================
+
+Lanes 28 and 29 moved every register estimate in the paper onto
+a firm score built from the employer's own 2019 occupation mix.
+Figure 3, the quarterly path that dates the step, was the one
+exhibit still drawn on the education route. This is that figure's
+own fit, on the same score as Table 1, with script 68's terms and
+script 61's panel: the Riksbank interaction stays on, so every
+path coefficient is a step from the level of the tightening
+months, which is the reading the caption already states.
+
+THE QUARTERLY PATH AT 22-25 (104,217 employers):
+  2022Q4   +0.0289 (0.0050) *
+  2023Q1   -0.0051 (0.0101)
+  2023Q2   -0.0140 (0.0108)
+  2023Q3   -0.0206 (0.0112)
+  2023Q4   -0.0303 (0.0121) *
+  2024Q1   -0.0262 (0.0145)
+  2024Q2   -0.0397 (0.0150) *
+  2024Q3   -0.0691 (0.0146) *
+  2024Q4   -0.0717 (0.0169) *
+  2025Q1   -0.0239 (0.0234)
+  2025Q2   -0.0751 (0.0245) *
+
+THE QUARTERLY PATH AT 26-30 (117,090 employers):
+  2022Q4   +0.0077 (0.0025) *
+  2023Q1   -0.0039 (0.0054)
+  2023Q2   -0.0042 (0.0063)
+  2023Q3   -0.0105 (0.0066)
+  2023Q4   -0.0168 (0.0071) *
+  2024Q1   -0.0215 (0.0086) *
+  2024Q2   -0.0248 (0.0098) *
+  2024Q3   -0.0373 (0.0100) *
+  2024Q4   -0.0457 (0.0105) *
+  2025Q1   -0.0717 (0.0128) *
+  2025Q2   -0.0901 (0.0159) *
+
+THE MONTHLY PATH: 62 coefficients exported for the appendix diagnostic; it carries no verdict, because the
+  reported specification removes the cycle at quarter frequency and a month keeps what separates it from its
+  own quarter's mean.
+
+THE DATING:
+  1 the dating at 22-25    THE DATING DOES NOT REPRODUCE
+     first quarter negative and distinguishable from zero: 2023Q4
+     quarters before 2024 that are already negative and significant: 2023Q4
+  2 the lag to 26-30       THE LAG DOES NOT REPRODUCE
+     22-25 opens at 2023Q4, 26-30 at 2023Q4
+
+CONSISTENCY WITH THE POOLED ESTIMATE, reported and not gated:
+  the unweighted mean of the 6 quarters from 2024 at 22-25 is -0.0510, against lane 28b's pooled adoption step of -0.0578 (different statistics: the pooled term weights employer-months and the mean does not)
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  the score is 82's build_exposure(): 262,089 employers, arm uniform3, floor 5 person-months
+
+READ RULES, FIXED BEFORE THE RUN:
+  There is NO coefficient gate. This is a decomposition of a fit
+  that has already been made and reported, not a new estimate of
+  it, and lane 28's pooled estimates stand whatever the path does.
+  What these rules decide is which sentences about TIMING survive.
+    1. THE DATING REPRODUCES at 22-25 if no quarter before
+       2024 carries a negative coefficient distinguishable
+       from zero at five per cent, AND at least one quarter from
+       2024 onward does. The rule is written on the year
+       and not on the quarter, because a rule naming 2024Q3 would
+       be read off the figure it is meant to judge.
+    2. THE LAG REPRODUCES if the first quarter meeting that
+       description at 26-30 falls LATER than the first at 22-25.
+       The paper's sentence is that the shortfall reaches the older
+       of the two young bands a year later; if they open together,
+       or the older one first, that sentence goes.
+    3. The monthly path carries NO verdict. The reported
+       specification removes the cycle at quarter frequency, so a
+       monthly coefficient retains whatever separates the month
+       from its own quarter's mean, and at 22-25 that residual is
+       large. It is exported for the appendix diagnostic alone.
+  The education route reports flat through 2023Q3, a dip in 2023Q4, and the shortfall opening in the second half of 2024, reaching 26-30 a year later.
+  Employer counts below 5 are suppressed before anything
+  leaves MONA.
+
+Runtime 68.0 min. memory available: 610.9 GB

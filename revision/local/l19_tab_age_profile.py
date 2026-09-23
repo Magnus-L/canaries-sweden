@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
 l19_tab_age_profile.py: Online Appendix Table III.2 (tab:age_profile_rebuilt),
-the headline design by age beside the age profile on a different exposure
-construction.
+the age profile on a continuous occupation-scaled exposure measure.
 
 WHAT THE TABLE REPORTS
-Two panels that must not be read against each other.
+One panel. It was two until 23 September 2026, when the first was dropped:
+it reported the design on the education route, and an education-based AI
+exposure belongs in this appendix only as the track heterogeneity, not as
+a second set of headline estimates. The code that assembles those rows is
+kept below, unused, because nothing else assembles them.
 
-  Panel A  The headline route: the top quartile of the 2019 education mix
+  Panel A  NOT WRITTEN. The education route: the top quartile of the 2019 mix
            of an employer's incumbents aged 31 to 69, for the two young
            bands. Rows give the adoption step with and without the
            calendar cycle removed (scripts 68 and 61), the vintage
@@ -189,43 +192,35 @@ def contrast_22_25() -> str:
 
 
 def main() -> int:
-    A, B = panel_a(), panel_b()
-    contrast = contrast_22_25().replace("+", "")
+    # PANEL A IS NOT WRITTEN. It reported the design on the education
+    # route, which the paper no longer uses as its exposure: an
+    # education-based AI exposure belongs in this appendix only as the
+    # track heterogeneity, not as a second set of headline estimates.
+    # panel_a() is kept because it is the only code that assembles those
+    # rows, and someone reading the education arm will want them.
+    B = panel_b()
 
     tex = [r"\begin{table}[ht!]", r"\centering",
-           r"\caption{The headline design by age, and the age profile on a "
-           r"different exposure construction.}",
+           r"\caption{The age profile on a continuous occupation-scaled "
+           r"exposure measure.}",
            r"\label{tab:age_profile_rebuilt}", r"\footnotesize",
            r"\begin{tabular}{lccc}", r"\toprule",
-           r"\multicolumn{4}{l}{\textit{Panel A. Headline route: "
-           r"top-quartile 2019 education mix of incumbents aged 31+}} \\",
-           r"\addlinespace[2pt]",
-           r" & Estimate (SE) & Vintage re-scoring & \\", r"\midrule"]
-    for lab, e, art in A:
-        tex.append(f"{lab} & {e} & {art} & \\\\")
-        print(f"  A  {lab:48s} {e}  art {art}")
-    tex += [r"\addlinespace[6pt]",
-            r"\multicolumn{4}{l}{\textit{Panel B. Continuous "
-            r"occupation-scaled measures, per standard deviation}} \\",
-            r"\addlinespace[2pt]",
-            r"Age band & DAIOE & Eloundou & Teleworkable \\", r"\midrule"]
+           r"Age band & DAIOE & Eloundou & Teleworkable \\", r"\midrule"]
     for b, cells in B:
         tex.append(f"{b} & " + " & ".join(cells) + r" \\")
-        print(f"  B  {b:6s} " + "  ".join(c.replace('$', '') for c in cells))
+        print(f"  {b:6s} " + "  ".join(c.replace('$', '') for c in cells))
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}",
             r"Poisson pseudo-maximum likelihood on employer $\times$ age "
             r"$\times$ month counts; employer-by-month, employer-by-age and "
             r"month-by-age effects; treatment January 2024; standard errors "
-            r"clustered by employer; $^{*}$ $p<0.05$. Panel A is the paper's "
-            r"estimand, the top-quartile indicator from the 2019 education mix, "
-            r"for the two young bands; its tightening step and levels use the "
-            r"Riksbank interaction as a window (post term against January 2021 "
-            r"to March 2022). Panel B scores occupations "
-            r"continuously, so a coefficient is per standard deviation of the "
-            r"2019 firm-age baseline exposure; the two panels are not "
-            r"comparable. Vintage re-scoring: the change when the 2019 "
-            r"incumbents are re-scored from the 2021 education register.",
+            r"clustered by employer; $^{*}$ $p<0.05$. Occupations are scored "
+            r"continuously rather than cut into quartiles, so exposure varies "
+            r"within an employer-month and a coefficient is per standard "
+            r"deviation of the 2019 firm-age baseline on that measure's own "
+            r"scale. This is a different estimand from the paper's and is "
+            r"reported as a check on the measure, not as a second estimate of "
+            r"the step.",
             r"\end{minipage}", r"\end{table}"]
     out = V2_TAB / "tableA_age_profile.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")
