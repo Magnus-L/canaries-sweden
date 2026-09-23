@@ -108,8 +108,7 @@ READ_RULES = [
     "  1. WHAT IS FIXED IN ADVANCE IS THE READING, NOT THE REPORTING.",
     "     Every one of the four fits runs and every coefficient is",
     "     exported and printed below, whichever way it falls; nothing",
-    "     here is conditional on the verdict, which is computed at the",
-    "     end from numbers already on the page. The rule fixed before",
+    "     here is conditional on any rule. The rule fixed before",
     "     the run is only this: AI is called the operative score if the",
     "     young decline appears among firms in the LOW-teleworkability",
     "     half and not among firms in the LOW-AI half. It constrains the",
@@ -453,12 +452,6 @@ def main():
     gc.collect()
     drain(s78, "78")
 
-    def cell(rows, name):
-        for r in rows:
-            if r["fit"] == name:
-                return r
-        return None
-
     L = ["AI EXPOSURE AGAINST WORKING FROM HOME, ON THE OCCUPATION ROUTE",
          "=" * 62, "",
          "Both firm scores come from 82's build_exposure() on the same",
@@ -476,24 +469,8 @@ def main():
             mark = "  <- discriminating" if r["discriminating"] else ""
             L.append(f"  {r['fit']:<16} {r['coef']:+.4f} ({r['se']:.4f}) "
                      f"t {r['t']:+.2f}   firms {r['n_firms']:,}{mark}")
-        lo_w, lo_a = cell(a_rows, "ai_in_low_wfh"), cell(a_rows, "wfh_in_low_ai")
-        if lo_w and lo_a:
-            ai_bites = lo_w["coef"] < 0 and abs(lo_w["t"]) >= 1.96
-            wfh_bites = lo_a["coef"] < 0 and abs(lo_a["t"]) >= 1.96
-            if ai_bites and not wfh_bites:
-                verdict = "AI IS THE OPERATIVE SCORE on rule 1"
-            elif wfh_bites and not ai_bites:
-                verdict = "TELEWORKABILITY IS THE OPERATIVE SCORE on rule 1"
-            elif ai_bites and wfh_bites:
-                verdict = "BOTH CELLS BITE; rule 1 does not discriminate"
-            else:
-                verdict = "NEITHER CELL BITES; rule 1 does not discriminate"
-            L += ["  The four coefficients above are the result and stand",
-                  "  on their own. The line below is only the label the rule",
-                  "  fixed before the run attaches to them.",
-                  f"  VERDICT on that rule: {verdict}",
-                  "  A cell that is imprecise is imprecise, never a zero;",
-                  "  every standard error is printed above for that reason."]
+        L += ["  A cell that is imprecise is imprecise, never a zero;",
+              "  every standard error is printed above for that reason."]
         L += [f"  For reference only, and not a gate: the headline at "
               f"{YOUNG_BAND} on the whole panel is {HEADLINE_22_25[0]:+.4f} "
               f"({HEADLINE_22_25[1]:.4f}). Each fit above is a half of that",

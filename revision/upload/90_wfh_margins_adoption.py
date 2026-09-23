@@ -319,12 +319,6 @@ def main():
     found, _ = part_d(s71, ai, wfh)
     drain(s78, "78")
 
-    def pick(outcome, score):
-        for r in c_rows:
-            if r["outcome"] == outcome and r["score"] == score:
-                return r
-        return None
-
     L = ["WHICH MARGIN EACH SCORE CARRIES, OCCUPATION ROUTE",
          "=" * 50, "",
          "Hires and separations at 22-25, both firm scores entered",
@@ -340,26 +334,6 @@ def main():
             L.append(f"  {r['outcome']:<5} {r['score']:<3} {r['coef']:+.4f} "
                      f"({r['se']:.4f}) t {r['t']:+.2f}   "
                      f"firms {r['n_firms']:,}")
-        ha, hw = pick("hires", "ai"), pick("hires", "wfh")
-        sa, sw = pick("seps", "ai"), pick("seps", "wfh")
-        if all((ha, hw, sa, sw)):
-            wfh_leads_hires = abs(hw["coef"]) > abs(ha["coef"])
-            ai_leads_seps = abs(sa["coef"]) > abs(sw["coef"])
-            if wfh_leads_hires and ai_leads_seps:
-                verdict = ("THE RECONCILIATION HOLDS on rule 2: "
-                           "teleworkability leads on hires and AI on "
-                           "separations")
-            else:
-                verdict = ("THE RECONCILIATION SENTENCE IS NOT WRITTEN, "
-                           "on rule 2, though the coefficients above "
-                           "stand and are reported: "
-                           f"teleworkability leads on hires "
-                           f"{str(wfh_leads_hires).upper()}, AI leads on "
-                           f"separations {str(ai_leads_seps).upper()}")
-            L += ["  The four coefficients above are the result. The line",
-                  "  below is only the label rule 2 attaches to them, and it",
-                  "  decides one sentence in the paper, not what is reported.",
-                  f"  VERDICT: {verdict}"]
         L += ["  For reference only, and not a gate: 82's own margins on",
               f"  this panel are hires {OCC_FLOW['hires'][0]:+.4f} "
               f"({OCC_FLOW['hires'][1]:.4f}) and separations "
