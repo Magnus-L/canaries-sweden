@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""
+85_occupation_route_plain_profile.py -- the age profile WITHOUT the
+                                        calendar terms, on lane 28's
+                                        occupation-route score.
+
+======================================================================
+  RUNS IN MONA. The output folder is CANARIES_85_OUT (default
+  output_85); the lane runner sets it. No database connection is needed
+  once lane 28a has cached the cascade and the 2019 counts, which it
+  has.
+======================================================================
+
+QUESTION
+Figure 2 of the paper draws each age band against 41-49 twice: once on
+the paper's specification, with three quarter-of-year interactions per
+band, and once without them. The pair is the point of the exhibit. It
+shows that the calendar terms, and not the data, are what remove the
+youngest band's significance: on the education route the plain arm gives
+-0.0288 (SE 0.0130) at 22-25 and the arm with the cycle removed -0.0099
+(0.0121), so a reader can see exactly what the control costs and decide
+whether to believe it.
+
+Lane 28 fitted the profile with the calendar terms only. This script
+fits the missing half on the same score, so that both series of Figure 2
+come from the occupation route and the exhibit compares what it compared
+before: a specification against itself, not one exposure route against
+another.
+
+BOTH ARMS ARE FITTED HERE, AND THAT IS THE POINT OF THE GATE
+The arm with the calendar terms already exists, in lane 28b's
+occ_route_profile.csv. It is refitted anyway, for one reason: the two
+series of a figure must sit on one panel, and the only way to know that
+is to fit them in one job on one frame. The refitted seasonal arm is
+then checked against lane 28b's exported coefficients to four decimals.
+IF THE CHECK FAILS, THE PANEL IS NOT THE ONE THE PAPER REPORTS AND
+NEITHER ARM IS QUOTED; the summary says so at the top in those words.
+The check costs one fit of about ten minutes and buys the only thing
+that makes the pair comparable.
+
+THE SCORE IS LANE 28'S AND IS NOT REBUILT
+The quartile comes from 82_occupation_route.build_exposure(), the
+primary arm: uniform3, the backward cascade, a floor of five incumbent
+person-months. The terms come from 74's own build_terms, called with
+seasonal False and True rather than copied, so the plain arm is the
+paper's specification minus the calendar terms and nothing else.
+
+READ RULES, fixed before the run and printed at the start and in the
+summary.
+
+  1. THE GATE. The seasonal arm must reproduce lane 28b's profile to
+     four decimals at every band. A moved coefficient means a moved
+     panel, and nothing from either arm is quoted.
+  2. THE PLAIN ARM CARRIES NO VERDICT. It is not a rival estimate of the
+     profile and the paper does not read it as one. The calendar terms
+     are in the reported specification because the exposure-differential
+     ratio has a seasonal cycle present before any treatment; an arm
+     without them inherits that cycle. What the arm is for is to show
+     the reader how much of the profile the control removes.
+  3. The difference between the arms is reported at every band,
+     whichever way it falls, and the summary names any band where the
+     two disagree in sign.
+
+INPUTS AND OUTPUTS
+Reads, through the modules it imports: L_baseline_2019_cascade and
+L_baseline_2019 (script 82's pull, cached by lane 28a), L_counts_2019
+(47L, cached by lane 28a) and L_counts_2021 to 2025 (47L). Reads lane
+28b's occ_route_profile.csv for the gate if it is on the share; if it is
+not, the gate cannot run and the summary says so rather than passing.
+Performs no SQL of its own.
+
+Writes to output_85/: occ_route_profile_arms.csv (arm, band, coef, se,
+t, n_firms, n_obs, status), the vcov_s85_*.csv files and 85_summary.txt.
+
+IN THE PAPER
+Figure 2 of main_v3.tex, both series.
+"""
+
+import gc
+import os
+import sys
+import time
+import traceback
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mona_common as mc
+
+HERE = Path(__file__).resolve().parent
+OUT = HERE / os.environ.get("CANARIES_85_OUT", "output_85")
+OUT.mkdir(exist_ok=True)
+CACHE = mc.CACHE_DIR
+os.environ.setdefault("CANARIES_82_OUT", str(OUT))
+
+FLOOR = 5                        # the export floor, as in mona_common
+MATCH_DP = 4                     # the gate, decimals, as in 80
+PROFILE_REF = "41-49"            # the omitted band
+# Where lane 28b's profile may be found, for the gate. The first that
+# exists is used; a run that finds none reports NO GATE.
+PRIOR = ("output_82b", "output_84a", "output_84", ".")
+PRIOR_FILE = "occ_route_profile.csv"
+# The education route's own pair, for the summary alone. It is the
+# comparison the figure used to draw and no longer does; it is printed
+# here so the two are on one page for us, and it enters no export.
+EDU_ARMS = {"22-25": (-0.0288, 0.0130, -0.0099, 0.0121),
+            "26-30": (-0.0146, 0.0086, -0.0096, 0.0084),
+            "50+": (+0.0616, 0.0065, +0.0589, 0.0062)}
+
+NOTES, FAILURES = [], []
+
+READ_RULES = [
+    "READ RULES, FIXED BEFORE THE RUN:",
+    "  1. THE GATE. The arm WITH the calendar terms must reproduce lane",
+    f"     28b's profile to {MATCH_DP} decimals at every band. A moved",
+    "     coefficient means a moved panel, and then NEITHER ARM IS",
+    "     QUOTED and the figure is not drawn.",
+    "  2. THE PLAIN ARM CARRIES NO VERDICT. It is not a rival estimate",
+    "     of the profile. The calendar terms are in the reported",
+    "     specification because the exposure-differential ratio has a",
+    "     seasonal cycle present before any treatment, and an arm",
+    "     without them inherits it. The arm exists to show the reader",
+    "     how much of the profile the control removes.",
+    "  3. The difference between the arms is reported at every band",
+    "     whichever way it falls, and any band where the two disagree",
+    "     in SIGN is named.",
+    "  On the education route the pair ran -0.0288 (0.0130) plain and",
+    "  -0.0099 (0.0121) with the cycle removed at 22-25.",
+    f"  Employer counts below {FLOOR} are suppressed before anything",
+    "  leaves MONA.",
+]
+
+
+def _mod(fname: str, name: str):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, HERE / fname)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def cnt(v) -> str:
+    if v is None or v != v:
+        return "(suppressed)"
+    v = int(v)
+    return "(suppressed)" if 0 < v < FLOOR else f"{v:,}"
+
+
+def tstat(c, s) -> float:
+    return float(c) / s if s and s == s and s > 0 else np.nan
+
+
+def save(rows, name: str, count_col: str = "n_firms") -> pd.DataFrame:
+    df = rows if isinstance(rows, pd.DataFrame) else pd.DataFrame(rows)
+    if not df.empty and count_col in df.columns:
+        df = mc.enforce_min_cell(df, count_col=count_col, floor=FLOOR)
+    df.to_csv(OUT / name, index=False)
+    return df
+
+
+def fit(b: pd.DataFrame, tag: str, terms: list, fes: tuple):
+    print(f"    {tag}: {len(b):,} rows, {b['employer_id'].nunique():,} firms"
+          f"{mc.mem_line(' | ')}")
+    t = time.time()
+    try:
+        r = mc.run_fepois_multi(b, OUT, tag=f"s85_{tag}", terms=terms,
+                                fes=fes, cluster="employer_id")
+    except BaseException as ex:
+        print(f"    {tag} FAILED: {type(ex).__name__}: {ex}")
+        traceback.print_exc()
+        r = pd.DataFrame()
+    if r.empty:
+        FAILURES.append(tag)
+        print(f"    {tag}: FAILED, recorded and skipped")
+        return None
+    print(f"    {tag}: done in {(time.time()-t)/60:.1f} min")
+    return r.set_index("term")
+
+
+def load_counts(prefix: str, years):
+    out = []
+    for y in years:
+        c = mc.read_cache(CACHE / f"{prefix}_{y}.parquet")
+        if c is None:
+            return None
+        out.append(c)
+    return pd.concat(out, ignore_index=True) if out else None
+
+
+def prior_profile() -> pd.DataFrame:
+    """Lane 28b's profile, for the gate."""
+    for d in PRIOR:
+        p = HERE / d / PRIOR_FILE
+        if p.exists():
+            print(f"  the gate reads {p}")
+            NOTES.append(f"the gate read lane 28b's profile from {d}")
+            return pd.read_csv(p)
+    FAILURES.append("no prior profile for the gate")
+    print("  NO PRIOR PROFILE FOUND: the gate cannot run")
+    NOTES.append("lane 28b's occ_route_profile.csv was not on the share, so "
+                 "the four-decimal gate could not run; the seasonal arm here "
+                 "is unchecked against it")
+    return pd.DataFrame()
+
+
+def load_modules():
+    s82 = _mod("82_occupation_route.py", "s82")
+    s82.OUT = OUT
+    s61, s67, s74, s78, s80, l47, l70, j47 = s82.load_modules()
+    if s74.POOLED_FROM != l70.POOLED_FROM:
+        raise RuntimeError("74 and 70 disagree on when the post period "
+                           "opens; refusing to run.")
+    if l70.REF_BAND != PROFILE_REF:
+        raise RuntimeError(f"70's reference band is {l70.REF_BAND} and this "
+                           f"script's is {PROFILE_REF}; refusing to run.")
+    if s82.MAIN_LEVEL != "uniform3" or s82.MAIN_ARM != "backward" \
+            or s82.FLOOR_MAIN != FLOOR:
+        raise RuntimeError("82's primary arm is not the one the paper "
+                           "reports; refusing to run.")
+    return s82, s61, s74, s78, l47, l70, j47
+
+
+def main():
+    mc.Tee(OUT / "85_log.txt")
+    t0 = time.time()
+    print("=" * 70)
+    print("85: THE AGE PROFILE WITH AND WITHOUT THE CALENDAR TERMS")
+    print("=" * 70)
+    print("\n".join(READ_RULES))
+    print(mc.mem_line("  "))
+
+    s82, s61, s74, s78, l47, l70, j47 = load_modules()
+    built = s82.build_exposure(l47, l70, j47)
+    occ = built["exposure"]
+    for n in list(getattr(s82, "NOTES", [])):
+        NOTES.append(f"82: {n}")
+    print(f"  the score: {len(occ):,} employers on the {built['arm']} arm "
+          f"at a floor of {built['floor']} {built['basis']}")
+
+    counts = load_counts("L_counts", s61.PANEL_YEARS)
+    if counts is None:
+        raise RuntimeError("L_counts_* missing: run 47L first.")
+    print(f"  counts: {len(counts):,} employer-age-months")
+
+    skel = l70.all_band_skeleton(counts)
+    if skel.empty:
+        raise RuntimeError("the six-band skeleton is empty; refusing to run.")
+    b0 = s78.with_exposure(skel, occ)
+    del skel
+    gc.collect()
+    if b0.empty:
+        raise RuntimeError("no employer on the six-band panel carries the "
+                           "exposure quartile; refusing to run.")
+    n_firms = int(b0["employer_id"].nunique())
+    print(f"  the six-band panel: {n_firms:,} employers, {len(b0):,} cells")
+
+    rows = []
+    for arm, seasonal in (("seasonal", True), ("plain", False)):
+        b, terms = s74.build_terms(b0, l70, seasonal=seasonal)
+        g = fit(b, f"profile_{arm}", terms, j47.FES)
+        if g is None:
+            continue
+        for band in s74.BANDS:
+            if band == PROFILE_REF:
+                rows.append({"arm": arm, "band": band, "coef": 0.0,
+                             "se": 0.0, "t": np.nan, "n_firms": n_firms,
+                             "n_obs": int(g["n_obs"].max()),
+                             "status": "reference"})
+                continue
+            t_ = l70.band_col("gpt_x_high", band)
+            if t_ not in g.index:
+                FAILURES.append(f"{arm}/{band}/no term")
+                continue
+            c, se = float(g.loc[t_, "coef"]), float(g.loc[t_, "se"])
+            rows.append({"arm": arm, "band": band, "coef": c, "se": se,
+                         "t": tstat(c, se), "n_firms": n_firms,
+                         "n_obs": int(g.loc[t_, "n_obs"]),
+                         "status": str(g.loc[t_].get("status", "ok"))})
+        save(rows, "occ_route_profile_arms.csv")
+        print(f"    {arm}:")
+        for r in [x for x in rows if x["arm"] == arm and x["se"] > 0]:
+            print(f"      {r['band']:6s} {r['coef']:+.4f} ({r['se']:.4f}) "
+                  f"t {r['t']:+.2f}")
+
+    # ---- the gate ----------------------------------------------------
+    prior = prior_profile()
+    gate, gate_lines = "NO GATE", []
+    if not prior.empty:
+        moved = []
+        for r in [x for x in rows if x["arm"] == "seasonal"
+                  and x["status"] == "ok"]:
+            p = prior[prior["band"] == r["band"]]
+            if not len(p):
+                moved.append(f"{r['band']} absent from lane 28b")
+                continue
+            d = abs(float(p["coef"].iloc[0]) - r["coef"])
+            if d >= 10 ** (-MATCH_DP) / 2:
+                moved.append(f"{r['band']} {float(p['coef'].iloc[0]):+.4f} "
+                             f"against {r['coef']:+.4f}")
+        gate = "THE PANEL IS THE ONE LANE 28b FITTED" if not moved \
+            else "THE PANEL HAS MOVED: NEITHER ARM IS QUOTED"
+        gate_lines = [f"  {gate}"] + [f"    {m}" for m in moved]
+        if moved:
+            FAILURES.append("gate")
+
+    # ---- what the calendar terms do ----------------------------------
+    diff_lines, flips = [], []
+    for band in s74.BANDS:
+        if band == PROFILE_REF:
+            continue
+        p = [x for x in rows if x["arm"] == "plain" and x["band"] == band]
+        s = [x for x in rows if x["arm"] == "seasonal" and x["band"] == band]
+        if not p or not s:
+            continue
+        p, s = p[0], s[0]
+        if p["coef"] * s["coef"] < 0:
+            flips.append(band)
+        diff_lines.append(
+            f"  {band:6s} plain {p['coef']:+.4f} ({p['se']:.4f}) t "
+            f"{p['t']:+.2f}   cycle removed {s['coef']:+.4f} ({s['se']:.4f}) "
+            f"t {s['t']:+.2f}   the terms move it {s['coef']-p['coef']:+.4f}")
+
+    print("\nTHE GATE:")
+    print("\n".join(gate_lines) or "  not run")
+    print("\nWHAT THE CALENDAR TERMS DO:")
+    print("\n".join(diff_lines))
+    if flips:
+        print(f"  THE TWO ARMS DISAGREE IN SIGN AT: {', '.join(flips)}")
+
+    L = ["THE AGE PROFILE WITH AND WITHOUT THE CALENDAR TERMS",
+         "=" * 52, "",
+         "Figure 2 draws each band against 41-49 twice, on the paper's",
+         "specification and without its three quarter-of-year terms per",
+         "band. Lane 28 fitted only the first. This is the second, on the",
+         "same score and in one job with a refit of the first, so that both",
+         "series of the figure sit on one panel and are known to.", "",
+         f"The six-band panel: {cnt(n_firms)} employers.", "",
+         "THE GATE:"]
+    L += gate_lines or ["  not run"]
+    L += ["", "WHAT THE CALENDAR TERMS DO:"] + diff_lines
+    if flips:
+        L.append(f"  THE TWO ARMS DISAGREE IN SIGN AT: {', '.join(flips)}")
+    L += ["", "THE EDUCATION ROUTE'S OWN PAIR, for reference and not for "
+          "export:"]
+    for band, (pc, ps, sc, ss) in EDU_ARMS.items():
+        L.append(f"  {band:6s} plain {pc:+.4f} ({ps:.4f})   cycle removed "
+                 f"{sc:+.4f} ({ss:.4f})")
+    L.append("")
+    if FAILURES:
+        L.append(f"WHAT FAILED: {', '.join(FAILURES)}")
+        L.append("A missing row is a missing fit, never a zero, and the "
+                 "figure must not be drawn through it.")
+        L.append("")
+    if NOTES:
+        L.append("NOTES:")
+        L += [f"  {n}" for n in NOTES]
+        L.append("")
+    L += READ_RULES
+    L.append("")
+    L.append(f"Runtime {(time.time()-t0)/60:.1f} min. {mc.mem_line('')}")
+    (OUT / "85_summary.txt").write_text("\n".join(L) + "\n", encoding="utf-8")
+    print(f"\n  wrote {OUT / '85_summary.txt'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
