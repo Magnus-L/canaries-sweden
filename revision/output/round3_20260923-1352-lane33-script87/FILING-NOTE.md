@@ -123,29 +123,43 @@ This export retires that, and 88 retires the last of it.
 
 ## Still owed
 
-1. **Script 88**, unchanged from above. `tableA_contrast_by_track.tex` is still the education
-   route's and Online Appendix III.2 now carries one exhibit on each route.
-2. **Four prose sites quote the old figures and now disagree with the tables beside them.**
-   None was touched, because they are prose and not exhibits.
-   - `main_v3.tex:148`: "retains three quarters of its size on the panel where that split was
-     run, so at most a third is field composition". Now 85 per cent under young women's
-     shares. **The bound is not simply better**: under young men's shares the within-track
-     figure is $-0.0518$ (0.0153), three fifths, against two thirds on the education route, so
-     the range across the two weightings WIDENS from "a quarter to a third" to about a seventh
-     to two fifths. Write the pair, not the flattering half.
-   - `appendix_v3.tex:645`: the whole paragraph. $-0.0659$ becomes $-0.0858$, $-0.0508$
-     (0.0118) becomes $-0.0731$ (0.0138), $-0.0435$ (0.0127) becomes $-0.0518$ (0.0153), and
-     the per-track sentence reverses: the differential is now largest in health, education and
-     care by a wide margin ($-0.242$, 0.041), and engineering ($-0.044$, 0.031) and business
-     ($-0.041$, 0.024) are no longer distinguishable from zero.
-   - `appendix_v3.tex:672` and `main_v3.tex:137`, the ICT male cell: "$-0.090$ (SE 0.047),
-     significant at the ten per cent level" and "about 9 per cent, at the ten per cent level".
-     On this route it is $-0.1297$ (0.0593), t $-2.19$, **significant at five per cent**, about
-     13 per cent.
-   - The men's-shares variant is NOT in the export on either route: 76's appendix number was
-     computed from the mix CSV's men's shares with the same independent-track formula. The
-     figure above was computed the same way and reproduces 76's $-0.0435$ (0.0127) exactly as
-     a check, but it is a local computation and not an exported estimate.
+**Script 88 alone.** `tableA_contrast_by_track.tex` is still the education route's, and
+`appendix_v3.tex:672` now says so in a sentence that comes out when 88 lands.
+
+## The prose, applied 23 September 15:05
+
+Five sites, not the four first listed. The fifth was `appendix_v3.tex:642`, which carried three
+sentences warning that the split's pooled differential sat on a base that must not be netted
+against Table 1's. Script 87 fits Equation (2) itself, so the warning was obsolete; it is
+replaced by one sentence saying the split reproduces the differential and the two are read
+against each other directly.
+
+  - `:645`, the split paragraph, rebuilt: pooled $-0.0858$ (0.0142), within $-0.0731$ (0.0138)
+    at 85 per cent, $-0.0518$ (0.0153) at three fifths under young men's shares, residual a
+    seventh to two fifths. The per-track sentence reverses: concentrated in health, education
+    and social care ($-0.242$, 0.041), where young men gain ($+0.152$, 0.042); engineering and
+    business no longer distinguishable from zero.
+  - `main_v3.tex:148`: the bound is now "85 per cent ... under young women's track shares and
+    three fifths under young men's, so between a seventh and two fifths is field composition".
+    **The pair is written, not the flattering half**: the range across weightings widened.
+  - `main_v3.tex:137` and `appendix_v3.tex:672`, the ICT male cell: about 12 per cent at the
+    five per cent level, $-0.130$ (0.059). Twelve and not thirteen, because the paper converts
+    with $e^{b}-1$ throughout, which its own $-0.1029 \to 9.8$ per cent confirms.
+  - `:672` also had to narrow a claim that had become false. It said education "is the one
+    place the paper uses the education register", while the contrast by track beside it is
+    still scored on the 2019 education mix. It now names the sex split as the exhibit where
+    education only divides the sample, and the contrast as the one exhibit still on the
+    education score.
+
+**One inconsistency remains by construction and cannot be fixed here.** The sentence at
+`main_v3.tex:137` joins a contrast-by-track clause, still the education route's, to an ICT male
+clause now on the occupation route. Both point at Online Appendix III.2, where `:672` discloses
+the split. Script 88 closes it.
+
+`l37_v3_prose_numbers.py` was extended to print the whole track block, because it covered
+Section 3's sex rows and not the track numbers, and typed prose numbers are where the
+21 September sweep found its two errors. It also recomputes the men's-shares variant, which is
+quoted in the appendix and is exported by neither route.
 
 ## The standing caveat the summary repeats
 

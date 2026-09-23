@@ -27,6 +27,8 @@ REV = Path(__file__).resolve().parents[1]
 OUT = REV / "output"
 OCC = OUT / "round3_20260923-0655-lanes28b-29bcd"
 LANE28A = OUT / "round3_20260922-2232-lane28a"
+# The track split and the mix behind its weights (script 87, lane 33).
+SPLIT = OUT / "round3_20260923-1352-lane33-script87"
 
 TERM = "post_x_high_x_young"
 INTER = "interim_x_high_x_young"
@@ -145,6 +147,48 @@ def main() -> int:
         lo, hi = pct(c - 1.96 * se), pct(c + 1.96 * se)
         print(f"  {outcome:<8}               {c:+.4f} ({se:.4f})  "
               f"{pct(c):+.1f} per cent, interval {lo:+.1f} to {hi:+.1f}")
+    print()
+
+    print("SECTION 3 AND OA III.2, THE TRACK SPLIT  "
+          "(occ_route_gender_by_track.csv, occ_route_gender_split.csv)")
+    bt = pd.read_csv(SPLIT / "occ_route_gender_by_track.csv").set_index("track")
+    sp = pd.read_csv(SPLIT / "occ_route_gender_split.csv").iloc[0]
+    mix = pd.read_csv(SPLIT / "occ_route_education_mix_by_sex.csv")
+    pooled = float(sp.pooled)
+    if abs(pooled - fem[0]) > 5e-5:
+        raise SystemExit(f"  the split's pooled differential {pooled:+.6f} is "
+                         f"not Section 3's female differential {fem[0]:+.6f}")
+    print(f"  pooled                   {pooled:+.4f} ({float(sp.pooled_se):.4f})"
+          f"   [equals the female differential above, which is the gate]")
+    print(f"  {'within, as exported':<28} {float(sp.within):+.4f} "
+          f"({float(sp.within_se):.4f})   {100 * float(sp.ratio_within):.0f} "
+          f"per cent of pooled; composition {100 * (1 - float(sp.ratio_within)):.0f} per cent")
+    # The men's-shares variant is NOT exported: it is the same weighted
+    # sum over the mix table's men's shares, and the paper quotes it, so
+    # it is computed here rather than typed.
+    tracks = [k for k in bt.index if k != "all"]
+    for gender_w in ("women", "men"):
+        w = mix[(mix.dimension == "track") & (mix.exposed == 1)
+                & (mix.gender == gender_w)].set_index("cell")["share"]
+        wr = w[tracks] / w[tracks].sum()
+        within = float((wr * bt.loc[tracks, "diff"]).sum())
+        se = float(((wr * bt.loc[tracks, "diff_se"]) ** 2).sum() ** 0.5)
+        tag = ("women's shares, recomputed" if gender_w == "women"
+               else "men's shares, not exported")
+        print(f"  {tag:<28} {within:+.4f} ({se:.4f})   "
+              f"{100 * within / pooled:.0f} per cent of pooled; "
+              f"composition {100 * (1 - within / pooled):.0f} per cent")
+    for k in tracks:
+        r = bt.loc[k]
+        print(f"    {k:<22} men {float(r.male):+.4f} ({float(r.male_se):.4f}) "
+              f"t {float(r.male) / float(r.male_se):+.2f}   "
+              f"diff {float(r['diff']):+.4f} ({float(r.diff_se):.4f}) "
+              f"t {float(r['diff']) / float(r.diff_se):+.2f}   "
+              f"{pct(float(r.male)):+.1f} per cent for men")
+    w = mix[(mix.dimension == "track") & (mix.exposed == 1)
+            & (mix.gender == "women")].set_index("cell")["share"]
+    print(f"    ICT share of exposed firms' young women "
+          f"{100 * float(w['ict']):.1f} per cent")
     print()
 
     print("SECTION 3, THE PRE-TEST AND THE TWO CLUSTERINGS")
