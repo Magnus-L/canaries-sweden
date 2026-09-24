@@ -1,0 +1,136 @@
+THE OCCUPATION ROUTE, WITH NO EDUCATION ANYWHERE
+====================================================
+
+The paper routes exposure through education: an education group
+carries the mean DAIOE percentile of the occupations its holders
+worked in during 2019, and an employer is ranked by the mean over
+its incumbents aged 31 to 69. Here the intermediate step is
+deleted: an employer is ranked by the mean DAIOE percentile of
+the 2019 four-digit occupations of its OWN incumbents aged 31 to
+69. Same freeze year, same incumbent restriction, same quartile
+weighting, no education record anywhere.
+
+THE FLOOR AND ITS UNIT. The floor is on the firm's INCUMBENTS and
+not on its coded incumbents, at 5, applied to the
+person-months.
+That is the education route's own unit, so the two floors are
+commensurable.
+
+THE SCORING LEVEL, AND WHY THE UNIFORM ONE IS PRIMARY. Every
+incumbent is scored from the THREE-DIGIT book, built once as the
+2019 national employment-weighted mean of the four-digit
+DAIOE scores within each three-digit group. The workers lacking a
+four-digit code are not a random subset, so under a mixed rule a
+firm scored mostly at four digits gets a sharp score and one
+scored mostly at three gets a score smoothed toward group means
+and compressed away from the extremes: quartile assignment would
+then depend partly on the firm's coding completeness, which is a
+bias channel into the treatment variable and not merely noise.
+Under the uniform rule the smoothing is common to every firm and
+the ranking survives it, and from 2019 every coded occupation
+carries at least three digits, so the uniform level is the
+near-complete one. mixed43 and four_only are fitted beside it as
+robustness and settle nothing. DO NOT REVERSE THIS: the mixed arm
+looks more precise and is not.
+
+THE CASCADE. Each incumbent takes the occupation recorded for him
+in 2019, failing that 2018, 2017, 2016, 2015. Backward only:
+a code recorded after the freeze year would break the paper's
+claim that none enters anything. The forward arm (2020, 2021) is
+reported and is never the score.
+
+WHAT THE COARSENING COSTS, which is the evidence for the
+primary arm and belongs in the appendix:
+                                       weighted   unweighted benchmark
+  between-group share of variance        94.6%                 91.7%
+  within-group share (discarded)          5.4%                  8.3%
+  mean |four-digit minus book|            4.26                  5.50
+  The weighted column is ours, on the 2019 Swedish employed population, and is the number
+  that matters. The benchmark column is the same statistics UNWEIGHTED on the released
+  DAIOE panel at 2023 (423 occupations in 145 groups; median distance 3.55, ninetieth
+  percentile 13.36). They can differ legitimately: if the larger occupations sit
+  further from their group means, the weighted within-share is the higher one.
+  Built on 4,669,540 workers, 423 four-digit codes and 145 three-digit groups, of which 30 hold a single
+  occupation and carry 7.9% of the employment: for those workers the arms are identical by
+  construction and nothing is discarded (benchmark: 30 such groups).
+  The DAIOE release publishes no three-digit product, so the book is built here and exported.
+
+C. THE SEX SPLIT, THE MARGINS AND THE VINTAGE CHECK:
+  3. THE FEMALE DIFFERENTIAL: THE SEX RESULT REPRODUCES
+     occupation route -0.0858 (0.0142) t -6.04; education route -0.0746 (0.0142)
+     the rule is the one per cent level, so the threshold is |t| >= 2.58
+     young men, adoption step     -0.0171 (0.0179)
+     young women, adoption step   -0.1029 (0.0163)
+  the margins at 22-25, adoption step:
+    hires  -0.0179 (0.0406) t -0.44   education route -0.0032 (0.0363)
+    seps   +0.0540 (0.0225) t +2.40   education route +0.0787 (0.0203)
+  the vintage check, every arm against the 2019 code alone:
+    cascade_back_2019      97.8% keep their quartile, mean relative shift 1.93%, Spearman +0.995
+    cascade_back_2019      moves the adoption step -0.0046
+    The education route's own re-scoring moved it +0.0113 (-0.0408 to -0.0295).
+
+THE THREE VERDICTS:
+  3 female differential        THE SEX RESULT REPRODUCES
+
+NOTES:
+  cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  vintage: the three arms score cascade_back_2019 262,089, code_2019_only 250,864, asof_2021 0; the 250,864 employers all three score are the sample of every fit
+
+WHAT FAILED: C/vintage/asof_2021/no exposure
+A missing row is a missing fit or a missing pull, never a zero.
+
+READ RULES, FIXED BEFORE THE RUN:
+  There is NO coefficient gate. This is a different measure of the
+  same object, so the estimates will differ from the education route
+  and that is expected. What is judged is whether the paper's
+  findings survive the change of route, on three questions settled
+  before any of this was estimated:
+    1. REPRODUCES if the adoption step at 22-25 is negative and
+       distinguishable from zero at the five per cent level on
+       employer clustering.
+    2. THE PROFILE REPRODUCES if the 50-and-over band gains against
+       41-49 and the young band is the lowest or the second lowest
+       of the six.
+    3. THE SEX RESULT REPRODUCES if the female differential is
+       negative and distinguishable from zero at the one per cent
+       level.
+  All three are read on the REPORTED score and on nothing else:
+  the uniform three-digit arm (uniform3), the backward cascade,
+  a floor of 5. The mixed43 and four_only arms, the floor
+  variants and the forward cascade are reported beside it and settle
+  nothing, however they fall.
+  Each verdict is reported explicitly and whatever the numbers are,
+  and every point estimate is reported beside the education-route
+  one in every table.
+  The education route prints: the adoption step -0.0408 (0.0150) at
+  22-25 and -0.0394 (0.0102) at 26-30; 22-25 against 41-49 -0.0099
+  (0.0121) and 50 and over +0.0589 (0.0062); the female differential
+  -0.0746 (0.0142); separations +0.0787 (0.0203) and hires -0.0032
+  (0.0363).
+  Employer counts below 5 are suppressed before anything
+  leaves MONA, and a share is suppressed with its own numerator.
+
+WHAT TO EXPECT, SO IT IS NOT READ AS A BUG:
+  1. This route still scores fewer employers than the education
+     route. The occupation register samples about half the
+     workforce and imputes the rest, so a firm with incumbents
+     can have no coded incumbent at all. What Part A settles is
+     how much of the gap is that and how much was the floor:
+     script 65's rule counted CODED November persons, which is
+     roughly an order of magnitude stricter than the education
+     route's five person-months, and script 70's ladder (172,396
+     to 60,704) is that rule and not this one.
+  2. A carried-forward code is noisier than a contemporaneous
+     one. That attenuates towards zero and cannot manufacture a
+     result, and the share of coded incumbents from before the
+     freeze year is on every fit's row.
+  3. The two routes are standardised on their own distributions
+     and rank employers differently, so agreement in SIZE is not
+     expected and is not what any of the three rules asks for.
+  4. The forward arm and the floor variants are reported and
+     settle nothing. The read rules are on the backward cascade
+     at a floor of 5 and on nothing else.
+
+Runtime 47.0 min. memory available: 663.6 GB

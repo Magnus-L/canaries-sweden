@@ -1,0 +1,52 @@
+THE AGE PROFILE WITH AND WITHOUT THE CALENDAR TERMS
+====================================================
+
+Figure 2 draws each band against 41-49 twice, on the paper's
+specification and without its three quarter-of-year terms per
+band. Lane 28 fitted only the first. This is the second, on the
+same score and in one job with a refit of the first, so that both
+series of the figure sit on one panel and are known to.
+
+The six-band panel: 153,845 employers.
+
+THE GATE:
+  THE PANEL IS THE ONE LANE 28b FITTED
+
+WHAT THE CALENDAR TERMS DO:
+  22-25  plain -0.0381 (0.0134) t -2.85   cycle removed -0.0192 (0.0125) t -1.54   the terms move it +0.0189
+  26-30  plain -0.0147 (0.0088) t -1.66   cycle removed -0.0097 (0.0086) t -1.13   the terms move it +0.0049
+  31-34  plain +0.0186 (0.0066) t +2.84   cycle removed +0.0181 (0.0065) t +2.81   the terms move it -0.0005
+  35-40  plain +0.0180 (0.0053) t +3.36   cycle removed +0.0180 (0.0053) t +3.41   the terms move it +0.0000
+  50+    plain +0.0709 (0.0065) t +10.85   cycle removed +0.0675 (0.0063) t +10.80   the terms move it -0.0034
+
+THE EDUCATION ROUTE'S OWN PAIR, for reference and not for export:
+  22-25  plain -0.0288 (0.0130)   cycle removed -0.0099 (0.0121)
+  26-30  plain -0.0146 (0.0086)   cycle removed -0.0096 (0.0084)
+  50+    plain +0.0616 (0.0065)   cycle removed +0.0589 (0.0062)
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  the gate read lane 28b's profile from output_82b
+
+READ RULES, FIXED BEFORE THE RUN:
+  1. THE GATE. The arm WITH the calendar terms must reproduce lane
+     28b's profile to 4 decimals at every band. A moved
+     coefficient means a moved panel, and then NEITHER ARM IS
+     QUOTED and the figure is not drawn.
+  2. THE PLAIN ARM CARRIES NO VERDICT. It is not a rival estimate
+     of the profile. The calendar terms are in the reported
+     specification because the exposure-differential ratio has a
+     seasonal cycle present before any treatment, and an arm
+     without them inherits it. The arm exists to show the reader
+     how much of the profile the control removes.
+  3. The difference between the arms is reported at every band
+     whichever way it falls, and any band where the two disagree
+     in SIGN is named.
+  On the education route the pair ran -0.0288 (0.0130) plain and
+  -0.0099 (0.0121) with the cycle removed at 22-25.
+  Employer counts below 5 are suppressed before anything
+  leaves MONA.
+
+Runtime 37.8 min. memory available: 599.4 GB

@@ -1,0 +1,34 @@
+======================================================================
+run by lodema at 2026-09-18 15:54 | 45_asof_backtest.py
+======================================================================
+======================================================================
+45: AS-OF BACKTEST + FRONTIER (E5 centrepiece)
+======================================================================
+
+=== truncation T = 2021 ===
+  2019: 21,158,148 cells (183s)
+  2020: 20,557,960 cells (153s)
+  2021: 21,022,378 cells (180s)
+  2022: 27,284,001 cells (237s)
+  2023: 30,864,121 cells (230s)
+  T2021: confusion + match rates written
+  [true T2021] 7,944,780 cells
+  [asof T2021] 7,036,920 cells
+
+=== truncation T = 2022 ===
+  2019: 21,158,148 cells (176s)
+  2020: 20,557,960 cells (181s)
+  2021: 21,022,378 cells (169s)
+  2022: 22,265,793 cells (209s)
+  2023: 27,663,885 cells (236s)
+  T2022: confusion + match rates written
+  [true T2022] 7,944,780 cells
+  [asof T2022] 7,530,960 cells
+
+BACKTEST HEADLINE:
+  T=2021: true +0.0193, as-of -0.2875, ARTEFACT = -0.3068
+  T=2022: true +0.0176, as-of -0.1452, ARTEFACT = -0.1627
+FRONTIER
+========================================
+headline gamma2 (Poisson): -0.174
+combined differential loss needed to erase it: 16.0%

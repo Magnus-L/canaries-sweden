@@ -1,0 +1,4 @@
+CANARY GATE: PASS
+  ols_gamma2: ok
+  poisson_gamma2: ok
+  poisson_n_obs: ok  (N 11,682,918 vs anchor 11,970,426: drift 2.40%, tolerance 3%; see output_39b)

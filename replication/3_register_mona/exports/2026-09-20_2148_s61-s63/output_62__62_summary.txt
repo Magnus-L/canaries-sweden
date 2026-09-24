@@ -1,0 +1,56 @@
+WHY THE TWO CLEAN DESIGNS DISAGREE ABOUT AGE
+====================================================
+
+Outcome, panel and fixed effects are 47L's in every column.
+Only the exposure construction changes.
+
+  A_occ_age_cont     occupation, age-specific, continuous  (= 47L)
+  B_occ_firm_cont    occupation, firm incumbents, continuous
+  C_edu_age_cont     education, age-specific, continuous
+  D_edu_firm_quart   education, firm incumbents, quartile  (47j's exposure, inside 47L's specification)
+
+age gradient by variant:
+variant    A0_47L_anchor  A_occ_age_cont  B_occ_firm_cont  C_edu_age_cont  D_edu_firm_quart
+age_group                                                                                  
+22-25             0.0081          0.0085          -0.0278          0.0233           -0.0067
+26-30             0.0131          0.0131          -0.0203          0.0189            0.0014
+31-34             0.0091          0.0092          -0.0231          0.0030           -0.0080
+35-40            -0.0044         -0.0043          -0.0376         -0.0195           -0.0249
+41-49            -0.0193         -0.0192          -0.0493         -0.0173           -0.0246
+50+               0.0357          0.0358              NaN          0.0258               NaN
+
+standard errors:
+variant    A0_47L_anchor  A_occ_age_cont  B_occ_firm_cont  C_edu_age_cont  D_edu_firm_quart
+age_group                                                                                  
+22-25             0.0126          0.0127           0.0138          0.0106            0.0108
+26-30             0.0092          0.0093           0.0093          0.0068            0.0078
+31-34             0.0089          0.0089           0.0084          0.0066            0.0072
+35-40             0.0083          0.0084           0.0078          0.0064            0.0070
+41-49             0.0089          0.0089           0.0071          0.0067            0.0066
+50+               0.0144          0.0144              NaN          0.0138               NaN
+
+SAMPLE alone (anchor to A) moves 22-25 by +0.0004  <- the cost of the common sample, not a finding
+UNIT alone (A to B) moves 22-25 by -0.0363
+SOURCE alone (A to C) moves 22-25 by +0.0148
+UNIT and FORM (C to D) move 22-25 by -0.0300
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. This is a decomposition, not a horse race. None of the four
+     is 'the right one'; the point is which ingredient moves the
+     answer.
+  2. A firm-level exposure asks whether exposed FIRMS treat their
+     young differently. An age-specific one asks whether exposed
+     YOUNG WORKERS fare differently. If the unit is what matters,
+     the two designs were answering different questions all along
+     and neither is wrong.
+  3. Every variant here uses the stock as the outcome, so none of
+     them speaks to hiring.
+  4. CHECK THE ANCHOR FIRST. A0 is 47L's own exposure on 47L's own
+     sample and must reproduce 47L's published gradient (+0.0081
+     at 22-25, -0.0193 at 41-49). If it does not, something other
+     than the exposure has changed and nothing below it should be
+     read. The four variants then run on one common sample, so
+     the A0-to-A step is the price of that restriction and the
+     A-to-B, A-to-C and C-to-D steps are the decomposition.
+
+Runtime 24.2 min. memory available: 644.7 GB

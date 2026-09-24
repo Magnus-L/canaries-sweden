@@ -1,0 +1,11 @@
+item,value
+n_employers_both_scores,262089.0
+spearman,0.8623169288344537
+pearson,0.8814287541871895
+median_ai,48.96016947209357
+median_wfh,0.3776372724169051
+cell_ai0_wfh0,112834.0
+cell_ai0_wfh1,18211.0
+cell_ai1_wfh0,18213.0
+cell_ai1_wfh1,112831.0
+share_same_quartile,0.7463151830103515

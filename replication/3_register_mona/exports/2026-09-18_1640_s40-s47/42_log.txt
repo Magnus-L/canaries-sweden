@@ -1,0 +1,45 @@
+======================================================================
+run by lodema at 2026-09-05 04:09 | 42_frozen_cohort.py
+======================================================================
+======================================================================
+42: FROZEN COHORT (coverage-immune; E5)
+======================================================================
+  2019: 24,216,250 cells in 199s
+  2020: 23,211,514 cells in 180s
+  2021: 23,085,667 cells in 193s
+  2022: 23,261,971 cells in 209s
+  2023: 22,304,502 cells in 177s
+  2024: 22,608,169 cells in 178s
+  2025: 11,553,266 cells in 106s
+  Cached -> panel_frozen.parquet
+
+--- 22-25 ---
+  12,568,140 cells, 50,749 employers
+
+--- 26-30 ---
+  15,705,144 cells, 65,928 employers
+
+--- 31-34 ---
+  13,582,062 cells, 59,425 employers
+
+--- 35-40 ---
+  15,668,640 cells, 69,573 employers
+
+--- 41-49 ---
+  18,867,654 cells, 84,451 employers
+
+--- 50+ ---
+  24,076,650 cells, 106,593 employers
+FROZEN COHORT -- gamma2 by age (Poisson)
+========================================
+   22-25: -0.4653 (SE 0.0130, p 0.0000)
+   26-30: -0.2217 (SE 0.0073, p 0.0000)
+   31-34: -0.0809 (SE 0.0054, p 0.0000)
+   35-40: -0.0467 (SE 0.0050, p 0.0000)
+   41-49: -0.0187 (SE 0.0028, p 0.0000)
+     50+: +0.0214 (SE 0.0035, p 0.0000)
+
+Read: attenuation vs baseline is expected (the hiring
+margin is excluded by construction); a FLAT 22-25 path
+here with a steep baseline points at the hiring margin,
+not at coverage.

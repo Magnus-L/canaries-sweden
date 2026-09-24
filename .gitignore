@@ -94,3 +94,12 @@ paper/em-main-only.zip
 revision/upload/utb_grupp2_sun2020_niva3_inr4_nyckel.dta
 paper/appendix_offline_v1.tex
 appendix_offline*
+
+# Replication package: what a run writes is not tracked; the exported MONA
+# aggregates, their logs included, are the record and are tracked.
+replication/output/
+replication/data/processed/
+replication/data/raw/platsbanken/
+replication/data/raw/*.jsonl.zip
+replication/3_register_mona/master_logs/
+!replication/3_register_mona/exports/**

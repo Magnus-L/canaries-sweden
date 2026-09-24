@@ -1,0 +1,24 @@
+======================================================================
+run by lodema at 2026-09-18 15:38 | 47_edu_exposure.py
+======================================================================
+======================================================================
+47: EDUCATION-BASED DAIOE EXPOSURE (T12/R2.3)
+======================================================================
+  key ok: 10,241 niva x inr cells, hash verified
+  weights pull 2019: 290,767 cells (8s)
+  2019: 105 groups, key match 94.8% of coded workers
+  2019 young (22-35): 104 groups, key match 93.1%
+  weights pull 2021: 306,602 cells (6s)
+  2021: 105 groups, key match 95.1% of coded workers
+  2019 vs 2021 quartile agreement: 96.2% of groups
+  all-worker vs young-worker quartile agreement: 84.6%
+  2019: 32,985,436 cells (322s)
+  2020: 32,399,173 cells (311s)
+  2021: 32,989,925 cells (316s)
+  2022: 34,615,097 cells (346s)
+  2023: 35,009,628 cells (340s)
+  2024: 34,703,447 cells (365s)
+  2025: 17,167,042 cells (152s)
+  22-25 mapped share by year: 2019: 97.3%, 2020: 97.3%, 2021: 97.0%, 2022: 96.3%, 2023: 96.2%, 2024: 96.4%, 2025: 96.9%
+
+--- 22-25 ---

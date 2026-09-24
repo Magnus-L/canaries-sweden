@@ -1,0 +1,38 @@
+THE HEADLINE UNDER FIVE ADOPTION BOUNDARIES
+====================================================
+
+The step is post minus interim: the change from the period
+immediately before the boundary to the period after it. Its
+standard error comes from the covariance of the two terms.
+
+  22-25:
+    boundary   tightening        interim          adoption         STEP FROM BEFORE
+    2023-07   +0.0134 (0.0076)  -0.0066 (0.0085)  -0.0472 (0.0135)  -0.0406 (0.0100)
+    2023-10   +0.0154 (0.0075)  -0.0127 (0.0092)  -0.0538 (0.0147)  -0.0411 (0.0099)
+    2024-01   +0.0159 (0.0075)  -0.0179 (0.0097)  -0.0578 (0.0155)  -0.0399 (0.0102)  <- reported
+    2024-04   +0.0127 (0.0077)  -0.0195 (0.0099)  -0.0587 (0.0158)  -0.0392 (0.0107)
+    2024-07   +0.0142 (0.0076)  -0.0235 (0.0104)  -0.0638 (0.0168)  -0.0403 (0.0114)
+
+    RANGE: the contrast runs from -0.0411 to -0.0392 across the five partitions, a spread of 0.0019.
+    This checks sensitivity to the reporting boundary,
+    NOT the timing or the cause of the decline. Under a
+    smooth path the contrast is invariant to the cutoff
+    by construction, so a small spread is not evidence
+    about when the decline began.
+
+  26-30:
+    boundary   tightening        interim          adoption         STEP FROM BEFORE
+    2023-07   +0.0158 (0.0045)  +0.0033 (0.0047)  -0.0379 (0.0089)  -0.0411 (0.0066)
+    2023-10   +0.0178 (0.0044)  -0.0038 (0.0053)  -0.0437 (0.0097)  -0.0399 (0.0066)
+    2024-01   +0.0184 (0.0044)  -0.0080 (0.0057)  -0.0482 (0.0104)  -0.0403 (0.0067)  <- reported
+    2024-04   +0.0149 (0.0046)  -0.0075 (0.0059)  -0.0516 (0.0105)  -0.0442 (0.0068)
+    2024-07   +0.0165 (0.0045)  -0.0104 (0.0063)  -0.0601 (0.0112)  -0.0497 (0.0070)
+
+    RANGE: the contrast runs from -0.0497 to -0.0399 across the five partitions, a spread of 0.0098.
+    This checks sensitivity to the reporting boundary,
+    NOT the timing or the cause of the decline. Under a
+    smooth path the contrast is invariant to the cutoff
+    by construction, so a small spread is not evidence
+    about when the decline began.
+
+THE GATE: the reported arm reproduced the paper's estimates at both bands to four decimals.

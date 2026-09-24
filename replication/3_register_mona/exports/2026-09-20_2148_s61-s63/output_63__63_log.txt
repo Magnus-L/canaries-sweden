@@ -1,0 +1,422 @@
+======================================================================
+run by lodema at 2026-09-20 19:37 | 63_measure_robustness.py
+======================================================================
+======================================================================
+63: DOES THE ANSWER DEPEND ON THE EXPOSURE MEASURE?
+======================================================================
+  daioe     our own measure, the one every other design uses
+  eloundou  a different team, a different method, the same object
+  telework  NOT an AI measure: a placebo that should NOT reproduce the result
+  Panels and fixed effects are held fixed; only the score changes.
+  memory available: 679.3 GB
+  daioe: 423 occupations scored
+  eloundou: 394 occupations scored
+  telework: 423 occupations scored
+
+  correlation between measures, across occupations:
+    daioe     vs eloundou  +0.868 on 393 occupations
+    daioe     vs telework  +0.748 on 423 occupations
+    eloundou  vs telework  +0.659 on 393 occupations
+  daioe: 143,700 firm-age cells scored
+  eloundou: 131,182 firm-age cells scored
+  telework: 143,700 firm-age cells scored
+
+  stock: 56,930,127 rows loaded
+    daioe stock: panel 11,208,600 rows (1.0 min to build)
+  R exchange dir C:\Windows\TEMP\canaries_rwork\63_measure_robustness: swept 0 MB, 62.1 GB free
+      launch (post from 2022-12) [3.4 min]
+        22-25  +0.0081 (SE 0.0126) t +0.64
+        26-30  +0.0131 (SE 0.0092) t +1.41
+        31-34  +0.0091 (SE 0.0089) t +1.02
+        35-40  -0.0044 (SE 0.0083) t -0.53
+        41-49  -0.0193 (SE 0.0089) t -2.17
+        50+    +0.0357 (SE 0.0144) t +2.48
+      horse race, stock, launch, both measures:
+        pooled  post_gpt_x_expo    -0.0047 (SE 0.0105) t -0.45
+        pooled  post_gpt_x_tele    +0.0148 (SE 0.0094) t +1.57
+        by_age  gpt_x_expo_22_25   -0.0062 (SE 0.0152) t -0.41
+        by_age  gpt_x_expo_26_30   +0.0059 (SE 0.0125) t +0.47
+        by_age  gpt_x_expo_31_34   +0.0065 (SE 0.0118) t +0.55
+        by_age  gpt_x_expo_35_40   -0.0128 (SE 0.0120) t -1.07
+        by_age  gpt_x_expo_41_49   -0.0568 (SE 0.0141) t -4.04
+        by_age  gpt_x_expo_50p     +0.0199 (SE 0.0162) t +1.23
+        by_age  t_22_25            +0.0206 (SE 0.0130) t +1.59
+        by_age  t_26_30            +0.0101 (SE 0.0102) t +0.99
+        by_age  t_31_34            +0.0043 (SE 0.0101) t +0.43
+        by_age  t_35_40            +0.0112 (SE 0.0110) t +1.02
+        by_age  t_41_49            +0.0456 (SE 0.0134) t +3.41
+        by_age  t_50p              +0.0199 (SE 0.0124) t +1.60
+      adoption (post from 2024-01) [3.4 min]
+        22-25  -0.0132 (SE 0.0112) t -1.18
+        26-30  -0.0016 (SE 0.0077) t -0.21
+        31-34  +0.0039 (SE 0.0073) t +0.53
+        35-40  -0.0028 (SE 0.0067) t -0.41
+        41-49  -0.0208 (SE 0.0073) t -2.85
+        50+    +0.0316 (SE 0.0110) t +2.86
+      horse race, stock, adoption, both measures:
+        pooled  post_gpt_x_expo    -0.0117 (SE 0.0092) t -1.27
+        pooled  post_gpt_x_tele    +0.0146 (SE 0.0084) t +1.74
+        by_age  gpt_x_expo_22_25   -0.0318 (SE 0.0143) t -2.22
+        by_age  gpt_x_expo_26_30   -0.0054 (SE 0.0115) t -0.47
+        by_age  gpt_x_expo_31_34   +0.0083 (SE 0.0113) t +0.74
+        by_age  gpt_x_expo_35_40   -0.0074 (SE 0.0109) t -0.68
+        by_age  gpt_x_expo_41_49   -0.0493 (SE 0.0134) t -3.68
+        by_age  gpt_x_expo_50p     +0.0142 (SE 0.0155) t +0.91
+        by_age  t_22_25            +0.0271 (SE 0.0124) t +2.19
+        by_age  t_26_30            +0.0060 (SE 0.0098) t +0.61
+        by_age  t_31_34            -0.0042 (SE 0.0097) t -0.43
+        by_age  t_35_40            +0.0067 (SE 0.0097) t +0.69
+        by_age  t_41_49            +0.0350 (SE 0.0125) t +2.80
+        by_age  t_50p              +0.0220 (SE 0.0124) t +1.77
+    eloundou stock: panel 10,232,196 rows (0.9 min to build)
+      launch (post from 2022-12) [3.2 min]
+        22-25  +0.0017 (SE 0.0087) t +0.19
+        26-30  +0.0031 (SE 0.0068) t +0.45
+        31-34  -0.0012 (SE 0.0065) t -0.19
+        35-40  -0.0145 (SE 0.0065) t -2.23
+        41-49  -0.0320 (SE 0.0069) t -4.64
+        50+    +0.0184 (SE 0.0128) t +1.43
+      adoption (post from 2024-01) [3.2 min]
+        22-25  -0.0132 (SE 0.0085) t -1.54
+        26-30  -0.0054 (SE 0.0061) t -0.87
+        31-34  -0.0028 (SE 0.0057) t -0.50
+        35-40  -0.0106 (SE 0.0055) t -1.94
+        41-49  -0.0311 (SE 0.0059) t -5.23
+        50+    +0.0152 (SE 0.0101) t +1.49
+    telework stock: panel 11,208,600 rows (1.0 min to build)
+      launch (post from 2022-12) [4.3 min]
+        22-25  +0.0176 (SE 0.0114) t +1.55
+        26-30  +0.0170 (SE 0.0082) t +2.08
+        31-34  +0.0117 (SE 0.0080) t +1.46
+        35-40  +0.0024 (SE 0.0077) t +0.32
+        41-49  -0.0006 (SE 0.0083) t -0.08
+        50+    +0.0389 (SE 0.0128) t +3.04
+      adoption (post from 2024-01) [3.4 min]
+        22-25  +0.0069 (SE 0.0101) t +0.68
+        26-30  +0.0051 (SE 0.0069) t +0.74
+        31-34  +0.0063 (SE 0.0065) t +0.97
+        35-40  +0.0040 (SE 0.0060) t +0.67
+        41-49  -0.0034 (SE 0.0068) t -0.50
+        50+    +0.0379 (SE 0.0096) t +3.95
+
+  flows: 15,218,713 rows loaded
+    daioe flows: panel 11,013,772 rows (0.5 min to build)
+      launch (post from 2022-12) [3.2 min]
+        22-25  -0.0273 (SE 0.0231) t -1.18
+        26-30  -0.0206 (SE 0.0142) t -1.45
+        31-34  -0.0123 (SE 0.0135) t -0.91
+        35-40  -0.0236 (SE 0.0127) t -1.85
+        41-49  -0.0345 (SE 0.0121) t -2.85
+        50+    +0.0195 (SE 0.0216) t +0.90
+      horse race, hires, launch, both measures:
+        pooled  post_gpt_x_expo    -0.0395 (SE 0.0169) t -2.33
+        pooled  post_gpt_x_tele    +0.0290 (SE 0.0163) t +1.78
+        by_age  gpt_x_expo_22_25   -0.0606 (SE 0.0332) t -1.83
+        by_age  gpt_x_expo_26_30   -0.0415 (SE 0.0198) t -2.10
+        by_age  gpt_x_expo_31_34   -0.0192 (SE 0.0181) t -1.06
+        by_age  gpt_x_expo_35_40   -0.0339 (SE 0.0187) t -1.81
+        by_age  gpt_x_expo_41_49   -0.0711 (SE 0.0178) t -3.99
+        by_age  gpt_x_expo_50p     +0.0436 (SE 0.0376) t +1.16
+        by_age  t_22_25            +0.0457 (SE 0.0241) t +1.90
+        by_age  t_26_30            +0.0266 (SE 0.0165) t +1.61
+        by_age  t_31_34            +0.0094 (SE 0.0160) t +0.59
+        by_age  t_35_40            +0.0135 (SE 0.0178) t +0.76
+        by_age  t_41_49            +0.0443 (SE 0.0177) t +2.50
+        by_age  t_50p              -0.0279 (SE 0.0293) t -0.95
+      adoption (post from 2024-01) [3.2 min]
+        22-25  -0.0754 (SE 0.0335) t -2.25
+        26-30  -0.0540 (SE 0.0192) t -2.82
+        31-34  -0.0390 (SE 0.0154) t -2.53
+        35-40  -0.0412 (SE 0.0133) t -3.10
+        41-49  -0.0612 (SE 0.0112) t -5.48
+        50+    -0.0122 (SE 0.0225) t -0.54
+      horse race, hires, adoption, both measures:
+        pooled  post_gpt_x_expo    -0.0635 (SE 0.0223) t -2.85
+        pooled  post_gpt_x_tele    +0.0226 (SE 0.0180) t +1.26
+        by_age  gpt_x_expo_22_25   -0.1032 (SE 0.0500) t -2.07
+        by_age  gpt_x_expo_26_30   -0.0636 (SE 0.0290) t -2.19
+        by_age  gpt_x_expo_31_34   -0.0333 (SE 0.0200) t -1.66
+        by_age  gpt_x_expo_35_40   -0.0405 (SE 0.0173) t -2.34
+        by_age  gpt_x_expo_41_49   -0.0853 (SE 0.0184) t -4.65
+        by_age  gpt_x_expo_50p     +0.0008 (SE 0.0569) t +0.01
+        by_age  t_22_25            +0.0394 (SE 0.0283) t +1.39
+        by_age  t_26_30            +0.0129 (SE 0.0168) t +0.77
+        by_age  t_31_34            -0.0059 (SE 0.0127) t -0.46
+        by_age  t_35_40            +0.0002 (SE 0.0132) t +0.01
+        by_age  t_41_49            +0.0293 (SE 0.0166) t +1.77
+        by_age  t_50p              -0.0149 (SE 0.0443) t -0.34
+      launch (post from 2022-12) [3.2 min]
+        22-25  -0.0090 (SE 0.0157) t -0.58
+        26-30  -0.0050 (SE 0.0093) t -0.54
+        31-34  -0.0067 (SE 0.0105) t -0.64
+        35-40  -0.0217 (SE 0.0105) t -2.06
+        41-49  -0.0388 (SE 0.0094) t -4.15
+        50+    -0.0208 (SE 0.0107) t -1.95
+      horse race, seps, launch, both measures:
+        pooled  post_gpt_x_expo    -0.0238 (SE 0.0130) t -1.83
+        pooled  post_gpt_x_tele    +0.0085 (SE 0.0119) t +0.71
+        by_age  gpt_x_expo_22_25   -0.0227 (SE 0.0227) t -1.00
+        by_age  gpt_x_expo_26_30   -0.0110 (SE 0.0130) t -0.84
+        by_age  gpt_x_expo_31_34   +0.0014 (SE 0.0155) t +0.09
+        by_age  gpt_x_expo_35_40   -0.0215 (SE 0.0175) t -1.23
+        by_age  gpt_x_expo_41_49   -0.0673 (SE 0.0166) t -4.06
+        by_age  gpt_x_expo_50p     -0.0604 (SE 0.0188) t -3.22
+        by_age  t_22_25            +0.0201 (SE 0.0197) t +1.02
+        by_age  t_26_30            +0.0089 (SE 0.0127) t +0.70
+        by_age  t_31_34            -0.0083 (SE 0.0141) t -0.59
+        by_age  t_35_40            +0.0012 (SE 0.0162) t +0.08
+        by_age  t_41_49            +0.0350 (SE 0.0160) t +2.18
+        by_age  t_50p              +0.0485 (SE 0.0173) t +2.80
+      adoption (post from 2024-01) [3.2 min]
+        22-25  -0.0124 (SE 0.0157) t -0.79
+        26-30  -0.0044 (SE 0.0082) t -0.53
+        31-34  -0.0065 (SE 0.0091) t -0.72
+        35-40  -0.0188 (SE 0.0091) t -2.07
+        41-49  -0.0430 (SE 0.0084) t -5.10
+        50+    -0.0297 (SE 0.0097) t -3.07
+      horse race, seps, adoption, both measures:
+        pooled  post_gpt_x_expo    -0.0328 (SE 0.0106) t -3.09
+        pooled  post_gpt_x_tele    +0.0176 (SE 0.0099) t +1.78
+        by_age  gpt_x_expo_22_25   -0.0434 (SE 0.0213) t -2.03
+        by_age  gpt_x_expo_26_30   -0.0189 (SE 0.0118) t -1.60
+        by_age  gpt_x_expo_31_34   +0.0023 (SE 0.0137) t +0.17
+        by_age  gpt_x_expo_35_40   -0.0185 (SE 0.0158) t -1.17
+        by_age  gpt_x_expo_41_49   -0.0706 (SE 0.0167) t -4.23
+        by_age  gpt_x_expo_50p     -0.0680 (SE 0.0181) t -3.77
+        by_age  t_22_25            +0.0445 (SE 0.0183) t +2.43
+        by_age  t_26_30            +0.0204 (SE 0.0118) t +1.73
+        by_age  t_31_34            -0.0081 (SE 0.0124) t -0.65
+        by_age  t_35_40            +0.0022 (SE 0.0142) t +0.15
+        by_age  t_41_49            +0.0351 (SE 0.0158) t +2.23
+        by_age  t_50p              +0.0481 (SE 0.0168) t +2.86
+    eloundou flows: panel 10,055,276 rows (0.5 min to build)
+      launch (post from 2022-12) [3.0 min]
+        22-25  -0.0111 (SE 0.0178) t -0.63
+        26-30  -0.0075 (SE 0.0115) t -0.66
+        31-34  -0.0019 (SE 0.0105) t -0.18
+        35-40  -0.0103 (SE 0.0102) t -1.01
+        41-49  -0.0271 (SE 0.0093) t -2.92
+        50+    +0.0244 (SE 0.0208) t +1.17
+      adoption (post from 2024-01) [2.9 min]
+        22-25  -0.0400 (SE 0.0269) t -1.48
+        26-30  -0.0258 (SE 0.0168) t -1.54
+        31-34  -0.0162 (SE 0.0125) t -1.30
+        35-40  -0.0173 (SE 0.0103) t -1.69
+        41-49  -0.0421 (SE 0.0090) t -4.68
+        50+    +0.0044 (SE 0.0247) t +0.18
+      launch (post from 2022-12) [3.0 min]
+        22-25  -0.0048 (SE 0.0117) t -0.41
+        26-30  +0.0057 (SE 0.0076) t +0.74
+        31-34  +0.0040 (SE 0.0088) t +0.46
+        35-40  -0.0065 (SE 0.0090) t -0.72
+        41-49  -0.0278 (SE 0.0076) t -3.65
+        50+    -0.0110 (SE 0.0091) t -1.21
+      adoption (post from 2024-01) [2.9 min]
+        22-25  -0.0117 (SE 0.0119) t -0.99
+        26-30  +0.0062 (SE 0.0074) t +0.83
+        31-34  +0.0043 (SE 0.0081) t +0.53
+        35-40  -0.0037 (SE 0.0081) t -0.46
+        41-49  -0.0317 (SE 0.0079) t -4.00
+        50+    -0.0186 (SE 0.0088) t -2.12
+    telework flows: panel 11,013,772 rows (0.5 min to build)
+      launch (post from 2022-12) [3.2 min]
+        22-25  +0.0103 (SE 0.0156) t +0.66
+        26-30  +0.0028 (SE 0.0117) t +0.24
+        31-34  +0.0028 (SE 0.0119) t +0.24
+        35-40  -0.0051 (SE 0.0116) t -0.44
+        41-49  -0.0071 (SE 0.0117) t -0.61
+        50+    +0.0210 (SE 0.0188) t +1.11
+      adoption (post from 2024-01) [3.2 min]
+        22-25  -0.0233 (SE 0.0136) t -1.71
+        26-30  -0.0244 (SE 0.0090) t -2.71
+        31-34  -0.0199 (SE 0.0096) t -2.06
+        35-40  -0.0195 (SE 0.0093) t -2.11
+        41-49  -0.0290 (SE 0.0093) t -3.13
+        50+    +0.0026 (SE 0.0170) t +0.15
+      launch (post from 2022-12) [3.3 min]
+        22-25  +0.0020 (SE 0.0135) t +0.15
+        26-30  +0.0007 (SE 0.0089) t +0.08
+        31-34  -0.0060 (SE 0.0095) t -0.64
+        35-40  -0.0146 (SE 0.0095) t -1.55
+        41-49  -0.0200 (SE 0.0086) t -2.32
+        50+    -0.0006 (SE 0.0094) t -0.06
+      adoption (post from 2024-01) [3.2 min]
+        22-25  +0.0139 (SE 0.0131) t +1.06
+        26-30  +0.0077 (SE 0.0079) t +0.97
+        31-34  -0.0034 (SE 0.0083) t -0.41
+        35-40  -0.0095 (SE 0.0081) t -1.17
+        41-49  -0.0209 (SE 0.0078) t -2.67
+        50+    -0.0057 (SE 0.0088) t -0.65
+
+DOES THE ANSWER DEPEND ON THE EXPOSURE MEASURE?
+====================================================
+
+  daioe     our own measure, the one every other design uses
+  eloundou  a different team, a different method, the same object
+  telework  NOT an AI measure: a placebo that should NOT reproduce the result
+
+correlation across occupations:
+  daioe     vs eloundou  +0.868
+  daioe     vs telework  +0.748
+  eloundou  vs telework  +0.659
+
+age gradient, outcome = hires, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0273   -0.0111    0.0103
+26-30     -0.0206   -0.0075    0.0028
+31-34     -0.0123   -0.0019    0.0028
+35-40     -0.0236   -0.0103   -0.0051
+41-49     -0.0345   -0.0271   -0.0071
+50+        0.0195    0.0244    0.0210
+
+age gradient, outcome = seps, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0090   -0.0048    0.0020
+26-30     -0.0050    0.0057    0.0007
+31-34     -0.0067    0.0040   -0.0060
+35-40     -0.0217   -0.0065   -0.0146
+41-49     -0.0388   -0.0278   -0.0200
+50+       -0.0208   -0.0110   -0.0006
+
+age gradient, outcome = stock, treatment dated launch (post from 2022-12):
+measure     daioe  eloundou  telework
+age_group                            
+22-25      0.0081    0.0017    0.0176
+26-30      0.0131    0.0031    0.0170
+31-34      0.0091   -0.0012    0.0117
+35-40     -0.0044   -0.0145    0.0024
+41-49     -0.0193   -0.0320   -0.0006
+50+        0.0357    0.0184    0.0389
+
+age gradient, outcome = hires, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0754   -0.0400   -0.0233
+26-30     -0.0540   -0.0258   -0.0244
+31-34     -0.0390   -0.0162   -0.0199
+35-40     -0.0412   -0.0173   -0.0195
+41-49     -0.0612   -0.0421   -0.0290
+50+       -0.0122    0.0044    0.0026
+
+age gradient, outcome = seps, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0124   -0.0117    0.0139
+26-30     -0.0044    0.0062    0.0077
+31-34     -0.0065    0.0043   -0.0034
+35-40     -0.0188   -0.0037   -0.0095
+41-49     -0.0430   -0.0317   -0.0209
+50+       -0.0297   -0.0186   -0.0057
+
+age gradient, outcome = stock, treatment dated adoption (post from 2024-01):
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0132   -0.0132    0.0069
+26-30     -0.0016   -0.0054    0.0051
+31-34      0.0039   -0.0028    0.0063
+35-40     -0.0028   -0.0106    0.0040
+41-49     -0.0208   -0.0311   -0.0034
+50+        0.0316    0.0152    0.0379
+
+The launch rows are comparable with every earlier estimate
+in this round. The adoption rows are where scripts 60 and
+61 put the treatment, and they are the ones to read if the
+question is whether the measure carries a real effect
+rather than whether three measures agree about a null.
+
+THE PLACEBO TEST. If the telework column reproduces the
+daioe column, we are measuring office work rather than
+exposure to generative AI, and the interpretation fails
+however clean the identification is. Read it against the
+correlation above: at 0.74 the columns SHOULD resemble
+each other, and only the horse race separates them.
+
+HORSE RACE: both measures in one regression. The daioe row
+is the effect of AI exposure holding teleworkability fixed,
+which is the coefficient worth quoting.
+
+  pooled over age:
+    stock  launch    daioe     -0.0047 (SE 0.0105) t -0.45
+    stock  launch    telework  +0.0148 (SE 0.0094) t +1.57
+    stock  adoption  daioe     -0.0117 (SE 0.0092) t -1.27
+    stock  adoption  telework  +0.0146 (SE 0.0084) t +1.74
+    hires  launch    daioe     -0.0395 (SE 0.0169) t -2.33
+    hires  launch    telework  +0.0290 (SE 0.0163) t +1.78
+    hires  adoption  daioe     -0.0635 (SE 0.0223) t -2.85
+    hires  adoption  telework  +0.0226 (SE 0.0180) t +1.26
+    seps   launch    daioe     -0.0238 (SE 0.0130) t -1.83
+    seps   launch    telework  +0.0085 (SE 0.0119) t +0.71
+    seps   adoption  daioe     -0.0328 (SE 0.0106) t -3.09
+    seps   adoption  telework  +0.0176 (SE 0.0099) t +1.78
+
+  by age band, which is where the claim lives:
+    hires  launch    22-25  daioe -0.0606 (0.0332)   telework +0.0457 (0.0241)
+    hires  launch    26-30  daioe -0.0415 (0.0198)   telework +0.0266 (0.0165)
+    hires  launch    31-34  daioe -0.0192 (0.0181)   telework +0.0094 (0.0160)
+    hires  launch    35-40  daioe -0.0339 (0.0187)   telework +0.0135 (0.0178)
+    hires  launch    41-49  daioe -0.0711 (0.0178)   telework +0.0443 (0.0177)
+    hires  launch    50+    daioe +0.0436 (0.0376)   telework -0.0279 (0.0293)
+    seps   launch    22-25  daioe -0.0227 (0.0227)   telework +0.0201 (0.0197)
+    seps   launch    26-30  daioe -0.0110 (0.0130)   telework +0.0089 (0.0127)
+    seps   launch    31-34  daioe +0.0014 (0.0155)   telework -0.0083 (0.0141)
+    seps   launch    35-40  daioe -0.0215 (0.0175)   telework +0.0012 (0.0162)
+    seps   launch    41-49  daioe -0.0673 (0.0166)   telework +0.0350 (0.0160)
+    seps   launch    50+    daioe -0.0604 (0.0188)   telework +0.0485 (0.0173)
+    stock  launch    22-25  daioe -0.0062 (0.0152)   telework +0.0206 (0.0130)
+    stock  launch    26-30  daioe +0.0059 (0.0125)   telework +0.0101 (0.0102)
+    stock  launch    31-34  daioe +0.0065 (0.0118)   telework +0.0043 (0.0101)
+    stock  launch    35-40  daioe -0.0128 (0.0120)   telework +0.0112 (0.0110)
+    stock  launch    41-49  daioe -0.0568 (0.0141)   telework +0.0456 (0.0134)
+    stock  launch    50+    daioe +0.0199 (0.0162)   telework +0.0199 (0.0124)
+    hires  adoption  22-25  daioe -0.1032 (0.0500)   telework +0.0394 (0.0283)
+    hires  adoption  26-30  daioe -0.0636 (0.0290)   telework +0.0129 (0.0168)
+    hires  adoption  31-34  daioe -0.0333 (0.0200)   telework -0.0059 (0.0127)
+    hires  adoption  35-40  daioe -0.0405 (0.0173)   telework +0.0002 (0.0132)
+    hires  adoption  41-49  daioe -0.0853 (0.0184)   telework +0.0293 (0.0166)
+    hires  adoption  50+    daioe +0.0008 (0.0569)   telework -0.0149 (0.0443)
+    seps   adoption  22-25  daioe -0.0434 (0.0213)   telework +0.0445 (0.0183)
+    seps   adoption  26-30  daioe -0.0189 (0.0118)   telework +0.0204 (0.0118)
+    seps   adoption  31-34  daioe +0.0023 (0.0137)   telework -0.0081 (0.0124)
+    seps   adoption  35-40  daioe -0.0185 (0.0158)   telework +0.0022 (0.0142)
+    seps   adoption  41-49  daioe -0.0706 (0.0167)   telework +0.0351 (0.0158)
+    seps   adoption  50+    daioe -0.0680 (0.0181)   telework +0.0481 (0.0168)
+    stock  adoption  22-25  daioe -0.0318 (0.0143)   telework +0.0271 (0.0124)
+    stock  adoption  26-30  daioe -0.0054 (0.0115)   telework +0.0060 (0.0098)
+    stock  adoption  31-34  daioe +0.0083 (0.0113)   telework -0.0042 (0.0097)
+    stock  adoption  35-40  daioe -0.0074 (0.0109)   telework +0.0067 (0.0097)
+    stock  adoption  41-49  daioe -0.0493 (0.0134)   telework +0.0350 (0.0125)
+    stock  adoption  50+    daioe +0.0142 (0.0155)   telework +0.0220 (0.0124)
+
+The pooled row averages over six age bands, so a decline
+concentrated in one band arrives divided by roughly six.
+Compare the by-age rows with the gradient table, not with
+the pooled row.
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. Every score is standardised, so a coefficient is the effect of
+     a one standard deviation more exposed occupation ON THAT
+     MEASURE'S OWN SCALE. Sizes are comparable only in that sense.
+  2. Agreement between daioe and eloundou is reassurance about the
+     measure, not about the design. They may share a common error.
+  3. Disagreement with telework is what we WANT, but the two
+     measures correlate 0.74 across occupations, so the telework
+     column being negative is not by itself bad news. The horse
+     race is what settles it.
+  4. The three measures score slightly different sets of
+     occupations, so the marginal columns rest on slightly
+     different samples of firm-age cells; the log gives the counts.
+     The horse race uses only cells both measures score, which is
+     the comparison that holds the sample fixed.
+  5. READ HIRES AND SEPARATIONS TOGETHER. Hiring falling in
+     exposed firms while the stock holds means separations fell
+     too, and that is reduced churn rather than reduced
+     employment. Only a fall in hiring WITHOUT a matching fall in
+     separations is a fall in jobs.
+  6. This still says nothing about whether DAIOE predicts actual
+     use of the technology. That needs a survey we do not hold.
+
+Runtime 111.1 min. memory available: 723.9 GB
+
+63 done.

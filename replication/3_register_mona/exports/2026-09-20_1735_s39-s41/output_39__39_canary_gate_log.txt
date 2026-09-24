@@ -1,0 +1,46 @@
+======================================================================
+run by lodema at 2026-09-04 13:05 | 39_canary_gate.py
+======================================================================
+======================================================================
+39: CANARY GATE -- reproduce v1 anchors through the v2 module
+======================================================================
+  2019: 21,158,148 cells in 156s
+  2020: 20,557,960 cells in 150s
+  2021: 21,022,378 cells in 164s
+  2022: 22,265,793 cells in 167s
+  2023: 22,304,502 cells in 200s
+  2024: 22,608,169 cells in 214s
+  2025: 11,553,266 cells in 116s
+  Cached -> panel_vintage.parquet
+  22-25 balanced panel: 11,682,918 cells, 46,496 employers
+  OLS+1 gamma2 = -0.0100 (1858s)
+======================================================================
+run by lodema at 2026-09-04 14:52 | 39_canary_gate.py
+======================================================================
+======================================================================
+39: CANARY GATE -- reproduce v1 anchors through the v2 module
+======================================================================
+  Loading cached panel panel_vintage.parquet
+  22-25 balanced panel: 11,682,918 cells, 46,496 employers
+  OLS+1 gamma2 = -0.0100 (1761s)
+  Poisson gamma2 = -0.1740, N = 11,682,918
+CANARY GATE: FAIL
+  ols_gamma2: ok
+  poisson_gamma2: ok
+  poisson_n_obs: MISMATCH
+
+STOP. Do not run scripts 40-46 until the mismatch is understood; the v2 pull differs from v1.
+======================================================================
+run by lodema at 2026-09-04 16:07 | 39_canary_gate.py
+======================================================================
+======================================================================
+39: CANARY GATE -- reproduce v1 anchors through the v2 module
+======================================================================
+  Loading cached panel panel_vintage.parquet
+  22-25 balanced panel: 11,682,918 cells, 46,496 employers
+  OLS+1 gamma2 = -0.0100 (1760s)
+  Poisson gamma2 = -0.1740, N = 11,682,918
+CANARY GATE: PASS
+  ols_gamma2: ok
+  poisson_gamma2: ok
+  poisson_n_obs: ok  (N 11,682,918 vs anchor 11,970,426: drift 2.40%, tolerance 3%; see output_39b)

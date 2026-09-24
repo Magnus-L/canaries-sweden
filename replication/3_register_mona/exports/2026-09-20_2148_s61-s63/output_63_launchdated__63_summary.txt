@@ -1,0 +1,87 @@
+DOES THE ANSWER DEPEND ON THE EXPOSURE MEASURE?
+====================================================
+
+  daioe     our own measure, the one every other design uses
+  eloundou  a different team, a different method, the same object
+  telework  NOT an AI measure: a placebo that should NOT reproduce the result
+
+correlation across occupations:
+  daioe     vs eloundou  +0.868
+  daioe     vs telework  +0.748
+  eloundou  vs telework  +0.659
+
+age gradient, outcome = hires:
+measure     daioe  eloundou  telework
+age_group                            
+22-25     -0.0273   -0.0111    0.0103
+26-30     -0.0206   -0.0075    0.0028
+31-34     -0.0123   -0.0019    0.0028
+35-40     -0.0236   -0.0103   -0.0051
+41-49     -0.0345   -0.0271   -0.0071
+50+        0.0195    0.0244    0.0210
+
+age gradient, outcome = stock:
+measure     daioe  eloundou  telework
+age_group                            
+22-25      0.0081    0.0017    0.0176
+26-30      0.0131    0.0031    0.0170
+31-34      0.0091   -0.0012    0.0117
+35-40     -0.0044   -0.0145    0.0024
+41-49     -0.0193   -0.0320   -0.0006
+50+        0.0357    0.0184    0.0389
+
+THE PLACEBO TEST. If the telework column reproduces the
+daioe column, we are measuring office work rather than
+exposure to generative AI, and the interpretation fails
+however clean the identification is. Read it against the
+correlation above: at 0.74 the columns SHOULD resemble
+each other, and only the horse race separates them.
+
+HORSE RACE: both measures in one regression. The daioe row
+is the effect of AI exposure holding teleworkability fixed,
+which is the coefficient worth quoting.
+
+  pooled over age:
+    stock  daioe     -0.0047 (SE 0.0105) t -0.45
+    stock  telework  +0.0148 (SE 0.0094) t +1.57
+    hires  daioe     -0.0395 (SE 0.0169) t -2.33
+    hires  telework  +0.0290 (SE 0.0163) t +1.78
+
+  by age band, which is where the claim lives:
+    hires  22-25  daioe -0.0606 (0.0332)   telework +0.0457 (0.0241)
+    hires  26-30  daioe -0.0415 (0.0198)   telework +0.0266 (0.0165)
+    hires  31-34  daioe -0.0192 (0.0181)   telework +0.0094 (0.0160)
+    hires  35-40  daioe -0.0339 (0.0187)   telework +0.0135 (0.0178)
+    hires  41-49  daioe -0.0711 (0.0178)   telework +0.0443 (0.0177)
+    hires  50+    daioe +0.0436 (0.0376)   telework -0.0279 (0.0293)
+    stock  22-25  daioe -0.0062 (0.0152)   telework +0.0206 (0.0130)
+    stock  26-30  daioe +0.0059 (0.0125)   telework +0.0101 (0.0102)
+    stock  31-34  daioe +0.0065 (0.0118)   telework +0.0043 (0.0101)
+    stock  35-40  daioe -0.0128 (0.0120)   telework +0.0112 (0.0110)
+    stock  41-49  daioe -0.0568 (0.0141)   telework +0.0456 (0.0134)
+    stock  50+    daioe +0.0199 (0.0162)   telework +0.0199 (0.0124)
+
+The pooled row averages over six age bands, so a decline
+concentrated in one band arrives divided by roughly six.
+Compare the by-age rows with the gradient table, not with
+the pooled row.
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. Every score is standardised, so a coefficient is the effect of
+     a one standard deviation more exposed occupation ON THAT
+     MEASURE'S OWN SCALE. Sizes are comparable only in that sense.
+  2. Agreement between daioe and eloundou is reassurance about the
+     measure, not about the design. They may share a common error.
+  3. Disagreement with telework is what we WANT, but the two
+     measures correlate 0.74 across occupations, so the telework
+     column being negative is not by itself bad news. The horse
+     race is what settles it.
+  4. The three measures score slightly different sets of
+     occupations, so the marginal columns rest on slightly
+     different samples of firm-age cells; the log gives the counts.
+     The horse race uses only cells both measures score, which is
+     the comparison that holds the sample fixed.
+  5. This still says nothing about whether DAIOE predicts actual
+     use of the technology. That needs a survey we do not hold.
+
+Runtime 41.6 min. memory available: 641.2 GB

@@ -1,0 +1,25 @@
+THE REDUCED YOUTH PAYROLL CONTRIBUTION AS A RIVAL
+====================================================
+
+The reduction ran to 2023-03 and reached workers up to age
+22 or 23. It never reached 24-25, nor any older band.
+
+  22-23 (eligible in part):
+    tightening +0.0272 (0.0110)   interim +0.0263 (0.0115)
+    adoption   +0.0002 (0.0182)   step from 2023 -0.0261 (0.0124)
+    86,373 employers
+
+  24-25 (NEVER eligible):
+    tightening +0.0108 (0.0084)   interim -0.0601 (0.0107)
+    adoption   -0.1097 (0.0167)   step from 2023 -0.0496 (0.0112)
+    88,460 employers
+
+  THE VERDICT (read rule fixed before the run):
+    RULE 3. Neither pattern is clean
+    (-0.0235 between the halves); report both, and
+    say how they differ.
+
+    The difference is printed WITHOUT a standard error: the
+    two fits share the four comparison bands, so they are
+    correlated and a difference of two separate fits has no
+    valid standard error here. Do not test it.

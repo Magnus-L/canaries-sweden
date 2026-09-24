@@ -1,0 +1,187 @@
+THE REST OF THE PAPER ON THE OCCUPATION ROUTE
+====================================================
+
+*** NOT RUN. Read rule 1 before anything else below, and before anything
+*** from lane 28. Until it is settled, nothing from either lane is quoted.
+
+THE SCORE. Every fit here uses lane 28's firm score, built by that script's own
+build_exposure(): the employment-weighted mean DAIOE percentile of the 2019
+three-digit occupations of the employer's own incumbents aged 31 to 69, the
+backward cascade, a floor of five. It is not rebuilt here, so there is one
+definition of the treatment variable and not two.
+
+C. THE TWO ROBUSTNESS TESTS:
+  7. THE INDUSTRY TEST: THE STEP SURVIVES AT 22-25 AND NOT AT 26-30
+     22-25: baseline -0.0579 (0.0155) on the same firms -> with industry x age x month -0.0388 (0.0143), retained 67%; education route 85%
+       103,728 employers in both fits, 1.7% of them coded from a source other than Ftg_2019, in 259 industry groups
+     26-30: baseline -0.0483 (0.0104) on the same firms -> with industry x age x month -0.0152 (0.0098), retained 31%; education route 47%
+       116,378 employers in both fits, 1.9% of them coded from a source other than Ftg_2019, in 262 industry groups
+     A carried-forward industry code is noisier than a contemporaneous one and so
+     absorbs less, which raises the retained share for a mechanical reason. That
+     is why the non-2019 share is printed beside it. At 26-30 the education route
+     itself retains 47% and so would not pass this rule.
+
+  8. THE CREDIT TEST: THE STEP IS NOT A CREDIT EFFECT
+     22-25: baseline on the balance-sheet sample -0.0887 (0.0116); the step with the leverage split -0.1062 (0.0174), 120% of it; education route 102% of -0.0695
+       the exposed-and-levered term +0.0319 (0.0267) t +1.19
+       the full-panel baseline at this band is -0.0658 (0.0125), which is lane 28's quantity and is here as a check that the two lanes fit the same panel
+     26-30: baseline on the balance-sheet sample -0.0572 (0.0088); the step with the leverage split -0.0925 (0.0147), 162% of it; education route 105% of -0.0516
+       the exposed-and-levered term +0.0650 (0.0200) t +3.24
+       the full-panel baseline at this band is -0.0498 (0.0080), which is lane 28's quantity and is here as a check that the two lanes fit the same panel
+     The sample is the employers with a 2019 balance sheet, which in this delivery
+     means limited companies: the public sector and the unincorporated are not in
+     it, and the paper must say so rather than leave it implicit.
+
+THE VERDICTS:
+  7 the industry test          THE STEP SURVIVES AT 22-25 AND NOT AT 26-30
+  8 the credit test            THE STEP IS NOT A CREDIT EFFECT
+  and none of the others is quoted until the first stage is settled.
+
+NOTES:
+  80's prior-export search path is emptied, so the employer-clustered run the four-decimal gate checks against is refitted on THIS panel rather than read from the education route's exports
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  80: C/22-25: 103,728 of 104,217 employers carry a three-digit code and form the sample for both fits; 1,716 of them (1.7%) from a source other than Ftg_2019; 259 industry groups
+  80: C/26-30: 116,378 of 117,090 employers carry a three-digit code and form the sample for both fits; 2,212 of them (1.9%) from a source other than Ftg_2019; 262 industry groups
+  73: no FEK table answered the probe; using Serrano
+  73: leverage year filter: BSLSLUT in 2019, 581,879 of 9,681,255 balance-sheet rows kept
+  73: leverage built from Serrano_bokslut_20230614: 1 - EKSU/TILLGSU, keyed on P1207_Lopnr_ORGNR, 2019 balance sheets, 561,460 firms
+  73: leverage/22-25: 88,613 of 104,217 panel firms carry the covariate (85.0%)
+  73: leverage/22-25: split at 0.693 (ge), 50.0% high
+  73: leverage/26-30: 98,669 of 117,090 panel firms carry the covariate (84.3%)
+  73: leverage/26-30: split at 0.689 (ge), 50.0% high
+
+READ RULES, FIXED BEFORE THE RUN:
+  There is NO coefficient gate anywhere in this lane EXCEPT the
+  clustering fits of Part B, where the coefficients must reproduce
+  their own employer-clustered run to 4 decimals, exactly
+  as script 80 gates: the cluster changes the covariance and nothing
+  else, so a moved coefficient means a moved panel. Everywhere else
+  this is a different measure of the same object, the estimates will
+  differ from the education route, and that is expected. Every
+  estimate is printed beside the education-route one.
+
+  1. THE FIRST STAGE, and it decides whether anything in this lane
+     or in lane 28 may be quoted at all. THE FIRST STAGE REPRODUCES
+     if the occupation-route quartile predicts reported AI use with
+     the SAME SIGN as the education route and an association AT
+     LEAST HALF its size, on the 2023 firm-level ITFtg gap
+     (education route +21.5 points) and on
+     the 2024 individual BITA gap (+23.5
+     points). Both must hold; if one does it is PARTLY and the
+     summary names which. IF IT DOES NOT REPRODUCE, NOTHING IN LANE
+     29 OR LANE 28 IS QUOTED, and the summary says so at the top in
+     those words: a score that does not predict who uses AI is not
+     an AI exposure measure, whatever its coefficients do.
+     71's own sample gates travel with 71's code (800 firms and 100
+     exposed for ITFtg, 600 and 80 for BITA). This route scores
+     fewer employers, so BELOW THRESHOLD is a live outcome and is
+     accepted as one: it is reported as NO VERDICT, never as a
+     failure and never as a pass.
+  2. The pre-ChatGPT any-AI gap in 2019, 2021 and 2023 is a
+     DIAGNOSTIC and settles nothing. The education route reports it
+     flat at 20.3, 19.8
+     and 21.5 points; ours is printed beside
+     it whatever it is. No threshold is set on it, because none can
+     be read off three coefficients with no interaction test behind
+     them.
+  3. The descriptives carry NO verdict. They are raw means, with
+     composition, firm size and the business cycle inside them. The
+     education route's shape is stated (exposed employers grew in every band and grew the oldest band fastest)
+     and ours is described beside it in the same words.
+  4. THE REFERENCE WINDOW AGREES IN DIRECTION if the level after
+     adoption is negative at both bands. No significance rule is
+     set, because neither education-route figure is distinguishable
+     from zero (-0.0194 (0.0184) at 22-25 and
+     -0.0172 (0.0121) at
+     26-30), so a rule on significance would be one the education
+     route itself fails.
+  5. THE PRE-LAUNCH DRIFT is read as script 78 reads it: FLAT if the
+     monthly trend is within 2 of its own standard
+     errors of zero. The education route is FLAT at 22-25
+     (+0.0006 (0.0008)) and
+     NOT FLAT at 26-30 (+0.0019 (0.0004), four
+     standard errors from zero), so a drift at 26-30 here is
+     agreement with the education route and not a defect of this
+     route. Both are reported whichever way they fall.
+  6. THE CLUSTERING. The gate above, and then: THE INFERENCE
+     SURVIVES INDUSTRY CLUSTERING if the adoption step at 22-25 and
+     the female differential keep their sign and stay
+     distinguishable from zero at the five per cent level with the
+     industry standard error. The education route's industry
+     standard errors are 0.0302 at 22-25, 0.0200 at 26-30, 0.0353
+     for young men, 0.0179 for the female differential and 0.0285
+     for young women.
+  7. THE INDUSTRY TEST. No gate, as script 80 has none. The retained
+     share of the adoption step against the same-sample baseline is
+     reported whatever it is, beside the education route's, which is
+     85 per cent at 22-25 and 47 per cent at 26-30, and beside the
+     share of firms coded from a source other than Ftg_2019, since a
+     carried-forward code absorbs less and so flatters the test.
+     Fixed in advance: the step SURVIVES at a band if it keeps its
+     sign and retains at least 50% of the same-sample
+     baseline. At 26-30 the education route retains 47 per cent and
+     so would not itself pass, which is said here rather than
+     discovered afterwards.
+  8. THE CREDIT TEST. THE STEP IS NOT A CREDIT EFFECT if it keeps
+     its sign and at least 80% of the baseline
+     re-estimated on the balance-sheet sample, at both bands. The
+     education route keeps 102 and 105 per cent of -0.0695 and
+     -0.0516. 73's own coverage gate travels with 73's code (500
+     firms and 30 per cent of the panel), and BELOW THRESHOLD is
+     again an accepted outcome reported as NO VERDICT.
+  9. THE FIRM-SIZE ROBUSTNESS. A firm's score is a mean over its
+     incumbents, so its sampling variance falls with their number,
+     and the floor barely binds: lane 28a scores 271,047 employers
+     at a floor of one and 262,089 at five. A noisier score has
+     fatter tails, which over-represents small employers at BOTH
+     ends of the score distribution, and that is a composition
+     distortion in the treatment group that count-weighting does
+     not remove. THE SIZE ROBUSTNESS PASSES if the adoption step at
+     22-25 at a floor of 60 incumbent person-months keeps
+     its sign and sits within 1 standard error of
+     the reported floor-of-five step, AND no size tercile carries
+     the whole step. Both halves are reported whichever way they
+     fall, and if the step is carried by the smallest tercile the
+     summary says so in those words: the concern is then NOT
+     answered.
+     The quartile is the NATIONAL one in every arm of Part D and is
+     never recut inside a subsample, because that would change the
+     treatment definition with the sample and the comparison would
+     mean nothing.
+     The reliability table is DESCRIPTIVE and carries no verdict.
+     It is reported and NEVER used to correct an estimate: the
+     measurement error here is not classical, and the answer to a
+     low reliability is a design that raises it, not a correction
+     that manufactures precision the data do not have.
+  Employer, firm and person counts below 5 are suppressed
+  before anything leaves MONA, and a share is suppressed with its
+  own numerator.
+
+WHAT TO EXPECT, SO IT IS NOT READ AS A BUG:
+  1. The estimates will differ from the education route's. Two
+     measures of the same object standardised on their own
+     distributions rank employers differently, and no rule here
+     asks them to agree in SIZE.
+  2. This route scores fewer employers, so every panel here is a
+     SUBSET of the education route's and every standard error is
+     larger for that reason alone before anything else is said.
+  3. 71's sample gates and 73's coverage gate travel with their
+     code. A BELOW THRESHOLD outcome is reported as NO VERDICT
+     and is neither a pass nor a failure.
+  4. The only coefficient gate in this lane is the clustering's,
+     and it is a reproduction check to 4 decimals, not a
+     judgement about the estimate.
+  5. A higher floor scores fewer employers and a different set
+     of them, so Part D's floor arm has larger standard errors
+     than the reported one for that reason before anything else
+     is said. What the rule reads is the point estimate against
+     the REPORTED standard error, not against its own.
+  6. The reliability of a firm score falls with the number of
+     incumbents behind it by construction, so a low figure at
+     one incumbent is arithmetic and not a finding. What the
+     table is for is the share of the sample sitting there.
+
+Runtime 69.4 min. memory available: 718.9 GB

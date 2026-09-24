@@ -1,0 +1,87 @@
+KAUHANEN STAGED ROBUSTNESS -- SUMMARY
+============================================================
+
+Run completed: 2026-04-28 19:30:21
+
+Steps:
+  1. Poisson, current spec (>=5 thr, DAIOE quartile)
+  2. Poisson, Kauhanen threshold (>=10 mean + >=100 cum)
+  3. Poisson, full Kauhanen (Eloundou quintile + threshold)
+  4. Poisson, current spec, reweighted to Finnish composition
+  5. Poisson, current spec, IT/tech (SSYK 25xx) excluded
+
+--- Step 1: Poisson, current spec ---
+  22-25   g2 = -0.1740 (SE=0.0111, p=0.0000) ***   N= 11,682,918
+  26-30   g2 = -0.0531 (SE=0.0071, p=0.0000) ***   N= 15,983,058
+  31-34   g2 = +0.0086 (SE=0.0057, p=0.1291)     N= 14,225,562
+  35-40   g2 = +0.0058 (SE=0.0046, p=0.2093)     N= 16,967,730
+  41-49   g2 = +0.0005 (SE=0.0031, p=0.8854)     N= 21,340,410
+  50+     g2 = +0.0236 (SE=0.0037, p=0.0000) ***   N= 29,591,094
+
+--- Step 2: Poisson, Kauhanen threshold ---
+  22-25   g2 = -0.1992 (SE=0.0142, p=0.0000) ***   N=  1,127,256
+  26-30   g2 = -0.0692 (SE=0.0085, p=0.0000) ***   N=  1,799,226
+  31-34   g2 = -0.0012 (SE=0.0066, p=0.8555)     N=  1,534,104
+  35-40   g2 = +0.0046 (SE=0.0052, p=0.3771)     N=  2,044,926
+  41-49   g2 = -0.0023 (SE=0.0035, p=0.4976)     N=  2,893,644
+  50+     g2 = +0.0227 (SE=0.0041, p=0.0000) ***   N=  4,496,622
+
+--- Step 3: Poisson, full Kauhanen exact ---
+  22-25   g2 = -0.1467 (SE=0.0187, p=0.0000) ***   N=  1,224,288
+  26-30   g2 = -0.0241 (SE=0.0157, p=0.1257)     N=  1,927,146
+  31-34   g2 = -0.0114 (SE=0.0094, p=0.2251)     N=  1,619,982
+  35-40   g2 = +0.0047 (SE=0.0062, p=0.4518)     N=  2,164,188
+  41-49   g2 = -0.0047 (SE=0.0045, p=0.2960)     N=  3,104,088
+  50+     g2 = +0.0041 (SE=0.0042, p=0.3230)     N=  4,977,180
+
+--- Step 4: Poisson, reweighted to Finnish composition ---
+  (no results)
+
+--- Step 5: Poisson, IT/tech (SSYK 25xx) excluded ---
+  22-25   g2 = -0.1701 (SE=0.0114, p=0.0000) ***   N= 11,375,130
+  26-30   g2 = -0.0557 (SE=0.0072, p=0.0000) ***   N= 15,489,474
+  31-34   g2 = +0.0029 (SE=0.0056, p=0.6124)     N= 13,756,392
+  35-40   g2 = +0.0008 (SE=0.0045, p=0.8572)     N= 16,456,518
+  41-49   g2 = -0.0013 (SE=0.0031, p=0.6716)     N= 20,749,716
+  50+     g2 = +0.0198 (SE=0.0037, p=0.0000) ***   N= 29,065,998
+
+============================================================
+INTERPRETATION GUIDE
+============================================================
+
+Focus on the 22-25 row across the three steps.
+
+  * If g2 stays negative and significant in Step 1: the
+    OLS+1 vs Poisson choice does not matter. The paper's
+    appendix line 440 claim is verified.
+
+  * If g2 still negative and significant in Step 2: the
+    sample threshold is not what drives the Sweden-Finland
+    divergence. The Finnish null is not a threshold artefact.
+
+  * If g2 still negative and significant in Step 3: the
+    Swedish result holds under Kauhanen's exact spec.
+    Together with Step 1 and Step 2, the Sweden-Finland
+    divergence is *not* method-dependent.
+
+  * If g2 still negative and significant in Step 4: the
+    divergence is also not driven by Sweden's industrial /
+    occupational composition. Combined with Steps 1-3,
+    the divergence is *economy-dependent* (institutions,
+    AI adoption rate, labour-market frictions).
+    This is the strongest possible defence of the paper.
+
+  * If g2 still negative and significant in Step 5: the
+    age gradient is not driven by ICT specialists; the
+    Swedish result survives the same exclusion Brynjolfsson
+    and (likely) Kauhanen impose.
+
+  * If g2 nulls at any step: that single specification choice
+    is what flips the result. Report that finding candidly
+    in the appendix; downgrade the headline claim to be
+    consistent with what survives.
+
+Magnus -- read this file first, then kauhanen_comparison.csv.
+
+If results turn ugly: see notes/risk-preparedness-2026-04-28.md
+for the pre-committed fallback framings (drafted before the run).

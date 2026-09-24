@@ -1,0 +1,53 @@
+cff-version: 1.2.0
+title: "Replication package for 'Same Storm, Different Boats: Generative AI and Young Workers Within Firms'"
+message: "If you use this package, please cite the paper and the package."
+type: software
+# The paper's four authors, in the paper's order. Only ORCID iDs verified against
+# the ORCID registry are given.
+authors:
+  - family-names: Lodefalk
+    given-names: Magnus
+    affiliation: "Örebro University; Ratio Institute"
+    orcid: "https://orcid.org/0000-0003-0149-9598"
+  - family-names: Löthman
+    given-names: Lydia
+    affiliation: "Örebro University"
+  - family-names: Koch
+    given-names: Michael
+    affiliation: "Aarhus University; Kiel Institute for the World Economy"
+  - family-names: Engberg
+    given-names: Erik
+    affiliation: "Örebro University; Ratio Institute"
+    orcid: "https://orcid.org/0000-0003-4622-6526"
+abstract: >-
+  Code, documentation and aggregated exports behind the paper's estimates: the
+  download and processing of the public job advertisements and auxiliary data, the
+  posting analyses, the register scripts run inside Statistics Sweden's MONA
+  environment (project P1207) with the disclosure-reviewed aggregates they exported,
+  the builders of every table and figure, and a verification suite that checks each
+  printed number against its source.
+keywords:
+  - replication package
+  - generative artificial intelligence
+  - job postings
+  - young workers
+  - register data
+license: MIT
+repository-code: "https://github.com/Magnus-L/canaries-sweden"
+version: "2026-09-24"
+date-released: "2026-09-24"
+# No DOI yet: the package is archived with a DOI on acceptance.
+references:
+  - type: article
+    title: "Same Storm, Different Boats: Generative AI and Young Workers Within Firms"
+    authors:
+      - family-names: Lodefalk
+        given-names: Magnus
+      - family-names: Löthman
+        given-names: Lydia
+      - family-names: Koch
+        given-names: Michael
+      - family-names: Engberg
+        given-names: Erik
+    year: 2026
+    notes: "Manuscript under revision at Economics Letters (September 2026); earlier version Örebro University Working Paper 2026:2 and Ratio Working Paper 388. Replaced with the journal reference at acceptance."

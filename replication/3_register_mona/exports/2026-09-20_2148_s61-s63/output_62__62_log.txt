@@ -1,0 +1,154 @@
+======================================================================
+run by lodema at 2026-09-20 18:24 | 62_reconcile_gradients.py
+======================================================================
+======================================================================
+62: WHY DO THE TWO CLEAN DESIGNS DISAGREE ABOUT AGE?
+======================================================================
+  Outcome, panel and fixed effects held at 47L's throughout.
+  Only the exposure construction varies, one ingredient at a time.
+  memory available: 678.1 GB
+  counts: 56,930,127 employer-age-month cells
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  education scorebook ready
+
+  agreement between exposure constructions:
+    A_occ_age_cont     vs B_occ_firm_cont    corr +0.878 on 607,244 cells
+    A_occ_age_cont     vs C_edu_age_cont     corr +0.616 on 611,058 cells
+    A_occ_age_cont     vs D_edu_firm_quart   corr +0.603 on 602,353 cells
+    B_occ_firm_cont    vs C_edu_age_cont     corr +0.619 on 595,873 cells
+    B_occ_firm_cont    vs D_edu_firm_quart   corr +0.669 on 595,569 cells
+    C_edu_age_cont     vs D_edu_firm_quart   corr +0.739 on 907,895 cells
+  R exchange dir C:\Windows\TEMP\canaries_rwork\62_reconcile_gradients: swept 0 MB, 60.9 GB free
+======================================================================
+run by lodema at 2026-09-20 18:49 | 62_reconcile_gradients.py
+======================================================================
+======================================================================
+62: WHY DO THE TWO CLEAN DESIGNS DISAGREE ABOUT AGE?
+======================================================================
+  Outcome, panel and fixed effects held at 47L's throughout.
+  Only the exposure construction varies, one ingredient at a time.
+  memory available: 657.0 GB
+  counts: 56,930,127 employer-age-month cells
+  scores: 423 DAIOE codes, 394 Eloundou codes, 393 in both
+  OL_daioe       groups 105  cuts 33.766 / 43.967 / 60.592
+  education scorebook ready
+  A_occ_age_cont     143,700 firm-age cells
+  B_occ_firm_cont    142,120 firm-age cells
+  C_edu_age_cont     630,066 firm-age cells
+  D_edu_firm_quart   626,020 firm-age cells
+
+  agreement between exposure constructions:
+    A_occ_age_cont     vs B_occ_firm_cont    corr +0.928 on 142,120 cells
+    A_occ_age_cont     vs C_edu_age_cont     corr +0.768 on 143,580 cells
+    A_occ_age_cont     vs D_edu_firm_quart   corr +0.755 on 143,520 cells
+    B_occ_firm_cont    vs C_edu_age_cont     corr +0.766 on 142,000 cells
+    B_occ_firm_cont    vs D_edu_firm_quart   corr +0.804 on 141,998 cells
+    C_edu_age_cont     vs D_edu_firm_quart   corr +0.706 on 626,020 cells
+
+  common sample: 141,998 cells scored by all 4 constructions
+  A0_47L_anchor: panel 11,208,600 rows from 143,700 cells
+  R exchange dir C:\Windows\TEMP\canaries_rwork\62_reconcile_gradients: swept 403 MB, 61.9 GB free
+
+  A0_47L_anchor  (47L exactly, on 47L's own sample)  [4.4 min]
+    22-25  +0.0081 (SE 0.0126) t +0.64
+    26-30  +0.0131 (SE 0.0092) t +1.41
+    31-34  +0.0091 (SE 0.0089) t +1.02
+    35-40  -0.0044 (SE 0.0083) t -0.53
+    41-49  -0.0193 (SE 0.0089) t -2.17
+    50+    +0.0357 (SE 0.0144) t +2.48
+  A_occ_age_cont: panel 11,075,844 rows from 141,998 cells
+
+  A_occ_age_cont  (occupation, age-specific, continuous  (= 47L))  [4.4 min]
+    22-25  +0.0085 (SE 0.0127) t +0.67
+    26-30  +0.0131 (SE 0.0093) t +1.40
+    31-34  +0.0092 (SE 0.0089) t +1.03
+    35-40  -0.0043 (SE 0.0084) t -0.51
+    41-49  -0.0192 (SE 0.0089) t -2.15
+    50+    +0.0358 (SE 0.0144) t +2.49
+  B_occ_firm_cont: panel 11,075,844 rows from 141,998 cells
+
+  B_occ_firm_cont  (occupation, firm incumbents, continuous)  [4.5 min]
+    22-25  -0.0278 (SE 0.0138) t -2.01
+    26-30  -0.0203 (SE 0.0093) t -2.19
+    31-34  -0.0231 (SE 0.0084) t -2.76
+    35-40  -0.0376 (SE 0.0078) t -4.81
+    41-49  -0.0493 (SE 0.0071) t -6.99
+    50+    +nan (SE nan) t +nan
+  C_edu_age_cont: panel 11,075,844 rows from 141,998 cells
+
+  C_edu_age_cont  (education, age-specific, continuous)  [4.5 min]
+    22-25  +0.0233 (SE 0.0106) t +2.19
+    26-30  +0.0189 (SE 0.0068) t +2.78
+    31-34  +0.0030 (SE 0.0066) t +0.45
+    35-40  -0.0195 (SE 0.0064) t -3.03
+    41-49  -0.0173 (SE 0.0067) t -2.57
+    50+    +0.0258 (SE 0.0138) t +1.87
+  D_edu_firm_quart: panel 11,075,844 rows from 141,998 cells
+
+  D_edu_firm_quart  (education, firm incumbents, quartile  (47j's exposure, inside 47L's specification))  [4.4 min]
+    22-25  -0.0067 (SE 0.0108) t -0.62
+    26-30  +0.0014 (SE 0.0078) t +0.18
+    31-34  -0.0080 (SE 0.0072) t -1.11
+    35-40  -0.0249 (SE 0.0070) t -3.56
+    41-49  -0.0246 (SE 0.0066) t -3.74
+    50+    +nan (SE nan) t +nan
+
+WHY THE TWO CLEAN DESIGNS DISAGREE ABOUT AGE
+====================================================
+
+Outcome, panel and fixed effects are 47L's in every column.
+Only the exposure construction changes.
+
+  A_occ_age_cont     occupation, age-specific, continuous  (= 47L)
+  B_occ_firm_cont    occupation, firm incumbents, continuous
+  C_edu_age_cont     education, age-specific, continuous
+  D_edu_firm_quart   education, firm incumbents, quartile  (47j's exposure, inside 47L's specification)
+
+age gradient by variant:
+variant    A0_47L_anchor  A_occ_age_cont  B_occ_firm_cont  C_edu_age_cont  D_edu_firm_quart
+age_group                                                                                  
+22-25             0.0081          0.0085          -0.0278          0.0233           -0.0067
+26-30             0.0131          0.0131          -0.0203          0.0189            0.0014
+31-34             0.0091          0.0092          -0.0231          0.0030           -0.0080
+35-40            -0.0044         -0.0043          -0.0376         -0.0195           -0.0249
+41-49            -0.0193         -0.0192          -0.0493         -0.0173           -0.0246
+50+               0.0357          0.0358              NaN          0.0258               NaN
+
+standard errors:
+variant    A0_47L_anchor  A_occ_age_cont  B_occ_firm_cont  C_edu_age_cont  D_edu_firm_quart
+age_group                                                                                  
+22-25             0.0126          0.0127           0.0138          0.0106            0.0108
+26-30             0.0092          0.0093           0.0093          0.0068            0.0078
+31-34             0.0089          0.0089           0.0084          0.0066            0.0072
+35-40             0.0083          0.0084           0.0078          0.0064            0.0070
+41-49             0.0089          0.0089           0.0071          0.0067            0.0066
+50+               0.0144          0.0144              NaN          0.0138               NaN
+
+SAMPLE alone (anchor to A) moves 22-25 by +0.0004  <- the cost of the common sample, not a finding
+UNIT alone (A to B) moves 22-25 by -0.0363
+SOURCE alone (A to C) moves 22-25 by +0.0148
+UNIT and FORM (C to D) move 22-25 by -0.0300
+
+READ THIS BEFORE QUOTING ANY OF IT:
+  1. This is a decomposition, not a horse race. None of the four
+     is 'the right one'; the point is which ingredient moves the
+     answer.
+  2. A firm-level exposure asks whether exposed FIRMS treat their
+     young differently. An age-specific one asks whether exposed
+     YOUNG WORKERS fare differently. If the unit is what matters,
+     the two designs were answering different questions all along
+     and neither is wrong.
+  3. Every variant here uses the stock as the outcome, so none of
+     them speaks to hiring.
+  4. CHECK THE ANCHOR FIRST. A0 is 47L's own exposure on 47L's own
+     sample and must reproduce 47L's published gradient (+0.0081
+     at 22-25, -0.0193 at 41-49). If it does not, something other
+     than the exposure has changed and nothing below it should be
+     read. The four variants then run on one common sample, so
+     the A0-to-A step is the price of that restriction and the
+     A-to-B, A-to-C and C-to-D steps are the decomposition.
+
+Runtime 24.2 min. memory available: 644.7 GB
+
+62 done.

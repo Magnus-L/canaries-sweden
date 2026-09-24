@@ -1,0 +1,28 @@
+======================================================================
+run by lodema at 2026-09-18 19:28 | 41_vintage_event_studies.py
+======================================================================
+======================================================================
+41: VINTAGE EVENT STUDIES (E4)
+======================================================================
+
+--- variant V2023 ---
+  [V2023_22-25] 11,676,912 cells, 46,474 employers
+
+--- variant V2022 ---
+  [V2022_22-25] 8,841,456 cells, 35,834 employers
+
+--- variant V2021 ---
+  [V2021_22-25] 8,837,322 cells, 35,817 employers
+
+Saved vintage_es.csv
+
+--- margin split (year-level flag) ---
+  margin split: person x employer x year pull...
+    2019: 9,455,500 pairs
+    2020: 9,019,844 pairs
+    2021: 9,229,719 pairs
+    2022: 9,799,446 pairs
+    2023: 9,851,119 pairs
+    2024: 9,658,768 pairs
+    2025: 8,202,656 pairs
+  margin_pair_counts.csv (monthly margin ES deferred; see note in script)

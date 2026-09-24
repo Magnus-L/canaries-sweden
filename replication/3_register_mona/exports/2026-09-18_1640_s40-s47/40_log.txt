@@ -1,0 +1,26 @@
+======================================================================
+run by lodema at 2026-09-18 15:54 | 40_coverage_diagnostics.py
+======================================================================
+======================================================================
+40: EMPLOYMENT COVERAGE DIAGNOSTICS (E3)
+======================================================================
+  A/D: coverage_by_month_age.csv, excluded_counts.csv
+  B: vintage_composition.csv
+  C: coverage_by_quartile.csv
+  E: entrant split (SQL, person x employer x year)...
+    2019: 9,455,500 person-employer pairs (42s)
+    2020: 9,019,844 person-employer pairs (45s)
+    2021: 9,229,719 person-employer pairs (58s)
+    2022: 9,799,446 person-employer pairs (45s)
+    2023: 9,851,119 person-employer pairs (59s)
+    2024: 9,658,768 person-employer pairs (80s)
+    2025: 8,202,656 person-employer pairs (39s)
+  E: entrant_split_coverage.csv
+COVERAGE SUMMARY
+========================================
+2023: overall match 1.000; 22-25 match 1.000
+2024: overall match 1.000; 22-25 match 1.000
+2025: overall match 1.000; 22-25 match 1.000
+2024-25 incumbent: match 0.998
+2024-25 recent_hire: match 0.998
+2024-25 entrant: match 0.977

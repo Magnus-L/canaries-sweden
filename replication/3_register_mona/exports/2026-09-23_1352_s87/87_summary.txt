@@ -1,0 +1,74 @@
+THE FEMALE DIFFERENTIAL AT 22-25, SPLIT, ON THE OCCUPATION ROUTE
+==========================================================
+
+Equation (2)'s sex specification, run on all workers and then
+within each broad education track, with the employer scored by
+the 2019 occupations of its own incumbents aged 31 to 69. The cut
+is the worker's own SUN 2020 record, because the design
+classifies no young worker by occupation after 2019; Individ ends
+at 2023 and later years carry it forward.
+
+THE GATE: PASS. all-track differential -0.08582 (0.01420) against Table 1's -0.08582
+  A FAIL means this frame is not the one Table 1 sits on and nothing here is quoted.
+
+MALE EFFECT AND FEMALE DIFFERENTIAL BY TRACK:
+  all                      men -0.0171 (0.0179)   women minus men -0.0858 (0.0142) t -6.04   firms 104,217
+  ict                      men -0.1297 (0.0593)   women minus men +0.1073 (0.0839) t +1.28   firms 6,154
+  engineering              men -0.0390 (0.0252)   women minus men -0.0444 (0.0305) t -1.45   firms 51,364
+  business_law_social      men -0.0827 (0.0250)   women minus men -0.0408 (0.0236) t -1.73   firms 40,050
+  health_education_care    men +0.1518 (0.0423)   women minus men -0.2423 (0.0409) t -5.92   firms 24,152
+  other                    men +0.0011 (0.0257)   women minus men -0.0908 (0.0217) t -4.18   firms 67,917
+
+YOUNG WOMEN'S TRACK SHARES IN THIS ROUTE'S EXPOSED FIRMS (2023), the weights:
+  business_law_social 0.442, engineering 0.117, health_education_care 0.104, ict 0.029, na 0.005, other 0.301
+
+THE SPLIT:
+  pooled differential      -0.0858 (0.0142)
+  within tracks            -0.0731 (0.0138)
+  composition              -0.0127
+  ratio within / pooled    0.852
+  verdict                  HIT HARDER
+
+THE EDUCATION ROUTE'S OWN SPLIT, for reference and not for export:
+  pooled -0.0659   within -0.0508   ratio 0.772
+
+THE EDUCATION RECORD:
+  2021: 4,204,557 young person-months, 0.432% with no record
+  2022: 4,500,764 young person-months, 0.411% with no record
+  2023: 4,495,243 young person-months, 0.274% with no record
+  2024: 4,370,538 young person-months, 0.132% with no record  (2023 carried forward)
+  2025: 2,098,843 young person-months, 0.166% with no record  (2023 carried forward)
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  the split weights are this route's exposed employers, not the education route's
+
+READ RULES, FIXED BEFORE THE RUN:
+  1. THE GATE. The all-track differential must reproduce Table 1's
+     occupation-route figure, -0.0858, to 4 decimals.
+     It is fitted on the education frame collapsed over education,
+     so a match is the evidence that this frame is the one Table 1
+     sits on. A MISS MEANS NOTHING HERE IS QUOTED.
+  2. The split's rule is 76's, unchanged: composition if within is
+     at or below half the pooled differential in absolute value,
+     being affected more in the same work if at or above three
+     quarters, ambiguous between.
+  3. No track is promoted above the pooled profile, and every track
+     is reported whichever way it falls.
+  4. NO SQL. If L_counts_sex_edu_* are not cached the lane reports
+     that and stops rather than starting a full read.
+  5. THE CUT STAYS EDUCATION AND MUST. The reported design
+     classifies no young worker by occupation after 2019, so
+     occupation cannot cut the young. What changed is the FIRM's
+     score, from the 2019 education mix to the 2019 occupation mix
+     of its incumbents aged 31 to 69.
+  6. THE WEIGHTS ARE REBUILT ON THIS ROUTE. They are young women's
+     track shares in EXPOSED employers, and which employers are
+     exposed is what this change redefines.
+  On the education route 76 gave pooled -0.0659 (0.0131), within
+  -0.0508 (0.0118), ratio 0.772.
+  Cells below 5 are suppressed before anything leaves MONA.
+
+Runtime 64.0 min. memory available: 684.0 GB

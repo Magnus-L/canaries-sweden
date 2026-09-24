@@ -1,0 +1,1033 @@
+#!/usr/bin/env python3
+"""
+73_industry_and_credit.py: two rival explanations for the decline of the
+young inside exposed employers, tested directly.
+
+QUESTION
+Part A. Employer-by-month effects absorb industry-by-month shocks, since
+industry is fixed within an employer, but not an industry shock that
+falls differently on the young. Did exposed employers change their age
+composition differently from less exposed employers facing the same
+industry-specific age shock? Part B. If the decline were credit-driven it
+should be concentrated in leveraged employers, the ones a rate cycle
+binds on. Does the exposure term survive when the adoption step is
+interacted with the employer's 2019 leverage? Part C. Are the separations
+of the young exits from employers that failed?
+
+DESIGN
+Panel and exposure are script 61's: employer by age band by month from
+January 2021 to June 2025, the young band beside the four incumbent bands,
+exposure the top quartile of the 2019 education mix. Baseline terms:
+PostRB x High x Young from April 2022 and Post x High x Young from
+January 2024; the calendar cycle is not removed in this script. Poisson
+pseudo-maximum likelihood, standard errors clustered by employer.
+
+Part A adds industry by age band by month effects, where industry is the
+employer's three-digit SNI 2007 code in 2019 from LISA's firm table
+(Ftg_2019, Org_Sni2007; the workplace table and the business register are
+fallbacks for other base years). The month-by-age effect is nested in the
+new one and is dropped. A second fit gives the quarterly path with
+industry absorbed: Q1 to Q3 x High x Young with the fourth quarter
+omitted, and one interaction per quarter from December 2022 onward.
+
+Part B: leverage is one minus equity over assets from the employer's
+latest balance sheet closing in 2019 (Serrano; the structural business
+statistics FE_2019 are used first where present), clipped to the range 0
+to 3, split at the sample median. On the employers with a balance sheet
+the baseline is re-estimated on that sample, then the terms
+Post x Young x LevHigh and Post x High x Young x LevHigh are added.
+
+Part C drops employers flagged as bankrupt or in liquidation in the
+Serrano corporate events table up to 2019 and re-estimates the baseline.
+
+Gates fixed before the run: an arm is estimated only if at least 500
+panel employers and 30 per cent of them carry the covariate. Read rule for
+Part B: the exposure step is judged monetary if it loses more than half
+its size or its significance once leverage is in and the leverage term is
+significantly negative, and AI survives if it keeps at least half its
+size and stays significant. The environment variables CANARIES_73_PARTS
+(default ABC) and CANARIES_73_OUT select the parts run and the output
+folder.
+
+INPUTS AND OUTPUTS
+Reads, in MONA, the INFORMATION_SCHEMA catalogue, Ftg_2019, the Serrano
+balance sheet and corporate events tables, the FE tables where present;
+the caches of scripts 47h and 47L; performs its own SQL for the
+covariates only. Writes to the output folder: schema_found.csv,
+industry_fe.csv, industry_path.csv, credit_test.csv, bankruptcy.csv,
+vcov_r73_*.csv (the clustered covariance of each fit) and 73_summary.txt.
+
+IN THE PAPER
+The coefficients written here are on the education route and are not
+quoted. The industry and credit tests the paper reports (Section 3: 67
+and 31 per cent of the step retained with industry by age by month
+absorbed; the credit test leaving both steps unchanged; Online Appendix
+III.2, Table A20) are script 83's Parts C and B, which import
+firm_leverage, run_band, discover and norm_id from this script, and
+script 80, which completes the industry key with _sni3 and pick.
+"""
+
+import gc
+import os
+import re
+import sys
+import time
+import traceback
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mona_common as mc
+
+HERE = Path(__file__).resolve().parent
+OUT = HERE / os.environ.get("CANARIES_73_OUT", "output_73")
+# Which parts to run: A industry, B credit, C bankruptcy. Part B can be run
+# alone; the baseline fit runs whenever A or B runs, and B's comparison
+# re-estimates it on its own sample.
+PARTS = os.environ.get("CANARIES_73_PARTS", "ABC").upper()
+OUT.mkdir(exist_ok=True)
+CACHE = mc.CACHE_DIR
+
+BASE_YEAR = 2019            # industry and leverage are frozen pre-shock
+YOUNG_BANDS = ["22-25", "26-30"]
+PANEL_FROM = "2021-01"
+PANEL_YEARS = list(range(2021, 2026))
+POOLED_FROM = "2024-01"
+TRUNC = 2021
+DESIGN, ARM = "OL_daioe", "true"
+
+MIN_MATCH_RATE = 0.30       # of panel firms that must carry the covariate
+MIN_FIRMS = 500
+ATTEN_MAX = 0.50            # exposure term must keep at least half its size
+NOTES = []
+FAILURES = []
+
+
+def opt(label, fn, *a, **kw):
+    try:
+        return fn(*a, **kw)
+    except BaseException as ex:
+        print(f"  [optional] {label} FAILED ({type(ex).__name__}: {ex})")
+        traceback.print_exc()
+        FAILURES.append(label)
+        return None
+
+
+def _mod(fname: str, name: str):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, HERE / fname)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def _rss_gb() -> float:
+    """
+    This process's resident memory in GB, stdlib only.
+
+    Python and R share the job's allocation, so what Python is holding
+    when it spawns R is the budget R does not get. mem_available_gb()
+    reports the NODE and is useless for this.
+    """
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class _PMC(ctypes.Structure):
+            _fields_ = [("cb", wintypes.DWORD),
+                        ("PageFaultCount", wintypes.DWORD),
+                        ("PeakWorkingSetSize", ctypes.c_size_t),
+                        ("WorkingSetSize", ctypes.c_size_t),
+                        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                        ("PagefileUsage", ctypes.c_size_t),
+                        ("PeakPagefileUsage", ctypes.c_size_t)]
+        m = _PMC(); m.cb = ctypes.sizeof(_PMC)
+        # A failed call returns 0 rather than raising and leaves the
+        # struct zeroed, so try kernel32's K32 export first, which is the
+        # one present on a plain Windows install, and trust nothing that
+        # does not return non-zero.
+        ok = 0
+        for dll, fn in (("kernel32", "K32GetProcessMemoryInfo"),
+                        ("psapi", "GetProcessMemoryInfo")):
+            try:
+                f = getattr(getattr(ctypes.windll, dll), fn)
+            except Exception:
+                continue
+            ok = f(ctypes.windll.kernel32.GetCurrentProcess(),
+                   ctypes.byref(m), m.cb)
+            if ok:
+                break
+        if not ok:
+            return float("nan")
+        return m.WorkingSetSize / 1e9
+    except Exception:
+        try:
+            import resource
+            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e9
+        except Exception:
+            return float("nan")
+
+
+# Threads. fixest defaults to every core and each thread carries its own
+# demeaning workspace, so peak memory scales with the core count while the
+# job cap does not; the signature of running out is rc=3221225477 with
+# "*** recursive gc invocation", R's collector giving up. Two threads cost
+# wall-clock and buy the fit. The count travels on the command line
+# because the batch submitter cannot set environment variables.
+R_THREADS = 2
+
+
+def norm_id(x) -> pd.Series:
+    """One canonical spelling on both sides of every join (see 71)."""
+    v = pd.Series(x).astype(str).str.strip()
+    return v.str.replace(r"\.0$", "", regex=True)
+
+
+def pick(cols, *patterns):
+    for p in patterns:
+        rx = re.compile(p, re.I)
+        for c in cols:
+            if rx.search(c):
+                return c
+    return None
+
+
+def discover(conn) -> pd.DataFrame:
+    q = """
+    SELECT t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE
+    FROM INFORMATION_SCHEMA.TABLES t
+    JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME
+    WHERE t.TABLE_NAME LIKE 'FDB[_]JE[_]%' OR t.TABLE_NAME LIKE 'Serrano%'
+       OR t.TABLE_NAME LIKE 'FE[_]%'
+       OR t.TABLE_NAME LIKE 'Ftg[_]%' OR t.TABLE_NAME LIKE 'Arbst[_]%'
+    ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION
+    """
+    return pd.read_sql(q, conn)
+
+
+def edu_exposure(j47):
+    """47j's incumbent education exposure, as 61 builds it."""
+    h47 = j47._h47()
+    counts = {}
+    for y in h47.WEIGHT_YEARS:
+        w = mc.read_cache(CACHE / f"edu_hr_weights_{y}.parquet",
+                          require=h47.WEIGHT_COLS)
+        if w is None:
+            raise SystemExit(f"edu_hr_weights_{y}.parquet missing: run 47h.")
+        counts[y] = w
+    book = h47.ScoreBook(counts, h47.load_key(), h47.load_scores())
+    spec = dict(h47.DESIGNS[DESIGN])
+    book.build(DESIGN, spec)
+    frame19 = mc.read_cache(CACHE / f"edu_hr_{j47.BASE_YEAR}.parquet",
+                            require=h47.YEAR_COLS + ["n_emp"])
+    if frame19 is None:
+        raise SystemExit(f"edu_hr_{j47.BASE_YEAR}.parquet missing: run 47h.")
+    expo, _ = j47.incumbent_exposure(frame19, book, DESIGN, spec, ARM, TRUNC)
+    del frame19
+    gc.collect()
+    return expo
+
+
+def _sni3(raw: pd.Series) -> pd.Series:
+    """SNI2007 at three digits, from a code of any length."""
+    v = raw.astype(str).str.strip().str.replace(r"\D", "", regex=True)
+    return v.where(v.str.len().between(2, 5)).str[:3]
+
+
+def firm_industry(conn, schema) -> pd.DataFrame:
+    """
+    employer_id -> frozen 2019 three-digit industry.
+
+    SOURCE ORDER, AND WHY IT IS THIS ORDER.
+
+    Our employer_id is AGI's P1207_LOPNR_PEORGNR, the legal entity.
+    LISA's firm table Ftg_<year> is keyed on exactly that identifier and
+    carries Org_Sni2007, the statistical industry SCB itself attaches to
+    the employer, for every firm in the employment register. That is the
+    right source.
+
+    FDB_JE is the business register's legal-entity file. It carries the
+    same key, but the delivered extract is not the employer population and
+    matches only a small share of the panel. Every Swedish employer has an
+    industry code, so a low match there measures the register chosen, not
+    the firms. FDB_JE is the last resort.
+
+    Arbst_<year> is the workplace file, keyed on the workplace but
+    carrying the parent LopNr_PeOrgNr, so a firm with workplaces in
+    several industries takes the industry of its largest workplace, IF
+    a size column is present, and in this delivery none is: Arbst_YYYY
+    carries no `Anst`, so the tie is broken by row order and the note says
+    "first workplace" rather than "largest". It is not a fallback at
+    BASE_YEAR 2019: the delivery carries Ast_Sni92 to 2001 and Ast_Sni2002
+    to 2010, and from Arbst_2011 there is no industry column at all, only
+    sector and municipality. (The dictionary page lists AstSNI2007; the
+    database does not have it.) The branch stays for an earlier base year
+    and falls through for a later one, so the 2019 industry comes from
+    Ftg_2019.
+
+    Whichever source answers, the coverage it achieves is reported, and
+    the gate below still applies: a source that cannot reach the match
+    threshold produces no estimate rather than a thin one.
+    """
+    tabs = sorted(schema["TABLE_NAME"].unique())
+
+    def cols_of(t):
+        return schema[schema.TABLE_NAME == t]["COLUMN_NAME"].tolist()
+
+    # ---- 1. LISA firm table: one row per firm, the industry SCB uses --
+    ftg = next((t for t in tabs
+                if re.fullmatch(rf"Ftg_{BASE_YEAR}", t, re.I)), None)
+    if ftg:
+        c = cols_of(ftg)
+        key = pick(c, r"^LopNr_PeOrgNr$", r"PeOrgNr")
+        ind = pick(c, r"^Org_Sni2007$", r"Sni2007", r"^Sni")
+        if key and ind:
+            d = pd.read_sql(f"SELECT [{key}] AS employer_id, "
+                            f"[{ind}] AS ind FROM dbo.[{ftg}]", conn)
+            d["employer_id"] = norm_id(d["employer_id"])
+            d["ind3"] = _sni3(d["ind"])
+            d = d.dropna(subset=["ind3"]).drop_duplicates("employer_id")
+            if len(d):
+                msg = (f"industry: {ftg} via {ind} (LISA firm table, the "
+                       f"employer population), {len(d):,} firms, "
+                       f"{d['ind3'].nunique()} three-digit groups")
+                print(f"  {msg}"); NOTES.append(msg)
+                return d[["employer_id", "ind3"]]
+        NOTES.append(f"{ftg}: key {key}, industry {ind}; unusable")
+
+    # ---- 2. LISA workplace table, rolled up to the firm ---------------
+    arb = next((t for t in tabs
+                if re.fullmatch(rf"Arbst_{BASE_YEAR}", t, re.I)), None)
+    if arb:
+        c = cols_of(arb)
+        key = pick(c, r"^LopNr_PeOrgNr$", r"PeOrgNr")
+        ind = pick(c, r"^AstSNI2007$", r"^Ast_Sni2007$", r"^Ast_Sni2002$",
+                   r"^Ast_Sni92$", r"Sni")
+        size = pick(c, r"^Anst$", r"AntAnst", r"^Syss")
+        if key and ind:
+            sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
+            sel += f", [{size}] AS n" if size else ""
+            d = pd.read_sql(sel + f" FROM dbo.[{arb}]", conn)
+            d["employer_id"] = norm_id(d["employer_id"])
+            d["ind3"] = _sni3(d["ind"])
+            d = d.dropna(subset=["ind3"])
+            if size:
+                d["n"] = pd.to_numeric(d["n"], errors="coerce").fillna(0)
+                d = d.sort_values("n", ascending=False)
+            d = d.drop_duplicates("employer_id")
+            if len(d):
+                how = "largest workplace" if size else "first workplace"
+                msg = (f"industry: {arb} via {ind} ({how}; Ftg_{BASE_YEAR} "
+                       f"was not available), {len(d):,} firms, "
+                       f"{d['ind3'].nunique()} three-digit groups")
+                print(f"  {msg}"); NOTES.append(msg)
+                return d[["employer_id", "ind3"]]
+
+    # ---- 3. FDB_JE, last resort ---------------------------------------
+    # Year RANGES with an `ar` column; there is no FDB_JE_2019, and the
+    # first FDB_JE% alphabetically is FDB_JE_1990_1993 with sni69ng1,
+    # the 1969 classification.
+    def _covers(t):
+        yrs = [int(x) for x in re.findall(r"((?:19|20)\d{2})", t)]
+        if len(yrs) == 2:
+            return yrs[0] <= BASE_YEAR <= yrs[1]
+        return len(yrs) == 1 and yrs[0] == BASE_YEAR
+
+    cands = [t for t in tabs if t.lower().startswith("fdb_je")]
+    tab = next((t for t in cands if _covers(t)), None) \
+        or next((t for t in cands if "all_years" in t.lower()), None)
+    if tab is None:
+        NOTES.append(f"no industry source for {BASE_YEAR}; Part A cannot run")
+        return pd.DataFrame()
+    c = cols_of(tab)
+    key = pick(c, r"^P1207_Lopnr_peorgnr$", r"PeOrgNr", r"PEORGNR")
+    ind = pick(c, r"^ng3$", r"^ngs1$", r"^ng2$")
+    yrc = pick(c, r"^ar$", r"^year$")
+    if key is None or ind is None:
+        NOTES.append(f"{tab}: key {key}, industry {ind}; Part A cannot run. "
+                     f"Columns seen: {c[:20]}")
+        return pd.DataFrame()
+    sel = f"SELECT [{key}] AS employer_id, [{ind}] AS ind"
+    d = pd.read_sql(sel + f" FROM dbo.[{tab}]"
+                    + (f" WHERE [{yrc}] = {BASE_YEAR}" if yrc else ""), conn)
+    d["employer_id"] = norm_id(d["employer_id"])
+    d["ind3"] = _sni3(d["ind"])
+    d = d.dropna(subset=["ind3"]).drop_duplicates("employer_id")
+    msg = (f"industry: {tab} via {ind} (FALLBACK, the business register "
+           f"rather than the employer population), {len(d):,} firms, "
+           f"{d['ind3'].nunique()} three-digit groups")
+    print(f"  {msg}"); NOTES.append(msg)
+    return d[["employer_id", "ind3"]]
+
+
+def leverage_from_fek(conn, schema) -> pd.DataFrame:
+    """
+    Frozen 2019 leverage from FEK, which is the better source.
+
+    SCB's own structural business statistics, population rather than
+    sample for private non-financial firms, and two documented variables
+    give the standard ratio: 1 - SummaEgetKapital / SummaTillgangar.
+
+    TWO DOCUMENTED TRAPS, both handled here rather than discovered later.
+
+    UNIT. FE tables before 2022 are keyed on LopNr_PeOrgNrHE, the group
+    HEAD unit, not the legal entity our AGI panel is built on, and the
+    figures are CONSOLIDATED, so an FE is not the sum of its JEs. For a
+    single-entity firm the two coincide; for a group member they do not,
+    and what attaches is the group's balance sheet rather than the
+    employer's. We use 2019, so the head-unit key is the right one, and
+    the match rate is reported so the reader can see how much of the
+    panel this covers.
+
+    POPULATION. FEK excludes the public sector, financial firms and
+    non-profits. The credit test therefore runs on private non-financial
+    employers, which must be said in the paper rather than left implicit.
+    """
+    cands = [t for t in sorted(schema["TABLE_NAME"].unique())
+             if re.match(r"^FE_\d{4}$", t, re.I)]
+    tab = next((t for t in cands if t.endswith(str(BASE_YEAR))), None)
+    if tab is None:
+        earlier = [t for t in cands if int(t.split("_")[1]) <= 2021]
+        tab = max(earlier, key=lambda t: int(t.split("_")[1])) \
+            if earlier else None
+    if tab is None:
+        return pd.DataFrame()
+    cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
+    key = pick(cols, r"PeOrgNrHE", r"PeOrgNr", r"FENr")
+    assets = pick(cols, r"SummaTillgangar")
+    equity = pick(cols, r"SummaEgetKapital")
+    if not (key and assets and equity):
+        NOTES.append(f"{tab}: key {key}, assets {assets}, equity {equity}; "
+                     f"FEK leverage unavailable. Columns: {cols[:25]}")
+        return pd.DataFrame()
+    d = pd.read_sql(f"SELECT [{key}] AS employer_id, [{assets}] AS assets, "
+                    f"[{equity}] AS equity FROM dbo.[{tab}]", conn)
+    d["employer_id"] = norm_id(d["employer_id"])
+    for c in ("assets", "equity"):
+        d[c] = pd.to_numeric(d[c].astype(str).str.replace(",", ".",
+                                                          regex=False),
+                             errors="coerce")
+    d = d[(d["assets"] > 0) & d["equity"].notna()]
+    d["lev"] = (1.0 - d["equity"] / d["assets"]).clip(0, 3)
+    d = d.drop_duplicates("employer_id")
+    print(f"  leverage: {tab} via 1 - {equity}/{assets}, {len(d):,} firms, "
+          f"median {d['lev'].median():.2f}")
+    NOTES.append(
+        f"leverage built from {tab}: 1 - {equity}/{assets}, keyed on {key}. "
+        f"Pre-2022 FE is the CONSOLIDATED group head unit, so a group "
+        f"member carries its group's balance sheet; FEK also excludes "
+        f"public, financial and non-profit employers.")
+    return d[["employer_id", "lev"]]
+
+
+def firm_leverage(conn, schema) -> pd.DataFrame:
+    """
+    Frozen 2019 leverage.
+
+    FEK would be the better source, being SCB's own and population level,
+    and is tried first; no FE table is in this delivery, so Serrano, which
+    carries the full balance sheet, is what runs.
+    """
+    fek = leverage_from_fek(conn, schema)
+    if len(fek):
+        return fek
+    NOTES.append("no FEK table answered the probe; using Serrano")
+    tab = next((t for t in sorted(schema["TABLE_NAME"].unique())
+                if "bokslut" in t.lower()), None)
+    if tab is None:
+        NOTES.append("no Serrano bokslut table either; Part B cannot run")
+        return pd.DataFrame()
+    cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
+    # Serrano uses abbreviated Swedish codes; the names below are from the
+    # live catalogue:
+    #   TILLGSU total assets      EKSU   total equity
+    #   LSKSU   long-term debt    KSKSU  short-term debt
+    #   EKSKSU  equity+liabilities   NTOMS turnover
+    key = pick(cols, r"^P1207_Lopnr_ORGNR$", r"ORGNR", r"PeOrgNr")
+    asset = pick(cols, r"^TILLGSU$", r"^EKSKSU$")
+    equity = pick(cols, r"^EKSU$")
+    dlong, dshort = pick(cols, r"^LSKSU$"), pick(cols, r"^KSKSU$")
+    yr = pick(cols, r"^BSLSLUT$", r"^ar$", r"year", r"bokslutsar")
+    if asset and equity:
+        debt = None            # leverage as 1 - equity/assets
+    else:
+        debt = dlong or dshort
+    if not (key and asset and (equity or debt or (dlong and dshort))):
+        NOTES.append(
+            f"{tab}: could not identify the balance sheet (key {key}, "
+            f"assets {asset}, equity {equity}, debt {dlong}/{dshort}). "
+            f"Columns seen: {cols[:40]}")
+        return pd.DataFrame()
+    parts = [f"[{key}] AS employer_id", f"[{asset}] AS assets"]
+    if equity:
+        parts.append(f"[{equity}] AS equity")
+    if dlong:
+        parts.append(f"[{dlong}] AS dlong")
+    if dshort:
+        parts.append(f"[{dshort}] AS dshort")
+    sel = ", ".join(parts)
+    if yr:
+        sel += f", [{yr}] AS yr"
+    d = pd.read_sql(f"SELECT {sel} FROM dbo.[{tab}]", conn)
+    # The year filter. BSLSLUT is a SQL date, and pd.to_numeric on a date
+    # column gives NaN or nanoseconds, never a year, so a numeric year
+    # column is honoured and anything else is parsed as a date and its year
+    # taken. If no row matches the base year the arm refuses instead of
+    # falling through.
+    if not (yr and "yr" in d):
+        NOTES.append(f"{tab}: no accounting-year column found; Part B cannot run")
+        return pd.DataFrame()
+    if pd.api.types.is_numeric_dtype(d["yr"]):
+        y = pd.to_numeric(d["yr"], errors="coerce")
+    else:
+        y = pd.to_datetime(d["yr"], errors="coerce").dt.year
+    n_all = len(d)
+    d = d[y == BASE_YEAR].copy()
+    if d.empty:
+        NOTES.append(f"{tab}: no balance sheet closes in {BASE_YEAR} "
+                     f"(column {yr}, {n_all:,} rows read); Part B REFUSED")
+        return pd.DataFrame()
+    # several closes inside the base year (a changed accounting period):
+    # keep the latest, deterministically
+    d["_close"] = pd.to_datetime(d["yr"], errors="coerce") \
+        if not pd.api.types.is_numeric_dtype(d["yr"]) else 0
+    d = d.sort_values("_close", ascending=False)
+    NOTES.append(f"leverage year filter: {yr} in {BASE_YEAR}, "
+                 f"{len(d):,} of {n_all:,} balance-sheet rows kept")
+    d["employer_id"] = norm_id(d["employer_id"])
+    for c in [c for c in ("assets", "equity", "dlong", "dshort")
+              if c in d.columns]:
+        d[c] = pd.to_numeric(d[c].astype(str).str.replace(",", ".",
+                                                          regex=False),
+                             errors="coerce")
+    d = d[d["assets"] > 0]
+    if "equity" in d.columns and d["equity"].notna().any():
+        d["lev"] = (1.0 - d["equity"] / d["assets"]).clip(0, 3)
+        how = f"1 - {equity}/{asset}"
+    else:
+        dd = d.get("dlong", 0).fillna(0) + d.get("dshort", 0).fillna(0)
+        d["lev"] = (dd / d["assets"]).clip(0, 3)
+        how = f"({dlong}+{dshort})/{asset}"
+    d = d[d["lev"].notna()].drop_duplicates("employer_id")
+    print(f"  leverage: {tab} via {how}, {len(d):,} firms, "
+          f"median {d['lev'].median():.2f}")
+    NOTES.append(f"leverage built from {tab}: {how}, keyed on {key}, "
+                 f"{BASE_YEAR} balance sheets, {len(d):,} firms")
+    return d[["employer_id", "lev"]]
+
+
+def firm_failed(conn, schema) -> set:
+    """
+    Firms recorded as bankrupt in Serrano.
+
+    Not from `Serrano_bol_20230614`, whose `status` field does not carry a
+    bankruptcy literal that can be matched, but from the purpose-built
+    flags in `Serrano_Serrano_20230614`, `bol_konkurs` and `bol_kkfall`,
+    which that table carries beside `ser_year` so the year can be chosen
+    directly.
+
+    A flag that is a count or a code, not a 0/1, still works here: any
+    non-zero, non-missing value marks the firm.
+    """
+    tabs = sorted(schema["TABLE_NAME"].unique())
+    tab = next((t for t in tabs
+                if re.search(r"serrano.*serrano", t, re.I)), None)
+    if tab:
+        cols = schema[schema.TABLE_NAME == tab]["COLUMN_NAME"].tolist()
+        key = pick(cols, r"^P1207_Lopnr_ORGNR$", r"ORGNR")
+        flg = [c for c in cols
+               if re.search(r"^bol_(konkurs|kkfall)$", c, re.I)]
+        yrc = pick(cols, r"^ser_year$", r"^year$")
+        if key and flg:
+            sel = ", ".join(f"[{c}]" for c in flg)
+            q = f"SELECT [{key}] AS employer_id, {sel} FROM dbo.[{tab}]"
+            if yrc:
+                q += f" WHERE [{yrc}] <= {BASE_YEAR}"
+            d = pd.read_sql(q, conn)
+            bad = pd.Series(False, index=d.index)
+            for c in flg:
+                v = pd.to_numeric(d[c], errors="coerce")
+                hit = v.fillna(0) != 0
+                # a non-numeric flag is a code, not a number
+                if v.isna().all():
+                    hit = (d[c].astype(str).str.strip()
+                           .str.lower().isin(("", "nan", "0", "none")) == False)
+                bad |= hit
+            out = set(norm_id(d.loc[bad, "employer_id"]))
+            msg = (f"corporate events: {tab} via {'/'.join(flg)}"
+                   + (f", {yrc}<={BASE_YEAR}" if yrc else "")
+                   + f", {len(out):,} failed firms of {len(d):,} rows")
+            print(f"  {msg}"); NOTES.append(msg)
+            if out:
+                return out
+            NOTES.append(f"{tab}: the bankruptcy flags marked nobody; "
+                         f"Part C reports nothing rather than a false null")
+            return set()
+    NOTES.append("no Serrano_Serrano table with bol_konkurs/bol_kkfall; "
+                 "Part C cannot run")
+    return set()
+
+
+def add_ind_fe(b: pd.DataFrame, ind: pd.DataFrame) -> pd.DataFrame:
+    """industry x age x month, as one integer key beside the existing FEs."""
+    b = b.merge(ind, on="employer_id", how="inner")
+    if b.empty:
+        return b
+    ic = pd.factorize(b["ind3"], sort=False)[0].astype("int64")
+    ac = pd.factorize(b["age_group"], sort=False)[0].astype("int64")
+    tc = pd.factorize(b["year_month"], sort=False)[0].astype("int64")
+    n_a, n_t = int(ac.max()) + 1, int(tc.max()) + 1
+    b["fe_ind_age_t"] = (ic * n_a + ac) * n_t + tc
+    return b
+
+
+def quarter_path_terms(b: pd.DataFrame) -> tuple:
+    """
+    Post-period quarter dummies plus the calendar cycle, exactly as 68
+    builds them, so the coefficients read against the same baseline and
+    the same omitted season.
+
+    The reference is the pre-ChatGPT window, and Q4 is the omitted
+    calendar quarter. Both are normalisations copied from 68 rather than
+    chosen here: the whole point is that these paths can be laid beside
+    68's on one axis.
+    """
+    ym = b["year_month"].astype(str)
+    hy = b["high"] * b["young"]
+    q = ((ym.str.slice(5, 7).astype(int) - 1) // 3) + 1
+    post_any = ym >= mc.CHATGPT_YM
+    terms = ["rb_x_high_x_young"]
+    b["rb_x_high_x_young"] = (ym >= mc.RIKSBANK_YM).astype(int) * hy
+    for qq in (1, 2, 3):                        # Q4 omitted, as in 68
+        col = f"q{qq}_x_high_x_young"
+        b[col] = (q == qq).astype(int) * hy
+        terms.append(col)
+    lab = ym.str.slice(0, 4) + "Q" + q.astype(str)
+    for qq in sorted(lab[post_any].unique()):
+        col = f"pq_{qq}_x_high_x_young"
+        b[col] = ((lab == qq) & post_any).astype(int) * hy
+        terms.append(col)
+    return b, terms
+
+
+def base_terms(b: pd.DataFrame) -> tuple:
+    ym = b["year_month"].astype(str)
+    hy = b["high"] * b["young"]
+    b["post_rb_x_high_x_young"] = (ym >= mc.RIKSBANK_YM).astype(int) * hy
+    b["post_x_high_x_young"] = (ym >= POOLED_FROM).astype(int) * hy
+    return b, ["post_rb_x_high_x_young", "post_x_high_x_young"]
+
+
+def fit(b, terms, fes, tag):
+    print(f"    {tag}: {len(b):,} rows, {b['employer_id'].nunique():,} firms"
+          f"{mc.mem_line(' | ')}")
+    r = mc.run_fepois_multi(b, OUT, tag=f"r73_{tag}", terms=terms, fes=fes,
+                            nthreads=R_THREADS)
+    if r.empty:
+        FAILURES.append(tag)
+        return None
+    return {row["term"]: (float(row["coef"]), float(row["se"]))
+            for _, row in r.iterrows()}
+
+
+def gate(b, cov, label) -> bool:
+    n = b["employer_id"].nunique()
+    matched = b[b["employer_id"].isin(set(cov["employer_id"]))][
+        "employer_id"].nunique() if len(cov) else 0
+    rate = matched / max(n, 1)
+    msg = (f"{label}: {matched:,} of {n:,} panel firms carry the covariate "
+           f"({rate:.1%})")
+    print(f"    {msg}")
+    NOTES.append(msg)
+    if matched < MIN_FIRMS or rate < MIN_MATCH_RATE:
+        NOTES.append(f"{label}: BELOW THRESHOLD ({matched} < {MIN_FIRMS} or "
+                     f"{rate:.1%} < {MIN_MATCH_RATE:.0%}); no estimate "
+                     f"reported, by the rule fixed before the run")
+        return False
+    return True
+
+
+def run_band(counts, expo, ind, lev, failed, band, j47, sinks):
+    l61 = _mod("61_redated_triple.py", "l61")
+    skel = l61.build_skeleton(counts, band, j47)
+    # counts is 43.8M rows and is not needed again in this band. main()
+    # still holds it for the next band, so this only helps if main drops
+    # it too; see the loop there.
+    if skel.empty:
+        print(f"  {band}: skeleton empty"); return
+    # Normalise before the merge, not after: main() normalises expo to a
+    # string while the skeleton still carries the float employer_id that
+    # the counts cache supplies.
+    skel["employer_id"] = norm_id(skel["employer_id"])
+    b0 = skel.merge(expo[["employer_id", "fq"]], on="employer_id",
+                    how="inner")
+    del skel
+    gc.collect()
+    if b0.empty:
+        print(f"  {band}: no firms matched exposure"); return
+    b0["high"] = (b0["fq"] == 4).astype(int)
+    # norm_id leaves employer_id as ~26M Python strings, which every fit
+    # then re-hashes (nunique, the cluster factorisation, the merges).
+    # The joins are done by here and the labels are never reported, so
+    # swap in one compact code and keep the lookup for the arms that
+    # still need to match on the original id.
+    id_codes, id_labels = pd.factorize(b0["employer_id"], sort=False)
+    id_map = pd.Series(np.arange(len(id_labels), dtype="int32"),
+                       index=id_labels)
+    b0["employer_id"] = id_codes.astype("int32")
+    ind = ind.assign(employer_id=ind["employer_id"].map(id_map)).dropna(
+        subset=["employer_id"]) if len(ind) else ind
+    lev = lev.assign(employer_id=lev["employer_id"].map(id_map)).dropna(
+        subset=["employer_id"]) if len(lev) else lev
+    if len(ind):
+        ind["employer_id"] = ind["employer_id"].astype("int32")
+    if len(lev):
+        lev["employer_id"] = lev["employer_id"].astype("int32")
+    failed = {int(v) for v in pd.Series(list(failed)).map(id_map).dropna()} \
+        if failed else failed
+    del id_codes, id_labels, id_map
+    gc.collect()
+
+    # The baseline fit. Python and R share one job allocation, so every
+    # frame Python holds when it spawns R is memory R does not get. Build
+    # the terms in place, drop everything not needed, and print what the
+    # process is using.
+    b0, terms = base_terms(b0)
+    gc.collect()
+    print(f"    python holding {_rss_gb():.1f} GB before the baseline fit")
+    base = fit(b0, terms, j47.FES, f"base_{band}")
+    for c in terms:
+        if c in b0.columns:
+            del b0[c]
+    gc.collect()
+    b = None
+    if base:
+        sinks["ind"].append({"band": band, "spec": "baseline",
+                             **dict(zip(("coef", "se"),
+                                        base["post_x_high_x_young"]))})
+
+    # PART A
+    if "A" in PARTS and len(ind) and gate(b0, ind, f"industry/{band}"):
+        # No .copy(): add_ind_fe merges, which returns a new frame and
+        # never touches b0. The copy was a spare 28-million-row frame
+        # held for nothing while R was running.
+        b = add_ind_fe(b0, ind)
+        if not b.empty:
+            b, terms = base_terms(b)
+            # fe_t_age is dropped here at no cost. fe_ind_age_t is
+            # industry x age x month and fe_t_age is age x month; every
+            # age-month cell is partitioned by industry, so the coarser
+            # effect is nested inside the finer one and absorbed by it.
+            # Including both identifies the same model and makes fixest
+            # demean a redundant dimension, which is what tips the larger
+            # band's fit over the memory a job has.
+            fes = tuple(f for f in j47.FES if f != "fe_t_age") \
+                + ("fe_ind_age_t",)
+            r = fit(b, terms, fes, f"ind_{band}")
+            if r:
+                sinks["ind"].append({"band": band, "spec": "industry_age_t",
+                                     **dict(zip(("coef", "se"),
+                                                r["post_x_high_x_young"]))})
+
+            # The quarterly path with industry absorbed. The pooled fit
+            # above answers how much of the decline is an industry-specific
+            # age shock; it cannot answer the timing question, whether the
+            # 26-30 path still deepens through 2025 once industry x age x
+            # month is absorbed, since a coefficient averaged over the
+            # whole post period cannot see a crossing inside it. Same fixed
+            # effects as the pooled fit, so the two are comparable, and the
+            # same Q4-omitted normalisation as script 68, so the
+            # coefficients can be read beside its paths.
+            bq, qterms = quarter_path_terms(b)
+            rq = fit(bq, qterms, fes, f"indq_{band}")
+            if rq:
+                for t, (c, se) in rq.items():
+                    if t.startswith("pq_"):
+                        sinks["indq"].append(
+                            {"band": band,
+                             "period": t[3:].replace("_x_high_x_young", ""),
+                             "coef": c, "se": se})
+            del bq
+            gc.collect()
+        del b
+        gc.collect()
+
+    # PART B
+    if "B" in PARTS and len(lev) and gate(b0, lev, f"leverage/{band}"):
+        b = b0.merge(lev, on="employer_id", how="inner")
+        if not b.empty:
+            # A median split is not guaranteed to split. If leverage is
+            # lumpy, `lev >= median` can select EVERY firm, and then
+            # post x young x levhi is just post x young, which the
+            # month-by-age effects absorb: the term comes back NaN and
+            # the arm silently reports nothing. Check the split, try the
+            # strict inequality, and refuse rather than return a hole.
+            u = b.drop_duplicates("employer_id")["lev"]
+            cut = u.median()
+            share = float((u >= cut).mean())
+            op = "ge"
+            if not (0.05 < share < 0.95):
+                share = float((u > cut).mean())
+                op = "gt"
+            if not (0.05 < share < 0.95):
+                NOTES.append(
+                    f"leverage/{band}: a median split puts {share:.1%} of "
+                    f"firms on one side, so the credit term would not be "
+                    f"identified. Part B SKIPPED and said so.")
+                b = b.iloc[0:0]
+            else:
+                b["levhi"] = ((b["lev"] >= cut) if op == "ge"
+                              else (b["lev"] > cut)).astype(int)
+                NOTES.append(f"leverage/{band}: split at {cut:.3f} "
+                             f"({op}), {share:.1%} high")
+        if len(b):
+            # The credit arm runs on the firms with a balance sheet (limited
+            # companies, most of the panel). A comparison of its exposure
+            # term with the full-panel baseline would mix a sample change
+            # with a specification change, so the baseline is re-estimated
+            # on this sample first. It runs only once the split is known to
+            # be identified: a refused Part B fits nothing and says so.
+            bb, bterms = base_terms(b.copy())
+            rb_ = fit(bb, bterms, j47.FES, f"levbase_{band}")
+            del bb
+            gc.collect()
+            if rb_:
+                sinks["lev"].append(
+                    {"band": band, "term": "baseline_on_balance_sheet_sample",
+                     "coef": rb_["post_x_high_x_young"][0],
+                     "se": rb_["post_x_high_x_young"][1]})
+            ym = b["year_month"].astype(str)
+            post = (ym >= POOLED_FROM).astype(int)
+            b, terms = base_terms(b)
+            b["post_x_young_x_lev"] = post * b["young"] * b["levhi"]
+            b["post_x_high_x_young_x_lev"] = (post * b["high"] * b["young"]
+                                              * b["levhi"])
+            terms = terms + ["post_x_young_x_lev",
+                             "post_x_high_x_young_x_lev"]
+            r = fit(b, terms, j47.FES, f"lev_{band}")
+            if r:
+                for t in ("post_x_high_x_young", "post_x_young_x_lev",
+                          "post_x_high_x_young_x_lev"):
+                    if t in r:
+                        sinks["lev"].append({"band": band, "term": t,
+                                             "coef": r[t][0], "se": r[t][1]})
+        del b
+        gc.collect()
+
+    # PART C
+    if "C" in PARTS and failed:
+        b = b0[~b0["employer_id"].isin(failed)].copy()
+        dropped = b0["employer_id"].nunique() - b["employer_id"].nunique()
+        if dropped and not b.empty:
+            b, terms = base_terms(b)
+            r = fit(b, terms, j47.FES, f"nofail_{band}")
+            if r:
+                sinks["bank"].append(
+                    {"band": band, "firms_dropped": int(dropped),
+                     **dict(zip(("coef", "se"), r["post_x_high_x_young"]))})
+        del b
+        gc.collect()
+    del b0
+    gc.collect()
+
+
+def path_verdict(indq) -> list:
+    """
+    Does the 26-30 path still deepen through 2025 once industry x age x
+    month is absorbed?
+
+    This is the test the pooled fit cannot do. The spreading claim is
+    that 26-30 overtakes 22-25 during 2025; a coefficient averaged over
+    the whole post period cannot see a crossing inside it.
+    """
+    if not len(indq):
+        return ["industry path: not estimated"]
+    d = pd.DataFrame(indq)
+    out = []
+    piv = d.pivot_table(index="period", columns="band", values="coef")
+    for band in sorted(d["band"].unique()):
+        b = d[d.band == band].sort_values("period")
+        last = b.iloc[-1]
+        out.append(f"{band}: industry-absorbed path ends "
+                   f"{last['coef']:+.4f} ({last['se']:.4f}) at "
+                   f"{last['period']}")
+    if {"22-25", "26-30"} <= set(piv.columns):
+        # The test asks whether the gap between the bands in a 2025
+        # quarter is significant, and reports the t statistic so a reader
+        # can see how close it was; a sign alone, of any size, is passed
+        # by noise.
+        sep = d.pivot_table(index="period", columns="band", values="se")
+        late = [q for q in piv.index if q >= "2025Q1"]
+        best = None
+        for q in late:
+            g = piv.loc[q, "26-30"] - piv.loc[q, "22-25"]
+            se = (sep.loc[q, "26-30"] ** 2 + sep.loc[q, "22-25"] ** 2) ** 0.5
+            t = g / se if se else 0.0
+            out.append(f"  {q}: 26-30 minus 22-25 = {g:+.4f} "
+                       f"(SE {se:.4f}, t {t:+.2f})")
+            if best is None or t < best[1]:
+                best = (q, t)
+        if best and best[1] <= -1.96:
+            out.append(f"CROSSING SURVIVES: with industry absorbed, 26-30 "
+                       f"is significantly below 22-25 at {best[0]} "
+                       f"(t {best[1]:+.2f}). The spreading claim is not an "
+                       f"industry shock arriving late.")
+        elif best:
+            out.append(f"CROSSING DOES NOT SURVIVE: with industry absorbed "
+                       f"the largest 2025 gap is t {best[1]:+.2f} at "
+                       f"{best[0]}, indistinguishable from zero. The "
+                       f"overtaking was the industry shock reaching that "
+                       f"band, and the claim comes out of the paper.")
+    return out
+
+
+def verdict(ind, lev, bank) -> list:
+    out = []
+    for band in YOUNG_BANDS:
+        bl = ind[(ind.band == band) & (ind.spec == "baseline")] \
+            if len(ind) and "band" in ind else pd.DataFrame()
+        if bl.empty:
+            out.append(f"{band}: no baseline fit, nothing to compare")
+            continue
+        b0 = float(bl.iloc[0]["coef"])
+        out.append(f"{band}: baseline {b0:+.4f} "
+                   f"({float(bl.iloc[0]['se']):.4f})")
+
+        iv = ind[(ind.band == band) & (ind.spec == "industry_age_t")]
+        if len(iv):
+            c, se = float(iv.iloc[0]["coef"]), float(iv.iloc[0]["se"])
+            keeps = abs(c) >= ATTEN_MAX * abs(b0)
+            sig = abs(c / se) >= 1.96 if se else False
+            out.append(
+                f"{band}: with industry x age x month {c:+.4f} ({se:.4f}). "
+                + ("SURVIVES: an age shock common to the industry does not "
+                   "explain it." if keeps and sig else
+                   "DOES NOT SURVIVE: most of the effect is an "
+                   "industry-specific age shock, and the paper must say so."))
+
+        ls = lev[lev.band == band] if len(lev) and "band" in lev else \
+            pd.DataFrame()
+        if len(ls):
+            g = {r["term"]: (r["coef"], r["se"]) for _, r in ls.iterrows()}
+            e = g.get("post_x_high_x_young")
+            m = g.get("post_x_young_x_lev")
+            if e and m:
+                keeps = abs(e[0]) >= ATTEN_MAX * abs(b0)
+                esig = abs(e[0] / e[1]) >= 1.96 if e[1] else False
+                msig = (m[0] / m[1] <= -1.96) if m[1] else False
+                out.append(f"{band}: with leverage in, exposure "
+                           f"{e[0]:+.4f} ({e[1]:.4f}), leverage x young "
+                           f"{m[0]:+.4f} ({m[1]:.4f})")
+                if msig and not (keeps and esig):
+                    out.append(f"{band}: MONETARY. The credit channel "
+                               f"carries it and the exposure term does not "
+                               f"survive. We would rather know now.")
+                elif keeps and esig:
+                    out.append(f"{band}: AI SURVIVES the credit test, which "
+                               f"answers R1.2, R1.3 and R2.1 with evidence "
+                               f"rather than with a date.")
+                else:
+                    out.append(f"{band}: INCONCLUSIVE on the credit channel.")
+
+        bk = bank[bank.band == band] if len(bank) and "band" in bank else \
+            pd.DataFrame()
+        if len(bk):
+            c = float(bk.iloc[0]["coef"])
+            out.append(f"{band}: dropping {int(bk.iloc[0]['firms_dropped']):,}"
+                       f" failed firms gives {c:+.4f}. "
+                       + ("Separations are not bankruptcies."
+                          if abs(c) >= ATTEN_MAX * abs(b0) else
+                          "Much of the effect sits in firms that failed, "
+                          "which is not an AI story."))
+    return out
+
+
+def main():
+    mc.Tee(OUT / "73_log.txt")
+    t0 = time.time()
+    print("=" * 70)
+    print("73 industry and credit: the two referee points we still argue")
+    print(f"gates fixed before the run: {MIN_FIRMS} firms and "
+          f"{MIN_MATCH_RATE:.0%} match; attenuation limit {ATTEN_MAX:.0%}")
+    print("=" * 70)
+
+    j47 = _mod("47j_within_employer_triple.py", "j47")
+    conn = mc.connect()
+    schema = discover(conn)
+    if schema.empty:
+        (OUT / "73_summary.txt").write_text(
+            "No FDB_JE or Serrano table is visible to this project. "
+            "Neither part can run.\n", encoding="utf-8")
+        print("NO TABLES VISIBLE; stopping.")
+        return
+    schema.to_csv(OUT / "schema_found.csv", index=False)
+    print(f"  catalogue: {schema['TABLE_NAME'].nunique()} tables")
+
+    expo = edu_exposure(j47)
+    expo["employer_id"] = norm_id(expo["employer_id"])
+    print(f"  exposure: {len(expo):,} firms")
+
+    ind = opt("industry", firm_industry, conn, schema)
+    lev = opt("leverage", firm_leverage, conn, schema)
+    failed = opt("corporate events", firm_failed, conn, schema) or set()
+    ind = ind if ind is not None else pd.DataFrame()
+    lev = lev if lev is not None else pd.DataFrame()
+
+    cnt = []
+    for y in PANEL_YEARS:
+        c = mc.read_cache(CACHE / f"L_counts_{y}.parquet")
+        if c is None:
+            raise SystemExit(f"L_counts_{y}.parquet missing: run 47L first.")
+        cnt.append(c)
+    counts = pd.concat(cnt, ignore_index=True)
+    del cnt
+    gc.collect()
+    last = str(counts["year_month"].max())
+    if last < POOLED_FROM:
+        raise SystemExit(f"counts end at {last}, before {POOLED_FROM}.")
+
+    sinks = {"ind": [], "indq": [], "lev": [], "bank": []}
+    print(f"  python holding {_rss_gb():.1f} GB before the first band")
+    for band in YOUNG_BANDS:
+        opt(f"band {band}", run_band, counts, expo, ind, lev, failed, band,
+            j47, sinks)
+        gc.collect()
+        print(f"  python holding {_rss_gb():.1f} GB after band {band}")
+
+    dfi = pd.DataFrame(sinks["ind"])
+    dfq = pd.DataFrame(sinks["indq"])
+    dfl = pd.DataFrame(sinks["lev"])
+    dfb = pd.DataFrame(sinks["bank"])
+    for df, nm in ((dfi, "industry_fe.csv"), (dfq, "industry_path.csv"),
+                   (dfl, "credit_test.csv"),
+                   (dfb, "bankruptcy.csv")):
+        if len(df):
+            df.to_csv(OUT / nm, index=False)
+
+    lines = ["73 industry and credit", "=" * 70, "",
+             "Industry and leverage are both taken from 2019, frozen "
+             "pre-shock: a later vintage would let a firm's own response "
+             "into the treatment.", ""]
+    lines += verdict(dfi, dfl, dfb)
+    lines.append("")
+    lines += path_verdict(sinks["indq"])
+    lines += ["", "What this cannot do: leverage is a proxy for exposure to "
+              "the rate cycle, not a measure of it, and surviving a credit "
+              "test is not the same as identifying an AI effect.", ""]
+    if NOTES:
+        lines += ["NOTES:"] + [f"  {n}" for n in NOTES]
+    if FAILURES:
+        lines += ["", "FAILED:"] + [f"  {f}" for f in FAILURES]
+    (OUT / "73_summary.txt").write_text("\n".join(lines), encoding="utf-8")
+    print("\n".join(lines))
+    mc.runlog("73_industry_and_credit", 0, (time.time() - t0) / 60)
+    print(f"\ndone in {(time.time()-t0)/60:.1f} min")
+
+
+if __name__ == "__main__":
+    main()
