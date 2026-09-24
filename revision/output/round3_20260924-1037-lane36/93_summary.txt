@@ -1,0 +1,35 @@
+93: THE PAYSLIPS THE PANEL NEVER COUNTS, ON THE OCCUPATION ROUTE
+
+Script 79's counts (lane 26, part C), re-cut on script 82's 2019
+occupation-mix quartiles, the reported arm. Nothing is fitted.
+
+  per cent of person-months whose worker is in none of the three
+  individual registers:
+    year     all      Q4   Q1-Q3  unscored   gap Q4-(Q1-Q3)
+    2019   0.612   0.595   0.616     0.609   -0.021
+    2020   0.205   0.263   0.187     0.234   +0.076
+    2021   0.187   0.218   0.179     0.188   +0.040
+    2022   0.188   0.216   0.179     0.204   +0.037
+    2023   0.204   0.258   0.192     0.156   +0.066
+    2024   0.195   0.231   0.192     0.126   +0.040
+    2025   0.210   0.248   0.204     0.161   +0.044
+
+  mean gap 2020-2022 +0.0510 pp; 2024-2025 +0.0417 pp;
+  movement -0.0093 pp.
+  bound: if every additional payslip were a 22-25 worker (4.6% of top-quartile employment), the implied fall in measured young employment is 0.20 per cent.
+  the education-route run gave gaps of +0.065 and +0.071, movement +0.006, bound 0.13 per cent.
+
+  the gap moves by less than 0.1 pp; the appendix bound stands with the new figures.
+
+NOTES:
+  C: 2019: 97.7% of person-months sit in an employer the 2019 score book scored
+  C: 2020: 97.2% of person-months sit in an employer the 2019 score book scored
+  C: 2021: 95.6% of person-months sit in an employer the 2019 score book scored
+  C: 2022: 94.0% of person-months sit in an employer the 2019 score book scored
+  C: 2023: 93.1% of person-months sit in an employer the 2019 score book scored
+  C: 2024: 92.2% of person-months sit in an employer the 2019 score book scored
+  C: 2025: 91.7% of person-months sit in an employer the 2019 score book scored
+  floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+
+GATE: PASS

@@ -19,7 +19,8 @@ WHAT IS REPORTED
 The share of employer-declaration person-months whose worker reaches none
 of the three individual registers, by year, for all employers and then
 for the top exposure quartile against the lower three (script 79, lane 26
-part C). Quartiles are the employer's 2019 education-mix exposure
+part C, re-cut by script 93, lane 36). Quartiles are the employer's
+2019 occupation-mix exposure
 quartile; person-months at employers the 2019 score book does not score
 sit outside the two quartile columns and inside the first, which is why
 the first column is not a weighted average of the other two.
@@ -36,10 +37,10 @@ the pre-period averages quoted in the text run from 2020; 2025 covers the
 first half of the year.
 
 INPUTS AND OUTPUTS
-Reads uncounted_share.csv (script 79, lane 26 part C; columns year,
+Reads uncounted_share.csv (script 93, lane 36; columns year,
 quartile_group, decl_band, n_total, n_counted, n_no_register,
 n_register_no_birth_or_sex, n_outside_age_range, share_no_register,
-share_not_counted) and 79_summary.txt, the run's own report of the same
+share_not_counted) and 93_summary.txt, the run's own report of the same
 shares, from the export directory the final-code manifest names or one
 given on the command line. Nothing is typed in. Writes
 revision/tables/tableA_uncounted.tex and copies it to
@@ -59,7 +60,7 @@ quartiles to the column the table prints, so the two quartile columns
 partition what the first column holds. The export must cover the years
 the table prints, and one declaration band, since a worker with no
 register row has no register age and the share cannot be broken down.
-Every printed share is then checked against part C of the run's summary,
+Every printed share is then checked against the run's summary,
 which reports the same numbers independently of the CSV, and read back
 from the string that goes into the table and compared with the export it
 came from. Any disagreement beyond half of the last printed digit stops
@@ -82,7 +83,9 @@ sys.path.insert(0, str(REV))
 from config import V2_TAB  # noqa: E402
 
 OUT = REV / "output"
-LANE26C = OUT / "round3_20260922-lane26c-uncounted"
+# Lane 36 (script 93): 79's counts re-cut on the occupation-route
+# quartiles. Lane 26C, the education-mix cut, is superseded.
+LANE36 = OUT / "round3_20260924-1037-lane36"
 # The manuscript repository is a sibling of this one; the paper \input{}s
 # the table from there, inside the float that carries its caption.
 PAPER_TAB = REV.parents[1] / "canaries-sweden-paper" / "tables"
@@ -96,12 +99,10 @@ BAND = "all"          # the declaration carries no age, so there is one band
 PARTS = ["n_counted", "n_no_register", "n_register_no_birth_or_sex",
          "n_outside_age_range"]
 SHARE = re.compile(r"^([0-9]+\.[0-9]{3})$")
-SUMMARY_ALL = re.compile(
-    r"^\s+(\d{4})\s+([0-9,]+) person-months\s+no register\s+([0-9.]+)%\s+"
-    r"not counted at all\s+([0-9.]+)%\s*$")
-SUMMARY_SPLIT = re.compile(
-    r"^\s+(\d{4})\s+Q4\s+([0-9.]+)%\s+Q1-Q3\s+([0-9.]+)%\s+"
-    r"unscored\s+([0-9.]+)%\s*$")
+# 93_summary.txt: year, all, Q4, Q1-Q3, unscored, gap.
+SUMMARY_ROW = re.compile(
+    r"^\s+(\d{4})\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+"
+    r"([+-][0-9.]+)\s*$")
 
 
 def source(default_dir: Path, name: str) -> Path:
@@ -131,14 +132,12 @@ def summary_part_c(path: Path) -> dict[tuple[int, str], str]:
     second record, written by the run rather than derived from the CSV."""
     said = {}
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        m = SUMMARY_ALL.match(line)
+        m = SUMMARY_ROW.match(line)
         if m:
-            said[(int(m.group(1)), "all")] = m.group(3)
-            continue
-        s = SUMMARY_SPLIT.match(line)
-        if s:
-            said[(int(s.group(1)), "Q4")] = s.group(2)
-            said[(int(s.group(1)), "Q1-Q3")] = s.group(3)
+            y = int(m.group(1))
+            said[(y, "all")] = m.group(2)
+            said[(y, "Q4")] = m.group(3)
+            said[(y, "Q1-Q3")] = m.group(4)
     if not said:
         raise SystemExit(f"  {path.name}: part C reports no uncounted share, "
                          f"so there is nothing to check the export against")
@@ -146,7 +145,7 @@ def summary_part_c(path: Path) -> dict[tuple[int, str], str]:
 
 
 def main() -> int:
-    d = pd.read_csv(source(LANE26C, "uncounted_share.csv"))
+    d = pd.read_csv(source(LANE36, "uncounted_share.csv"))
     bands = sorted(set(d.decl_band))
     if bands != [BAND]:
         raise SystemExit(f"  uncounted_share.csv: one declaration band "
@@ -179,7 +178,7 @@ def main() -> int:
             raise SystemExit(f"  {year}: Q1 to Q3 do not sum to the column the "
                              f"table prints")
 
-    said = summary_part_c(source(LANE26C, "79_summary.txt"))
+    said = summary_part_c(source(LANE36, "93_summary.txt"))
     d = d.set_index(["year", "quartile_group"])
 
     rows = []
@@ -208,7 +207,7 @@ def main() -> int:
             r"the employment panel only if a birth year and a sex can be read "
             r"from the 2023, 2021 or 2019 individual register; the table "
             r"reports the complement. Quartiles are the employer's 2019 "
-            r"education-mix exposure quartile, and person-months at employers "
+            r"occupation-mix exposure quartile, and person-months at employers "
             r"the 2019 score book does not score are outside the two quartile "
             f"columns but inside the first. {YEARS[0]} is the first year of "
             r"the employer declarations and its gap takes the opposite sign, "
@@ -216,7 +215,7 @@ def main() -> int:
             f"{YEARS[1]}; {YEARS[-1]} covers the first half of the year. The "
             r"employer declaration carries no birth year and no age of its "
             r"own, so the share cannot be broken down by age band. "
-            r"Source: script 79.",
+            r"Source: script 93, on the counts of script 79.",
             r"\end{minipage}"]
 
     V2_TAB.mkdir(parents=True, exist_ok=True)
