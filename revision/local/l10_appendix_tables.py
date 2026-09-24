@@ -70,6 +70,11 @@ def write(name: str, body: str):
 def t_coverage():
     """Monthly valid-SSYK share, collapsed to year x source, since 72 months
     by five sources is unreadable."""
+    # Since 24 Sep 2026 script l51 writes this table on the window to June
+    # 2026, after gating its 2020-2025 rows against this builder's output.
+    if (SRC / "postings_coverage_monthly_extended.csv").exists():
+        print("  coverage_by_source.tex: left to l51 (window to June 2026)")
+        return
     d = pd.read_csv(SRC / "postings_coverage_monthly.csv")
     d["year"] = d["year_month"].str[:4]
     # Three ads carry dates outside the window (one 2051, two 2099) and 117
