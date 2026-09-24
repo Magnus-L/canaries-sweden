@@ -116,6 +116,13 @@ def se_lin(v: pd.DataFrame, a: str, b: str, sign: int) -> float:
     return float(v.loc[a, a] + v.loc[b, b] + 2 * sign * v.loc[a, b]) ** 0.5
 
 
+def lin(v: pd.DataFrame, w: dict) -> float:
+    """Standard error of a linear combination sum(w[t] * b[t])."""
+    t = list(w)
+    x = pd.Series(w, dtype=float)
+    return float(x @ v.loc[t, t] @ x) ** 0.5
+
+
 def est(c: float, se: float) -> str:
     return f"${c:+.4f}$ ({se:.4f})"
 
@@ -231,6 +238,19 @@ def main() -> int:
                          f"table's female differential {fem[0]:+.6f}, so the "
                          f"within-track row is not on this panel")
     within = (float(split.within.iloc[0]), float(split.within_se.iloc[0]))
+    # The sex rows above read from the tightening level, as every "additional
+    # step" row does. The paper's headline reads from the 2023 level, so the
+    # sex result is also given on that base (added 24 Sep 2026): post minus
+    # interim for the female interaction, and for young women the male and
+    # female terms together, each with its own covariance.
+    FEM_INTER = "interim_x_high_x_young_x_female"
+    fi = one(gender, block="term", young_band="22-25", term=FEM_INTER)
+    mi = one(gender, block="term", young_band="22-25", term=INTER)
+    w_diff = {FEMALE: 1, FEM_INTER: -1}
+    w_women = {FEMALE: 1, FEM_INTER: -1, TERM: 1, INTER: -1}
+    diff23 = (fem[0] - fi[0], lin(vg, w_diff))
+    women23 = (fem[0] - fi[0] + men[0] - mi[0], lin(vg, w_women))
+    diff23_ind, women23_ind = lin(vgi, w_diff), lin(vgi, w_women)
     ratio = float(split.ratio_within.iloc[0])
 
     v22, v26 = vcov("vcov_s80_clind2_22_25.csv"), vcov("vcov_s80_clind2_26_30.csv")
@@ -287,6 +307,10 @@ def main() -> int:
         (r"Young women, additional step at adoption", est(*women),
          ind(women_ind)),
         (r"\quad within broad education tracks", est(*within), ""),
+        (r"Young women minus young men, step from the 2023 level",
+         est(*diff23), ind(diff23_ind)),
+        (r"Young women, step from the 2023 level", est(*women23),
+         ind(women23_ind)),
     ]
 
     note = (
@@ -297,7 +321,8 @@ def main() -> int:
         r"against January 2021 to March 2022, and the step from 2023 is post "
         r"minus interim. The third column clusters the same fits on "
         r"three-digit industry. The sex rows interact every treatment term "
-        r"with female; young women is the male step plus the differential. "
+        r"with female; young women is the male step plus the differential, "
+        r"and the two sex rows from the 2023 level are post minus interim. "
         r"The drift rows are a linear monthly trend to November 2022. The "
         r"within-track row is cut by the worker's own education on the same "
         f"exposure as every row above it, and retains {100 * ratio:.0f} per "
