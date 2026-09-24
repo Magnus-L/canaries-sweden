@@ -65,7 +65,7 @@ register analysis cannot be rerun without it.
 
 ## Software
 
-Python 3 with numpy, pandas, pyarrow (parquet caches), pyodbc (the connection to SCB's
+Python 3.13.7 with numpy, pandas, pyarrow (parquet caches), pyodbc (the connection to SCB's
 SQL server, ODBC Driver 17) and statsmodels; R 4.5.0 with `fixest` 0.13.2 for every
 Poisson fit, called from Python through `mona_common.run_fepois_multi` and the R files
 in `scripts/`. The versions are those installed in MONA in September 2026. The path to
