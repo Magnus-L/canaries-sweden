@@ -195,7 +195,7 @@ check("the true split passes the gate", ok)
 
 print("\n--- no SQL when the fine caches are present ---")
 n0 = len(SQL_CALLS)
-s92.load_fine(s61.PANEL_YEARS, object())
+s92.load_fine(s61.PANEL_YEARS)
 check("load_fine reads the caches and issues no pull",
       len(SQL_CALLS) == n0, f"{len(SQL_CALLS)-n0} pulls")
 
