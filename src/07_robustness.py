@@ -703,8 +703,12 @@ def rambachan_roth_sensitivity(merged):
     5. Find the "breakdown value" of M̄ where the CI first includes zero.
 
     Reference: Rambachan & Roth (2023, ReStud), Section 3.2.
-    This is a conservative (wider) approximation of the exact HonestDiD
-    computation, which solves a linear program over the identified set.
+    This is a SIMPLIFIED interval, not the exact HonestDiD computation,
+    and it is NARROWER than the exact one, not wider: it fixes the bias
+    bound at M̄ × Δ_max whatever the horizon, whereas the relative-
+    magnitudes set bounds each post-period first difference by M̄ × Δ_max,
+    so the admissible bias of an average over many post months accumulates.
+    The exact bounds are in revision/local/l47_posting_honestdid_v3.R.
     """
     print("  R11: Rambachan-Roth sensitivity analysis...")
 
@@ -784,7 +788,7 @@ def rambachan_roth_sensitivity(merged):
 
     for mbar in mbar_grid:
         # Bias bound: M̄ × Δ_max
-        # (conservative: assumes worst-case bias from extrapolating pre-trends)
+        # (simplified: one Δ_max for the whole average; narrower than HonestDiD)
         bias = mbar * delta_max
         ci_lo = theta_hat - z * se_theta - bias
         ci_hi = theta_hat + z * se_theta + bias

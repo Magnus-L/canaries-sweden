@@ -26,8 +26,13 @@ window is a parameter here instead of a hard-coded end month:
       largest absolute month-to-month change in the pre-April-2022
       coefficients (reference month included as zero). The breakdown
       value is the first Mbar on the 0.25 grid whose interval covers
-      zero. This is 07's simplified implementation, not the HonestDiD
-      linear program; see notes/event-study-rebuild_2026-09-24.md.
+      zero. This is 07's SIMPLIFIED implementation, not the HonestDiD
+      linear program, and it is NARROWER than the exact interval, not
+      wider: it allows one Dmax of bias for the whole post-period
+      average, whereas the relative-magnitudes set lets the bias grow
+      month by month. Its outputs are kept, labelled simplified; the
+      paper's panel (b) is drawn from the exact bounds of l47 by l47b.
+      See notes/event-study-rebuild_2026-09-24.md.
 
 GATE
 With --window 2025-12 the script must reproduce the published old
@@ -40,9 +45,11 @@ Reads data/processed/postings_daioe_merged_extended.csv (written by l08;
 the II.6 sample, 28,084 occupation-by-month cells, all positive).
 Writes revision/tables/posting_es_monthly_v3.csv,
 posting_es_quarterly_v3.csv, posting_pretrend_v3.csv,
-posting_rr_sensitivity_v3.csv, posting_es_summary_v3.csv, and
+posting_rr_simplified_v3.csv, posting_es_summary_v3.csv,
+posting_es_vcov_v3.csv (the full clustered covariance, for l47), and
 revision/figures/figA3_event_study_v3.{pdf,png},
-figA6_rambachan_roth_v3.{pdf,png}, and
+figA6_rambachan_roth_simplified_v3.{pdf,png} (simplified bound, not in
+the paper), and
 figA5_event_study_quarterly_v3.{pdf,png} (the offline appendix's
 quarterly figure).
 
@@ -203,7 +210,11 @@ def analyse(end):
             abs(coefs[f"m_{m}_x_high"] / ses[f"m_{m}_x_high"]) > 1.96
             for m in pre_rb)),
     }
-    return summary, es, qes, pd.DataFrame(grid)
+    # Full coefficient vector and its clustered covariance, month-labelled,
+    # for the exact HonestDiD computation of script l47.
+    vc = res.cov.loc[cols, cols].copy()
+    vc.index = vc.columns = excl
+    return summary, es, qes, pd.DataFrame(grid), vc
 
 
 def plot_es(es):
@@ -266,10 +277,11 @@ def plot_es_quarterly(qes):
 
 
 def plot_rr(grid, theta, mbar_bd):
-    """Panel (b), drawn as src/07_robustness.py draws figA6."""
+    """The SIMPLIFIED bound, drawn as src/07_robustness.py draws figA6.
+    Not in the paper: panel (b) is drawn from the exact bounds by l47b."""
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.fill_between(grid["mbar"], grid["ci_lo"], grid["ci_hi"],
-                    alpha=0.2, color=DARK_BLUE, label="95% honest CI")
+                    alpha=0.2, color=DARK_BLUE, label="95% CI, simplified bound")
     ax.axhline(theta, color=DARK_BLUE, linewidth=2,
                label=f"$\\hat{{\\theta}}$ = {theta:.3f}")
     ax.axhline(0, color=GRAY, linewidth=0.8, linestyle="--")
@@ -282,7 +294,7 @@ def plot_rr(grid, theta, mbar_bd):
                  "on high vs low genAI exposure occupations")
     ax.legend(loc="lower left", framealpha=0.9)
     fig.tight_layout()
-    save(fig, "figA6_rambachan_roth_v3", __file__, FIG)
+    save(fig, "figA6_rambachan_roth_simplified_v3", __file__, FIG)
     plt.close(fig)
 
 
@@ -298,7 +310,7 @@ def main():
             f"GATE: old window does not reproduce {k}: {got[k]} vs {v}"
     print("  gate passed: January 2020 to December 2025 reproduces 07's numbers")
 
-    new, es, qes, grid = analyse(_cfg.POSTINGS_REGRESSION_END)
+    new, es, qes, grid, vc = analyse(_cfg.POSTINGS_REGRESSION_END)
     assert new["n_cells"] == 28084, new["n_cells"]
     # The pooled II.6 coefficients on the same sample (l08's export), so
     # the reconciliation in the text reads from one file: relative to
@@ -314,7 +326,8 @@ def main():
         old[k] = None
     es.to_csv(TAB / "posting_es_monthly_v3.csv", index=False)
     qes.to_csv(TAB / "posting_es_quarterly_v3.csv", index=False)
-    grid.to_csv(TAB / "posting_rr_sensitivity_v3.csv", index=False)
+    grid.to_csv(TAB / "posting_rr_simplified_v3.csv", index=False)
+    vc.to_csv(TAB / "posting_es_vcov_v3.csv")
     pd.DataFrame([{**{f"old_{k}": v for k, v in old.items()},
                    **{f"new_{k}": v for k, v in new.items()}}]).T \
         .rename(columns={0: "value"}) \
