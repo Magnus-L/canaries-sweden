@@ -426,6 +426,14 @@ def compare_with_lcounts(six: pd.DataFrame, s82, s61) -> None:
                          f"comparison is skipped for {y}")
             continue
         new = six[six["year_month"].str.slice(0, 4) == str(y)]
+        # rows with no employer id cannot enter an employer design; count
+        # them and drop them on both sides before the integer cast
+        new_id = pd.to_numeric(new["employer_id"], errors="coerce")
+        old_id = pd.to_numeric(old["employer_id"], errors="coerce")
+        NOTES.append(f"data check {y}: rows without an employer id, dropped "
+                     f"before the comparison: {int(new_id.isna().sum()):,} in "
+                     f"the pull, {int(old_id.isna().sum()):,} in L_counts_{y}")
+        new, old = new[new_id.notna()], old[old_id.notna()]
         a = new.assign(employer_id=pd.to_numeric(new["employer_id"]).astype("int64"))
         b = old.assign(employer_id=pd.to_numeric(old["employer_id"]).astype("int64"),
                        year_month=old["year_month"].astype(str),

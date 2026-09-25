@@ -627,7 +627,7 @@ def part_i(bsex: pd.DataFrame, s73, s80, s78, j47) -> None:
     emp = bsex["employer_id"].drop_duplicates()
     code = s73.norm_id(emp).map(kmap)
     lut = pd.Series(pd.factorize(code)[0], index=emp.to_numpy())
-    b = bsex.assign(ind_code=bsex["employer_id"].map(lut).astype("int64"))
+    b = bsex.assign(ind_code=bsex["employer_id"].map(lut).fillna(-1).astype("int64"))
     b = b[b["ind_code"] >= 0].copy()
     n_all, n = int(len(emp)), int(b["employer_id"].nunique())
     msg = (f"I: {n:,} of {n_all:,} employers of the sex panel carry a "

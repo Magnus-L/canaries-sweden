@@ -318,7 +318,13 @@ def load_cache(prefix, years, require):
 def norm(d: pd.DataFrame, keys: list) -> pd.DataFrame:
     """Identifier and key dtypes normalised identically on every side of a
     comparison (failure class 3): int64 employer, text keys."""
-    out = d.assign(employer_id=pd.to_numeric(d["employer_id"]).astype("int64"))
+    ids = pd.to_numeric(d["employer_id"], errors="coerce")
+    miss = int(ids.isna().sum())
+    if miss:
+        # no employer id: cannot enter an employer design; reported, dropped
+        NOTES.append(f"comparison: {miss:,} rows without an employer id "
+                     f"dropped before the integer cast")
+    out = d[ids.notna()].assign(employer_id=ids[ids.notna()].astype("int64"))
     for k in keys:
         if k != "employer_id":
             out[k] = out[k].astype(str).str.strip()
