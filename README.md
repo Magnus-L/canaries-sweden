@@ -1,7 +1,7 @@
-# Same Storm, Different Boats: Generative AI and Young Workers Within Firms
+# Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms
 
 Replication package for Lodefalk, Löthman, Koch and Engberg (2026), "Same Storm,
-Different Boats: Generative AI and Young Workers Within Firms", under revision at
+Different Boats: Generative AI and the Age Gradient Within Firms", under revision at
 *Economics Letters*. Örebro University Working Paper 2026:2 and Ratio Working Paper 388
 are the submitted version.
 
@@ -273,7 +273,7 @@ will be deposited on Zenodo with a DOI through a GitHub release on acceptance
 
 ```bibtex
 @techreport{lodefalk2026samestorm,
-  title  = {Same Storm, Different Boats: Generative AI and Young Workers Within Firms},
+  title  = {Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms},
   author = {Lodefalk, Magnus and L{\"o}thman, Lydia and Koch, Michael and Engberg, Erik},
   year   = {2026},
   type   = {Working Paper},
