@@ -103,3 +103,7 @@ replication/data/raw/platsbanken/
 replication/data/raw/*.jsonl.zip
 replication/3_register_mona/master_logs/
 !replication/3_register_mona/exports/**
+
+# Yahoo Finance series: not redistributed (terms); fetched by src/03 and replication/1_data_public/03
+data/raw/omxs30_daily.csv
+data/raw/omxspi_daily.csv
