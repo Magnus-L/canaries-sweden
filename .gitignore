@@ -107,3 +107,12 @@ replication/3_register_mona/master_logs/
 # Yahoo Finance series: not redistributed (terms); fetched by src/03 and replication/1_data_public/03
 data/raw/omxs30_daily.csv
 data/raw/omxspi_daily.csv
+
+# Autor-Dorn source files and the SSYK file derived from them: no licence
+# stated on ddorn.net, so kept local until redistribution is cleared
+# (revision/local/l54_rti_ssyk4.py rebuilds both from the public URLs)
+data/raw/autor_dorn/
+revision/upload/rti_ssyk4.dta
+
+# Internal MONA trip sheets (operational notes, not part of the replication record)
+revision/mona/TRIP_*.md

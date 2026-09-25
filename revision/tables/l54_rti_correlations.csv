@@ -1,0 +1,6 @@
+stat,weight,value,n_occ
+pearson,none,0.046253023634921335,417
+pearson,employment_2024,0.054104700715092435,417
+spearman,none,-0.014028745001267206,417
+spearman,employment_2024,-0.05704035963523079,417
+offdiag_employment_share,employment_2024,0.4965819324006403,417

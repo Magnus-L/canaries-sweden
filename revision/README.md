@@ -104,7 +104,11 @@ final review asked for, on the caches above and two small pulls of its own;
 industry key completed by cascade and the two exercises that rested on it; and
 `82_occupation_route.py` the headline, the profile, the sex split, the margins and a
 vintage check on a firm score built from the 2019 occupations of the employer's own
-incumbents, with no education record anywhere.
+incumbents, with no education record anywhere. `94_rti_horserace.py` puts
+the Autor and Dorn (2013) routine-task intensity beside that score on the headline
+design (gate: Table 1); its input `rti_ssyk4.dta` is built by `local/l54_rti_ssyk4.py`
+and kept out of git until redistribution is cleared, and the trip is
+`mona/TRIP_94_rti.md`.
 
 **Running on the share.** A script is submitted as one file to the batch client,
 which passes no arguments and keeps no standard output; each script therefore opens
