@@ -17,8 +17,9 @@ across occupations, within employers, entry-level advertisements.
 NOTHING IS ESTIMATED HERE. Every number is read from an export:
 - revision/tables/l50_remote_{horserace,within,correlations}.csv
 - revision/tables/l52_hansen_{horserace,within,correlations}.csv
-- tables/telework_did_results.csv (the Dingel and Neiman median split
-  behind Figure panel (b) in OA II.3)
+- revision/tables/telework_did_results_v3.csv (the Dingel and Neiman
+  median split behind Figure panel (b) in OA II.3, on the current window,
+  January 2020 to June 2026; built by l55)
 
 Run:  python3 revision/local/l53_tab_remote_measures.py
 Out:  revision/tables/l53_remote_measures.csv
@@ -61,7 +62,8 @@ def main():
     l52h = pd.read_csv(TAB / "l52_hansen_horserace.csv")
     l52w = pd.read_csv(TAB / "l52_hansen_within.csv")
     l52c = pd.read_csv(TAB / "l52_hansen_correlations.csv")
-    dn = pd.read_csv(ROOT / "tables" / "telework_did_results.csv").set_index("group")
+    dn = pd.read_csv(TAB / "telework_did_results_v3.csv")
+    dn = dn[dn["outcome"] == "ln(ads+1)"].set_index("group")
 
     # Correlation with DAIOE across the 369 panel occupations, weighted by
     # 2024 employment: how much room there is to separate the two at all.
@@ -157,7 +159,7 @@ def main():
         "C": r"\textit{C. Across occupations, entry-level advertisements (OLS)}",
     }
     n_obs = {
-        "A": ("26,672", "28,084", "28,084", "Occupation-months"),
+        "A": (f"{int(dn.loc['All'].n_obs):,}", "28,084", "28,084", "Occupation-months"),
         "B": ("", "12,141", "12,141", "Employers"),
         "C": ("", "12,159", "12,159", "Occupation-months"),
     }
@@ -196,8 +198,7 @@ def main():
          r"clustered by occupation (panels A and C) or employer (panel B). "
          r"Column (1): the \citet{dingel2020many} teleworkability classification, a measure of "
          r"feasibility, split at its median as in Figure~\ref{fig:posting_rivals}(b), with "
-         r"Equation~(1) estimated in each half on the sample of the original submission "
-         r"(January 2020 to February 2026). Column (2): the share of an occupation's "
+         r"Equation~(1) estimated in each half. Column (2): the share of an occupation's "
          r"advertisements in 2021 and 2022 that offer remote or hybrid work, read from the "
          r"advertisement text. Column (3): the same share in United States postings "
          r"\citep{hansen2023remote}, the measure of \citet{lambert2026brokenladder}, "
