@@ -24,9 +24,8 @@ collected advertisement series and Stata 18.5 (`reghdfe`). Online Appendix II.1
 reports its outcome: the two series correlate at $R^2 = 0.998$ at the
 occupation-by-month level and the coefficients match to three decimals. The do-file
 refers to folders on the author's own computer and is kept as the record of that
-reproduction, not as a script to run; the report is the author's own account of it.
+reproduction, not as a script to run.
 
 | File | Content |
 |---|---|
 | `replication_20260311.do` | the Stata code of the reproduction |
-| `Replication report 20260310 - Canaries, postings.docx` | the written report, with the regression output |
