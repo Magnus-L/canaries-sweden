@@ -20,9 +20,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers the code of the replication package. The documentation and
-the aggregated exports in 3_register_mona/exports/ are released under the
-Creative Commons Attribution 4.0 International licence (CC BY 4.0,
-https://creativecommons.org/licenses/by/4.0/). Third-party data shipped in
-data/raw/ remain under their own licences, listed in data/DATA-MANIFEST.csv.
-Register microdata are not part of the package and are not licensed by it.
+This licence covers the code of the replication package (every .py, .R, .do and
+.sh file). The documentation, the aggregated register exports in
+3_register_mona/exports/, the derived data files built by the authors and the
+tables, figures and result files the code writes are released under the Creative
+Commons Attribution 4.0 International licence (CC BY 4.0); see LICENSE-docs.
+Third-party data shipped in data/raw/ and 3_register_mona/inputs/ remain under
+their own licences, listed in data/DATA-MANIFEST.csv and README.md. Register
+microdata are not part of the package and are not licensed by it.

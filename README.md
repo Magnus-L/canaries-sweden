@@ -20,6 +20,9 @@ relative change is concentrated in the advantage of colleagues aged 50 to 69, ru
 through separations rather than hiring, and falls on young women, largely within the
 same education tracks as young men.
 
+**Replication package.** The package for the revised paper is in `replication/`; start
+with `replication/README.md`.
+
 **What this repository holds.** The code behind every number in the paper, its
 online appendix and the response to the editor, the aggregate exports that leave
 Statistics Sweden's secure environment, and the scripts that turn those exports into
@@ -259,8 +262,12 @@ registers, can run it as it ran.
 
 ## Licence
 
-Code: MIT (`LICENSE`). Data: see the licence of each source above; the exported
-aggregates in `revision/output/` and `data/output/` may be reused with attribution.
+Code: MIT (`LICENSE`). Documentation, the aggregated register exports and the tables,
+figures and result files derived by the authors: CC BY 4.0 (`replication/LICENSE-docs`).
+Third-party data keep their own licences, listed for each source in
+`replication/README.md` and `replication/data/DATA-MANIFEST.csv`. The replication package
+will be deposited on Zenodo with a DOI through a GitHub release on acceptance
+(DOI: **[to be assigned on deposit]**).
 
 ## Citation
 

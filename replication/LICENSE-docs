@@ -1,0 +1,29 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Magnus Lodefalk, Lydia Löthman, Michael Koch and Erik Engberg
+
+The following parts of this repository are licensed under the Creative Commons
+Attribution 4.0 International licence:
+
+  - the documentation (README files, VERIFICATION.md, CHANGELOG.md, DISCLOSURE.md
+    and the other Markdown files);
+  - the inventories and maps (MAPPING.csv, MANIFEST.csv, FILES.csv and the other
+    CSV files that describe the package);
+  - the aggregated register exports in 3_register_mona/exports/;
+  - the derived data files built by the authors, such as
+    data/raw/postings_ssyk4_monthly_2026-02-24.csv;
+  - the tables, figures and result files the code writes.
+
+You are free to share (copy and redistribute the material in any medium or
+format) and adapt (remix, transform and build upon the material) for any purpose,
+including commercially, provided that you give appropriate credit, provide a link
+to the licence, and indicate if changes were made.
+
+Please credit the work as: Lodefalk, M., Löthman, L., Koch, M. and Engberg, E.
+(2026). Replication package for "Same Storm, Different Boats: Generative AI and
+Young Workers Within Firms". https://github.com/Magnus-L/canaries-sweden
+
+Full licence text: https://creativecommons.org/licenses/by/4.0/legalcode
+
+The code is licensed separately under the MIT licence (LICENSE). Third-party data
+keep their own licences, listed in data/DATA-MANIFEST.csv.

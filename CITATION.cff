@@ -1,10 +1,10 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
-title: "Same Storm, Different Boats: Generative AI and the Age Gradient in Hiring"
+title: "Same Storm, Different Boats: Generative AI and Young Workers Within Firms"
 authors:
   - family-names: Lodefalk
     given-names: Magnus
-    orcid: "https://orcid.org/0000-0002-5313-4417"
+    orcid: "https://orcid.org/0000-0003-0149-9598"
     affiliation: "Örebro University"
   - family-names: Löthman
     given-names: Lydia
@@ -23,4 +23,12 @@ keywords:
   - age gradient
   - hiring
   - job postings
-license: CC-BY-4.0
+# Code under MIT (LICENSE); documentation, exports and derived tables under
+# CC BY 4.0 (replication/LICENSE-docs).
+license:
+  - MIT
+  - CC-BY-4.0
+# DOI PLACEHOLDER: the replication package will be deposited on Zenodo through a
+# GitHub release on acceptance. Add the DOI it assigns here, as
+#   doi: "10.5281/zenodo.<to be assigned on deposit>"
+
