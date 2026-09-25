@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-25: licences, archival and the scope of what is shipped
+
+- Licences: MIT for the code (`LICENSE`), CC BY 4.0 for the documentation, the aggregated
+  exports and the derived tables (`LICENSE-docs`). The repository's top-level `LICENSE`,
+  `README.md` and `CITATION.cff` now state the same.
+- Archival: the package will be deposited on Zenodo through a GitHub release on acceptance;
+  the README and `CITATION.cff` carry a placeholder for the DOI.
+- The Yahoo Finance daily series are no longer shipped, since Yahoo's terms restrict
+  redistribution. `1_data_public/03` fetches them when they are absent, on the windows of the
+  paper's downloads; the monthly series it builds are identical to the paper's.
+- The employer counts of Online Appendix Part V remain unshipped as a firm-level derived
+  file; the README states why and where their construction is documented.
+- The offline appendix is not part of the publication; the drawing of its quarterly posting
+  event study was removed from `2_postings/07` (the estimates it writes are unchanged).
+- `archive/independent_reproduction/` keeps the do-file of the reproduction only.
+- `MANIFEST.csv`: rows M009 and M037 follow the corrected wording of the manuscript.
+
 ## 2026-09-25: the package for the revision (EL67898R1)
 
 The replication package was assembled in `replication/` for the revised manuscript, from the

@@ -63,8 +63,9 @@ Scripts 14 and 15 read `CANARIES_FIRM_CUBE`, counts of distinct advertisements b
 June 2026, and `CANARIES_SCB_BULK`, Statistics Sweden's business-register bulk file
 (distributed free by Bolagsverket) for industry and registration date. The count file was
 built from the same public Platsbanken archives by the AI-Econ Lab's advertisement monitor
-(its extraction script `firm_dimension_extract2.py`, 21 August 2026), and it is not part of
-this package. Its construction, which a replicator can repeat from the archives:
+(its extraction script `firm_dimension_extract2.py`, 21 August 2026). It is not shipped,
+because it is a firm-level derived file with one row per employer and month; the package
+documents its construction instead, which a replicator can repeat from the archives:
 
 - archives 2021 to 2026-Q2 (the annual 2025 archive as republished on 22 July 2026);
 - within each archive, advertisements are de-duplicated on a digest of the headline, the

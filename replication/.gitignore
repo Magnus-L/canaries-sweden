@@ -1,0 +1,6 @@
+# Inputs fetched or built by the replicator, not shipped (see README.md)
+data/raw/omxs30_daily.csv
+data/raw/omxspi_daily.csv
+data/raw/sp500_daily.csv
+data/raw/firm_month_v2.csv.gz
+data/raw/scb_bulkfil.zip

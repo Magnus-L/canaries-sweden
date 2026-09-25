@@ -39,7 +39,8 @@ from.
 
 - [x] The authors of the manuscript have legitimate access to and permission to use the data used in this manuscript.
 - [x] The authors of the manuscript have documented permission to redistribute and publish the data contained within this replication package, for the public data shipped in `data/raw/` and for the aggregated exports in `3_register_mona/exports/`, which passed Statistics Sweden's output review before they left MONA.
-- [ ] Some data cannot be made publicly available: the register microdata behind every employment estimate, described below.
+- [x] Some data cannot be made publicly available: the register microdata behind every employment estimate, described below.
+- [x] Some public data are not redistributed but fetched or rebuilt by the package's code: the Platsbanken archives, the Yahoo Finance index series and the employer counts of Online Appendix Part V, described below.
 
 ### Summary of availability
 
@@ -60,14 +61,16 @@ The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the 
 | Teleworkability by SOC occupation (`dingel_neiman_telework.csv`) | telework split, OA II.3 and III.2 | Dingel and Neiman (2020), <https://github.com/jdingel/DingelNeiman-workathome> | GPL-3.0 (repository licence) | yes |
 | GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Table A14 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
 | Indeed Hiring Lab job-postings index, United States (`indeed_us_aggregate.csv`) | Figure A1(a) | Indeed Hiring Lab, <https://github.com/hiring-lab/job_postings_tracker> | CC BY 4.0 | yes |
-| OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1, Figure A1 | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), downloaded with `yfinance` (OMX series 18 September 2026, S&P 500 24 February 2026) | Yahoo terms of service (see note) | yes, see note |
+| OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1, Figure A1 | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), fetched with `yfinance` by `1_data_public/03_market_and_policy_series.py` | Yahoo terms of service (see note) | no; fetched by the script, see note |
 | Riksbank policy rate | Figure A1(d) | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
 | Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A18 and A24 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
-| Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see Part V below |
-| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V | built by the authors from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see Part V below |
+| Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see note |
+| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
 | Monthly employer declarations at the individual level (AGI, *Arbetsgivardeklaration på individnivå*), 2019 to June 2025; LISA (*Individ*) 2015 to 2023 with the embedded occupation register (*Yrkesregistret*); the education register (SUN 2020); the ICT surveys of enterprises (ITFtg) and individuals (BITA 2024); the enterprise register (*Företagsdatabasen*); Serrano balance sheets (2019) | every employment estimate | Statistics Sweden, through the MONA environment, project P1207 (ORU-MICRO-AI) | confidential | no (the aggregated exports are) |
 
-**Yahoo Finance.** The daily index series were downloaded with the `yfinance` package and are shipped so that Figure 1 can be redrawn exactly as printed. Yahoo's terms restrict redistribution of its data; if the package is deposited in an archive whose terms require it, the three files can be removed and re-downloaded with `1_data_public/03_market_and_policy_series.py --refresh`, at the cost of small revisions to the most recent months.
+**Yahoo Finance.** Yahoo's terms restrict redistribution of its data, so the daily index series are not shipped. `1_data_public/03_market_and_policy_series.py` fetches them with the `yfinance` package whenever they are absent, on the windows of the paper's own downloads: the OMX Stockholm 30 (`^OMX`) and the OMX Stockholm All-Share (`^OMXSPI`) from 1 January 2020 to 18 September 2026, the date of the paper's download, and the S&P 500 (`^GSPC`) from 1 January 2020 to 23 February 2026, the last close before the download of 24 February 2026. The month of each download is incomplete and is dropped, so the monthly series run to August 2026. A fetch on 25 September 2026 reproduced the paper's monthly series exactly. With `--refresh` the script fetches the OMX series to the present instead.
+
+**Employer counts for Part V.** Online Appendix Part V reads counts of distinct advertisements by employer (organisation number), month, four-digit occupation and municipality, January 2021 to June 2026 (`firm_month_v2.csv.gz`). The file is not shipped: it is a firm-level derived file, with one row per employer and month, so the package documents instead how to rebuild it from the public archives. Its construction (archives, de-duplication, window, occupation field, the treatment of organisation numbers that are personal identity numbers, and the entry-level flag) is set out in `2_postings/README.md`, and its SHA-256 is recorded in `data/DATA-MANIFEST.csv`. Scripts 14 and 15 of pack 2 read it from `CANARIES_FIRM_CUBE`, and the industry and registration date of each employer from Statistics Sweden's business-register bulk file, which Bolagsverket distributes free of charge (`CANARIES_SCB_BULK`).
 
 **Register data.** The registers were delivered by Statistics Sweden (SCB) to the ORU-MICRO-AI database of Örebro University under project P1207, after approval by the Swedish Ethical Review Authority (Etikprövningsmyndigheten; decisions 2021-05040, 2022-03330-02, 2024-01714-0 and 2025-04205-02). They are analysed inside MONA (Microdata Online Access), SCB's secure remote environment; microdata never leave SCB's servers, and only aggregates that have passed SCB's output review are exported. Researchers affiliated with a Swedish institution may apply to SCB for access to the same registers (<https://www.scb.se/en/services/ordering-data-and-statistics/ordering-microdata/>, <mona@scb.se>); access requires an ethical approval and an SCB project agreement and typically takes several months. Researchers abroad can obtain access through a Swedish host institution. A replicator wishing to rerun the register scripts on P1207 itself should contact the corresponding author, who will assist with the application. The authors will preserve the data and the MONA project folder for at least five years after publication. One further register input cannot be shipped: `utb_grupp2_sun2020_niva3_inr4_nyckel.dta`, a correspondence from Statistics Sweden's education groups to SUN 2020 fields built by a co-author for another project and not released; it is used only by the cuts by field of education (scripts 76, 87 and 88) and is available from the authors on request.
 
@@ -82,8 +85,8 @@ Outside MONA (packs 0, 1, 2, 4 and 5):
   pyarrow 24.0.0, openpyxl 3.1.5, xlrd 2.0.2, requests 2.34.2, tqdm 4.67.3, yfinance 1.2.0,
   pillow 12.1.0): `python -m pip install -r requirements.txt`.
 - R 4.6.0 with HonestDiD 0.2.8, for `2_postings/08_honestdid.R` only.
-- Stata is not needed. The independent reproduction in Stata 18.5 described in Online
-  Appendix II.1 is kept in `archive/` as a record.
+- Stata is not needed. The do-file of the independent reproduction in Stata 18.5 described in
+  Online Appendix II.1 is kept in `archive/` as a record.
 
 Inside MONA (pack 3): Python 3 with numpy, pandas, pyarrow, pyodbc and statsmodels as
 installed in MONA in September 2026, and R 4.5.0 with fixest 0.13.2 for every Poisson fit
@@ -106,7 +109,8 @@ No random numbers are drawn anywhere in the package, so no seed is set.
 
 ```
 replication/
-  README.md, LICENSE, CITATION.cff    this file, the licences, how to cite
+  README.md, CITATION.cff             this file, how to cite
+  LICENSE, LICENSE-docs               the licences of the code and of everything else
   MAPPING.csv                         exhibit and claim -> script -> export -> output
   MANIFEST.csv                        every checked number: where printed, where computed
   FILES.csv                           every file of the package with its size and SHA-256
@@ -156,9 +160,10 @@ Public data and register exhibits:
 2. From the package root, run `bash run_public.sh`. It downloads the archives into
    `data/raw/platsbanken/` (or give `--no-download` and set `CANARIES_JOBADS_DIR` to a folder
    that already holds them), verifies them against the digests of the paper's run, and runs
-   packs 1, 2, 5, 4 and 0 in that order. Part V additionally needs the two inputs described
-   under "Data availability" (`CANARIES_FIRM_CUBE`, `CANARIES_SCB_BULK`); without them steps 14
-   and 15 of pack 2 stop with a message and the rest of the run is unaffected.
+   packs 1, 2, 5, 4 and 0 in that order. Step 03 of pack 1 fetches the Yahoo Finance series,
+   so the first run needs a network connection. Part V additionally needs the two inputs
+   described under "Data availability" (`CANARIES_FIRM_CUBE`, `CANARIES_SCB_BULK`); without
+   them steps 14 and 15 of pack 2 stop with a message and the rest of the run is unaffected.
 3. Tables are written to `output/tables/`, figures to `output/figures/`, estimates to
    `output/results/`, each under the file name the manuscript uses. With the manuscript folder
    at `CANARIES_PAPER_DIR`, `python 0_verification/check_manifest.py` compares them with print.
@@ -213,6 +218,31 @@ the text, and the exact export files. In brief:
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of
 `master.py` that produces each.
+
+## Scope: the offline appendix
+
+The manuscript repository also holds an offline appendix (`appendix_offline_v3.tex`) with
+material from earlier versions of the paper. It is not part of the publication, and the
+package holds no code for its exhibits.
+
+## Licence
+
+The code (every `.py`, `.R`, `.do` and `.sh` file) is released under the MIT licence
+(`LICENSE`). The documentation, the aggregated register exports in `3_register_mona/exports/`,
+the derived data files the authors built (`data/raw/postings_ssyk4_monthly_2026-02-24.csv`)
+and the tables, figures and result files the code writes are released under the Creative
+Commons Attribution 4.0 International licence (CC BY 4.0, `LICENSE-docs`). Third-party data
+shipped in `data/raw/` and `3_register_mona/inputs/` keep their own licences, listed in the
+table above and in `data/DATA-MANIFEST.csv`. Register microdata are not part of the package
+and are not licensed by it.
+
+## Archival
+
+On acceptance the package will be deposited on Zenodo through a GitHub release of this
+repository, which assigns it a DOI. Until then the package is available at
+<https://github.com/Magnus-L/canaries-sweden> and is not yet archived.
+
+DOI: **[to be assigned on deposit]**
 
 ## References
 

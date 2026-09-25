@@ -8,7 +8,7 @@ Everything outside MONA (packs 0, 1, 2, 4 and 5) was run on:
   linearmodels 7.0 (the decile gradient and the event study), statsmodels 0.14.6 (the
   teleworkability split), matplotlib 3.10.8, pyarrow 24.0.0 (pandas' string backend),
   openpyxl 3.1.5 and xlrd 2.0.2 (the crosswalk workbooks), requests 2.34.2, tqdm 4.67.3,
-  yfinance 1.2.0 (only for refreshing the market series), pillow 12.1.0 (only for the
+  yfinance 1.2.0 (for fetching the market series), pillow 12.1.0 (only for the
   figure comparison in `0_verification`).
 - R 4.6.0 with HonestDiD 0.2.8 (CRAN), for `2_postings/08_honestdid.R` alone.
 - Disk: about 6 GB for the Platsbanken archives. Memory: no process exceeded 3.4 GB

@@ -1,6 +1,6 @@
 # Verification
 
-What was checked, how, and with what result, against the manuscript at commit `1583ff5` of
+What was checked, how, and with what result, against the manuscript at commit `a0bbade` of
 the manuscript repository (25 September 2026). Every check can be rerun with the commands
 given.
 
@@ -41,17 +41,14 @@ unchanged.
 `MANIFEST.csv` holds 215 numbers printed in the running text, captions and hand-typed notes of
 the paper (60) and the online appendix (155), each tied to the file it is computed from. A row
 passes when the number appears in the manuscript and the source value rounds to it at the
-printed precision. **Result: 213 PASS, 2 FAIL, 8 PENDING** (plus the 31 table rows above).
-
-The two failures, both in the paper, both in wording rather than estimates:
-
-| Row | Printed | Source | Comment |
-|---|---|---|---|
-| M009, Section 2 | "Cells with no postings, about one per cent" | 2.4 per cent: 698 of the 28,782 cells of the balanced panel (369 occupations, 78 months) have no posting | one per cent is the top quartile's average (Online Appendix II.5), not the whole panel's |
-| M037, Section 3 | "($-0.019$, SE 0.013)" for 22-25 against 41-49 | SE 0.012487 | Table 1 prints 0.0125; the text rounds the rounded number |
+printed precision. **Result: 215 PASS, 0 FAIL, 8 PENDING** (plus the 31 table rows above).
+Two rows of the paper failed against earlier drafts and pass since the wording was corrected
+in the manuscript: the share of occupation-month cells with no postings (M009, now printed as
+2.4 per cent: 698 of the 28,782 cells of the balanced panel) and the standard error of the
+contrast of ages 22 to 25 against 41 to 49 (M037, now printed as 0.012, from 0.012487).
 
 The eight pending rows are numbers that no script of the package writes to a file: the
-$R^2 = 0.998$ of the independent reproduction (in its report, `archive/`), the split of the
+$R^2 = 0.998$ of the independent reproduction (`archive/`), the split of the
 2,844 advertisements of the 2026 archives dated outside the half-year (2,657, 100 and 187), the
 counts of military, managerial and other unpriced occupation codes (3, 26, 2; counted by hand
 from `occupation_reconciliation_lists.txt`, which the pack writes), and the 3.7 per cent of

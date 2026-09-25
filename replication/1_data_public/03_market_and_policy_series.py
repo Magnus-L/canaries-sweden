@@ -7,23 +7,28 @@ WHAT IT BUILDS
   (^OMXSPI), daily closes from Yahoo Finance, averaged by calendar month and
   indexed to 100 at the February 2020 mean. The month in which the daily
   series was fetched is dropped, since a part-month average is not
-  comparable with the full months beside it. The package ships the daily
-  closes fetched on 18 September 2026 (data/raw/omxs30_daily.csv,
-  omxspi_daily.csv), so the monthly files run to August 2026; --refresh
-  fetches them again and then runs to the last complete month.
+  comparable with the full months beside it. Yahoo's terms restrict
+  redistribution, so the daily closes are not shipped: when
+  data/raw/omxs30_daily.csv or omxspi_daily.csv is absent, the script fetches
+  it with yfinance on the window of the paper's fetch of 18 September 2026
+  (1 January 2020 to 18 September 2026), so the monthly files run to August
+  2026 as printed; --refresh fetches to the present instead and then runs to
+  the last complete month.
   Riksbank policy rate. The decisions from January 2020 to January 2025, as
   announced at riksbank.se, as a monthly series of the rate in force at the
   end of each month, January 2020 to February 2026.
-  The S&P 500 daily closes (data/raw/sp500_daily.csv, fetched 24 February
-  2026) and the Indeed Hiring Lab US postings index
-  (data/raw/indeed_us_aggregate.csv, same date) are read as shipped by the
-  figure of Online Appendix II.1; --refresh fetches them again.
+  The S&P 500 daily closes (^GSPC, data/raw/sp500_daily.csv) are fetched
+  the same way when absent, on the window of the paper's fetch of 24
+  February 2026 (1 January 2020 to 23 February 2026). They and the Indeed
+  Hiring Lab US postings index (data/raw/indeed_us_aggregate.csv, shipped)
+  are read by the figure of Online Appendix II.1; --refresh fetches both
+  again.
 
 OUTPUTS  data/processed/omxs30_monthly.csv, omxspi_monthly.csv,
          riksbank_rate.csv, riksbank_monthly.csv
 SERVES   Figure 1 (upper panel) and Online Appendix Figure A1, panels (a),
          (b) and (d)
-RUNTIME  seconds (plus the fetch with --refresh)
+RUNTIME  seconds (plus the fetch from Yahoo Finance)
 """
 
 import sys
@@ -36,9 +41,26 @@ import pandas as pd  # noqa: E402
 
 BASE_MONTH = "2020-02"
 TICKERS = {"omxs30": "^OMX", "omxspi": "^OMXSPI"}
-# The shipped daily files were fetched on this date; the month it falls in is
+# The paper's daily files were fetched on this date; the month it falls in is
 # incomplete and is dropped from the monthly series.
 FETCHED = pd.Timestamp("2026-09-18")
+# The windows of the paper's fetches (yfinance's end date is exclusive).
+START = "2020-01-01"
+END_OMX = "2026-09-19"
+END_SP500 = "2026-02-24"
+
+
+def fetch_as_in_paper(name: str, ticker: str, end: str) -> None:
+    """Fetch one index from Yahoo Finance on the window of the paper's fetch."""
+    import yfinance as yf
+    print(f"  fetching {name} ({ticker}), {START} to {end} (exclusive)")
+    df = yf.Ticker(ticker).history(start=START, end=end, auto_adjust=False)
+    if df.empty:
+        raise SystemExit(f"yfinance returned nothing for {ticker}")
+    df = df[["Close"]].rename(columns={"Close": f"{name}_close"})
+    df.index = pd.to_datetime(df.index).tz_localize(None).normalize()
+    df.index.name = "Date"
+    df.to_csv(config.RAW / f"{name}_daily.csv")
 
 
 def fetch_index(name: str, ticker: str) -> pd.Timestamp:
@@ -123,11 +145,15 @@ def main():
     refresh = "--refresh" in sys.argv
     print("Stock indices and the policy rate")
     for name, ticker in TICKERS.items():
+        if not refresh and not (config.RAW / f"{name}_daily.csv").exists():
+            fetch_as_in_paper(name, ticker, END_OMX)
         fetched = fetch_index(name, ticker) if refresh else FETCHED
         monthly_index(name, fetched)
     riksbank_rate()
     if refresh:
         refresh_us()
+    elif not (config.RAW / "sp500_daily.csv").exists():
+        fetch_as_in_paper("sp500", "^GSPC", END_SP500)
 
 
 if __name__ == "__main__":

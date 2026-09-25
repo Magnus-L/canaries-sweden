@@ -53,6 +53,10 @@ decision taken on 28 April 2022 sets April's value.
 
 ## The stock indices
 
-`data/raw/omxs30_daily.csv` and `omxspi_daily.csv` are the daily closes fetched from Yahoo
-Finance on 18 September 2026; the month of the fetch is incomplete and is dropped, so the
-monthly series run to August 2026. `--refresh` fetches all four market series again.
+Yahoo's terms restrict redistribution, so the daily closes are not shipped. When
+`data/raw/omxs30_daily.csv`, `omxspi_daily.csv` or `sp500_daily.csv` is absent,
+`03_market_and_policy_series.py` fetches it with `yfinance` on the window of the paper's
+download: `^OMX` and `^OMXSPI` from 1 January 2020 to 18 September 2026, `^GSPC` from
+1 January 2020 to 23 February 2026. The month of each download is incomplete and is dropped,
+so the monthly series run to August 2026. A fetch on 25 September 2026 reproduced the paper's
+monthly series exactly. `--refresh` fetches all four market series again, to the present.

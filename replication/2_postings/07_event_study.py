@@ -33,8 +33,8 @@ OUTPUTS  output/results/posting_es_monthly_v3.csv, posting_es_quarterly_v3.csv,
          posting_pretrend_v3.csv, posting_rr_simplified_v3.csv,
          posting_es_summary_v3.csv, posting_es_vcov_v3.csv;
          output/figures/figA3_event_study_v3.pdf and .png (panel (a) of
-         Figure A2), figA5_event_study_quarterly_v3 and
-         figA6_rambachan_roth_simplified_v3 (not in the paper)
+         Figure A2) and figA6_rambachan_roth_simplified_v3 (not in the
+         paper)
 SERVES   Online Appendix II.2 and Figure A2, panel (a)
 RUNTIME  about 2 minutes
 """
@@ -214,38 +214,6 @@ def plot_es(es):
     plt.close(fig)
 
 
-def plot_es_quarterly(qes):
-    """The quarterly path (not in the online appendix)."""
-    q = pd.concat([qes, pd.DataFrame({"quarter": ["2020Q1"], "coef": [0.0],
-                                      "se": [0.0]})])
-    q["date"] = pd.PeriodIndex(q["quarter"], freq="Q").to_timestamp()
-    q = q.sort_values("date")
-    q["ci_lo"] = q["coef"] - 1.96 * q["se"]
-    q["ci_hi"] = q["coef"] + 1.96 * q["se"]
-    fig, ax = plt.subplots(figsize=(12, 5))
-    ax.fill_between(q["date"], q["ci_lo"], q["ci_hi"], alpha=0.2, color=DARK_BLUE)
-    ax.plot(q["date"], q["coef"], color=DARK_BLUE, linewidth=2, marker="o",
-            markersize=5)
-    ax.axhline(0, color=GRAY, linewidth=0.8, linestyle="--")
-    rb_date, gpt_date = pd.Timestamp(config.RIKSBANKEN_HIKE), pd.Timestamp(config.CHATGPT_LAUNCH)
-    ax.axvline(rb_date, color=ORANGE, linewidth=1.5, linestyle="--", alpha=0.9)
-    ax.axvline(gpt_date, color=TEAL, linewidth=1.5, linestyle="--", alpha=0.9)
-    ymin, ymax = ax.get_ylim()
-    label_y = ymax - (ymax - ymin) * 0.08
-    ax.annotate("Riksbanken hike\n(Apr 2022)", xy=(rb_date, label_y),
-                fontsize=9, color=ORANGE, fontweight="bold", ha="right",
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=ORANGE, alpha=0.85))
-    ax.annotate("ChatGPT launch\n(Nov 2022)", xy=(gpt_date, label_y),
-                fontsize=9, color=TEAL, fontweight="bold", ha="left",
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=TEAL, alpha=0.85))
-    ax.set_xlabel("")
-    ax.set_ylabel("Coefficient (relative to 2020 Q1)")
-    ax.set_title("Quarterly event study: High vs low genAI exposure")
-    fig.tight_layout()
-    save_pdf_png(fig, "figA5_event_study_quarterly_v3")
-    plt.close(fig)
-
-
 def plot_rr(grid, theta, mbar_bd):
     """The simplified bound. Not in the paper: panel (b) of Figure A2 is
     drawn from the exact bounds by 09."""
@@ -311,7 +279,6 @@ def main():
          "p_value": new["p_quarterly"]},
     ]).to_csv(TAB / "posting_pretrend_v3.csv", index=False)
     plot_es(es)
-    plot_es_quarterly(qes)
     plot_rr(grid, new["theta_hat"], new["breakdown_mbar"])
     for k in new:
         print(f"  {k:>24}: old {old[k]!s:>24}   new {new[k]!s:>24}")
