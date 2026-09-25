@@ -116,3 +116,5 @@ revision/upload/rti_ssyk4.dta
 
 # Internal MONA trip sheets (operational notes, not part of the replication record)
 revision/mona/TRIP_*.md
+data/raw/wfhmap/*.xlsx
+data/raw/wfhmap/*.html
