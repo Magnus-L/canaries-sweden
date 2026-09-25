@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-97_female_diagnostics.py -- the female differential's pre-launch path and
+97_headline_checks.py -- the headline, sex and exposure-specification
+                         checks of lane 37b (formerly 97_female_diagnostics:
+                         the female differential's pre-launch path and
                             its industry test, and the credit test
                             re-estimated on tau.
 
@@ -81,6 +83,18 @@ fepois ceiling). Industry x age x sex plus month x age x sex, the
 alternative the review named, is absorbed by employer x age x sex, since
 industry is fixed within the employer, and is not fitted.
 
+PART Q. THE EXPOSURE SPECIFICATION (22-25; review of 25 Sep 2026, and
+Referee 1's "why a discrete measure?")
+The gate's own panel, outcome, effects and seasonal terms, with High
+replaced (i) by the continuous employer score (82's firm mean `mix`),
+standardised to mean zero and one baseline SD across the panel's
+employers, weighted by incumbent employment as the quartile cuts are:
+tau per SD; (ii) by the four quartiles, Q2, Q3 and Q4 each with its own
+Equation (2) terms against Q1, in one fit: a tau for each.
+PART P is fitted twice, clustered by employer and by three-digit industry
+(80's key; employers without a code share one residual cluster, as in
+80's Part B), with the same coefficients.
+
 READ RULES, FIXED BEFORE THE RUN (printed at the start and in the summary)
   K1. CREDIT DOES NOT CARRY TAU if, at 22-25, the High x Young tau with
       the leverage terms in keeps at least half of the same-sample
@@ -95,7 +109,7 @@ READ RULES, FIXED BEFORE THE RUN (printed at the start and in the summary)
   A missing row is a missing fit, never a zero.
 
 EXPORT (output_97/)
-  female_credit_diagnostics.csv  every reported term and tau, with
+  headline_checks.csv  every reported term and tau, with
                                  var_post, var_interim, cov_post_interim,
                                  n_obs and n_firms (employer counts below
                                  five suppressed with their statistic)
@@ -107,7 +121,7 @@ K: tab:industry_credit Panel B on tau (replaces the gamma_2 rows and the
 female differential's path and drift; Table 1's drift row for women. I:
 OA III.2, the sentence on industry shocks to young women.
 
-    python 97_female_diagnostics.py
+    python 97_headline_checks.py
 """
 
 import gc
@@ -129,7 +143,7 @@ OUT.mkdir(exist_ok=True)
 os.environ.setdefault("CANARIES_82_OUT", str(OUT))
 os.environ.setdefault("CANARIES_80_OUT", str(OUT))
 os.environ.setdefault("CANARIES_73_OUT", str(OUT))
-PARTS = os.environ.get("CANARIES_97_PARTS", "KPI").upper()
+PARTS = os.environ.get("CANARIES_97_PARTS", "QKPI").upper()
 CACHE = mc.CACHE_DIR
 
 FLOOR = 5
@@ -241,7 +255,7 @@ def add(part, spec, band, term, coef, se, n_obs, n_firms, status="ok",
 def save() -> pd.DataFrame:
     df = pd.DataFrame(ROWS)
     if df.empty:
-        df.to_csv(OUT / "female_credit_diagnostics.csv", index=False)
+        df.to_csv(OUT / "headline_checks.csv", index=False)
         return df
     had = df["n_firms"].notna()
     df = mc.enforce_min_cell(df, count_col="n_firms", floor=FLOOR)
@@ -249,7 +263,7 @@ def save() -> pd.DataFrame:
     if small.any():
         df.loc[small, ["coef", "se", "t", "var_post", "var_interim",
                        "cov_post_interim"]] = np.nan
-    df.to_csv(OUT / "female_credit_diagnostics.csv", index=False)
+    df.to_csv(OUT / "headline_checks.csv", index=False)
     return df
 
 
@@ -261,7 +275,8 @@ def get(part, spec, band, term):
     return np.nan, np.nan
 
 
-def fit(b: pd.DataFrame, tag: str, terms: list, fes: tuple):
+def fit(b: pd.DataFrame, tag: str, terms: list, fes: tuple,
+        cluster: str = "employer_id"):
     """One Poisson fit; (coefficients, clustered vcov or None). A failure
     returns (None, None) and is recorded. R's stderr is written in full by
     mona_common._r_failed, never truncated here."""
@@ -272,7 +287,7 @@ def fit(b: pd.DataFrame, tag: str, terms: list, fes: tuple):
     t = time.time()
     try:
         r = mc.run_fepois_multi(b, OUT, tag=f"s97_{tag}", terms=terms,
-                                fes=fes, cluster="employer_id")
+                                fes=fes, cluster=cluster)
     except BaseException as ex:
         print(f"    {tag} FAILED: {type(ex).__name__}: {ex}")
         traceback.print_exc()
@@ -514,7 +529,9 @@ def three(b, name: str, ind: pd.Series) -> list:
     return [f"{name}_x_hy", f"{name}_x_hf", f"{name}_x_hyf"]
 
 
-def part_p(bsex: pd.DataFrame, j47) -> None:
+def part_p(bsex: pd.DataFrame, j47, s73, s80) -> None:
+    """The female differential before the launch: the plain quarterly path
+    and the drift test, each clustered by employer and by industry."""
     ym = bsex["year_month"].astype(str)
     pre = bsex[(ym >= PRE_FROM) & (ym <= PRE_TO)]
     pre = drop_dead_sex(pre)
@@ -522,49 +539,85 @@ def part_p(bsex: pd.DataFrame, j47) -> None:
     months = sorted(pre["year_month"].astype(str).unique())
     NOTES.append(f"P: pre-launch window {months[0]} to {months[-1]}, "
                  f"{len(months)} months, {n:,} employers")
+    key = s80.industry_key(s73)
+    drain(s80, "80")
+    kmap, src_map = s80.key_maps(key, s73)
+    pre, info = s80.attach_cluster(pre, kmap, src_map, s73)
+    NOTES.append(f"P: industry clusters {info['n_clusters']:,}; "
+                 f"{info['n_unresolved']:,} employers without a code share "
+                 f"one residual cluster")
     ym = pre["year_month"].astype(str)
-    # (i) the plain quarterly path
     lab = quarter_label(ym)
+    q = ((ym.str.slice(5, 7).astype(int) - 1) // 3) + 1
+    trend = ((ym.str.slice(0, 4).astype(int) - 2021) * 12
+             + ym.str.slice(5, 7).astype(int) - 1).astype(float)
+    sets = []
     terms = []
     for qq in sorted(lab.unique()):
         if qq == REF_QUARTER:
             continue
         terms += three(pre, f"pq_{qq}", (lab == qq).astype(int))
-    print("\n  PART P (i), the plain quarterly path:")
-    g, _ = fit(pre, "p_path_22_25", terms, j47.FES)
-    if g is not None:
-        n_obs = int(g["n_obs"].max())
-        for t_ in terms:
-            if t_ in g.index:
-                add("P", "path", SEX_BAND, t_, g.loc[t_, "coef"],
-                    g.loc[t_, "se"], n_obs, n,
-                    str(g.loc[t_].get("status", "ok")))
-        add("P", "path", SEX_BAND, f"pq_{REF_QUARTER}_reference", 0.0, 0.0,
-            n_obs, n, "reference")
-        save()
-    pre = pre.drop(columns=terms)
-    # (ii) the drift test
-    q = ((ym.str.slice(5, 7).astype(int) - 1) // 3) + 1
-    trend = ((ym.str.slice(0, 4).astype(int) - 2021) * 12
-             + ym.str.slice(5, 7).astype(int) - 1).astype(float)
+    sets.append(("path", terms))
     terms = []
     for qq in (1, 2, 3):
         terms += three(pre, f"q{qq}", (q == qq).astype(int))
     terms += three(pre, "rbw", ((ym >= mc.RIKSBANK_YM)
                                 & (ym < mc.CHATGPT_YM)).astype(int))
     terms += three(pre, "trend", trend)
-    print("\n  PART P (ii), the drift test:")
-    g, _ = fit(pre, "p_drift_22_25", terms, j47.FES)
+    sets.append(("drift", terms))
+    for spec, terms in sets:
+        for cl, sfx in (("employer_id", ""), ("cl_ind", "_indcl")):
+            print(f"\n  PART P, {spec}, clustered by "
+                  f"{'employer' if sfx == '' else 'industry'}:")
+            g, v = fit(pre, f"p_{spec}{sfx}_22_25", terms, j47.FES, cluster=cl)
+            if g is None:
+                continue
+            n_obs = int(g["n_obs"].max())
+            for t_ in terms:
+                if t_ in g.index:
+                    add("P", spec + sfx, SEX_BAND, t_, g.loc[t_, "coef"],
+                        g.loc[t_, "se"], n_obs, n,
+                        str(g.loc[t_].get("status", "ok")))
+            if spec == "path":
+                add("P", spec + sfx, SEX_BAND, f"pq_{REF_QUARTER}_reference",
+                    0.0, 0.0, n_obs, n, "reference")
+            save()
     del pre
     gc.collect()
-    if g is None:
-        return
-    n_obs = int(g["n_obs"].max())
-    for t_ in terms:
-        if t_ in g.index:
-            add("P", "drift", SEX_BAND, t_, g.loc[t_, "coef"],
-                g.loc[t_, "se"], n_obs, n, str(g.loc[t_].get("status", "ok")))
-    save()
+
+
+def part_q(b0: pd.DataFrame, expo: pd.DataFrame, s78, j47) -> None:
+    """Continuous exposure and all four quartiles on the gate's panel."""
+    b = b0.copy()
+    n = int(b["employer_id"].nunique())
+    e = expo[expo["employer_id"].isin(set(b["employer_id"]))][
+        ["employer_id", "mix", "n"]]
+    mu = np.average(e["mix"], weights=e["n"])
+    sd = float(np.sqrt(np.average((e["mix"] - mu) ** 2, weights=e["n"])))
+    NOTES.append(f"Q: continuous score standardised on {len(e):,} employers, "
+                 f"incumbent-weighted mean {mu:.2f} and SD {sd:.2f} "
+                 f"percentile points")
+    z = pd.Series(((e["mix"] - mu) / (sd if sd > 0 else 1.0)).to_numpy(),
+                  index=e["employer_id"].to_numpy())
+    b["z"] = b["employer_id"].map(z).astype(float)
+    b, tz = s78.eq2_terms(b, "z", "z")
+    print("\n  PART Q (i), continuous exposure per SD:")
+    g, v = fit(b, "q_continuous_22_25", tz, j47.FES)
+    record(g, v, "Q", "continuous_per_sd", "22-25", n,
+           [("z", "post_x_highz_x_young", "interim_x_highz_x_young")])
+    b = b.drop(columns=tz + ["z"])
+    tq, pairs = [], []
+    for k in (2, 3, 4):
+        b[f"fq{k}"] = (b["fq"] == k).astype(int)
+        b, t = s78.eq2_terms(b, f"fq{k}", f"q{k}")
+        tq += t
+        pairs.append((f"q{k}_vs_q1", f"post_x_highq{k}_x_young",
+                      f"interim_x_highq{k}_x_young"))
+    print("\n  PART Q (ii), all four quartiles:")
+    g, v = fit(b, "q_quartiles_22_25", tq, j47.FES)
+    del b
+    gc.collect()
+    record(g, v, "Q", "quartiles_vs_q1", "22-25", n, pairs)
 
 
 def part_i(bsex: pd.DataFrame, s73, s80, s78, j47) -> None:
@@ -678,8 +731,21 @@ def write_summary() -> None:
                     and r["term"].endswith("_x_hyf"):
                 L.append(f"  {r['term'][3:9]} {r['coef']:+.4f} ({r['se']:.4f})")
         c, s = get("P", "drift", SEX_BAND, "trend_x_hyf")
+        ci, si = get("P", "drift_indcl", SEX_BAND, "trend_x_hyf")
         if c == c:
-            L.append(f"  drift: trend {c:+.5f} ({s:.5f}) per month")
+            L.append(f"  drift: trend {c:+.5f} per month, SE {s:.5f} by "
+                     f"employer, {si:.5f} by industry")
+        L.append("")
+    if any(r["part"] == "Q" for r in ROWS):
+        L.append("Q. THE EXPOSURE SPECIFICATION, 22-25 (tau):")
+        c, s_ = get("Q", "continuous_per_sd", "22-25", "z_tau")
+        if c == c:
+            L.append(f"  continuous score, per baseline SD  {c:+.4f} ({s_:.4f})")
+        for k in (2, 3, 4):
+            c, s_ = get("Q", "quartiles_vs_q1", "22-25", f"q{k}_vs_q1_tau")
+            if c == c:
+                L.append(f"  Q{k} against Q1                    {c:+.4f} "
+                         f"({s_:.4f})")
         L.append("")
     if any(r["part"] == "I" for r in ROWS):
         L.append("I. INDUSTRY x AGE x SEX x MONTH, same employers:")
@@ -746,7 +812,7 @@ def main() -> int:
         del built
         gc.collect()
         print(f"  score: {len(expo):,} employers")
-        if "K" in PARTS:
+        if "K" in PARTS or "Q" in PARTS:
             counts = load_counts("L_counts", s61.PANEL_YEARS, COUNT_COLS)
             if counts is None:
                 raise RuntimeError("L_counts_2021-2025 missing; run 47L")
@@ -757,10 +823,11 @@ def main() -> int:
             # not an estimate. A failed read costs Part K and nothing else.
             lmap = None
             try:
-                lev = leverage(s73)
-                lmap = dict(zip(s73.norm_id(lev["employer_id"]),
-                                lev["lev"].astype(float)))
-                del lev
+                if "K" in PARTS:
+                    lev = leverage(s73)
+                    lmap = dict(zip(s73.norm_id(lev["employer_id"]),
+                                    lev["lev"].astype(float)))
+                    del lev
             except BaseException as ex:
                 if isinstance(ex, SystemExit):
                     raise
@@ -771,6 +838,8 @@ def main() -> int:
             # panels while R fits (failure class 4).
             for band in BANDS:
                 b0 = stock_gate(counts, band, expo, s61, s78, j47)
+                if band == "22-25" and "Q" in PARTS:
+                    run_part("Q", part_q, b0, expo, s78, j47)
                 if lmap is not None:
                     run_part("K", part_k, b0, band, lmap, s73, s78, j47)
                 del b0
@@ -786,7 +855,7 @@ def main() -> int:
             del sex
             gc.collect()
             if "P" in PARTS:
-                run_part("P", part_p, bsex, j47)
+                run_part("P", part_p, bsex, j47, s73, s80)
             if "I" in PARTS:
                 run_part("I", part_i, bsex, s73, s80, s78, j47)
             del bsex
@@ -794,7 +863,7 @@ def main() -> int:
         drain(s78, "78")
         drain(s73, "73")
     except SystemExit:
-        mc.runlog("97_female_diagnostics", 2, (time.time() - T0) / 60)
+        mc.runlog("97_headline_checks", 2, (time.time() - T0) / 60)
         raise
     except BaseException as ex:
         print(f"97 FAILED: {type(ex).__name__}: {ex}")
@@ -804,7 +873,7 @@ def main() -> int:
     save()
     write_summary()
     rc = rc or (1 if FAILURES else 0)
-    mc.runlog("97_female_diagnostics", rc, (time.time() - T0) / 60)
+    mc.runlog("97_headline_checks", rc, (time.time() - T0) / 60)
     print("\n97 done.")
     return rc
 

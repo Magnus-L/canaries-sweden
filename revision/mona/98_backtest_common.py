@@ -1,71 +1,81 @@
 #!/usr/bin/env python3
 """
-98_backtest_common.py -- the as-of backtest re-run on a common sample, so
-                         that what the stale register CODES and whom it
-                         KEEPS are separated rather than summed.
+98_backtest_common.py -- the three-arm as-of backtest: completed-vintage
+                         codes on the full sample (A), completed-vintage
+                         codes on the workers the as-of construction keeps
+                         (B), as-of codes on that same retained sample (C).
 
 ======================================================================
-  RUNS IN MONA (lane 37c, second stage). Output folder CANARIES_98_OUT
-  (default output_98). No SQL if script 45's caches
-  cache/panel_dual_T2021.parquet and panel_dual_T2022.parquet are still on
-  the share (written 18 Sep 2026; no round has retired them). If one is
-  missing, 45's own pull rebuilds it (about 17 minutes a truncation).
+  RUNS IN MONA (lane 37b, FIRST stage; measurement content of the
+  review's Lane 1, placed here to balance runtime). Output folder
+  CANARIES_98_OUT (default output_98). No SQL if script 45's caches
+  cache/panel_dual_T2021.parquet and panel_dual_T2022.parquet are on the
+  share; otherwise 45's own pull rebuilds them (~17 min a truncation).
 ======================================================================
 
 QUESTION
-Online Appendix IV.3 reports the as-of backtest of the submitted design:
-on 2019-2023, where every worker's own-year occupation is observed, the
-design returns +0.0193 (SE 0.0129) with true codes and -0.2875 (0.0171)
-with the codes a register truncated at 2021 would have given, an artefact
-of -0.3068 (+0.0176 against -0.1452 at the 2022 truncation). The review
-(25 Sep 2026) noted that the two arms differ in two ways at once: the
-as-of arm CODES workers with stale codes, and it KEEPS only the workers a
-truncated register can code at all (the true arm keeps everyone with an
-own-year code). The artefact is therefore coding plus sample inclusion,
-and the paper's "completed-vintage codes" wording needs to know which.
+Online Appendix IV.3: the submitted design returns +0.0193 (0.0129) with
+completed-vintage codes and -0.2875 (0.0171) with the codes a register
+truncated at 2021 would give (2022 cutoff: +0.0176 (0.0111) and -0.1452
+(0.0122)). The as-of arm differs in two ways at once: it codes workers
+with stale codes, and it keeps only the workers a truncated register can
+code. The review (25 Sep 2026) asks for the arms that separate them.
 
-DESIGN
-45's estimator unchanged (employer by exposure quartile by month cells at
-22-25, employers with a cumulative count of at least five, balanced,
-restricted to employers in both the top quartile and a lower one;
-PostRB x High and PostGPT x High with the pseudo-dates of 45; Poisson
-with employer-by-quartile and employer-by-month effects, clustered by
-employer), on four arms of the same dual panel:
-  true_all     own-year codes, every worker who has one (45's true arm)
-  asof_all     as-of codes, every worker who has one (45's as-of arm)
-  true_common  own-year codes, restricted to the COMMON sample: workers
-               carrying a DAIOE-scorable code in BOTH assignments
-  asof_common  as-of codes on the same common sample
-so that
-  asof_all - true_all = (true_common - true_all)     sample inclusion
-                      + (asof_common - true_common)  coding, same workers
-                      + (asof_all - asof_common)     workers only the
-                                                     as-of arm can score
-The three pieces sum to the artefact by construction; each is reported.
+THE ARMS (for each cutoff T in 2021, 2022)
+  A  completed-vintage (own-year) codes, every worker who has one: 45's
+     true arm.
+  B  completed-vintage codes, restricted to the workers the as-of
+     construction retains (a DAIOE-scorable as-of code), and who have a
+     scorable own-year code (without one they cannot enter B at all).
+  C  as-of codes on exactly B's workers.
+  45's as-of arm (as-of codes, every worker with one) is refitted as
+  well, because it is half of the gate.
+  B - A is sample inclusion, C - B is coding on fixed workers, C - A is
+  the two together.
 
-THE GATE (hard stop)
-true_all and asof_all must reproduce 45's asof_estimates.csv within
-0.0005 on coefficient and standard error at both truncations: T2021
-+0.0193 (0.0129) and -0.2875 (0.0171); T2022 +0.0176 (0.0111) and
--0.1452 (0.0122). A miss means a moved panel and nothing is quoted.
+THE ESTIMATOR, unchanged from 45: outcome employment at 22-25 in
+employer x exposure-quartile x month cells, 2019-01 to 2023-12; employers
+with a cumulative count of at least five, balanced and zero-filled,
+restricted to employers holding a top-quartile cell and a lower one;
+PostRB x High and PostGPT x High with the pseudo-dates of 45 (hike April
+of T-1, launch December of T-1, so the post window crosses into T+1 and
+T+2 as the production window crosses into 2024); Poisson with
+employer-by-quartile and employer-by-month effects, clustered by
+employer; the reference period is everything before the pseudo-hike.
+Coding cascade of the as-of arm: own-year code for years up to T, then
+Individ T, T-1, T-2. The DAIOE quartile file is the paper's.
 
-READ RULE, FIXED BEFORE THE RUN
-Reported, no verdict: the three pieces and each one's share of the
-artefact at each truncation. If the coding piece is under half the
-artefact at T2021, the paper's sentence must attribute the artefact to
-sample inclusion as much as to stale codes; if it is over half, "stale
-codes" stands with the sample-inclusion caveat.
+HARMONISED CELLS AND THE DIFFERENCES
+Each arm is fitted on its own support and then on the HARMONISED support:
+the employers present in all three arms' estimation panels. On the
+harmonised support the three arms are stacked in one Poisson fit with
+arm-specific fixed effects (employer-by-quartile x arm, employer-by-month
+x arm) and arm-specific treatment terms, clustered by employer, so the
+point estimates are the separate fits' and the covariance ACROSS arms is
+estimated: B - A, C - B and C - A get standard errors. Support is
+documented per arm: employers, cells, cells PPML used (the rest are
+separated or singleton cells fixest drops), and person-months at 22-25.
+
+THE GATES (hard stop)
+1. The headline: the paper's panel with script 82's score reproduces
+   Table 1 at 22-25 within 0.0005: tau -0.0399 (0.0102). This lane's
+   first act, before anything is varied.
+2. A and 45's as-of arm reproduce 45's asof_estimates.csv within 0.0005
+   at both cutoffs.
+
+READ RULE: no verdict. The pieces and their SEs are reported; if C - B is
+under half of C - A at the 2021 cutoff, the paper attributes the artefact
+to sample inclusion as much as to stale codes.
 
 EXPORT (output_98/)
-  backtest_common.csv  per truncation and arm: gamma2, se, n_obs, the
-                       employers in the fit and the person-months at
-                       22-25 behind it; then the three pieces
-  98_summary.txt, 98_log.txt (the vcov files stay on the share)
+  backtest_common.csv  per cutoff, arm and support: gamma2, se, cells,
+                       cells used, employers, person-months; then the
+                       three differences with SEs
+  98_summary.txt, 98_log.txt; vcov_s98_*.csv (the stacked covariances)
 
 IN THE PAPER
-Online Appendix IV.3 (Table IV.3 gains the two common-sample columns)
-and the response letter's backtest paragraph ("completed-vintage codes",
-the sample-inclusion caveat).
+Online Appendix IV.3 and tableIV3_backtest.tex (A, B, C and the
+differences); the response letter's backtest paragraph.
 
     python 98_backtest_common.py
 """
@@ -86,16 +96,22 @@ import mona_common as mc  # noqa: E402
 
 OUT = HERE / os.environ.get("CANARIES_98_OUT", "output_98")
 OUT.mkdir(exist_ok=True)
+os.environ.setdefault("CANARIES_82_OUT", str(OUT))
+SKIP_HEADLINE_GATE = os.environ.get("CANARIES_98_NO_HEADLINE_GATE") == "1"
 
 TRUNCATIONS = (2021, 2022)
 AGE = "22-25"
 STEP1_MIN_CUMULATIVE = 5          # 45's constant
 DUAL_COLS = ["employer_id", "year_month", "ssyk_true", "ssyk_asof",
              "age_group", "n_emp"]
-GATE = {(2021, "true_all"): (0.0193, 0.0129), (2021, "asof_all"): (-0.2875, 0.0171),
-        (2022, "true_all"): (0.0176, 0.0111), (2022, "asof_all"): (-0.1452, 0.0122)}
+GATE = {(2021, "A"): (0.0193, 0.0129), (2021, "asof_all"): (-0.2875, 0.0171),
+        (2022, "A"): (0.0176, 0.0111), (2022, "asof_all"): (-0.1452, 0.0122)}
+HEADLINE = {"post": (-0.0578, 0.0155), "tau": (-0.0399, 0.0102)}
 GATE_TOL = 0.0005
-ARMS = ("true_all", "asof_all", "true_common", "asof_common")
+ARMS = ("A", "asof_all", "B", "C")
+STACK = ("A", "B", "C")
+DIFFS = (("B_minus_A", "B", "A"), ("C_minus_B", "C", "B"),
+         ("C_minus_A", "C", "A"))
 
 NOTES: list = []
 FAILURES: list = []
@@ -104,16 +120,12 @@ T0 = time.time()
 
 
 def dual_panel(trunc: int) -> pd.DataFrame:
-    """45's cached dual panel, schema-checked; rebuilt by 45's own pull
-    only if missing (45 is imported only then, so a run on the caches
-    touches nothing of 45's)."""
+    """45's cached dual panel, schema-checked and read with categorical
+    text (about 120 million rows); rebuilt by 45's own pull only if
+    missing, so a run on the caches touches nothing of 45's."""
     cf = mc.CACHE_DIR / f"panel_dual_T{trunc}.parquet"
     p = None
     if cf.exists():
-        # About 120 million rows with four text columns: read them as
-        # categoricals straight from Arrow, or the frame alone would hold
-        # some 25 GB of Python strings. The schema is checked first, as
-        # mona_common.read_cache would.
         try:
             import pyarrow.parquet as pq
             have = pq.read_schema(cf).names
@@ -150,30 +162,25 @@ def dual_panel(trunc: int) -> pd.DataFrame:
 
 
 def arm_rows(panel: pd.DataFrame, arm: str, scorable: set) -> tuple:
-    """(rows of the dual panel the arm keeps, the code column it scores).
-    The common sample keeps a row only if BOTH codes are DAIOE-scorable,
-    so the two common arms hold exactly the same workers."""
-    if arm == "true_all":
+    """(rows the arm keeps, the code column it scores)."""
+    if arm == "A":
         return panel["ssyk_true"] != "____", "ssyk_true"
     if arm == "asof_all":
         return panel["ssyk_asof"] != "____", "ssyk_asof"
     both = (panel["ssyk_true"].astype(str).isin(scorable)
             & panel["ssyk_asof"].astype(str).isin(scorable))
-    return both, ("ssyk_true" if arm == "true_common" else "ssyk_asof")
+    return both, ("ssyk_true" if arm == "B" else "ssyk_asof")
 
 
-def estimate(panel, keep, col, daioe, trunc, arm) -> dict:
-    """45's estimate_both for one assignment, line for line, on the rows
-    `keep` selects and the code column `col`; the pooled Poisson only."""
-    pseudo_gpt = f"{trunc - 1}-12"
-    pseudo_rb = f"{trunc - 1}-04"
+def build(panel, keep, col, daioe, trunc) -> pd.DataFrame:
+    """45's estimation panel for one assignment, line for line."""
+    pseudo_gpt, pseudo_rb = f"{trunc - 1}-12", f"{trunc - 1}-04"
     agg = (panel[keep]
            .groupby(["employer_id", "year_month", col, "age_group"],
                     observed=True)["n_emp"].sum().reset_index()
            .rename(columns={col: "ssyk4"}))
-    agg["year_month"] = agg["year_month"].astype(str)
-    agg["age_group"] = agg["age_group"].astype(str)
-    agg["ssyk4"] = agg["ssyk4"].astype(str)
+    for c in ("year_month", "age_group", "ssyk4"):
+        agg[c] = agg[c].astype(str)
     agg = mc.merge_daioe_and_filter(agg, daioe)
     agg = mc.aggregate_to_quartile(agg)
     months = sorted(agg["year_month"].unique())
@@ -190,27 +197,93 @@ def estimate(panel, keep, col, daioe, trunc, arm) -> dict:
                          + bal["exposure_quartile"].astype(str))
     bal["fe_emp_t"] = (bal["employer_id"].astype(str) + "_"
                        + bal["year_month"])
-    print(f"  [{arm} T{trunc}] {len(bal):,} cells, "
-          f"{bal['employer_id'].nunique():,} employers")
-    row = {"trunc": trunc, "arm": arm, "gamma2": np.nan, "se2": np.nan,
-           "n_obs": len(bal), "n_firms": int(bal["employer_id"].nunique()),
-           "person_months_22_25": float(bal["n_emp"].sum()), "status": "empty"}
-    if bal.empty:
-        return row
+    return bal
+
+
+def fit_one(bal, trunc, arm, support) -> None:
+    row = {"trunc": trunc, "arm": arm, "support": support, "gamma2": np.nan,
+           "se2": np.nan, "cells": len(bal), "cells_used": np.nan,
+           "n_firms": int(bal["employer_id"].nunique()),
+           "person_months_22_25": float(bal["n_emp"].sum()),
+           "status": "empty"}
+    if len(bal):
+        try:
+            pres = mc.run_fepois(bal, OUT, tag=f"s98_{arm}_{support}_T{trunc}")
+        except BaseException as ex:
+            print(f"  [{arm} {support} T{trunc}] FAILED: {type(ex).__name__}")
+            traceback.print_exc()
+            pres = pd.DataFrame()
+        g2 = pres.loc[pres["term"] == "post_gpt_x_high"] if len(pres) else pres
+        if len(g2):
+            row.update(gamma2=float(g2["coef"].iloc[0]),
+                       se2=float(g2["se"].iloc[0]),
+                       cells_used=int(g2["n_obs"].iloc[0]), status="ok")
+        else:
+            FAILURES.append(f"{arm}_{support}_T{trunc}")
+            row["status"] = "failed"
+    print(f"  [{arm} {support} T{trunc}] {row['gamma2']:+.4f} "
+          f"({row['se2']:.4f}); {row['cells']:,} cells, {row['cells_used']} "
+          f"used, {row['n_firms']:,} employers")
+    ROWS.append(row)
+    save()
+
+
+def stacked(panels: dict, trunc: int) -> None:
+    """A, B and C on the harmonised support in one fit, arm-specific
+    effects and terms, clustered by employer: the differences get SEs."""
+    parts = []
+    for i, arm in enumerate(STACK):
+        b = panels[arm][["employer_id", "year_month", "n_emp", "post_rb_x_high",
+                         "post_gpt_x_high", "fe_emp_bin", "fe_emp_t"]].copy()
+        b["arm_i"] = i
+        for a2 in STACK:
+            on = int(a2 == arm)
+            b[f"rb_{a2}"] = b["post_rb_x_high"] * on
+            b[f"gpt_{a2}"] = b["post_gpt_x_high"] * on
+        parts.append(b.drop(columns=["post_rb_x_high", "post_gpt_x_high"]))
+    s = pd.concat(parts, ignore_index=True)
+    del parts
+    s["fe_bin_arm"] = pd.factorize(s["fe_emp_bin"])[0].astype("int64") * 3 \
+        + s["arm_i"]
+    s["fe_t_arm"] = pd.factorize(s["fe_emp_t"])[0].astype("int64") * 3 \
+        + s["arm_i"]
+    s = s.drop(columns=["fe_emp_bin", "fe_emp_t"])
+    terms = [f"{p}_{a}" for a in STACK for p in ("rb", "gpt")]
+    print(f"  stacked T{trunc}: {len(s):,} rows")
     try:
-        pres = mc.run_fepois(bal, OUT, tag=f"s98_{arm}_T{trunc}")
+        r = mc.run_fepois_multi(s, OUT, tag=f"s98_stacked_T{trunc}",
+                                terms=terms, fes=("fe_bin_arm", "fe_t_arm"),
+                                cluster="employer_id")
     except BaseException as ex:
-        print(f"  [{arm} T{trunc}] FAILED: {type(ex).__name__}: {ex}")
+        print(f"  stacked T{trunc} FAILED: {type(ex).__name__}: {ex}")
         traceback.print_exc()
-        pres = pd.DataFrame()
-    g2 = pres.loc[pres["term"] == "post_gpt_x_high"] if len(pres) else pres
-    if len(g2):
-        row.update(gamma2=float(g2["coef"].iloc[0]),
-                   se2=float(g2["se"].iloc[0]), status="ok")
-    else:
-        FAILURES.append(f"{arm}_T{trunc}")
-        row["status"] = "failed"
-    return row
+        r = pd.DataFrame()
+    if r.empty:
+        FAILURES.append(f"stacked_T{trunc}")
+        return
+    g = r.set_index("term")
+    v = pd.read_csv(r.attrs["vcov"]).set_index("term") \
+        if "vcov" in r.attrs else None
+    for arm in STACK:
+        t = f"gpt_{arm}"
+        sep = next((x["gamma2"] for x in ROWS if x["trunc"] == trunc
+                    and x["arm"] == arm and x["support"] == "harmonised"), np.nan)
+        if t in g.index and sep == sep and abs(float(g.loc[t, "coef"]) - sep) > 1e-4:
+            NOTES.append(f"T{trunc}: stacked {arm} {float(g.loc[t, 'coef']):+.5f}"
+                         f" differs from its separate fit {sep:+.5f}")
+    for name, a, b in DIFFS:
+        ta, tb = f"gpt_{a}", f"gpt_{b}"
+        c = float(g.loc[ta, "coef"]) - float(g.loc[tb, "coef"])
+        se = np.nan
+        if v is not None:
+            var = float(v.loc[ta, ta] + v.loc[tb, tb] - 2 * v.loc[ta, tb])
+            se = float(np.sqrt(var)) if var > 0 else np.nan
+        ROWS.append({"trunc": trunc, "arm": name, "support": "harmonised",
+                     "gamma2": c, "se2": se, "cells": len(s),
+                     "cells_used": int(g["n_obs"].max()), "n_firms": np.nan,
+                     "person_months_22_25": np.nan, "status": "derived"})
+        print(f"  T{trunc} {name}: {c:+.4f} ({se:.4f})")
+    save()
 
 
 def save() -> pd.DataFrame:
@@ -225,68 +298,103 @@ def save() -> pd.DataFrame:
     return df
 
 
-def val(trunc, arm):
+def val(trunc, arm, support="own"):
     for r in ROWS:
-        if r["trunc"] == trunc and r["arm"] == arm:
+        if r["trunc"] == trunc and r["arm"] == arm and r["support"] == support:
             return r["gamma2"], r["se2"]
     return np.nan, np.nan
 
 
 def check_gate(trunc) -> None:
     bad = []
-    for arm in ("true_all", "asof_all"):
+    for arm in ("A", "asof_all"):
         c, s = val(trunc, arm)
         wc, ws = GATE[(trunc, arm)]
         if not (abs(c - wc) <= GATE_TOL and abs(s - ws) <= GATE_TOL):
             bad.append(f"T{trunc} {arm}: this run {c:+.4f} ({s:.4f}), 45 "
                        f"{wc:+.4f} ({ws:.4f})")
     if bad:
-        msg = "THE GATE FAILED. Nothing from this run is quotable. " + \
-              "; ".join(bad)
+        msg = "THE BACKTEST GATE FAILED. Nothing is quotable. " + "; ".join(bad)
         print(f"\n  {msg}")
         FAILURES.append(msg)
         write_summary()
         raise SystemExit("98: the gate failed; stopping.")
-    print(f"  THE GATE PASSES at T{trunc}")
+    print(f"  THE BACKTEST GATE PASSES at T{trunc}")
 
 
-def pieces(trunc) -> dict:
-    ta, _ = val(trunc, "true_all")
-    aa, _ = val(trunc, "asof_all")
-    tc, _ = val(trunc, "true_common")
-    ac, _ = val(trunc, "asof_common")
-    return {"artefact": aa - ta, "sample_inclusion": tc - ta,
-            "coding_same_workers": ac - tc,
-            "asof_only_workers": aa - ac}
+def headline_gate() -> None:
+    """Table 1's tau at 22-25, on the paper's panel, before anything else."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "s82", HERE / "82_occupation_route.py")
+    s82 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(s82)
+    s82.OUT = OUT
+    s61, s67, s74, s78, s80, l47, l70, j47 = s82.load_modules()
+    expo = s82.build_exposure(l47, l70, j47)["exposure"]
+    counts = s82.load_counts("L_counts", s61.PANEL_YEARS,
+                             require=["employer_id", "year_month",
+                                      "age_group", "n_emp"])
+    if counts is None:
+        raise RuntimeError("L_counts_2021-2025 missing")
+    b = s78.with_exposure(s61.build_skeleton(counts, AGE, j47), expo)
+    del counts
+    b, terms = s78.eq2_terms(b)
+    r = mc.run_fepois_multi(b, OUT, tag="s98_headline_gate", terms=terms,
+                            fes=j47.FES, cluster="employer_id")
+    g = r.set_index("term")
+    v = pd.read_csv(r.attrs["vcov"]).set_index("term")
+    p_, i_ = "post_x_high_x_young", "interim_x_high_x_young"
+    c = float(g.loc[p_, "coef"] - g.loc[i_, "coef"])
+    s = float(np.sqrt(v.loc[p_, p_] + v.loc[i_, i_] - 2 * v.loc[p_, i_]))
+    pc, ps = float(g.loc[p_, "coef"]), float(g.loc[p_, "se"])
+    ROWS.append({"trunc": 0, "arm": "headline_tau_22_25", "support": "paper",
+                 "gamma2": c, "se2": s, "cells": len(b),
+                 "cells_used": int(g["n_obs"].max()),
+                 "n_firms": int(b["employer_id"].nunique()),
+                 "person_months_22_25": np.nan, "status": "gate"})
+    save()
+    bad = [f"{k}: this run {x:+.4f} ({y:.4f}), Table 1 {HEADLINE[k][0]:+.4f} "
+           f"({HEADLINE[k][1]:.4f})" for k, (x, y) in
+           (("post", (pc, ps)), ("tau", (c, s)))
+           if not (abs(x - HEADLINE[k][0]) <= GATE_TOL
+                   and abs(y - HEADLINE[k][1]) <= GATE_TOL)]
+    if bad:
+        FAILURES.append("THE HEADLINE GATE FAILED: " + "; ".join(bad))
+        write_summary()
+        raise SystemExit("98: the headline gate failed; stopping.")
+    print(f"  THE HEADLINE GATE PASSES: tau {c:+.4f} ({s:.4f})")
 
 
 def write_summary() -> None:
-    L = ["THE AS-OF BACKTEST ON A COMMON SAMPLE", "=" * 38, "",
-         "45's estimator on four arms of one dual panel (22-25, submitted",
-         "design). The common sample keeps a worker-month only if both the",
-         "own-year and the as-of code are DAIOE-scorable.", ""]
-    for trunc in TRUNCATIONS:
-        L.append(f"T{trunc}:")
-        for arm in ARMS:
-            c, s = val(trunc, arm)
-            r = next((x for x in ROWS if x["trunc"] == trunc
-                      and x["arm"] == arm), None)
-            if r is not None:
-                L.append(f"  {arm:<12} {c:+.4f} ({s:.4f})  {r['n_firms']:,} "
-                         f"employers, {r['person_months_22_25']:,.0f} "
-                         f"person-months")
-        pc = pieces(trunc)
-        if all(v == v for v in pc.values()):
-            art = pc["artefact"]
-            for k in ("sample_inclusion", "coding_same_workers",
-                      "asof_only_workers"):
-                sh = pc[k] / art if art else np.nan
-                L.append(f"  {k:<22} {pc[k]:+.4f}  ({sh:.0%} of the artefact "
-                         f"{art:+.4f})")
+    L = ["THE THREE-ARM AS-OF BACKTEST", "=" * 28, "",
+         "Estimator: 45's submitted design (employment at 22-25 in employer x",
+         "exposure-quartile x month cells, 2019-2023; PostRB x High and",
+         "PostGPT x High; employer-by-quartile and employer-by-month effects;",
+         "Poisson; clustered by employer). Pseudo-dates for cutoff T: hike",
+         "April T-1, launch December T-1; reference period before the hike.",
+         "As-of cascade: own-year code to T, then Individ T, T-1, T-2.",
+         "A = completed codes, full sample; B = completed codes, workers the",
+         "as-of construction retains; C = as-of codes, same workers as B.", ""]
+    h = [r for r in ROWS if r["arm"] == "headline_tau_22_25"]
+    if h:
+        L.append(f"HEADLINE GATE: tau {h[0]['gamma2']:+.4f} ({h[0]['se2']:.4f})")
         L.append("")
-    L += ["READ RULE: no verdict; if the coding piece is under half the",
-          "artefact at T2021 the paper attributes the artefact to sample",
-          "inclusion as much as to stale codes."]
+    for trunc in TRUNCATIONS:
+        L.append(f"CUTOFF {trunc}:")
+        for r in ROWS:
+            if r["trunc"] != trunc:
+                continue
+            used = r["cells_used"]
+            drop = (r["cells"] - used) if used == used else np.nan
+            L.append(f"  {r['arm']:<10} {r['support']:<10} {r['gamma2']:+.4f} "
+                     f"({r['se2']:.4f})  cells {r['cells']:,}, dropped by "
+                     f"PPML {drop if drop == drop else 'n/a'}"
+                     + (f", employers {int(r['n_firms']):,}"
+                        if r["n_firms"] == r["n_firms"] else ""))
+        L.append("")
+    L += ["READ RULE: no verdict; if C - B is under half of C - A at the",
+          "2021 cutoff, the artefact is sample inclusion as much as coding."]
     if NOTES:
         L += ["", "NOTES:"] + [f"  {n}" for n in NOTES]
     if FAILURES:
@@ -297,36 +405,47 @@ def write_summary() -> None:
     print("\n" + "\n".join(L))
 
 
+def run_cutoff(trunc: int, daioe, scorable) -> None:
+    print(f"\n=== cutoff T = {trunc} ===")
+    panel = dual_panel(trunc)
+    panels = {}
+    for arm in ARMS:
+        keep, col = arm_rows(panel, arm, scorable)
+        panels[arm] = build(panel, keep, col, daioe, trunc)
+        fit_one(panels[arm], trunc, arm, "own")
+        if arm == "asof_all":
+            check_gate(trunc)
+    del panel
+    gc.collect()
+    common = set.intersection(*(set(panels[a]["employer_id"]) for a in STACK))
+    NOTES.append(f"T{trunc}: the harmonised support holds {len(common):,} "
+                 f"employers (A {panels['A']['employer_id'].nunique():,}, "
+                 f"B {panels['B']['employer_id'].nunique():,}, "
+                 f"C {panels['C']['employer_id'].nunique():,})")
+    h = {a: panels[a][panels[a]["employer_id"].isin(common)].copy()
+         for a in STACK}
+    del panels
+    gc.collect()
+    for arm in STACK:
+        fit_one(h[arm], trunc, arm, "harmonised")
+    stacked(h, trunc)
+
+
 def main() -> int:
     global T0
     mc.Tee(OUT / "98_log.txt")
     T0 = time.time()
     print("=" * 70)
-    print("98: THE AS-OF BACKTEST ON A COMMON SAMPLE")
+    print("98: THE THREE-ARM AS-OF BACKTEST")
     print("=" * 70)
     rc = 0
     try:
+        if not SKIP_HEADLINE_GATE:
+            headline_gate()
         daioe = mc.load_daioe()
         scorable = set(daioe["ssyk4"].astype(str))
         for trunc in TRUNCATIONS:
-            print(f"\n=== truncation T = {trunc} ===")
-            panel = dual_panel(trunc)
-            for arm in ARMS:
-                keep, col = arm_rows(panel, arm, scorable)
-                ROWS.append(estimate(panel, keep, col, daioe, trunc, arm))
-                save()
-                if arm == "asof_all":
-                    check_gate(trunc)
-            del panel
-            gc.collect()
-            pc = pieces(trunc)
-            for k, v in pc.items():
-                ROWS.append({"trunc": trunc, "arm": f"piece_{k}",
-                             "gamma2": v, "se2": np.nan, "n_obs": np.nan,
-                             "n_firms": np.nan,
-                             "person_months_22_25": np.nan,
-                             "status": "derived"})
-            save()
+            run_cutoff(trunc, daioe, scorable)
     except SystemExit:
         mc.runlog("98_backtest_common", 2, (time.time() - T0) / 60)
         raise

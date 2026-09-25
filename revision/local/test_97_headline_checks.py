@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-test_97_female_diagnostics.py -- the dry run of script 97 (lane 37c,
-                                  first stage).
+test_97_headline_checks.py -- the dry run of script 97 (lane 37b).
 
 THREE WORLDS on one employer x age band x sex x month grid, sharing every
 uniform draw, so each read rule is shown to pass in one and fail in
@@ -39,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _fixtures_trip37 as fx  # noqa: E402
 
 mc, TMP = fx.sandbox("97", ("CANARIES_97_OUT",))
-s97 = fx.load("97_female_diagnostics.py", "s97")
+s97 = fx.load("97_headline_checks.py", "s97")
 s97.OUT = TMP / "out"
 s97.CACHE = mc.CACHE_DIR
 check = fx.Check()
@@ -173,10 +172,12 @@ for kind in ("ai", "drift", "confound"):
     lmap = dict(zip(s73.norm_id(lev["employer_id"]), lev["lev"]))
     for band in s97.BANDS:
         b0 = s97.stock_gate(counts, band, EXPO, s61, s78, j47)
+        if band == "22-25":
+            s97.part_q(b0, EXPO, s78, j47)
         s97.part_k(b0, band, lmap, s73, s78, j47)
     sex = s97.load_counts("L_counts_sex", s61.PANEL_YEARS, s97.SEX_COLS)
     bsex = s97.sex_gate(sex, EXPO, s67, s78, j47)
-    s97.part_p(bsex, j47)
+    s97.part_p(bsex, j47, s73, s80)
     s97.part_i(bsex, s73, s80, s78, j47)
     check(f"{kind}: no fit failed", not s97.FAILURES, "; ".join(s97.FAILURES))
     V[kind] = "\n".join(s97.verdicts())
@@ -196,14 +197,30 @@ for kind in ("ai", "drift", "confound"):
         check("AI: tau with leverage in matches the hand contrast",
               abs(k1 - hk) < 0.02, f"{k1:+.4f} against {hk:+.4f}")
         TREND_AI = g("P", "drift", "22-25", "trend_x_hyf")[0]
+        for k in (2, 3):
+            qk, sq = g("Q", "quartiles_vs_q1", "22-25", f"q{k}_vs_q1_tau")
+            check(f"AI: Q{k} against Q1 is about zero", abs(qk) < 0.03,
+                  f"{qk:+.4f} ({sq:.4f})")
+        q4, _ = g("Q", "quartiles_vs_q1", "22-25", "q4_vs_q1_tau")
+        check("AI: Q4 against Q1 is the planted contrast",
+              abs(q4 - hk) < 0.03, f"{q4:+.4f} against {hk:+.4f}")
+        zc, zs = g("Q", "continuous_per_sd", "22-25", "z_tau")
+        check("AI: the continuous score per SD is negative and significant",
+              zc < -1.96 * zs, f"{zc:+.4f} ({zs:.4f})")
+        de, se_e = g("P", "drift", "22-25", "trend_x_hyf")
+        di, se_i = g("P", "drift_indcl", "22-25", "trend_x_hyf")
+        check("AI: the industry-clustered drift has the same coefficient "
+              "and its own SE", abs(de - di) < 1e-9 and se_i != se_e,
+              f"SE employer {se_e:.5f}, industry {se_i:.5f}")
         check("AI: K1, P1 and I1 all pass",
               "CREDIT DOES NOT CARRY TAU" in V[kind]
               and "FLAT BEFORE THE LAUNCH" in V[kind]
               and "NOT AN INDUSTRY SHOCK" in V[kind], V[kind])
-        pq = [r for r in s97.ROWS if r["part"] == "P" and r["spec"] == "path"
+        pq = [r for r in s97.ROWS if r["part"] == "P"
+              and r["spec"].startswith("path")
               and r["term"].endswith("_x_hyf")]
         check("AI: the quarterly path covers 2021Q1 to 2022Q4 less the "
-              "reference", len(pq) == 7, str(len(pq)))
+              "reference, under both clusterings", len(pq) == 14, str(len(pq)))
         tr = [r for r in s97.ROWS if r["term"] == "hyf_tau"][0]
         check("tau rows carry the covariance pieces and the SE follows",
               abs(np.sqrt(tr["var_post"] + tr["var_interim"]
@@ -232,14 +249,14 @@ for kind in ("ai", "drift", "confound"):
 
 print("\n--- main(), end to end, in the AI world ---")
 install("ai")
-s97.check = fx.load("97_female_diagnostics.py", "s97_fresh").check
+s97.check = fx.load("97_headline_checks.py", "s97_fresh").check
 s97.GATE, s97.SEX_GATE = AI_GATE, AI_SEX
 s97.ROWS.clear(); s97.FAILURES.clear(); s97.NOTES.clear()
 s97.DONE = s97.PLANNED = 0
 _stdout = sys.stdout
 rc = s97.main()
 sys.stdout = _stdout
-out = pd.read_csv(s97.OUT / "female_credit_diagnostics.csv")
+out = pd.read_csv(s97.OUT / "headline_checks.csv")
 summ = (s97.OUT / "97_summary.txt").read_text()
 check("main() returns 0", rc == 0, f"rc {rc}; {s97.FAILURES}")
 check("every attempted fit came back", s97.DONE == s97.PLANNED,

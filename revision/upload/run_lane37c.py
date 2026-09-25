@@ -1,48 +1,41 @@
 #!/usr/bin/env python3
 """
-run_lane37c.py -- LANE 37c. Submit this file to BatchClient.
+run_lane37c.py -- LANE 37c, AGE AND POLICY DIAGNOSTICS (lower priority:
+they qualify interpretation, not causal separation). Submit this file to
+BatchClient.
 
-  97  the credit test on tau (both bands), the female differential's
-      pre-launch path and drift, and industry x age x sex x month   ~1.75 h
-  98  the as-of backtest on a common sample: coding separated from
-      sample inclusion                                             ~40 min
+  95  pension ages: the profile with 50-59, 60-64 and 65-69 on one
+      employer sample (tau and gamma_2), and tau with the reference cut
+      to 31-59 and 31-49 beside the full-sample estimate          ~2 h
+  96  the payroll reduction on FIXED, DISJOINT birth cohorts (reference
+      born 1956-1990, never covered 1994-1997, ever covered 1998-2003,
+      no age filter): cohort-specific exposure gradients; the dose last
+      and optional                                                ~1 h
 
-The two stages are independent: a 97 that fails does not stop 98.
+Independent stages; each reproduces Table 1's tau before varying
+anything. SQL: 95 one eight-band counts pull (~6 min); 96 one
+fixed-cohort pull (~15 min).
 
-SQL. 97 reads Serrano's 2019 balance sheet (script 73's firm_leverage, as
-lane 24 did) and, only if cache/I_industry_key is gone, script 80's
-industry-key pulls (about an hour). 98 reads script 45's cached dual
-panels and pulls them again (about 17 minutes each) only if they are
-gone.
-
-THE GATES. 97: Table 1 at both bands before the credit test, and the
-female differential (tau -0.0714 (0.0109)) before the sex parts. 98:
-45's true and as-of arms (T2021 +0.0193 and -0.2875; T2022 +0.0176 and
--0.1452). Every miss is a hard stop.
-
-INDEPENDENT OF LANES 37a AND 37b. Tested locally in
-revision/local/test_97_female_diagnostics.py and test_98_backtest_common.py.
-
-EXPORT: output_97/97_summary.txt, output_97/female_credit_diagnostics.csv,
-output_98/98_summary.txt, output_98/backtest_common.csv.
+Tested locally in revision/local/test_95_pension_reference.py and
+test_96_payroll_cohorts.py.
+EXPORT: output_95/95_summary.txt, pension_reference.csv, vcov_s95_*;
+output_96/96_summary.txt, payroll_cohorts.csv, vcov_s96_*.
 """
 import os
 import sys
 from pathlib import Path
 
-os.environ["CANARIES_97_OUT"] = "output_97"
-os.environ["CANARIES_98_OUT"] = "output_98"
-os.environ["CANARIES_82_OUT"] = "output_97"
-os.environ["CANARIES_80_OUT"] = "output_97"
-os.environ["CANARIES_73_OUT"] = "output_97"
+os.environ["CANARIES_95_OUT"] = "output_95"
+os.environ["CANARIES_96_OUT"] = "output_96"
+os.environ["CANARIES_82_OUT"] = "output_95"
 os.environ["CANARIES_RWORK_TAG"] = "_37c"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _lane  # noqa: E402
 
 STAGES = [
-    ("97_female_diagnostics.py", "output_97/97_summary.txt", 105),
-    ("98_backtest_common.py", "output_98/98_summary.txt", 40),
+    ("95_pension_reference.py", "output_95/95_summary.txt", 120),
+    ("96_payroll_cohorts.py", "output_96/96_summary.txt", 60),
 ]
 
 if __name__ == "__main__":

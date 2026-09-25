@@ -81,50 +81,50 @@ def install(kind: str) -> None:
                                   index=False)
 
 
+s98.SKIP_HEADLINE_GATE = True     # the headline gate is tested at the end
 RES = {}
 for kind in ("drop", "stale"):
     print(f"\n=== the {kind.upper()} world ===")
     install(kind)
-    s98.ROWS.clear(); s98.FAILURES.clear()
+    s98.ROWS.clear(); s98.FAILURES.clear(); s98.NOTES.clear()
     keep = s98.check_gate
     s98.check_gate = lambda trunc: None
     daioe = mc.load_daioe()
     scorable = set(daioe["ssyk4"].astype(str))
     for trunc in s98.TRUNCATIONS:
-        panel = s98.dual_panel(trunc)
-        for arm in s98.ARMS:
-            k, col = s98.arm_rows(panel, arm, scorable)
-            s98.ROWS.append(s98.estimate(panel, k, col, daioe, trunc, arm))
+        s98.run_cutoff(trunc, daioe, scorable)
     s98.check_gate = keep
     check(f"{kind}: every fit came back", not s98.FAILURES,
           "; ".join(s98.FAILURES))
-    pc = s98.pieces(2021)
-    RES[kind] = pc
-    print(f"  pieces T2021: {pc}")
-    parts = pc["sample_inclusion"] + pc["coding_same_workers"] \
-        + pc["asof_only_workers"]
-    check(f"{kind}: the three pieces sum to the artefact",
-          abs(parts - pc["artefact"]) < 1e-12)
-    check(f"{kind}: there is an artefact to decompose", pc["artefact"] < -0.05,
-          f"{pc['artefact']:+.4f}")
+    d = {n: s98.val(2021, n, "harmonised") for n, _, _ in s98.DIFFS}
+    RES[kind] = d
+    print(f"  differences T2021: {d}")
+    ca, _ = d["C_minus_A"]
+    check(f"{kind}: B-A plus C-B is C-A",
+          abs(d["B_minus_A"][0] + d["C_minus_B"][0] - ca) < 1e-9)
+    check(f"{kind}: every difference has a standard error",
+          all(x[1] == x[1] and x[1] > 0 for x in d.values()),
+          str({k: round(v[1], 4) for k, v in d.items()}))
+    check(f"{kind}: there is an artefact to decompose", ca < -0.05,
+          f"{ca:+.4f}")
+    stacked_ok = not any("differs from its separate fit" in n
+                         for n in s98.NOTES)
+    check(f"{kind}: the stacked fit reproduces the separate harmonised fits",
+          stacked_ok, "; ".join(s98.NOTES))
     if kind == "drop":
-        check("drop: the coding piece is about zero",
-              abs(pc["coding_same_workers"]) < 0.01,
-              f"{pc['coding_same_workers']:+.4f}")
-        check("drop: sample inclusion carries the artefact",
-              pc["sample_inclusion"] / pc["artefact"] > 0.9,
-              f"{pc['sample_inclusion']:+.4f}")
+        check("drop: coding on fixed workers (C-B) is about zero",
+              abs(d["C_minus_B"][0]) < 0.01, f"{d['C_minus_B'][0]:+.4f}")
+        check("drop: sample inclusion (B-A) carries the artefact",
+              d["B_minus_A"][0] / ca > 0.9, f"{d['B_minus_A'][0]:+.4f}")
     else:
-        check("stale: the sample-inclusion piece is about zero",
-              abs(pc["sample_inclusion"]) < 0.01,
-              f"{pc['sample_inclusion']:+.4f}")
-        check("stale: coding carries the artefact",
-              pc["coding_same_workers"] / pc["artefact"] > 0.9,
-              f"{pc['coding_same_workers']:+.4f}")
+        check("stale: sample inclusion (B-A) is about zero",
+              abs(d["B_minus_A"][0]) < 0.01, f"{d['B_minus_A'][0]:+.4f}")
+        check("stale: coding (C-B) carries the artefact",
+              d["C_minus_B"][0] / ca > 0.9, f"{d['C_minus_B'][0]:+.4f}")
     WORLD_GATE = {(t, a): s98.val(t, a) for t in s98.TRUNCATIONS
-                  for a in ("true_all", "asof_all")}
+                  for a in ("A", "asof_all")}
 
-print("\n--- the gate stops on 45's published numbers ---")
+print("\n--- the backtest gate stops on 45's published numbers ---")
 try:
     s98.check_gate(2021); stopped = False
 except SystemExit:
@@ -140,13 +140,30 @@ sys.stdout = _stdout
 out = pd.read_csv(s98.OUT / "backtest_common.csv")
 summ = (s98.OUT / "98_summary.txt").read_text()
 check("main() returns 0", rc == 0, f"rc {rc}; {s98.FAILURES}")
-check("the export carries four arms and three pieces per truncation",
-      len(out) == 2 * (4 + 4), f"{len(out)} rows")
-check("the pieces keep their values (not suppressed by the floor)",
-      bool(out.loc[out["arm"].str.startswith("piece_"), "gamma2"]
-           .notna().all()))
-check("the summary reports the shares", "of the artefact" in summ)
+check("the export carries 4 own + 3 harmonised arms + 3 differences a cutoff",
+      len(out) == 2 * (4 + 3 + 3), f"{len(out)} rows")
+check("the summary documents estimator, dates, cascade and PPML drops",
+      "Pseudo-dates" in summ and "cascade" in summ and "dropped by PPML" in summ)
 check("no identifier column is exported",
       not any(c in out.columns for c in ("employer_id", "ssyk4",
                                          "ssyk_true", "ssyk_asof")))
+
+print("\n--- the headline gate runs first and stops on Table 1's numbers ---")
+EMPS2 = list(range(1, 121))
+tier = lambda e: e % 4                                          # noqa: E731
+size = lambda e: 4.2 if tier(e) == 3 else 1 + (e // 4) % 5     # noqa: E731
+fx.install_score(mc, EMPS2, tier, size, Path(mc.SHARE))
+LAM = {"22-25": 8, "26-30": 9, "31-34": 7, "35-40": 8, "41-49": 10, "50+": 12}
+g = pd.DataFrame([(e, ym, a, lam * size(e)) for e in EMPS2
+                  for ym in fx.months() for a, lam in LAM.items()],
+                 columns=["employer_id", "year_month", "age_group", "lam"])
+g["n_emp"] = fx.poisson_same_noise(g["lam"].to_numpy(), 981)
+fx.write_by_year(g.drop(columns="lam"), mc.CACHE_DIR, "L_counts")
+s98.ROWS.clear(); s98.FAILURES.clear()
+try:
+    s98.headline_gate(); stopped = False
+except SystemExit:
+    stopped = True
+check("the headline gate fits and STOPS against Table 1 in a null world",
+      stopped and any(r["arm"] == "headline_tau_22_25" for r in s98.ROWS))
 check.done()
