@@ -138,9 +138,9 @@ def t_extended():
 def t_seasonality():
     d = pd.read_csv(SRC / "postings_seasonality.csv")
     lab = {"S0_baseline": "Baseline (occupation and month FE)",
-           "S1_groupseason": r"$+$ exposure group $\times$ calendar month",
-           "S2_groupmonth": r"$+$ exposure group $\times$ month of sample",
-           "S1_poisson": "Poisson, with group $\\times$ calendar month"}
+           "S1_groupseason": r"$+$ one-digit occupation group $\times$ calendar month",
+           "S2_groupmonth": r"$+$ one-digit occupation group $\times$ month of sample",
+           "S1_poisson": "Poisson, with one-digit group $\\times$ calendar month"}
     rows = []
     for k, v in lab.items():
         s = d[d["spec"] == k]

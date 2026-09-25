@@ -85,7 +85,7 @@ def main(export_dir: Path) -> int:
     ax.axhline(0, color=DARK, lw=0.8, zorder=1)
     ax.set_xticks(xs)
     ax.set_xticklabels([LABEL[b] for b in ORDER], fontsize=9.5)
-    ax.set_ylabel("Change after adoption relative to 41–49,\nlog points, exposed firms",
+    ax.set_ylabel("Later-period change relative to 41–49,\nlog points, exposed firms",
                   fontsize=9.5)
     ax.set_xlabel("Age band", fontsize=9.5)
     ax.legend(frameon=False, fontsize=8.5, loc="upper left")
