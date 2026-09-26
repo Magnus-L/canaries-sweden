@@ -40,7 +40,8 @@ generated table. Each row is checked twice:
 
   Rows of kind `table` compare a generated table in output/tables/ with the
   file of the same name that the manuscript inputs, line by line after
-  stripping trailing whitespace, dropping blank lines and whole-line comments,
+  collapsing runs of spaces (as LaTeX does), stripping trailing whitespace,
+  dropping blank lines and whole-line comments,
   and accepting the co-author markup of the revision (\add{x} is read as x,
   \del{x} and \rem{x} are removed), so that a printed file still carrying
   markup compares equal when its accepted text is the built text; every
@@ -249,7 +250,7 @@ def table_lines(text: str) -> list[str]:
     when its accepted text is the built text."""
     for cmd, keep in (("del", False), ("add", True), ("rem", False)):
         text = strip_command(text, cmd, keep)
-    return [ln.rstrip() for ln in text.splitlines()
+    return [re.sub(r"[ \t]+", " ", ln).rstrip() for ln in text.splitlines()
             if ln.strip() and not ln.lstrip().startswith("%")]
 
 

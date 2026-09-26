@@ -236,8 +236,10 @@ def main() -> int:
         r"\caption{Exposure-related changes in within-employer employment "
         r"composition}",
         r"\label{tab:headline}", r"\footnotesize",
-        r"\setlength{\tabcolsep}{4pt}",
-        r"\begin{tabular}{@{}lccc@{}}", r"\toprule",
+        r"\setlength{\tabcolsep}{3pt}",
+        r"\begin{tabular}{@{}l>{\centering\arraybackslash}p{1.4cm}"
+        r">{\centering\arraybackslash}p{2.05cm}>{\centering\arraybackslash}p{2.05cm}@{}}",
+        r"\toprule",
         r"\multicolumn{4}{c}{\textit{January 2024 to June 2025 relative to "
         r"December 2022 to December 2023}} \\",
         r"\midrule",
