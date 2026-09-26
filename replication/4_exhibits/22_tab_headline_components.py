@@ -55,6 +55,7 @@ from config import EXPORTS, TABLES  # noqa: E402
 
 OCC = EXPORTS / "2026-09-23_0655_s82-partB_s83-partsBCD"
 SPLIT = EXPORTS / "2026-09-23_1352_s87"
+S105 = EXPORTS / "2026-09-26_2103_s105"      # flows refitted with industry clustering (lane 39a)
 
 TERM = "post_x_high_x_young"
 INTERIM = "interim_x_high_x_young"
@@ -165,6 +166,20 @@ def main() -> int:
                     (("hires", 0, 1), ("hires", 1, 2), ("seps", 0, 3), ("seps", 1, 4))):
         raise SystemExit("  Panel D: the later-minus-interim flow taus do not "
                          "reproduce 97_summary.txt; nothing is written")
+    # The flows clustered by three-digit industry (script 105): the same
+    # fits with another covariance, so the coefficient must agree to four
+    # decimals before its industry SE is printed beside the employer one.
+    find = pd.read_csv(S105 / "flows_industry.csv")
+    flow_ind = {}
+    for o in ("hires", "seps"):
+        r = find[(find.outcome == o) & (find.term == "hy_tau")]
+        if len(r) != 1:
+            raise SystemExit(f"  flows_industry.csv: expected one tau row for {o}")
+        if abs(float(r.coef.iloc[0]) - tau_flow[o][0]) > 5e-5:
+            raise SystemExit(f"  {o}: the industry-clustered tau {float(r.coef.iloc[0]):+.4f} is not "
+                             f"the employer-clustered {tau_flow[o][0]:+.4f}; no industry SE is quotable")
+        flow_ind[o] = float(r.se.iloc[0])
+    print(f"  flows by industry: hires SE {flow_ind['hires']:.4f}, separations SE {flow_ind['seps']:.4f}")
     men = one(gender, block="term", young_band="22-25", term=TERM)
     fem = one(gender, block="term", young_band="22-25", term=FEMALE)
     women = one(gender, block="step", young_band="22-25", term="female_step")
@@ -214,8 +229,8 @@ def main() -> int:
         r"tightening months}} \\",
         line("Hires", hires),
         line("Separations", seps),
-        line("Hires, later minus interim ($\\tau$)", tau_flow["hires"]),
-        line("Separations, later minus interim ($\\tau$)", tau_flow["seps"]),
+        line("Hires, later minus interim ($\\tau$)", tau_flow["hires"], flow_ind["hires"]),
+        line("Separations, later minus interim ($\\tau$)", tau_flow["seps"], flow_ind["seps"]),
         r"\addlinespace[3pt]",
         r"\multicolumn{3}{l}{\textit{Panel E. The sexes at 22--25, step from "
         r"the tightening months}} \\",

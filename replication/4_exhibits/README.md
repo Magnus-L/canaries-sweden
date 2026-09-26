@@ -48,7 +48,7 @@ Exhibit numbers are those of the online appendix as compiled on 26 September
 | `04_tab_estimation_sample.py` | OA Table A2 | `2026-09-21_0812_s68` (log); `2026-09-22_2232_s82-partA`; `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-23_1125_s85`; `2026-09-23_1407_s88` | `tableI2_sumstats_employment.tex` | 1 s |
 | `05_tab_descriptive_bands.py` | OA Table A12 | `2026-09-23_1125_s85` | `tableA_descriptive_bands.tex` | 1 s |
 | `06_fig_prepath.py` | OA Figure A7 | `2026-09-23_1234_s86` | `fig_prepath.pdf` | 2 s |
-| `07_tab_prepath.py` | OA Table A23 | `2026-09-23_1234_s86`; `2026-09-23_0655_s82-partB_s83-partsBCD` | `tableA_prepath.tex` | 1 s |
+| `07_tab_prepath.py` | OA Table A23 | `2026-09-23_1234_s86`; `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-26_2103_s105` (script 105, bottom panel) | `tableA_prepath.tex` | 1 s |
 | `08_tab_profile_bands.py` | OA Table A17 | `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-23_1125_s85` | `tableA_profile_split65.tex` | 1 s |
 | `09_tab_industry_credit.py` | OA Table A24 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 80, 73 within 83; tau from the exported covariances) | `tableA_industry_credit.tex` | 1 s |
 | `10_tab_cluster_industry.py` | OA Table A26 | `2026-09-23_0655_s82-partB_s83-partsBCD` (script 80 within 83) | `tableA_cluster_industry.tex` | 1 s |
@@ -63,7 +63,7 @@ Exhibit numbers are those of the online appendix as compiled on 26 September
 | `19_tab_register_coverage.py` | OA Tables A30, A31, A32 | `2026-09-18_1640_s40-s47`; `2026-09-20_1735_s39-s41`; `2026-09-18_1736_s45`; `2026-09-22_2327_s82-partC` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex` | 1 s |
 | `20_fig_backtest.py` | OA Figure A8 | `2026-09-18_1736_s45` | `figA1_asof_backtest.pdf` | 2 s |
 | `21_tab_uncounted.py` | OA Table A40 | `2026-09-24_1037_s93` | `tableA_uncounted.tex` | 1 s |
-| `22_tab_headline_components.py` | OA Table A15 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 82, 83, 80); `2026-09-23_1352_s87` | `tableA_headline_components.tex` | 1 s |
+| `22_tab_headline_components.py` | OA Table A15 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 82, 83, 80); `2026-09-23_1352_s87`; `2026-09-26_2103_s105` (script 105, industry SEs) | `tableA_headline_components.tex` | 1 s |
 | `23_tab_final_checks.py` | OA Table A21 | `2026-09-25_1832_s95-s96-s98` (scripts 95, 96); `2026-09-25_2250_s97` | `tableA_final_checks.tex` | 1 s |
 | `24_tab_unlinked.py` | OA Table A41 | `2026-09-26_0827_s100-s101` (script 100) | `tableA_unlinked.tex` | 1 s |
 | `25_tab_nonmatch.py` | OA Table A42 | `2026-09-25_1459_s99` (script 99) | `tableA_nonmatch.tex` | 1 s |

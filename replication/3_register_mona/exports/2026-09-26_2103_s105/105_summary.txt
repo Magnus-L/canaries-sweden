@@ -1,0 +1,68 @@
+THE PRE-PERIOD FROM 2019, THE BACKDATED PLACEBO AND THE FLOWS
+CLUSTERED BY INDUSTRY (LANE 39a)
+==================================================================
+
+tau = later minus interim from one fit, SE from the clustered
+covariance (V_LL + V_II - 2 V_LI). Exposure: 82's occupation-route
+score, the paper's (uniform3, backward cascade, floor 5).
+
+GATE (DAIOE, Table 1's specification and sample):
+  stock 22-25: tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+
+D. THE DRIFT TEST ON THE LONGER PRE-PERIOD (read rule D1):
+  22-25 from 2019-01 to 2022-11: trend -0.003209 (0.000430) per month, t -7.47, NOT FLAT; carried over 15.5 months -0.0497 [-0.0628, -0.0367]
+    the paper's drift from 2021-01 (lane 29b/86): +0.000383 (0.000773)
+  26-30 from 2019-01 to 2022-11: trend -0.000347 (0.000332) per month, t -1.04, FLAT; carried over 15.5 months -0.0054 [-0.0155, +0.0047]
+    the paper's drift from 2021-01 (lane 29b/86): +0.001608 (0.000436)
+  22-25 from 2020-01 to 2022-11: trend -0.002699 (0.000489) per month, t -5.52, NOT FLAT; carried over 15.5 months -0.0418 [-0.0567, -0.0270]
+    the paper's drift from 2021-01 (lane 29b/86): +0.000383 (0.000773)
+
+B. THE BACKDATED PLACEBO (read rule B1):
+  22-25, S = 24: placebo tau +0.0043 (0.0074), t +0.57; later -0.0150, interim -0.0193; 0.42 of tau-hat's SE (-0.0399, 0.0102)
+    windows: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+  22-25, S = 36: placebo tau -0.0382 (0.0081), t -4.69; later -0.0836, interim -0.0454; 3.75 of tau-hat's SE (-0.0399, 0.0102)
+    windows: reference to 2019-03, tightening 2019-04 to 2019-11, interim 2019-12 to 2020-12, later 2021-01 to 2022-11
+  26-30, S = 24: placebo tau +0.0204 (0.0046), t +4.45; later +0.0225, interim +0.0021; 2.00 of tau-hat's SE (-0.0399, 0.0102)
+    windows: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+  The S = 24 later window holds the real tightening months (April to
+  November 2022), in which the paper's tightening coefficient at 22-25
+  is +0.016; the S = 36 later window holds all of 2021 and 2022.
+
+F. THE FLOWS AT 22-25 CLUSTERED BY THREE-DIGIT INDUSTRY (read rule F1):
+  hires: tau +0.0084, SE 0.0498 by industry (t +0.17); 97: +0.0084, SE 0.0342 by employer
+  seps: tau +0.0300, SE 0.0322 by industry (t +0.93); 97: +0.0300, SE 0.0144 by employer
+
+FITS: 9 of 9 attempted came back (9 planned). A run far shorter than the estimate (1.5 to 2.5 hours) is a failure, not a result.
+
+NOTES:
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  pre-period panel 22-25 from 2019-01: months 2019-01 to 2022-11 (47), 113,299 employers
+  placebo_shift_24 22-25: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+  placebo_shift_36 22-25: the shifted reference would start 2018-01; the caches start 2019-01, so the reference is 2019-01 to 2019-03
+  placebo_shift_36 22-25: reference to 2019-03, tightening 2019-04 to 2019-11, interim 2019-12 to 2020-12, later 2021-01 to 2022-11
+  drift_from_2020 22-25: the 2019-01 panel cut at 2020-01, 110,177 employers
+  pre-period panel 26-30 from 2019-01: months 2019-01 to 2022-11 (47), 129,913 employers
+  placebo_shift_24 26-30: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  flows hires: industry clusters 260; 428 employers without a code share one residual cluster
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  flows seps: industry clusters 260; 441 employers without a code share one residual cluster
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATE. Stock 22-25: Table 1 within 0.0005, later -0.0578 (0.0155),
+  tau -0.0399 (0.0102). A miss is a hard stop; nothing is quotable.
+  D1. The trend on the longer pre-period is reported with FLAT / NOT
+  FLAT under 78's two-SE rule and with the drift carried over 15.5
+  months; no verdict on tau-hat.
+  B1. Each placebo tau (boundaries moved back S months, panel ending
+  November 2022) is reported with its SE and in units of tau-hat's SE.
+  Of the order of tau-hat, whichever sign: the 2021-22 plateau is not
+  established as the counterfactual by these data alone. Near zero:
+  the design returns no decline where none should be. Nothing else.
+  F1. Flows: the industry-clustered SE beside the employer-clustered
+  one; the coefficient must reproduce 97's tau within 0.0005 (the
+  flows gate). No verdict.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 75.1 min. memory available: 723.5 GB

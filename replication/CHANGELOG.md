@@ -2,6 +2,7 @@
 
 ## 2026-09-26: the package brought to the manuscript of 26 September
 
+- Late evening: script 105 (lane 39a: the drift from 2019 and 2020, the backdated placebo, the flows clustered by industry) ran on MONA, export `2026-09-26_2103_s105`, gate exact; builder 07 gains the bottom panel of OA Table A19 and builder 22 the industry column of Table A15 Panel D, both checked against `105_summary.txt`. Manifest rows OA348-OA361, M091-M095; OA091-OA092 retired with the sentence that printed them.
 - Evening: script 104 (lane 38e, the payment rule behind the counted person-months; the 2019 scoring population and a year x band x group reconciliation) ran on MONA, export `2026-09-26_1909_s104`, both gates exact; new builder `4_exhibits/28_tab_payment_rule.py` writes OA Table A39 (`tableA_payment_rule.tex`), checked line by line against `104_summary.txt`. The three VI.1 tables that followed move one number: uncounted A40, unlinked A41, non-match A42. Manifest rows OA339-OA347, M089-M090. Also today: builders 03 (Figure 3 gains the January 2025 survey reading), 04, 05, 08, 15, 18 and the posting figures 11 and 12 follow the editor-read edits; scripts 105 and 106 (lane 39) are staged in `3_register_mona/scripts` only once their exports land.
 
 The manuscript, online appendix and response letter were rewritten on 25 and 26 September

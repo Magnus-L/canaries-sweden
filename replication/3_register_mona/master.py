@@ -328,6 +328,15 @@ JOBS = [
                "with cash pay by band, exposure group and period, what the "
                "remainder carries, and the 2019 scoring population (lane 38e; "
                "OA Table A39; SQL only, no R)"),
+    dict(ch=10, script="105_prepath_placebo.py", minutes=130,
+         env={"CANARIES_105_OUT": "output_105", "CANARIES_82_OUT": "output_105",
+              "CANARIES_80_OUT": "output_105", "CANARIES_73_OUT": "output_105",
+              "CANARIES_RWORK_TAG": "_39"},
+         makes="the drift test on the pre-launch months from 2019 and 2020, "
+               "the backdated placebo (every boundary moved back 24 and 36 "
+               "months, panel ending November 2022) and the flows at 22-25 "
+               "clustered by industry (lane 39a; OA Table A19 bottom panel, "
+               "Table A15 Panel D)"),
 ]
 
 # Inputs the scripts read from the project's input folder (mona_common.SHARE).

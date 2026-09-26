@@ -353,3 +353,15 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1909_s104/payment_rule.csv,104,28_tab_payment_rule.py,OA339 OA340 OA341 OA342 OA343 OA344 OA345 M089 M090,Online Appendix Table A39; VI.1 text; paper Section 2,read by the package
 2026-09-26_1909_s104/payment_rule_2019_incumbents.csv,104,28_tab_payment_rule.py,OA346 OA347,Online Appendix Table A39 Panel D; VI.1 text,read by the package
 2026-09-26_1909_s104/payment_rule_by_year.csv,104,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/105_summary.txt,105,07_tab_prepath.py 22_tab_headline_components.py,,Online Appendix Table A19 bottom panel (checked against),read by the package
+2026-09-26_2103_s105/flows_industry.csv,105,22_tab_headline_components.py,M095,Online Appendix Table A15 Panel D; paper Section 3,read by the package
+2026-09-26_2103_s105/prepath_placebo.csv,105,07_tab_prepath.py,OA348 OA349 OA350 OA351 OA352 OA353 OA354 OA355 OA356 OA357 OA358 OA359 OA360 M091 M092 M093 M094,Online Appendix Table A19 bottom panel; III.2 text; paper Section 3,read by the package
+2026-09-26_2103_s105/vcov_s105_drift_from_2019_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_drift_from_2019_26_30.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_drift_from_2020_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_gate_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_hires_indcl_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_placebo_shift_24_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_placebo_shift_24_26_30.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_placebo_shift_36_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2103_s105/vcov_s105_seps_indcl_22_25.csv,105,,,,not read by any exhibit or manifest row

@@ -63,6 +63,8 @@ CELL = re.compile(r"^\$([-+])\$([0-9.]+)(\$\^\{\*\}\$)? \(([0-9.]+)\)$")
 
 # The drift panel.
 TREND = "trend_x_high_x_young"
+S105 = EXPORTS / "2026-09-26_2103_s105"      # the longer windows and the placebo (lane 39a)
+CARRY = 15.5                                 # months between the interim and later midpoints
 TIGHT = "rbw_x_high_x_young"
 DRIFT_FIRST, DRIFT_LAST, DRIFT_MONTHS = "2021-01", "2022-11", 23
 SE_DP = 6                       # the covariance check, decimals
@@ -240,6 +242,68 @@ def drift_panel() -> tuple[list[str], dict[str, int]]:
     return rows, firms
 
 
+def longer_panel() -> list[str]:
+    """The drift on the windows from January 2019 and January 2020 and the
+    backdated placebo (script 105), as rows under the paper's own drift
+    test, in the table's two band columns. Every printed number is checked
+    against the run's own summary, and each placebo tau against the
+    exported covariance of its fit."""
+    import re as _re
+    x = pd.read_csv(S105 / "prepath_placebo.csv")
+    summ = (S105 / "105_summary.txt").read_text(encoding="utf-8", errors="replace")
+    if "stock 22-25: tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)" not in summ:
+        raise SystemExit("  105_summary.txt does not record the gate at Table 1's numbers")
+
+    def one(part, spec, band, term):
+        r = x[(x.part == part) & (x.spec == spec) & (x.young_band == band) & (x.term == term)]
+        if len(r) != 1:
+            raise SystemExit(f"  prepath_placebo.csv: expected one row for {part} {spec} {band} {term}")
+        return r.iloc[0]
+
+    def drift(spec, band):
+        r = one("D", spec, band, TREND)
+        c, se = float(r.coef), float(r.se)
+        m = _re.search(rf"  {_re.escape(band)} from {spec[-4:]}-01 to 2022-11: trend ([-+0-9.]+) \(([0-9.]+)\)", summ)
+        if not m or abs(float(m.group(1)) - c) > 5e-7 or abs(float(m.group(2)) - se) > 5e-7:
+            raise SystemExit(f"  drift {spec} {band} does not reproduce 105_summary.txt")
+        return c, se
+
+    def placebo(spec, band, S):
+        t = one("B", spec, band, "hy_tau")
+        c, se = float(t.coef), float(t.se)
+        var = float(t.var_post) + float(t.var_interim) - 2 * float(t.cov_post_interim)
+        if abs(np.sqrt(var) - se) > 1e-9:
+            raise SystemExit(f"  placebo {spec} {band}: SE is not the exported covariance")
+        m = _re.search(rf"  {_re.escape(band)}, S = {S}: placebo tau ([-+0-9.]+) \(([0-9.]+)\)", summ)
+        if not m or abs(float(m.group(1)) - c) > 5e-5 or abs(float(m.group(2)) - se) > 5e-5:
+            raise SystemExit(f"  placebo {spec} {band} does not reproduce 105_summary.txt")
+        return c, se
+
+    d19 = {b: drift("drift_from_2019", b) for b in BANDS}
+    d20 = drift("drift_from_2020", "22-25")
+    p36 = placebo("placebo_shift_36", "22-25", 36)
+    p24 = {b: placebo("placebo_shift_24", b, 24) for b in BANDS}
+    firms = {b: int(one("D", "drift_from_2019", b, TREND).n_firms) for b in BANDS}
+    rows = [r"\addlinespace",
+            r"\multicolumn{3}{@{}l}{\textit{The drift on longer windows, and the backdated placebo}} \\",
+            r"\addlinespace[2pt]",
+            "Linear trend per month, from January 2019 & "
+            + " & ".join(cell_dp(f"{b} trend 2019", *d19[b], 5) for b in BANDS) + r" \\",
+            f"Over {CARRY} months & "
+            + " & ".join(cell_dp(f"{b} carried", d19[b][0] * CARRY, d19[b][1] * CARRY, 4) for b in BANDS) + r" \\",
+            "Linear trend per month, from January 2020 & "
+            + cell_dp("22-25 trend 2020", *d20, 5) + r" & \\",
+            r"Placebo $\tau$, boundaries moved back 36 months (2021--22 against 2020) & "
+            + cell_dp("placebo 36", *p36, 4) + r" & \\",
+            r"Placebo $\tau$, boundaries moved back 24 months (2022 against 2021) & "
+            + " & ".join(cell_dp(f"{b} placebo 24", *p24[b], 4) for b in BANDS) + r" \\",
+            "Employers, panels from January 2019 & "
+            + " & ".join(thousands(firms[b]) for b in BANDS) + r" \\"]
+    for r in rows[3:]:
+        print("  " + r[:110])
+    return rows
+
+
 def summary_part_a(path: Path) -> dict[tuple[str, str], str]:
     """Part A(i) of the run's summary as the run itself reported it: the
     printed coefficient of every quarter, with its star. This is a second
@@ -339,6 +403,7 @@ def main() -> int:
           f"{panel[BANDS[1]]:,} at {BANDS[1]}")
 
     drift_rows, drift_firms = drift_panel()
+    longer_rows = longer_panel()
 
     tex = [r"\begin{tabular}{lcc}", r"\toprule",
            "Quarter & " + " & ".join(b.replace("-", "--") for b in BANDS)
@@ -346,6 +411,7 @@ def main() -> int:
            r"\midrule"]
     tex += rows
     tex += drift_rows
+    tex += longer_rows
     tex += [r"\bottomrule", r"\end{tabular}", "",
             r"\vspace{0.5em}",
             r"\begin{minipage}{0.86\textwidth}",
@@ -354,7 +420,7 @@ def main() -> int:
             r"calendar terms, 2022Q1 the reference; standard errors clustered by employer;",
             r"$^{*}$ $p<0.05$. Lower panel: a separate fit of a linear monthly trend on",
             r"January 2021 to November 2022, with the calendar terms and the tightening",
-            r"window in; the second row scales it to the twenty-three months. The last row reports whether a zero trend is rejected at two standard errors, which does not establish a flat pre-period.",
+            r"window in; the second row scales it to the twenty-three months. The last row reports whether a zero trend is rejected at two standard errors, which does not establish a flat pre-period. Bottom panel (script 105): the same drift test on the pre-launch months from January 2019 and from January 2020, on panels that begin in those months; and the paper's Equation~(2) with every boundary moved back 36 or 24 months and the panel cut at November 2022, so that no month after the launch enters, $\tau$ the later-minus-interim contrast of that shifted design (for 36 months the reference is January to March 2019, where the caches begin; the 24-month ``later'' window holds the real tightening months).",
             r"\end{minipage}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)
