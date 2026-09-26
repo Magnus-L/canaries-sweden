@@ -220,7 +220,7 @@ def main():
            r"Equation~(1) estimated in each half. Column (2): the share of an occupation's "
            r"advertisements in 2021 and 2022 that offer remote or hybrid work, read from the "
            r"advertisement text. Column (3): the same share in United States postings "
-           r"\citep{hansen2023remote}, the measure of \citet{lambert2026brokenladder}, "
+           r"\citep{hansen2023remote}, the source \citet{lambert2026brokenladder} use, which pools four countries, "
            r"crosswalked to SSYK. Correlations are across the 369 occupations, weighted by 2024 "
            r"employment. Panels A and C follow Lambert and Schindler: one post-launch dummy "
            r"interacted with each standardised score, alone and together, with occupation and "
