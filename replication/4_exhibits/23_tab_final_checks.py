@@ -26,13 +26,15 @@ baseline standard deviation and the quartiles against the first (script 97,
 part Q). Panel G: tau and the female differential with eleven month-of-year
 terms in place of the three calendar-quarter terms, each beside the same
 run's gate on Table 1's specification, standard errors by employer and by
-industry (script 102, parts G and M).
+industry (script 102, parts G and M). Panel H: the headline design with employers
+classified by the Eloundou et al. (2024) rating through the same chain, on the
+employers both indices score, DAIOE beside Eloundou (script 103, parts D and E).
 
 Nothing is written unless every exported standard error of a derived tau is
 the square root of the exported variance of the difference, every count the
 panel titles state is the one the export holds, and every estimate agrees to
 its printed decimals with the summary its own run printed (95_summary.txt,
-96_summary.txt, 97_summary.txt, 102_summary.txt). The note's median leverage (0.693, 0.689),
+96_summary.txt, 97_summary.txt, 102_summary.txt, 103_summary.txt). The note's median leverage (0.693, 0.689),
 third-quarter term and score standard deviation (17.6) are read from the
 exports and the summaries too.
 
@@ -41,6 +43,8 @@ Exports read (3_register_mona/exports/):
       payroll_cohorts.csv, 96_summary.txt
   2026-09-25_2250_s97/  headline_checks.csv, 97_summary.txt
   2026-09-26_1208_s102/  month_of_year.csv, 102_summary.txt
+  2026-09-26_1527_s103/  eloundou_classification.csv, classification_agreement.csv,
+      103_summary.txt
 Output: output/tables/tableA_final_checks.tex (a bare tabular and note; the
         appendix supplies the float and caption)
 
@@ -60,6 +64,7 @@ from config import EXPORTS, TABLES  # noqa: E402
 S95 = EXPORTS / "2026-09-25_1832_s95-s96-s98"
 S97 = EXPORTS / "2026-09-25_2250_s97"
 S102 = EXPORTS / "2026-09-26_1208_s102"
+S103 = EXPORTS / "2026-09-26_1527_s103"
 
 RE_EST = r"([-+][0-9.]+) \(([0-9.]+)\)"
 
@@ -377,6 +382,54 @@ def panel_g() -> list:
     return [r" & & Quarter terms (Table 1) & Month-of-year terms \\"] + rows
 
 
+def panel_h() -> list:
+    """The headline design on the Eloundou classification (script 103): DAIOE
+    and Eloundou on the employers both indices score, for tau at 22-25 (both
+    clusterings on Eloundou), the female differential and tau at 26-30; each
+    row checked against the run's summary and the agreement statistics."""
+    d = rows_ok(need(S103, "eloundou_classification.csv"))
+    text = need(S103, "103_summary.txt").read_text(encoding="utf-8", errors="replace")
+    agree_ = pd.read_csv(need(S103, "classification_agreement.csv"))
+    said = re.findall(r"(DAIOE, common employers|Eloundou, same employers)\s+tau ([-+][0-9.]+)\s+SE ([0-9.]+) by employer(?:, ([0-9.]+) by industry)?", text)
+    if len(said) != 6:
+        raise SystemExit(f"  103_summary.txt: expected six estimate lines, found {len(said)}")
+    rows, firms = [], {}
+    for k, (label, band, term, spec_d, spec_e, spec_ei) in enumerate((
+            ("$\\tau$ at 22--25", "22-25", "hy_tau", "daioe_common", "eloundou", "eloundou_indcl"),
+            ("Female differential at 22--25", "22-25", "hyf_tau", "sex_daioe_common", "sex_eloundou", "sex_eloundou_indcl"),
+            ("$\\tau$ at 26--30", "26-30", "hy_tau", "daioe_common", "eloundou", None))):
+        rd = pick(d, "eloundou_classification.csv", part="D", spec=spec_d, young_band=band, term=term)
+        re_ = pick(d, "eloundou_classification.csv", part="E", spec=spec_e, young_band=band, term=term)
+        for what, r in (("DAIOE", rd), ("Eloundou", re_)):
+            derived_se_check(r, f"Panel H {label} {what}")
+        if int(rd.n_firms) != int(re_.n_firms):
+            raise SystemExit(f"  Panel H {label}: DAIOE and Eloundou fits run on different employers")
+        firms[band] = int(rd.n_firms)
+        sd, se = said[2 * k], said[2 * k + 1]
+        agree(f"Panel H {label} DAIOE", (float(rd.coef), float(rd.se)), (float(sd[1]), float(sd[2])))
+        agree(f"Panel H {label} Eloundou", (float(re_.coef), float(re_.se)), (float(se[1]), float(se[2])))
+        cell_d = est(float(rd.coef), float(rd.se))
+        if spec_ei:
+            ri = pick(d, "eloundou_classification.csv", part="E", spec=spec_ei, young_band=band, term=term)
+            derived_se_check(ri, f"Panel H {label} Eloundou industry")
+            if abs(float(ri.coef) - float(re_.coef)) > 1e-9 or round(float(ri.se), 4) != float(se[3]):
+                raise SystemExit(f"  Panel H {label}: the industry clustering does not match the summary")
+            cell_e = est2(float(re_.coef), float(re_.se), float(ri.se))
+        else:
+            cell_e = est(float(re_.coef), float(re_.se))
+        rows.append(f"{label}, {thousands(firms[band])} employers & & {cell_d} & {cell_e} \\\\")
+    top = agree_[(agree_.population == "all_scored_employers")
+                 & (agree_.statistic == "share_top_daioe_also_top_eloundou")].value.iloc[0]
+    top_w = agree_[(agree_.population == "all_scored_employers")
+                   & (agree_.statistic == "employment_share_top_daioe_also_top_eloundou")].value.iloc[0]
+    rho = agree_[(agree_.population == "all_scored_employers")
+                 & (agree_.statistic == "spearman_employer_scores")].value.iloc[0]
+    if round(100 * float(top), 1) != 92.5 or round(100 * float(top_w), 1) != 91.8 or round(float(rho), 2) != 0.91:
+        raise SystemExit("  Panel H: the agreement statistics do not reproduce the summary's 0.925 / 0.918 / 0.91")
+    return ([r" & & DAIOE, common employers & Eloundou rating \\"] + rows,
+            (float(top), float(top_w), float(rho)))
+
+
 def main() -> int:
     said97 = need(S97, "97_summary.txt").read_text(encoding="utf-8", errors="replace")
     a, _ = panel_a()
@@ -386,6 +439,7 @@ def main() -> int:
     e, q3 = panel_e(said97)
     f, sd = panel_f(said97)
     g = panel_g()
+    h, (top, top_w, rho) = panel_h()
     print("  every panel reproduces its run's own summary")
 
     tex = [r"\begin{tabular}{lccc}", r"\toprule",
@@ -418,13 +472,18 @@ def main() -> int:
             r"\multicolumn{4}{l}{\emph{Panel G. Eleven month-of-year terms in place "
             r"of the three calendar-quarter terms, 104{,}217 employers}} \\"]
     tex += g
+    tex += [r"\midrule",
+            r"\multicolumn{4}{l}{\emph{Panel H. Employers classified by the Eloundou et al. (2024) "
+            r"rating in place of DAIOE, on the employers both indices score}} \\"]
+    tex += h
     note = (
         r"$\tau$ is the later-period coefficient minus the interim one from the same Poisson fit, standard errors clustered by employer unless stated. Every fit reproduces Table~1 of the paper on its own sample before any check is run. Panel~A: the young band against the stated older bands, on the employers that hold both the young band and ages 31--49. Panel~B: seven bands against 41--49 in one fit. Panel~C: groups defined by birth year alone, so no one enters or leaves a group as they age; the reduction covered pay from January 2021 to March 2023 for those who had turned 18 but not 23 at the start of the year \citep{sfs202155}. Panel~D: leverage is one minus equity over total assets in the 2019 balance sheet, split at the median ("
         + f"{medians['22-25']:.3f} at 22--25, {medians['26-30']:.3f} at 26--30"
         + r"); the rows are the terms of one fit. Panel~E: the drift is the monthly trend on the young $\times$ exposed $\times$ female term with calendar-quarter terms; a third-quarter term absorbs a seasonal dip ("
         + f"${q3[0]:+.3f}$, SE {q3[1]:.3f}"
         + r"). Panel~F: the score's baseline standard deviation is "
-        + f"{sd:.1f}" + r" percentile points. Panel~G: the month-of-year terms, December omitted, are interacted with exposure and the young band (and with sex on the sex panel), everything else as in Equation~(2); the two columns come from separate fits, so the difference between them carries no standard error of its own.")
+        + f"{sd:.1f}" + r" percentile points. Panel~G: the month-of-year terms, December omitted, are interacted with exposure and the young band (and with sex on the sex panel), everything else as in Equation~(2); the two columns come from separate fits, so the difference between them carries no standard error of its own. Panel~H: employers re-scored through the same chain (2019 codes of incumbents aged 31--69, three-digit book, incumbent floor, employment-weighted quartile cut) with the Eloundou rating as the occupation score, each index keeping its own top quartile; "
+        + f"{100 * top:.1f} per cent of DAIOE's top-quartile employers ({100 * top_w:.1f} per cent by incumbent employment) are in the Eloundou top quartile, and the employer scores correlate at {rho:.2f} (Spearman); the Eloundou cells give the employer-clustered standard error and, at 22--25, the industry-clustered one; separate fits, so the differences carry no standard error.")
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
             note, r"\end{minipage}"]

@@ -261,7 +261,7 @@ JOBS = [
 
     # -- 10. final checks on tau (25 and 26 September 2026) ------------------
     # These nine jobs ran through the lane runners shipped in scripts/
-    # (run_lane37a.py to run_lane38c.py, each a list of stages for _lane.py),
+    # (run_lane37a.py to run_lane38d.py, each a list of stages for _lane.py),
     # which set the same variables. Every script reproduces Table 1's tau on
     # its own panel before any check runs; the runtimes are those recorded in
     # the summaries.
@@ -311,8 +311,16 @@ JOBS = [
               "CANARIES_80_OUT": "output_102", "CANARIES_73_OUT": "output_102",
               "CANARIES_RWORK_TAG": "_38c"},
          makes="tau and the female differential with month-of-year terms in "
-               "place of the calendar-quarter terms (lane 38c; its export had "
-               "not left MONA when the package was assembled)"),
+               "place of the calendar-quarter terms (lane 38c; OA Table A25, "
+               "Panel G)"),
+    dict(ch=10, script="103_eloundou_classification.py", minutes=180,
+         env={"CANARIES_103_OUT": "output_103", "CANARIES_82_OUT": "output_103",
+              "CANARIES_80_OUT": "output_103", "CANARIES_73_OUT": "output_103",
+              "CANARIES_RWORK_TAG": "_38d"},
+         makes="the headline design with employers classified by the Eloundou "
+               "rating through script 82's chain, DAIOE beside Eloundou on the "
+               "employers both indices score, and the agreement of the two "
+               "classifications (lane 38d; OA Table A25, Panel H)"),
 ]
 
 # Inputs the scripts read from the project's input folder (mona_common.SHARE).

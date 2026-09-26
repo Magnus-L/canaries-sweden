@@ -4,15 +4,19 @@
 
 The manuscript, online appendix and response letter were rewritten on 25 and 26 September
 around tau, the later period against the interim period, and six further register runs
-(lanes 37a to 38c) were brought out of MONA. The package follows.
+(lanes 37a to 38d) were brought out of MONA. The package follows.
 
 - `3_register_mona/`: scripts 95 to 102, the lane helper `_lane.py` and the six lane runners
-  join `scripts/` (56 files; `check_mona_scripts.py` finds the runners' as-run copies in
+  join `scripts/` (58 files; `check_mona_scripts.py` finds the runners' as-run copies in
   `revision/upload/`); the R wrappers are the 26 September versions, which add the retained
   observations to a fit's output (`SCRIPTS.csv` records which exports the earlier versions
   produced). Six export runs join `exports/` under neutral names (69 files; the internal
   filing notes stay out), listed in `EXPORT_RUNS.csv` and `EXPORTS.csv`; `master.py` gains
   chapter 10 with the settings each job ran with.
+- Lane 38d (script 103, `run_lane38d.py`, export `2026-09-26_1527_s103`): the headline design re-run with
+  employers classified by the Eloundou et al. (2024) rating through script 82's own chain; `4_exhibits/23`
+  adds Panel H of OA Table A25 (DAIOE beside Eloundou on the 103,064 employers both indices score, with
+  the agreement of the two classifications in its note).
 - `5_occupation_register_public/03` states how alike DAIOE and the Eloundou score rank
   occupations (correlation 0.87 across 393 occupations, reproducing the register run's own
   number; 83 per cent of 2024 employment on the same side of the top-quartile cut), the

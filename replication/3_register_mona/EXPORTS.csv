@@ -336,3 +336,16 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1208_s102/vcov_s102_sex_gate_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_sex_moy_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_sex_moy_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/103_summary.txt,103,23_tab_final_checks.py,,Online Appendix Table A25 Panel H,read by the package
+2026-09-26_1527_s103/classification_agreement.csv,103,23_tab_final_checks.py,OA333 OA334 OA335 OA336,Online Appendix Table A25 Panel H note; III.2 and Part I text,read by the package
+2026-09-26_1527_s103/eloundou_classification.csv,103,23_tab_final_checks.py,OA325 OA326 OA327 OA328 OA329 OA330 OA331 OA332 M086 M087,Online Appendix Table A25 Panel H; III.2 text; paper Section 3,read by the package
+2026-09-26_1527_s103/vcov_s103_daioe_common_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_daioe_common_26_30.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_eloundou_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_eloundou_26_30.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_eloundou_indcl_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_gate_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_sex_daioe_common_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_sex_eloundou_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_sex_eloundou_indcl_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1527_s103/vcov_s103_sex_gate_22_25.csv,103,,,,not read by any exhibit or manifest row

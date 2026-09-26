@@ -14,7 +14,7 @@ package.
 |---|---|
 | `scripts/` | The 56 files that ran in MONA: 45 Python scripts (39 to 102, and `_lane.py`), the shared module `mona_common.py`, three R wrappers around `fixest`, and the six lane runners (`run_lane37a.py` to `run_lane38c.py`) under which the scripts of chapter 10 were submitted |
 | `inputs/` | Three occupation-level score files the scripts read from the project's input folder |
-| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (31 exports, 337 files) |
+| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (32 exports, 350 files) |
 | `master.py` | Runs the scripts inside MONA, chapter by chapter, with the settings each job ran with |
 | `SCRIPTS.csv` | One row per file: its role, the chapters it serves, and the hashes that tie it to the copy that ran |
 | `EXPORTS.csv` | One row per exported file: the script that wrote it and the exhibit or printed number it feeds |
@@ -110,7 +110,7 @@ the tables and figures outside MONA.
 ### Chapter 10 and the lane runners
 
 The scripts of chapter 10 were written after the second external review of 25 September
-2026 and ran on 25 and 26 September as six lanes (37a to 37c, 38a to 38c), each a
+2026 and ran on 25 and 26 September as seven lanes (37a to 37c, 38a to 38d), each a
 one-line list of stages for `_lane.py`, which runs the stages in order, skips a stage
 whose summary already exists, and caps what it echoes to the console (MONA's batch
 submitter blocks on a full pipe). The runners are shipped so that the record of how the
@@ -125,7 +125,10 @@ of observations each Poisson fit retained, with every estimate unchanged, and OA
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
 (script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and
 reports tau and the female differential beside the same run's gate on Table 1's
-specification (OA Table A25, Panel G, built by `4_exhibits/23`).
+specification (OA Table A25, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
+employers by the Eloundou et al. (2024) rating through 82's chain and re-fits Table 1's tau at 22-25
+and 26-30 and the female differential on the employers both indices score, DAIOE beside Eloundou, with
+the agreement of the two classifications (OA Table A25, Panel H, the same builder).
 
 ## The code that ran
 

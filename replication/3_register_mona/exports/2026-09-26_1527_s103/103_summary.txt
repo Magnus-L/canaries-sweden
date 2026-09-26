@@ -1,0 +1,77 @@
+THE HEADLINE DESIGN WITH EMPLOYERS CLASSIFIED BY THE ELOUNDOU
+RATING IN PLACE OF DAIOE (LANE 38d)
+==================================================================
+
+tau = later-period coefficient minus interim, SE from the clustered
+covariance of the same fit (V_LL + V_II - 2 V_LI). Same cascade of
+2019 codes, same three-digit book, same incumbent floor and the same
+employment-weighted quartile cut; each index keeps its own cut and
+the fits run on the employers both indices score.
+
+GATES (DAIOE, Table 1's specification and sample):
+  stock 22-25: tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+  sex 22-25: female differential tau -0.0714 (0.0109); Table 1 -0.0714 (0.0109)
+
+E. THE ESTIMATES (read rules E1 to E3):
+  tau at 22-25 (High x Young):
+    gate, Table 1's sample     tau -0.0399  SE 0.0102 by employer
+    DAIOE, common employers    tau -0.0391  SE 0.0103 by employer
+    Eloundou, same employers   tau -0.0243  SE 0.0191 by employer, 0.0226 by industry
+    difference (Eloundou minus DAIOE, same employers) +0.0148, which is 1.45 of the gate's employer-clustered SE; its own SE is not available from two separate covariances
+  the female differential at 22-25 (High x Young x Female):
+    gate, Table 1's sample     tau -0.0714  SE 0.0109 by employer
+    DAIOE, common employers    tau -0.0724  SE 0.0109 by employer
+    Eloundou, same employers   tau -0.0710  SE 0.0121 by employer, 0.0138 by industry
+    difference (Eloundou minus DAIOE, same employers) +0.0014, which is 0.13 of the gate's employer-clustered SE; its own SE is not available from two separate covariances
+  tau at 26-30 (High x Young), employer clustering only:
+    Table 1 (printed)          tau -0.0399  SE 0.0068 by employer
+    DAIOE, common employers    tau -0.0395  SE 0.0068 by employer
+    Eloundou, same employers   tau -0.0393  SE 0.0067 by employer
+    difference (Eloundou minus DAIOE, same employers) +0.0001, which is 0.02 of the gate's employer-clustered SE; its own SE is not available from two separate covariances
+
+A. HOW THE TWO CLASSIFICATIONS AGREE (read rule E4):
+  all_scored_employers: 250,876 employers scored on both (DAIOE 262,089, Eloundou 250,876)
+    same quartile: 0.786 of employers, 0.649 of incumbent employment
+    top quartiles: 82,680 in both; of DAIOE's top 0.925 also Eloundou's (by employment 0.918); of Eloundou's top 0.896 also DAIOE's; Jaccard 0.835
+    employer scores: Spearman 0.912, Pearson 0.909
+  estimation_panel_22_25: 103,064 employers scored on both (DAIOE 104,217, Eloundou 103,064)
+    same quartile: 0.760 of employers, 0.632 of incumbent employment
+    top quartiles: 24,094 in both; of DAIOE's top 0.911 also Eloundou's (by employment 0.913); of Eloundou's top 0.849 also DAIOE's; Jaccard 0.784
+    employer scores: Spearman 0.905, Pearson 0.910
+  The 4 x 4 quartile cross-tabulation is in classification_agreement.csv
+  (cells under the floor suppressed).
+
+FITS: 10 of 10 attempted came back (10 planned). A run far shorter than the estimate (2.5 to 3 hours) is a failure, not a result.
+
+NOTES:
+  82/daioe: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82/daioe: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/daioe: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  scores: DAIOE 423 codes, Eloundou 394 codes, 393 in common
+  82/eloundou: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/eloundou: occupation route: 250,876 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.3% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  stock 22-25: 104,217 employers in the DAIOE panel, 103,064 also scored on Eloundou (1,153 lost)
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  stock: industry clusters 260; 470 employers without a code share one residual cluster
+  stock 26-30: 117,090 employers in the DAIOE panel, 115,628 also scored on Eloundou (1,462 lost)
+  sex: 104,217 employers in the DAIOE panel, 103,064 also scored on Eloundou (1,153 lost)
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  sex: industry clusters 260; 470 employers without a code share one residual cluster
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATES. Stock 22-25: Table 1 within 0.0005, later -0.0578 (0.0155),
+  tau -0.0399 (0.0102). Sex 22-25: -0.0858 (0.0142), tau -0.0714
+  (0.0109). A miss is a hard stop; nothing from the run is quotable.
+  E1. tau at 22-25 on the Eloundou classification is reported beside
+  the DAIOE tau on the same employers and beside the gate, both
+  clusterings for the Eloundou fit; the movement (Eloundou minus DAIOE,
+  same employers) is stated in units of the gate's employer-clustered
+  SE. No verdict beyond 'moves by x SE'. The SE of the difference is
+  not available from two separate covariances, and the summary says so.
+  E2. The same for the female differential.
+  E3. The same for 26-30, employer clustering only.
+  E4. Agreement of the two classifications as shares of employers and
+  of incumbent employment; no verdict.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 105.5 min. memory available: 726.3 GB

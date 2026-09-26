@@ -150,7 +150,7 @@ which they ran (39 to 102), because those numbers name every exported file.
   remote-work estimation scripts behind Table A4 as they ran in the research repository, with
   their occupation-level results and a README of the inputs they need.
 - `3_register_mona/` holds the 56 files that ran in MONA, the three public score files they
-  read, the 31 export runs brought out of MONA (337 files, of which the package reads 78),
+  read, the 32 export runs brought out of MONA (350 files, of which the package reads 81),
   `master.py`, and the disclosure rules (`DISCLOSURE.md`).
 - `4_exhibits/` holds 27 builders, one per register exhibit, in the paper's order, and
   `run_all.py`. Each checks its inputs against a second record of the same fit before writing
