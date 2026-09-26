@@ -278,3 +278,20 @@ through MONA, 2026.
 The package was prepared by the authors with assistance from Claude (Anthropic) in writing,
 running and verifying code, as the paper's declaration on generative AI states. Every script
 and document was reviewed by the authors, who take responsibility for it.
+
+## Exhibit provenance for the online-appendix exhibits added in the revision round (September 2026)
+
+The table notes in the online appendix no longer name scripts; the mapping is here.
+
+| Exhibit | Built by (MONA script, then local) |
+|---|---|
+| OA Table `tab:final_checks` (pension ages, birth cohorts, credit on tau, female pre-path and industry test, exposure specification) | 95, 96, 97 |
+| OA Table `tab:unlinked` (unlinked payslips, tipping point, extremal allocations) | 100 |
+| OA Table `tab:nonmatch` (occupation non-match over all declared person-months) | 99 |
+| OA Table `tab:iv_vintage`, lower panel (person-months by code vintage) | 40 (vintage_composition export) |
+| OA Table `tab:iv_backtest` | 45, 68, 82 |
+| OA Table `tab:iv_backtest_arms` (three-arm decomposition) | 98 |
+| Figure 2 of the paper (age profile on tau, eight bands) | 95, drawn by `revision/local/l61_fig_age_profile_v4.py` |
+| OA Figure `fig:prepath_female` | 97, drawn by `revision/local/l62_fig_prepath_female.py` |
+| OA Figure `fig:posting_coverage_monthly` | local, `revision/local/l63_fig_posting_coverage_monthly.py` on l01/l51 outputs |
+| Count provenance behind the OA's rebuild paragraph (the nine two-sex persons) | 101 |
