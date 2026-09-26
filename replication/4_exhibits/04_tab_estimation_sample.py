@@ -147,7 +147,7 @@ def main() -> int:
          r"$\times$ month, 2021:01--2025:06.}",
          r"\label{tab:sumstats_employment_new}",
          r"\begin{tabular}{llrrrr}", r"\toprule",
-         r"Band & Outcome & Balanced cells & Zero throughout & Skeleton & "
+         r"Band & Outcome & Balanced cells & Zero throughout & Retained & "
          r"Estimated \\", r"\midrule"]
     for band, oc in ROWS:
         k = (band, oc)
@@ -203,7 +203,7 @@ def main() -> int:
                  f"\\multicolumn{{2}}{{l}}{{{rule}}} & {n:,} \\\\")
         print(f"  {label:58s} {rule:34s} {n:>9,}")
 
-    note = r"The panel is balanced over employers, age bands and months and zero-filled. ``Zero throughout'' counts employer-band cells with no employment in any month; the employer-by-age effect predicts them perfectly, so they are dropped before estimation at no cost to any coefficient. ``Skeleton'' is what remains, and ``Estimated'' the cells at employers with a 2019 exposure score. Flows are estimated at 22--25 only. Panel~B gives the employers in each comparison's own panel."
+    note = r"The panel is balanced over employers, age bands and months and zero-filled. ``Zero throughout'' counts employer-band cells with no employment in any month; the employer-by-age effect predicts them perfectly, so they are dropped before estimation at no cost to any coefficient. ``Retained'' is what remains, and ``Estimated'' the cells at employers with a 2019 exposure score. Flows are estimated at 22--25 only. Panel~B gives the employers in each comparison's own panel."
     L += [r"\bottomrule", r"\end{tabular}",
           r"\begin{minipage}{0.95\textwidth}\footnotesize\vspace{4pt}" + note,
           r"\end{minipage}", r"\end{table}"]

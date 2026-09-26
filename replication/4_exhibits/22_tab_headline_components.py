@@ -18,6 +18,8 @@ Panel A: gamma_2 at 22-25 and 26-30 against the older bands pooled (script
 Panel B: the pre-launch drift per month, January 2021 to November 2022
 (script 83, part D). Panel C: the profile against 41-49 alone, the step at
 22-25 and at 50 and over (script 82). Panel D: hires and separations at
+(the step from the tightening months and, below it, the later-minus-interim
+tau of the same fits, from 82's covariances)
 22-25 (script 82). Panel E: the sexes at 22-25, young men, the female
 differential and young women (the male step plus the differential, its
 standard error from the exported covariance; script 82), and the female
@@ -41,6 +43,7 @@ Output: output/tables/tableA_headline_components.tex
 
     python 4_exhibits/22_tab_headline_components.py [export_dir]
 """
+import re
 import sys
 from pathlib import Path
 
@@ -54,6 +57,7 @@ OCC = EXPORTS / "2026-09-23_0655_s82-partB_s83-partsBCD"
 SPLIT = EXPORTS / "2026-09-23_1352_s87"
 
 TERM = "post_x_high_x_young"
+INTERIM = "interim_x_high_x_young"
 FEMALE = "post_x_high_x_young_x_female"
 TREND = "trend_x_high_x_young"
 ARM, FLOOR, LEVEL = "backward", 5, "uniform3"
@@ -141,6 +145,26 @@ def main() -> int:
     p50 = one(profile, band="50+")
     hires = one(flows, outcome="hires", young_band="22-25", term=TERM)
     seps = one(flows, outcome="seps", young_band="22-25", term=TERM)
+    # Later minus interim on the same flow fits (the letter's A2 quotes
+    # them, and 97's summary derived them from 82's covariances): tau for
+    # hires and separations, checked against that summary before anything
+    # is written.
+    tau_flow = {}
+    for o in ("hires", "seps"):
+        cp = one(flows, outcome=o, young_band="22-25", term=TERM)[0]
+        ci = one(flows, outcome=o, young_band="22-25", term=INTERIM)[0]
+        v = vcov(f"vcov_s82_{o}_22_25.csv")
+        var = float(v.loc[TERM, TERM] + v.loc[INTERIM, INTERIM]
+                    - 2 * v.loc[TERM, INTERIM])
+        tau_flow[o] = (cp - ci, var ** 0.5)
+    said = (EXPORTS / "2026-09-25_2250_s97" / "97_summary.txt").read_text(
+        encoding="utf-8", errors="replace")
+    m = re.search(r"tau ([-+][0-9.]+) \(([0-9.]+)\) and ([-+][0-9.]+) "
+                  r"\(([0-9.]+)\) by the same arithmetic", said)
+    if not m or any(round(tau_flow[o][k], 4) != float(m.group(i)) for o, k, i in
+                    (("hires", 0, 1), ("hires", 1, 2), ("seps", 0, 3), ("seps", 1, 4))):
+        raise SystemExit("  Panel D: the later-minus-interim flow taus do not "
+                         "reproduce 97_summary.txt; nothing is written")
     men = one(gender, block="term", young_band="22-25", term=TERM)
     fem = one(gender, block="term", young_band="22-25", term=FEMALE)
     women = one(gender, block="step", young_band="22-25", term="female_step")
@@ -190,6 +214,8 @@ def main() -> int:
         r"tightening months}} \\",
         line("Hires", hires),
         line("Separations", seps),
+        line("Hires, later minus interim ($\\tau$)", tau_flow["hires"]),
+        line("Separations, later minus interim ($\\tau$)", tau_flow["seps"]),
         r"\addlinespace[3pt]",
         r"\multicolumn{3}{l}{\textit{Panel E. The sexes at 22--25, step from "
         r"the tightening months}} \\",

@@ -140,8 +140,7 @@ def write_tex(res: pd.DataFrame):
           r"\par\smallskip\parbox{\linewidth}{\scriptsize \textit{Notes:} Equation~(1) on ln postings, "
           r"occupation-by-month cells with at least one advertisement. High is the top quartile of the "
           r"respective measure across all occupations it scores; it is not re-cut on the common sample. The "
-          r"common sample keeps the 341 occupations that both measures score, which is every occupation the "
-          r"Eloundou crosswalk reaches, so columns (7) to (9) are also its full sample. "
+          r"common sample keeps the 341 occupations observed in the posting data and scored by both measures. "
           r"Columns (2), (5) and (8) add a linear time trend interacted with High; columns (3), (6) and (9) "
           r"replace month fixed effects with SSYK 1-digit group $\times$ month fixed effects. Standard errors "
           r"clustered by occupation. $^{***}p<0.01$, $^{**}p<0.05$, $^{*}p<0.10$.}",

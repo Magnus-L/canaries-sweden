@@ -117,7 +117,10 @@ submitter blocks on a full pipe). The runners are shipped so that the record of 
 scripts were submitted is complete; `master.py` sets the same variables. Every chapter-10
 script reproduces Table 1's tau on its own panel before its checks run and stops if it
 does not; its summary prints the read rules that were fixed before the run and their
-verdicts. Script 98 ran twice: the second run (lane 38b) added to its export the number
+verdicts. A fourth backtest arm, re-scoring the same 2019 incumbents from the register as it
+stood in 2021 to separate re-coding from carry-back, was specified in script 98; the data
+delivery returned no scorable employer for it, so it produced no estimate and the online
+appendix does not report it. Script 98 ran twice: the second run (lane 38b) added to its export the number
 of observations each Poisson fit retained, with every estimate unchanged, and OA Table A33
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
 (script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and

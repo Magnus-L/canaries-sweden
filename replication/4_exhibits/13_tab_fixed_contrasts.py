@@ -118,7 +118,7 @@ def main() -> int:
                    + " & ".join(cell(rows[b][i][1], rows[b][i][2])
                                 for b in BANDS) + r" \\")
     tex += [r"\bottomrule", r"\end{tabular}",
-            r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}Linear combinations of the quarterly coefficients of Figure~3 of the paper, with standard errors from that fit's clustered covariance. Each row compares periods of equal length and identical calendar-quarter composition, so none depends on the January 2024 boundary or on the launch quarter. The first row is the boundary-free counterpart of the headline, weighting quarters equally where the pooled coefficient weights employer-months. $^{*}$ $p<0.05$.",
+            r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}Linear combinations of the quarterly coefficients of Figure~3 of the paper, with standard errors from that fit's clustered covariance. The first two rows compare periods of equal length and identical calendar-quarter composition without using the January 2024 boundary; the third compares the quarters either side of that boundary, net of the estimated calendar terms. The first row is the boundary-free counterpart of the headline, weighting quarters equally where the pooled coefficient weights employer-months. $^{*}$ $p<0.05$.",
             r"\end{minipage}", r"\end{table}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

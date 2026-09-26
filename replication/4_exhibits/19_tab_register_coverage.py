@@ -164,7 +164,7 @@ def t2():
     print(f"   person-months by vintage, 2021 and 2022 columns: {lo:,} to "
           f"{hi:,}; 2023 column {big.min():.2f} to {big.max():.2f} million")
     L += [r"\bottomrule", r"\end{tabular}",
-          r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}Each column restricts the submitted, occupation-classified event study, re-estimated by Poisson pseudo-maximum likelihood, to workers whose code comes from the stated register year; reference 2022H1, standard errors clustered by employer. Conditioning on code vintage conditions on how recently the register observed a worker, which depends on tenure, entry and mobility, so the subsamples shrink sharply in the later periods and no column estimates a treatment effect. The lower panel gives the person-months behind each column from 2023, when the columns first differ: the 2021 and 2022 columns rest on between 500 and 8{,}000 person-months a half-year against about 2.1 to 2.3 million in the 2023 column.\end{minipage}", r"\end{table}"]
+          r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}Each column restricts the occupation-classified event study, re-estimated by Poisson pseudo-maximum likelihood, to workers whose code comes from the stated register year; reference 2022H1, standard errors clustered by employer. Conditioning on code vintage conditions on how recently the register observed a worker, which depends on tenure, entry and mobility, so the subsamples shrink sharply in the later periods and no column estimates a treatment effect. The lower panel gives the person-months behind each column from 2023, when the columns first differ: the 2021 and 2022 columns rest on between 500 and 8{,}000 person-months a half-year against about 2.1 to 2.3 million in the 2023 column.\end{minipage}", r"\end{table}"]
     (TABLES / "tableIV2_vintage.tex").write_text("\n".join(L) + "\n")
     print("  tableIV2_vintage.tex  (pairs 2022: "
           f"{mp[mp.year == 2022].n_pairs.sum():,}; person-months by vintage "
@@ -219,7 +219,7 @@ def t3():
               f"artefact {af.gamma2 - tr.gamma2:+.4f}")
     L += [r"\bottomrule", r"\end{tabular}",
           r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}"
-          r"The coefficient is the submitted design's $\hat\gamma_2$ on "
+          r"The coefficient is the occupation-classified design's $\hat\gamma_2$ on "
           r"2019--2023, years in which the completed register vintages are "
           r"available. The as-of arm also loses workers the truncated "
           r"register cannot code, so the difference combines coding and "
@@ -235,8 +235,8 @@ def t3():
           r"The design the paper reports reads no occupation file after the "
           r"2019 vintage, and its employment counts need no current code. "
           r"Its own 2019 codes are not all fresh: restricting the score to "
-          r"those observed in 2019, rather than carried back from earlier "
-          r"files, moves its adoption step by "
+          r"codes whose recorded observation year is 2019 moves its "
+          r"adoption step at 22--25 by "
           f"${rescored:+.3f}$, and {100 * keep_share:.1f} per cent of "
           r"employers keep their quartile."
           r"\end{minipage}", r"\end{table}"]
