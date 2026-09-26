@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-24_tab_unlinked.py: Online Appendix Table A40 (Section VI.1), the payslips
+24_tab_unlinked.py: Online Appendix Table A41 (Section VI.1), the payslips
 whose worker reaches none of the three individual registers, on the headline
 sample and contrast: their share by exposure group and period, the tipping
 point, and tau under two extremal allocations (script 100).

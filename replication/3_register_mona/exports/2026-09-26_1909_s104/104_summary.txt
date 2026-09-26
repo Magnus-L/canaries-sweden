@@ -1,0 +1,98 @@
+WHAT COUNTS AS A PERSON-MONTH, AND WHETHER IT DIFFERS BY EXPOSURE,
+AGE AND PERIOD (LANE 38e)
+==================================================================
+
+A counted person-month is a distinct person with an individual
+declaration record from the employer in the month, birth year known,
+age 22 to 69 (47L's q_counts; 101's reconstruction). Cash pay is not
+required. Cash pay = KONTANT_ERSATTNING_ULAG_AG > 0 (verified column).
+
+THE GATE PASSES: counted person-months by period x band reproduce 47L's L_counts in all 24 cells (max relative deviation 0.00e+00; 284,720,219 person-months)
+THE GATE (2019) PASSES: counted person-months by period x band reproduce 47L's L_counts in all 6 cells (max relative deviation 0.00e+00; 61,611,826 person-months)
+
+Probed Arb_AGIIndivid202101_def: pension column TJANSTEPENSION FOUND; benefit columns SP_BILFORMAN_ULAG_AG found, SP_OVRIGA_FORMANER_ULAG_AG found
+
+P1. SHARE OF COUNTED PERSON-MONTHS WITH CASH PAY, by period (top quartile | rest | all):
+  22-25:
+    reference  top 0.9476  rest 0.9705  all 0.9653
+    tightening top 0.9661  rest 0.9767  all 0.9732
+    interim    top 0.9550  rest 0.9730  all 0.9682
+    later      top 0.9384  rest 0.9645  all 0.9588
+  26-30:
+    reference  top 0.9681  rest 0.9749  all 0.9715
+    tightening top 0.9740  rest 0.9797  all 0.9765
+    interim    top 0.9721  rest 0.9775  all 0.9740
+    later      top 0.9671  rest 0.9720  all 0.9687
+  31-69:
+    reference  top 0.9563  rest 0.9278  all 0.9346
+    tightening top 0.9578  rest 0.9319  all 0.9387
+    interim    top 0.9408  rest 0.9281  all 0.9318
+    later      top 0.9369  rest 0.9299  all 0.9323
+  all:
+    reference  top 0.9573  rest 0.9362  all 0.9410
+    tightening top 0.9601  rest 0.9406  all 0.9455
+    interim    top 0.9450  rest 0.9365  all 0.9389
+    later      top 0.9401  rest 0.9365  all 0.9377
+
+P2. TOP MINUS REST, percentage points, and the change from the interim to the later period:
+  22-25: reference -2.287  tightening -1.056  interim -1.805  later -2.603  | later minus interim -0.798 pp
+  31-69: reference +2.850  tightening +2.585  interim +1.269  later +0.696  | later minus interim -0.573 pp
+  (a positive change means exposed employers' counted person-months gained cash-pay
+   share relative to the rest; the sign says nothing about tau by itself)
+
+P3. AMONG COUNTED PERSON-MONTHS WITHOUT CASH PAY (all employers, all periods):
+  22-25: 686,622 person-months without cash pay (3.49 per cent of counted); with a pension amount 0.2 per cent; with a taxable benefit 3.8 per cent
+  26-30: 855,290 person-months without cash pay (2.80 per cent of counted); with a pension amount 0.3 per cent; with a taxable benefit 9.0 per cent
+  31-69: 15,530,780 person-months without cash pay (6.62 per cent of counted); with a pension amount 65.5 per cent; with a taxable benefit 6.8 per cent
+  all: 17,072,692 person-months without cash pay (6.00 per cent of counted); with a pension amount 59.6 per cent; with a taxable benefit 6.8 per cent
+
+P4. THE SCORING POPULATION: 2019 person-months aged 31-69 (the incumbents whose
+    occupations score the employer), share with cash pay, by exposure group:
+    top       0.9494  (12,165,931 person-months; without cash pay 616,049, of which pension 35.6 per cent, benefit 19.4 per cent)
+    rest      0.9248  (36,497,316 person-months; without cash pay 2,743,338, of which pension 76.9 per cent, benefit 1.5 per cent)
+    unscored  0.8693  (933,225 person-months; without cash pay 121,972, of which pension 1.4 per cent, benefit 5.6 per cent)
+    all       0.9298  (49,596,472 person-months; without cash pay 3,481,359, of which pension 67.0 per cent, benefit 4.8 per cent)
+
+BY YEAR x BAND x GROUP, share with cash pay (top | rest | all):
+  2021 22-25  top 0.9538  rest 0.9729  all 0.9683  (4,204,557 person-months)
+  2021 26-30  top 0.9698  rest 0.9764  all 0.9731  (7,091,385 person-months)
+  2021 31-69  top 0.9565  rest 0.9272  all 0.9343  (50,012,460 person-months)
+  2021 all    top 0.9580  rest 0.9361  all 0.9411  (61,308,402 person-months)
+  2022 22-25  top 0.9558  rest 0.9729  all 0.9684  (4,500,764 person-months)
+  2022 26-30  top 0.9708  rest 0.9770  all 0.9736  (7,116,418 person-months)
+  2022 31-69  top 0.9573  rest 0.9312  all 0.9378  (51,739,531 person-months)
+  2022 all    top 0.9588  rest 0.9393  all 0.9440  (63,356,713 person-months)
+  2023 22-25  top 0.9544  rest 0.9728  all 0.9680  (4,495,243 person-months)
+  2023 26-30  top 0.9720  rest 0.9774  all 0.9740  (6,821,242 person-months)
+  2023 31-69  top 0.9393  rest 0.9281  all 0.9315  (52,991,753 person-months)
+  2023 all    top 0.9437  rest 0.9364  all 0.9386  (64,308,238 person-months)
+  2024 22-25  top 0.9526  rest 0.9733  all 0.9682  (4,370,538 person-months)
+  2024 26-30  top 0.9723  rest 0.9779  all 0.9742  (6,447,089 person-months)
+  2024 31-69  top 0.9403  rest 0.9311  all 0.9341  (53,027,086 person-months)
+  2024 all    top 0.9442  rest 0.9387  all 0.9404  (63,844,713 person-months)
+  2025 22-25  top 0.9081  rest 0.9460  all 0.9392  (2,098,843 person-months)
+  2025 26-30  top 0.9559  rest 0.9597  all 0.9572  (3,097,709 person-months)
+  2025 31-69  top 0.9303  rest 0.9277  all 0.9288  (26,705,601 person-months)
+  2025 all    top 0.9318  rest 0.9320  all 0.9323  (31,902,153 person-months)
+
+NOTES:
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATE. Counted person-months by period x band over all employers equal
+  47L's L_counts within 0.01 per cent; a miss is a hard stop.
+  P1. Share of counted person-months with cash pay subject to employer
+  contributions, by band x exposure group x period.
+  P2. Top minus rest in that share, each period, and its change from the
+  interim to the later period, in percentage points, at 22-25 and 31-69.
+  No verdict beyond the numbers.
+  P3. Among counted person-months without cash pay, the share with an
+  occupational-pension amount and with a taxable benefit, by band,
+  nationally; only for columns INFORMATION_SCHEMA confirms.
+  P4. The same over the twelve 2019 tables for the scoring population
+  (person-months aged 31-69, by exposure group), gated on 82's
+  L_counts_2019 cache by band to 0.01 per cent.
+  Cells resting on fewer than 5 employers are suppressed.
+
+Runtime 6.5 min. A pass over 66 monthly tables should take about an hour and a quarter; a return under 10 minutes is a failure. memory available: 710.4 GB

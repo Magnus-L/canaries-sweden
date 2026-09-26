@@ -2,6 +2,8 @@
 
 ## 2026-09-26: the package brought to the manuscript of 26 September
 
+- Evening: script 104 (lane 38e, the payment rule behind the counted person-months; the 2019 scoring population and a year x band x group reconciliation) ran on MONA, export `2026-09-26_1909_s104`, both gates exact; new builder `4_exhibits/28_tab_payment_rule.py` writes OA Table A39 (`tableA_payment_rule.tex`), checked line by line against `104_summary.txt`. The three VI.1 tables that followed move one number: uncounted A40, unlinked A41, non-match A42. Manifest rows OA339-OA347, M089-M090. Also today: builders 03 (Figure 3 gains the January 2025 survey reading), 04, 05, 08, 15, 18 and the posting figures 11 and 12 follow the editor-read edits; scripts 105 and 106 (lane 39) are staged in `3_register_mona/scripts` only once their exports land.
+
 The manuscript, online appendix and response letter were rewritten on 25 and 26 September
 around tau, the later period against the interim period, and six further register runs
 (lanes 37a to 38d) were brought out of MONA. The package follows.

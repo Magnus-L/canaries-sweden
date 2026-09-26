@@ -58,17 +58,18 @@ Exhibit numbers are those of the online appendix as compiled on 26 September
 | `14_tab_window.py` | OA Table A14 | `2026-09-23_0655_s82-partB_s83-partsBCD` | `tableA_window.tex` | 1 s |
 | `15_tab_gender_split.py` | OA Table A19 | `2026-09-23_1352_s87` | `tableA_gender_split.tex` | 1 s |
 | `16_tab_education_mix.py` | OA Table A20 | `2026-09-23_1352_s87` | `tableA_education_mix.tex` | 1 s |
-| `17_tab_contrast_by_track.py` | OA Table A21 | `2026-09-23_1407_s88`; `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-23_1352_s87` | `tableA_contrast_by_track.tex` | 1 s |
+| `17_tab_contrast_by_track.py` | OA Table A25 | `2026-09-23_1407_s88`; `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-23_1352_s87` | `tableA_contrast_by_track.tex` | 1 s |
 | `18_tab_score_precision_and_coverage.py` | OA Tables A27 and A34 | `2026-09-22_2232_s82-partA`; `2026-09-23_0655_s82-partB_s83-partsBCD` (tau from the exported covariances) | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` | 1 s |
 | `19_tab_register_coverage.py` | OA Tables A30, A31, A32 | `2026-09-18_1640_s40-s47`; `2026-09-20_1735_s39-s41`; `2026-09-18_1736_s45`; `2026-09-22_2327_s82-partC` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex` | 1 s |
 | `20_fig_backtest.py` | OA Figure A8 | `2026-09-18_1736_s45` | `figA1_asof_backtest.pdf` | 2 s |
-| `21_tab_uncounted.py` | OA Table A39 | `2026-09-24_1037_s93` | `tableA_uncounted.tex` | 1 s |
+| `21_tab_uncounted.py` | OA Table A40 | `2026-09-24_1037_s93` | `tableA_uncounted.tex` | 1 s |
 | `22_tab_headline_components.py` | OA Table A15 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 82, 83, 80); `2026-09-23_1352_s87` | `tableA_headline_components.tex` | 1 s |
-| `23_tab_final_checks.py` | OA Table A25 | `2026-09-25_1832_s95-s96-s98` (scripts 95, 96); `2026-09-25_2250_s97` | `tableA_final_checks.tex` | 1 s |
-| `24_tab_unlinked.py` | OA Table A40 | `2026-09-26_0827_s100-s101` (script 100) | `tableA_unlinked.tex` | 1 s |
-| `25_tab_nonmatch.py` | OA Table A41 | `2026-09-25_1459_s99` (script 99) | `tableA_nonmatch.tex` | 1 s |
+| `23_tab_final_checks.py` | OA Table A21 | `2026-09-25_1832_s95-s96-s98` (scripts 95, 96); `2026-09-25_2250_s97` | `tableA_final_checks.tex` | 1 s |
+| `24_tab_unlinked.py` | OA Table A41 | `2026-09-26_0827_s100-s101` (script 100) | `tableA_unlinked.tex` | 1 s |
+| `25_tab_nonmatch.py` | OA Table A42 | `2026-09-25_1459_s99` (script 99) | `tableA_nonmatch.tex` | 1 s |
 | `26_tab_backtest_arms.py` | OA Table A33 | `2026-09-26_1040_s98b`; `2026-09-25_1832_s95-s96-s98` (the same fits, exported first) | `tableIV4_backtest_arms.tex` | 1 s |
 | `27_fig_prepath_female.py` | OA Figure A6 | `2026-09-25_2250_s97` (script 97) | `fig_prepath_female.pdf` | 2 s |
+| `28_tab_payment_rule.py` | OA Table A39 | `2026-09-26_1909_s104` (script 104) | `tableA_payment_rule.tex` | 1 s |
 
 Figures are written as PDF (the file the manuscript includes) and as PNG at
 300 dots per inch. The remaining exhibits of the online appendix (Figure 1,

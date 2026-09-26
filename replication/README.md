@@ -232,9 +232,10 @@ compiles on 26 September 2026):
 | OA Tables A30 to A32, Figure A7 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
 | OA Table A33 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
 | OA Tables A35 to A37 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
-| OA Table A39 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
-| OA Table A40 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |
-| OA Table A41 | `4_exhibits/25_tab_nonmatch.py` | `tableA_nonmatch.tex` |
+| OA Table A39 | `4_exhibits/28_tab_payment_rule.py` | `tableA_payment_rule.tex` |
+| OA Table A40 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
+| OA Table A41 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |
+| OA Table A42 | `4_exhibits/25_tab_nonmatch.py` | `tableA_nonmatch.tex` |
 
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of

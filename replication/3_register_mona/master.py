@@ -269,7 +269,7 @@ JOBS = [
          env={"CANARIES_99_OUT": "output_99", "CANARIES_82_OUT": "output_99",
               "CANARIES_RWORK_TAG": "_37a"},
          makes="the raw rebuild of the counts; non-match over all declared "
-               "person-months (OA Table A41); tau by presence in November 2022 "
+               "person-months (OA Table A42); tau by presence in November 2022 "
                "(OA IV.1)"),
     dict(ch=10, script="98_backtest_common.py", minutes=107,
          env={"CANARIES_98_OUT": "output_98", "CANARIES_RWORK_TAG": "_37b"},
@@ -286,13 +286,13 @@ JOBS = [
          env={"CANARIES_95_OUT": "output_95", "CANARIES_82_OUT": "output_95",
               "CANARIES_RWORK_TAG": "_37c"},
          makes="tau with the older reference restricted; the eight-band "
-               "profile on tau (Figure 2 of the paper; OA Table A25, Panels A "
+               "profile on tau (Figure 2 of the paper; OA Table A21, Panels A "
                "and B)"),
     dict(ch=10, script="96_payroll_cohorts.py", minutes=92,
          env={"CANARIES_96_OUT": "output_96", "CANARIES_82_OUT": "output_95",
               "CANARIES_RWORK_TAG": "_37c"},
          makes="fixed birth cohorts against the youth payroll reduction (OA "
-               "Table A25, Panel C)"),
+               "Table A21, Panel C)"),
     dict(ch=10, script="101_count_provenance.py", minutes=81,
          env={"CANARIES_101_OUT": "output_101", "CANARIES_82_OUT": "output_100",
               "CANARIES_RWORK_TAG": "_38a"},
@@ -301,7 +301,7 @@ JOBS = [
          env={"CANARIES_100_OUT": "output_100", "CANARIES_82_OUT": "output_100",
               "CANARIES_RWORK_TAG": "_38a"},
          makes="unlinked payslips, the tipping point and the extremal "
-               "allocations (OA Table A40)"),
+               "allocations (OA Table A41)"),
     dict(ch=10, script="98_backtest_common.py", minutes=93,
          env={"CANARIES_98_OUT": "output_98b", "CANARIES_RWORK_TAG": "_38b"},
          makes="the same backtest, exported with the observations each fit "
@@ -311,7 +311,7 @@ JOBS = [
               "CANARIES_80_OUT": "output_102", "CANARIES_73_OUT": "output_102",
               "CANARIES_RWORK_TAG": "_38c"},
          makes="tau and the female differential with month-of-year terms in "
-               "place of the calendar-quarter terms (lane 38c; OA Table A25, "
+               "place of the calendar-quarter terms (lane 38c; OA Table A21, "
                "Panel G)"),
     dict(ch=10, script="103_eloundou_classification.py", minutes=180,
          env={"CANARIES_103_OUT": "output_103", "CANARIES_82_OUT": "output_103",
@@ -320,7 +320,14 @@ JOBS = [
          makes="the headline design with employers classified by the Eloundou "
                "rating through script 82's chain, DAIOE beside Eloundou on the "
                "employers both indices score, and the agreement of the two "
-               "classifications (lane 38d; OA Table A25, Panel H)"),
+               "classifications (lane 38d; OA Table A21, Panel H)"),
+    dict(ch=10, script="104_payment_rule.py", minutes=80,
+         env={"CANARIES_104_OUT": "output_104", "CANARIES_82_OUT": "output_104",
+              "CANARIES_80_OUT": "output_104", "CANARIES_73_OUT": "output_104"},
+         makes="the payment rule behind the counted person-months: the share "
+               "with cash pay by band, exposure group and period, what the "
+               "remainder carries, and the 2019 scoring population (lane 38e; "
+               "OA Table A39; SQL only, no R)"),
 ]
 
 # Inputs the scripts read from the project's input folder (mona_common.SHARE).

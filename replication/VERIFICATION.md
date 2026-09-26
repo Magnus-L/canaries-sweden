@@ -30,7 +30,7 @@ by the two exports of script 98, which `4_exhibits/26` compares estimate by esti
 **Result: 38 of 39 tables identical to the files the manuscript inputs**, line by line after
 the co-author markup two printed files still carry is accepted (`\add{x}` read as x,
 `\del{x}` removed) and whole-line comments are dropped. The one exception is Online Appendix
-Table A40 (`tableA_unlinked.tex`): its printed last row gives the female differential under the
+Table A41 (`tableA_unlinked.tex`): its printed last row gives the female differential under the
 second allocation as $-0.0565$ (0.0111), where the export holds $-0.056447$, which rounds to
 $-0.0564$; the package builds $-0.0564$ and the printed file should be replaced by the built one
 (section 5).
@@ -120,9 +120,9 @@ Found by the manifest against the 26 September manuscript; each is a last-digit 
   Table A33 prints $-0.0115$; the export holds $-0.011475$, which rounds to $-0.011$.
 - **Online Appendix VI.1:** "the gap between the groups narrows by 0.026 percentage
   points". On the unrounded shares the narrowing is 0.0269 points; 0.026 is the difference
-  of the printed three-decimal shares ($0.066 - 0.040$). Table A40 itself prints the
+  of the printed three-decimal shares ($0.066 - 0.040$). Table A41 itself prints the
   difference row as the difference of the printed shares, which the builder reproduces.
-- **Online Appendix Table A40, last row:** the printed file gives $-0.0565$ (0.0111) for the
+- **Online Appendix Table A41, last row:** the printed file gives $-0.0565$ (0.0111) for the
   female differential under the second allocation; the export holds $-0.056447$, so
   $-0.0564$. The built table is correct; the printed file should be replaced by it.
 - **Online Appendix IV.3:** "the observations each fit retains ... differ by under two per
@@ -144,6 +144,6 @@ Carried over from the 25 September check and still true:
 
 Resolved since the 25 September check: Table A9's label ("one-digit occupation group $\times$
 month-of-year") now matches the code of `2_postings/06`; the non-match series of Online
-Appendix VI.1 is rebuilt from the raw declarations by script 99 (Table A41), and the
+Appendix VI.1 is rebuilt from the raw declarations by script 99 (Table A42), and the
 submitted version's 9.2 to 10.5 per cent, whose numerator and denominator were not
 commensurable, is no longer printed as a current figure.

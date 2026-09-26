@@ -267,9 +267,9 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-04-28_s32/attrition_by_quartile.csv,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
 2026-04-28_s32/step1_poisson_current.csv,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
 2026-04-28_s32/kauhanen_summary.txt,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
-2026-09-25_1459_s99/99_summary.txt,99,25_tab_nonmatch.py,OA275,Online Appendix Table A41; IV.4,read by the package
+2026-09-25_1459_s99/99_summary.txt,99,25_tab_nonmatch.py,OA275,Online Appendix Table A42; IV.4,read by the package
 2026-09-25_1459_s99/measurement_estimates.csv,99,,OA260 OA261 OA262 OA263 OA264 OA265 OA277 OA278 OA279,IV.1; VI.1,read by the package
-2026-09-25_1459_s99/measurement_reconciliation.csv,99,25_tab_nonmatch.py,,Online Appendix Table A41,read by the package
+2026-09-25_1459_s99/measurement_reconciliation.csv,99,25_tab_nonmatch.py,,Online Appendix Table A42,read by the package
 2026-09-25_1459_s99/measurement_totals.csv,99,,,,not read by any exhibit or manifest row
 2026-09-25_1459_s99/vcov_s99_baseline_22_25.csv,99,,,,not read by any exhibit or manifest row
 2026-09-25_1459_s99/vcov_s99_gate_22_25.csv,99,,,,not read by any exhibit or manifest row
@@ -301,11 +301,11 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-25_2250_s97/vcov_s97_q_continuous_22_25.csv,97,,,,not read by any exhibit or manifest row
 2026-09-25_2250_s97/vcov_s97_q_quartiles_22_25.csv,97,,,,not read by any exhibit or manifest row
 2026-09-25_2250_s97/vcov_s97_sex_gate_22_25.csv,97,,,,not read by any exhibit or manifest row
-2026-09-26_0827_s100-s101/100_summary.txt,100,24_tab_unlinked.py,,Online Appendix Table A40,read by the package
+2026-09-26_0827_s100-s101/100_summary.txt,100,24_tab_unlinked.py,,Online Appendix Table A41,read by the package
 2026-09-26_0827_s100-s101/101_summary.txt,101,,,,not read by any exhibit or manifest row
 2026-09-26_0827_s100-s101/provenance.csv,101,,OA280 OA281 OA282 OA283 OA284 OA285 OA286 OA287 OA288,VI.1,read by the package
-2026-09-26_0827_s100-s101/tipping_point.csv,100,24_tab_unlinked.py,OA294 OA295 OA296 OA297 OA298 OA299 OA300 OA301 OA302 OA303 OA304 OA305 OA306,"Online Appendix Table A40; VI.1, Table A40",read by the package
-2026-09-26_0827_s100-s101/unlinked_accounting.csv,100,24_tab_unlinked.py,OA289 OA290 OA291 OA292 OA293,"Online Appendix Table A40; VI.1, Table A40",read by the package
+2026-09-26_0827_s100-s101/tipping_point.csv,100,24_tab_unlinked.py,OA294 OA295 OA296 OA297 OA298 OA299 OA300 OA301 OA302 OA303 OA304 OA305 OA306,"Online Appendix Table A41; VI.1, Table A41",read by the package
+2026-09-26_0827_s100-s101/unlinked_accounting.csv,100,24_tab_unlinked.py,OA289 OA290 OA291 OA292 OA293,"Online Appendix Table A41; VI.1, Table A41",read by the package
 2026-09-26_0827_s100-s101/unlinked_accounting_sex.csv,100,,,,not read by any exhibit or manifest row
 2026-09-26_0827_s100-s101/unlinked_by_month.csv,100,,,,not read by any exhibit or manifest row
 2026-09-26_0827_s100-s101/unlinked_by_month_sex.csv,100,,,,not read by any exhibit or manifest row
@@ -349,3 +349,7 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1527_s103/vcov_s103_sex_eloundou_22_25.csv,103,,,,not read by any exhibit or manifest row
 2026-09-26_1527_s103/vcov_s103_sex_eloundou_indcl_22_25.csv,103,,,,not read by any exhibit or manifest row
 2026-09-26_1527_s103/vcov_s103_sex_gate_22_25.csv,103,,,,not read by any exhibit or manifest row
+2026-09-26_1909_s104/104_summary.txt,104,28_tab_payment_rule.py,,Online Appendix Table A39 (checked against),read by the package
+2026-09-26_1909_s104/payment_rule.csv,104,28_tab_payment_rule.py,OA339 OA340 OA341 OA342 OA343 OA344 OA345 M089 M090,Online Appendix Table A39; VI.1 text; paper Section 2,read by the package
+2026-09-26_1909_s104/payment_rule_2019_incumbents.csv,104,28_tab_payment_rule.py,OA346 OA347,Online Appendix Table A39 Panel D; VI.1 text,read by the package
+2026-09-26_1909_s104/payment_rule_by_year.csv,104,,,,not read by any exhibit or manifest row

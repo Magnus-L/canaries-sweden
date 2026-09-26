@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-25_tab_nonmatch.py: Online Appendix Table A41 (Section VI.1), occupation
+25_tab_nonmatch.py: Online Appendix Table A42 (Section VI.1), occupation
 non-match over all employer-declaration person-months, by age, rebuilt from
 the raw declarations (script 99, part D).
 

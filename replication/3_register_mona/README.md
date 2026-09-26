@@ -101,7 +101,7 @@ within a chapter can run side by side.
 | 7 Register coverage | 39, 40, 41, 45, 49 | OA Part IV, Tables A30 to A32, Figure A8; the submitted estimate |
 | 8 Rival explanations | 89, 90, 92, 93 | Section 3; OA II.3, III.2; Table A39 |
 | 9 Comparison only | 47j, 61, 66, 70, 71, 73, 74, 75, 77, 78 (parts A to D, G) | the education route, not reported |
-| 10 Final checks on tau | 95, 96, 97, 98, 99, 100, 101 (and 102, pending) | Figure 2; OA Figure A6; Tables A25, A33, A40, A41; the second record of Table 1 |
+| 10 Final checks on tau | 95, 96, 97, 98, 99, 100, 101, 102, 103, 104 | Figure 2; OA Figure A6; Tables A21, A33, A39, A41, A42; the second record of Table 1 |
 
 `EXPORTS.csv` gives the exhibit behind every exported file, and the package-level
 `MANIFEST.csv` ties each printed number to its file; `4_exhibits/` turns the exports into
