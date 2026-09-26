@@ -41,6 +41,16 @@ the rule with them.
       delivery dictionary and are NOT verified names, so the script probes
       INFORMATION_SCHEMA first and uses each only if it exists; the summary
       says which were found. KONTANT_ERSATTNING_ULAG_AG is verified (47L).
+  P4. THE SCORING POPULATION (the editor's read of 26 Sep, point 1: "apply
+      it to the 2019 scoring population" too). The employer score is the
+      exposure of the 2019 occupations of its incumbents aged 31 to 69, and
+      the floor counts their 2019 person-months (82's incumbent_floor_series
+      on L_counts_2019). The same pass runs over the twelve 2019 tables:
+      the share of 2019 person-months aged 31 to 69 with cash pay, by
+      exposure group, and P3's composition of the no-pay records; its own
+      gate is 82's L_counts_2019 cache, by age band, to 0.01 per cent.
+  The by-year table is year x band x exposure group (the reconciliation
+  the editor asked for), with an 'all' row for each dimension.
 
 THE GATE (a miss is a hard stop; nothing from the run is quotable)
   The counted person-months by period and age band, summed over every
@@ -51,7 +61,8 @@ THE GATE (a miss is a hard stop; nothing from the run is quotable)
 EXPORT (output_104/)
   payment_rule.csv          period x band x group: n_emp, n_pay, share_pay,
                             n_nopay_pension, n_nopay_benefit
-  payment_rule_by_year.csv  year x band, all employers: the same
+  payment_rule_by_year.csv  year x band x group: the same
+  payment_rule_2019_incumbents.csv  band x group for 2019, the scoring year
   104_summary.txt, 104_log.txt
   Every cell is an aggregate over at least five employers or suppressed.
 
@@ -81,6 +92,7 @@ CACHE = mc.CACHE_DIR
 
 FLOOR = 5
 YEARS = list(range(2021, 2026))
+SCORE_YEAR = 2019                                 # P4: the scoring population
 PROBE_TABLE = "Arb_AGIIndivid202101_def"
 PAY_COL = "KONTANT_ERSATTNING_ULAG_AG"            # verified: 47L ran on it
 PENSION_COL = "TJANSTEPENSION"                    # dictionary wording, probed
@@ -107,6 +119,9 @@ READ_RULES = [
     "  P3. Among counted person-months without cash pay, the share with an",
     "  occupational-pension amount and with a taxable benefit, by band,",
     "  nationally; only for columns INFORMATION_SCHEMA confirms.",
+    "  P4. The same over the twelve 2019 tables for the scoring population",
+    "  (person-months aged 31-69, by exposure group), gated on 82's",
+    "  L_counts_2019 cache by band to 0.01 per cent.",
     f"  Cells resting on fewer than {FLOOR} employers are suppressed.",
 ]
 
@@ -260,9 +275,14 @@ def pull_year(year: int, conn, cols: set) -> pd.DataFrame:
 # the gate: the rule reproduced here is the paper's
 # ----------------------------------------------------------------------
 
-def gate(pulled: pd.DataFrame) -> None:
+def gate(pulled: pd.DataFrame, years=None, label: str = "") -> None:
+    """The counted person-months of `pulled`, by period x band over every
+    employer, against 47L's L_counts caches for `years`. The paper's panel
+    is built from those caches, so agreement proves the rule reproduced
+    here is the paper's; a miss is a hard stop."""
+    years = YEARS if years is None else years
     frames = []
-    for y in YEARS:
+    for y in years:
         c = mc.read_cache(CACHE / f"L_counts_{y}.parquet",
                           require=["employer_id", "year_month", "age_group", "n_emp"])
         if c is None:
@@ -281,7 +301,7 @@ def gate(pulled: pd.DataFrame) -> None:
         print(f"    {p:10s} {b:6s} {int(r['l_counts']):>12,} {int(r['this_run']):>12,} "
               f"rel {r['rel']:.6f}")
     if len(bad):
-        msg = ("THE GATE FAILED: this run's counts differ from L_counts by more "
+        msg = (f"THE GATE{label} FAILED: this run's counts differ from L_counts by more "
                f"than {GATE_TOL:.0e} in {len(bad)} period x band cells; the rule "
                "reproduced here is not the paper's. Nothing is quotable.")
         print("  " + msg)
@@ -289,7 +309,7 @@ def gate(pulled: pd.DataFrame) -> None:
         GATE_LINES.append(msg)
         write_summary(pd.DataFrame(), pd.DataFrame(), set())
         raise SystemExit("104: gate failed")
-    GATE_LINES.append(f"THE GATE PASSES: counted person-months by period x band reproduce 47L's "
+    GATE_LINES.append(f"THE GATE{label} PASSES: counted person-months by period x band reproduce 47L's "
                       f"L_counts in all {len(both)} cells (max relative deviation "
                       f"{both['rel'].max():.2e}; {int(both['this_run'].sum()):,} person-months)")
     print("  " + GATE_LINES[-1])
@@ -332,21 +352,57 @@ def shares(d: pd.DataFrame) -> pd.DataFrame:
     return out.sort_values(["band", "group", "period"]).reset_index(drop=True)
 
 
+AGG = dict(n_employers=("employer_id", "nunique"), n_emp=("n_emp", "sum"), n_pay=("n_pay", "sum"),
+           n_nopay_pension=("n_nopay_pension", "sum"), n_nopay_benefit=("n_nopay_benefit", "sum"))
+
+
 def by_year(d: pd.DataFrame) -> pd.DataFrame:
+    """year x band x exposure group, with an 'all' level on band and on
+    group: the reconciliation by year, group and band."""
     d = d.copy()
     d["band"] = np.where(d["age_group"].isin(OLDER), "31-69", d["age_group"])
-    g = d.groupby(["year", "band"], observed=True).agg(
-        n_employers=("employer_id", "nunique"), n_emp=("n_emp", "sum"), n_pay=("n_pay", "sum"),
-        n_nopay_pension=("n_nopay_pension", "sum"),
-        n_nopay_benefit=("n_nopay_benefit", "sum")).reset_index()
-    a = d.groupby("year", observed=True).agg(
-        n_employers=("employer_id", "nunique"), n_emp=("n_emp", "sum"), n_pay=("n_pay", "sum"),
-        n_nopay_pension=("n_nopay_pension", "sum"),
-        n_nopay_benefit=("n_nopay_benefit", "sum")).reset_index()
-    a["band"] = "all"
-    g = pd.concat([g, a[g.columns]], ignore_index=True)
+    parts = []
+    for bands in (["22-25", "26-30", "31-69"], None):
+        for groups in (["top", "rest", "unscored"], None):
+            sub = d
+            keys = ["year"]
+            if bands is not None:
+                keys.append("band")
+            if groups is not None:
+                keys.append("group")
+            g = sub.groupby(keys, observed=True).agg(**AGG).reset_index()
+            if bands is None:
+                g["band"] = "all"
+            if groups is None:
+                g["group"] = "all"
+            parts.append(g)
+    g = pd.concat(parts, ignore_index=True)
     g["share_pay"] = g["n_pay"] / g["n_emp"].clip(lower=1)
-    return g.sort_values(["year", "band"]).reset_index(drop=True)
+    g["share_nopay_pension"] = g["n_nopay_pension"] / (g["n_emp"] - g["n_pay"]).clip(lower=1)
+    g["share_nopay_benefit"] = g["n_nopay_benefit"] / (g["n_emp"] - g["n_pay"]).clip(lower=1)
+    cols = ["year", "band", "group", "n_employers", "n_emp", "n_pay", "share_pay",
+            "n_nopay_pension", "n_nopay_benefit", "share_nopay_pension", "share_nopay_benefit"]
+    return g[cols].sort_values(["year", "band", "group"]).reset_index(drop=True)
+
+
+def scoring_population(d19: pd.DataFrame) -> pd.DataFrame:
+    """P4: the 2019 person-months aged 31 to 69 (the incumbents whose
+    occupations score the employer), by exposure group, with 'all'."""
+    d = d19[d19["age_group"].isin(OLDER)].copy()
+    rows = []
+    for grp_set, grp_lab in [(["top"], "top"), (["rest"], "rest"),
+                             (["unscored"], "unscored"), (["top", "rest", "unscored"], "all")]:
+        s = d[d["group"].isin(grp_set)]
+        rows.append({"year": SCORE_YEAR, "band": "31-69", "group": grp_lab,
+                     "n_employers": int(s["employer_id"].nunique()),
+                     "n_emp": int(s["n_emp"].sum()), "n_pay": int(s["n_pay"].sum()),
+                     "n_nopay_pension": int(s["n_nopay_pension"].sum()),
+                     "n_nopay_benefit": int(s["n_nopay_benefit"].sum())})
+    out = pd.DataFrame(rows)
+    out["share_pay"] = out["n_pay"] / out["n_emp"].clip(lower=1)
+    out["share_nopay_pension"] = out["n_nopay_pension"] / (out["n_emp"] - out["n_pay"]).clip(lower=1)
+    out["share_nopay_benefit"] = out["n_nopay_benefit"] / (out["n_emp"] - out["n_pay"]).clip(lower=1)
+    return out
 
 
 def suppress(df: pd.DataFrame) -> pd.DataFrame:
@@ -369,7 +425,9 @@ def pick(sh: pd.DataFrame, period: str, band: str, group: str) -> float:
     return float(r["share_pay"].iloc[0]) if len(r) == 1 and r["share_pay"].notna().all() else float("nan")
 
 
-def write_summary(sh: pd.DataFrame, yr: pd.DataFrame, cols: set) -> None:
+def write_summary(sh: pd.DataFrame, yr: pd.DataFrame, cols: set,
+                  sc: pd.DataFrame = None) -> None:
+    sc = pd.DataFrame() if sc is None else sc
     L = ["WHAT COUNTS AS A PERSON-MONTH, AND WHETHER IT DIFFERS BY EXPOSURE,",
          "AGE AND PERIOD (LANE 38e)", "=" * 66, "",
          "A counted person-month is a distinct person with an individual",
@@ -409,17 +467,34 @@ def write_summary(sh: pd.DataFrame, yr: pd.DataFrame, cols: set) -> None:
                      + (" (column absent)" if PENSION_COL not in cols else "")
                      + f"; with a taxable benefit {100 * ben / max(nopay, 1):.1f} per cent")
         L.append("")
+    if not sc.empty:
+        L.append(f"P4. THE SCORING POPULATION: {SCORE_YEAR} person-months aged 31-69 (the incumbents whose")
+        L.append("    occupations score the employer), share with cash pay, by exposure group:")
+        for _, r in sc.iterrows():
+            if r["share_pay"] == r["share_pay"]:
+                nopay = int(r["n_emp"] - r["n_pay"])
+                L.append(f"    {r['group']:9s} {r['share_pay']:.4f}  ({int(r['n_emp']):,} person-months; "
+                         f"without cash pay {nopay:,}, of which pension "
+                         f"{100 * r['share_nopay_pension']:.1f} per cent, benefit "
+                         f"{100 * r['share_nopay_benefit']:.1f} per cent)")
+            else:
+                L.append(f"    {r['group']:9s} suppressed (under the floor)")
+        L.append("")
     if not yr.empty:
-        L.append("BY YEAR, all employers, share with cash pay:")
-        for _, r in yr.iterrows():
-            L.append(f"  {int(r['year'])} {r['band']:6s} {r['share_pay']:.4f}  ({int(r['n_emp']):,} person-months)")
+        L.append("BY YEAR x BAND x GROUP, share with cash pay (top | rest | all):")
+        for (y, b), g in yr.groupby(["year", "band"], sort=True):
+            v = {r["group"]: r for _, r in g.iterrows()}
+            f = lambda k: (f"{v[k]['share_pay']:.4f}" if k in v and v[k]["share_pay"] == v[k]["share_pay"]  # noqa: E731
+                           else "  n/a ")
+            L.append(f"  {int(y)} {b:6s} top {f('top')}  rest {f('rest')}  all {f('all')}"
+                     + (f"  ({int(v['all']['n_emp']):,} person-months)" if "all" in v else ""))
         L.append("")
     if NOTES:
         L += ["NOTES:"] + [f"  {n}" for n in NOTES] + [""]
     if FAILURES:
         L += ["FAILED: " + " | ".join(FAILURES), "A missing row is a missing pull, never a zero.", ""]
-    L += READ_RULES + ["", f"Runtime {(time.time() - T0) / 60:.1f} min. A pass over 54 monthly "
-                       "tables should take about an hour; a return under 10 minutes is a failure. "
+    L += READ_RULES + ["", f"Runtime {(time.time() - T0) / 60:.1f} min. A pass over 66 monthly "
+                       "tables should take about an hour and a quarter; a return under 10 minutes is a failure. "
                        + mc.mem_line("")]
     (OUT / "104_summary.txt").write_text("\n".join(L), encoding="utf-8")
     print("\n" + "\n".join(L))
@@ -439,22 +514,26 @@ def main() -> int:
     print("\n".join(READ_RULES))
     print(mc.mem_line("  "))
     rc = 0
-    sh, yr, cols = pd.DataFrame(), pd.DataFrame(), set()
+    sh, yr, cols, sc = pd.DataFrame(), pd.DataFrame(), set(), pd.DataFrame()
     try:
         s82, l47, l70, j47 = load_modules()
         if not all((CACHE / f"L_counts_{y}.parquet").exists() for y in YEARS):
             raise RuntimeError("L_counts_2021-2025 are not all on the share; the gate needs them")
+        if not (CACHE / f"L_counts_{SCORE_YEAR}.parquet").exists():
+            raise RuntimeError(f"L_counts_{SCORE_YEAR} is not on the share; P4's gate needs it (82 caches it)")
         conn = open_conn()
         cols = probe_columns(conn)
         print(f"  {PROBE_TABLE}: {len(cols)} columns; pay column present; pension column "
               f"{'present' if PENSION_COL in cols else 'ABSENT'}; benefit columns "
               f"{[c for c in BENEFIT_COLS if c in cols]}")
         pulled = pd.concat([pull_year(y, conn, cols) for y in YEARS], ignore_index=True)
+        pulled19 = pull_year(SCORE_YEAR, conn, cols)
         try:
             conn.close()
         except Exception:
             pass
         gate(pulled)
+        gate(pulled19, years=[SCORE_YEAR], label=f" ({SCORE_YEAR})")
         built = s82.build_exposure(l47, l70, j47, audit=False)
         drain(s82, "82")
         expo = built["exposure"]
@@ -462,11 +541,15 @@ def main() -> int:
         gc.collect()
         print(f"  score: {len(expo):,} employers, {int((expo['fq'] == 4).sum()):,} in the top quartile")
         pulled = attach_group(pulled, expo)
+        pulled19 = attach_group(pulled19, expo)
         sh = suppress(shares(pulled))
         yr = suppress(by_year(pulled))
+        sc = suppress(scoring_population(pulled19))
         sh.to_csv(OUT / "payment_rule.csv", index=False)
         yr.to_csv(OUT / "payment_rule_by_year.csv", index=False)
-        print(f"  wrote payment_rule.csv ({len(sh)} rows) and payment_rule_by_year.csv ({len(yr)} rows)")
+        sc.to_csv(OUT / f"payment_rule_{SCORE_YEAR}_incumbents.csv", index=False)
+        print(f"  wrote payment_rule.csv ({len(sh)} rows), payment_rule_by_year.csv ({len(yr)} rows) "
+              f"and payment_rule_{SCORE_YEAR}_incumbents.csv ({len(sc)} rows)")
     except SystemExit:
         mc.runlog("104_payment_rule", 2, (time.time() - T0) / 60)
         raise
@@ -475,7 +558,7 @@ def main() -> int:
         traceback.print_exc()
         FAILURES.append(f"main/{type(ex).__name__}: {ex}")
         rc = 1
-    write_summary(sh, yr, cols)
+    write_summary(sh, yr, cols, sc)
     rc = rc or (1 if FAILURES else 0)
     mc.runlog("104_payment_rule", rc, (time.time() - T0) / 60)
     print("\n104 done.")
