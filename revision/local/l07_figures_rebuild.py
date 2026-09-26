@@ -12,8 +12,11 @@ three-month centred moving average, drawn from the series extended to
 June 2026 when script l08 has produced it and from the submitted series
 cut at December 2025 otherwise. Series are distinguished by line style
 and a legend rather than by colour alone, and the two event lines (the
-Riksbank's first rate rise, April 2022; the ChatGPT launch, November
-2022) carry their dates.
+Riksbank's first rate rise, April 2022; the first full month after the
+ChatGPT launch, December 2022, which is where CHATGPT_LAUNCH puts the
+line) carry their dates. Until 26 Sep 2026 the label read "ChatGPT
+launch, November 2022" while the line stood at 1 December, the
+mismatch the letter's figure check is there to catch.
 
 Figure fig:firm_entry_es (fig3_firm_entry_es): the half-year Poisson
 event-study coefficients of the within-employer posting design of script
@@ -144,7 +147,7 @@ def fig1_two_panel():
              "Riksbank first hike\nApril 2022", fontsize=8, color=TEAL,
              ha="right", va="top")
     ax1.text(gpt, ax1.get_ylim()[0] * 1.02,
-             "  ChatGPT launch\n  November 2022",
+             "  First full month after\n  ChatGPT launch, Dec 2022",
              fontsize=8, color=DARK_TEXT, ha="left", va="bottom")
 
     ax2.xaxis.set_major_locator(mdates.YearLocator())
