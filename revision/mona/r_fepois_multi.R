@@ -23,7 +23,8 @@
 #   the cluster column.
 #
 # OUTPUT
-#   <out.csv>        term, coef, se, pvalue, n_obs, n_emp_total, converged,
+#   <out.csv>        term, coef, se, pvalue, n_obs (input rows), n_obs_fit
+#                    (rows the fit used), n_emp_total, converged,
 #                    elapsed_s, status; one row per term, 'dropped' when a
 #                    term is absorbed by the effects.
 #   <out>_vcov.csv   the clustered covariance of the terms, so that a linear
@@ -63,6 +64,7 @@ fes   <- trimws(strsplit(fe_raw, ",")[[1]])
 write_failure <- function(msg, elapsed = 0) {
     df <- data.frame(term = terms, coef = NA_real_, se = NA_real_,
                      pvalue = NA_real_, n_obs = NA_integer_,
+                     n_obs_fit = NA_integer_,
                      n_emp_total = NA_real_, converged = FALSE,
                      elapsed_s = elapsed, status = msg,
                      stringsAsFactors = FALSE)
@@ -199,6 +201,12 @@ fit <- tryCatch(
         quit(status = 1)
     })
 elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+# The observations the fit used: n_obs is the input row count, taken
+# before fixest drops all-zero fixed-effect groups and singletons (see
+# r_fepois.R; added 26 Sep 2026).
+n_obs_fit <- tryCatch(as.integer(nobs(fit)), error = function(e) NA_integer_)
+cat(sprintf("rows used by the fit: %s of %d\n",
+            ifelse(is.na(n_obs_fit), "NA", format(n_obs_fit)), n_obs))
 
 co <- summary(fit)$coeftable
 
@@ -226,13 +234,14 @@ out_rows <- lapply(terms, function(tm) {
         data.frame(term = tm, coef = as.numeric(co[tm, "Estimate"]),
                    se = as.numeric(co[tm, "Std. Error"]),
                    pvalue = as.numeric(co[tm, "Pr(>|z|)"]),
-                   n_obs = n_obs, n_emp_total = n_emp_total,
+                   n_obs = n_obs, n_obs_fit = n_obs_fit,
+                   n_emp_total = n_emp_total,
                    converged = isTRUE(fit$convStatus),
                    elapsed_s = elapsed, status = "ok",
                    stringsAsFactors = FALSE)
     } else {
         data.frame(term = tm, coef = NA_real_, se = NA_real_,
-                   pvalue = NA_real_, n_obs = n_obs,
+                   pvalue = NA_real_, n_obs = n_obs, n_obs_fit = n_obs_fit,
                    n_emp_total = n_emp_total,
                    converged = isTRUE(fit$convStatus),
                    elapsed_s = elapsed, status = "dropped",
