@@ -10,7 +10,7 @@ is a step from the level of the tightening months with the calendar cycle
 removed; 95 per cent intervals clustered by employer (script 84). The 2022Q4
 point is December 2022 alone and is drawn hollow. The lower panel is
 Statistics Sweden's published share of enterprises with ten or more employees
-using AI (10 per cent in 2023, 25 per cent in 2024), typed in below from the
+using AI (10 per cent in 2023, 25 in 2024, 35 in 2025), typed in below from the
 published statistic. A quarter with no estimate is drawn as a gap. The
 quarter axis is the union of the quarters in this export and in script 68's
 path export, which carry the same quarters.
@@ -41,7 +41,7 @@ from config import EXPORTS, DARK_BLUE, ORANGE, GRAY, LIGHT_GRAY, DARK_TEXT  # no
 # Statistics Sweden's firm AI-use series, published and not estimated
 # here. The paper carries no adoption figure later than 2024, because the
 # dating of the window to January 2024 rests on the 2023-to-2024 change.
-SCB_ADOPTION = {"2023": 10, "2024": 25}
+SCB_ADOPTION = {"2023": 10, "2024": 25, "2025": 35}   # scb2026aiuse: 2025 = 35
 LAUNCH_Q = "2022Q4"
 # Script 84's export.
 S84 = EXPORTS / "2026-09-23_0917_s84"

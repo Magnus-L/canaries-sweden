@@ -175,7 +175,7 @@ def main() -> int:
             f"Employers & {thousands(n_six)} & {thousands(n_seven)} \\\\",
             r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
-            r"Poisson with employer-by-month, employer-by-age and month-by-age effects, calendar cycle removed, treatment January 2024, exposure the employer's 2019 occupation mix, clustered by employer. Both columns report the step from January 2024; Figure~2 of the paper draws $\tau$ on the eight-band panel of Table~\ref{tab:final_checks}, Panel~B. The second column splits the oldest band at 65 on its own, smaller panel. The 50--64 band contains the ages the 2020 and 2023 increases in the earliest pension age reach; the 65--69 band those the higher employment-protection age reaches. $^{*}$ $p<0.05$.",
+            r"Poisson with employer-by-month, employer-by-age and month-by-age effects, calendar cycle removed, treatment January 2024, exposure the employer's 2019 occupation mix, clustered by employer. Both columns report the step from January 2024; Figure~2 of the paper draws $\tau$ on the eight-band panel of Table~\ref{tab:final_checks}, Panel~B. The six-band panel keeps every employer holding 41--49 and another band (153{,}845); the seven- and eight-band panels keep those holding 22--25 and another band (104{,}333), which is why the second column is the smaller panel. The 50--64 band contains the ages the 2020 and 2023 increases in the earliest pension age reach; the 65--69 band those the higher employment-protection age reaches. $^{*}$ $p<0.05$.",
             r"\end{minipage}", r"\end{table}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

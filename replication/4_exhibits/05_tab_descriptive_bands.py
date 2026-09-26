@@ -79,7 +79,7 @@ def main() -> int:
     tex = [r"\begin{table}[ht!]", r"\centering",
            r"\caption{Descriptive counterpart of the headline design: "
            r"employment by exposure quartile and age band, per cent change "
-           r"from the pre-adoption months to the adoption window.}",
+           r"from the pre-adoption months (January 2022 to December 2023) to the adoption window (January 2024 to June 2025).}",
            r"\label{tab:descriptive_bands}", r"\footnotesize",
            r"\setlength{\tabcolsep}{3.5pt}",
            r"\begin{tabular}{lcccc}", r"\toprule",

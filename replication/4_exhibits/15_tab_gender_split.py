@@ -213,8 +213,7 @@ def main() -> int:
            r"\midrule"]
     tex += rows
     tex += [r"\midrule",
-            r"\multicolumn{5}{l}{\textit{The split (pooled differential $=$ "
-            r"within $+$ composition)}} \\",
+            r"\multicolumn{5}{l}{\textit{Pooled and weighted within-track estimates}} \\",
             "Pooled differential & & "
             + cell("pooled", pooled, pooled_se) + r" & & \\",
             "Within tracks (weighted) & & "

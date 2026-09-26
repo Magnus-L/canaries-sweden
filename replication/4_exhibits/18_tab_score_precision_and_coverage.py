@@ -234,7 +234,7 @@ def size_reliability() -> None:
         tex.append(f"\\quad employers in the panel & {cells[0]} & "
                    f"{cells[1]} \\\\")
         print(f"  {spec:10s} tau " + "  ".join(f"{c:+.4f} ({se:.4f})" for c, se in taus))
-    note = r"Panel~A: reliability is the share of the variance in the firm score that is signal rather than sampling noise, which rises with the number of incumbents behind the score; it is reported and not used to correct any estimate, since the measurement error is not classical. Panel~B: $\tau$ and the step from the tightening months of Equation~(2), clustered by employer, with the national exposure quartile carried into every arm unchanged. The size groups split at four incumbents, because the incumbent count is too skewed for thirds."
+    note = r"Panel~A: reliability is the share of the variance in the firm score that is signal rather than sampling noise, $\lambda(n) = \sigma^2_B / (\sigma^2_B + \sigma^2_W / n)$ for an employer scored from $n$ incumbents, with the between-employer variance netted of its own sampling noise; it rises with the number of incumbents behind the score and is reported, not used to correct any estimate, since the measurement error is not classical. Panel~B: $\tau$ and the step from the tightening months of Equation~(2), clustered by employer, with the national exposure quartile carried into every arm unchanged. The size groups split at four incumbents, because the incumbent count is too skewed for thirds."
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
             note, r"\end{minipage}", r"\end{table}"]

@@ -286,17 +286,19 @@ def plot_telework_comparison(results: pd.DataFrame):
     ax.set_xticks(x)
     ax.set_xticklabels(groups, fontsize=11)
     ax.set_ylabel(r"$\hat{\beta}_2$ (Post-ChatGPT $\times$ High AI exposure)")
-    ax.set_title("ChatGPT effect by teleworkability\n(Dingel-Neiman 2020 classification)")
+    # no title: the caption carries it (Editor's C6). The Dingel-Neiman
+    # classification is named in the appendix text.
 
-    # Add p-values
+    # Coefficient labels beside each bar at mid-height, clear of the
+    # whiskers and of the axis (the earlier placement below the whisker
+    # printed the first label over the tick label).
     for i, (b, row_g) in enumerate(zip(betas, groups)):
         row = results[results["group"] == row_g].iloc[0]
         p = row["p_gpt"]
         sig = "***" if p < 0.01 else "**" if p < 0.05 else "*" if p < 0.10 else ""
         label = f"{b:.3f}{sig}\n(p={p:.3f})"
-        y_pos = b + ses[i] + 0.01 if b >= 0 else b - ses[i] - 0.03
-        ax.text(i, y_pos, label, ha="center", va="bottom" if b >= 0 else "top",
-                fontsize=9)
+        ax.text(i + 0.3, b / 2 if abs(b) > 0.02 else 0.02, label, ha="left",
+                va="center", fontsize=9)
 
     plt.tight_layout()
     out = FIGURES / "figA_telework_robustness.png"

@@ -198,13 +198,15 @@ def plot_scatter(df: pd.DataFrame):
             linewidth=1.2, linestyle="--", zorder=4, alpha=0.6, label="OLS fit")
 
     # Annotation box
+    # The weighted p-value is not printed: it is computed with the
+    # advertisement, not the occupation, as the unit and overstates the
+    # precision of a correlation across 353 occupations. The occupation-
+    # level OLS p-value is the one the appendix text quotes.
     ax.text(
         0.03, 0.97,
-        f"WLS (posting-weighted):\n"
-        f"  r = {r_w:.3f}, p = {p_w:.3f}, slope = {slope_w:.4f}\n"
-        f"OLS (unweighted):\n"
-        f"  r = {r_uw:.3f}, p = {p_uw:.3f}\n"
-        f"N = {len(df)} occupations",
+        f"Unweighted: r = {r_uw:.3f}, p = {p_uw:.2f}\n"
+        f"Posting-weighted: r = {r_w:.3f}\n"
+        f"N = {len(df)} occupations with postings\nin both windows",
         transform=ax.transAxes, fontsize=9,
         va="top", ha="left",
         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.85),
@@ -222,7 +224,7 @@ def plot_scatter(df: pd.DataFrame):
     ax.set_xlabel("DAIOE genAI exposure (percentile rank)")
     ax.set_ylabel("Posting change after Riksbank rate hike\n"
                   "(log change, May–Nov vs Jan–Mar 2022)")
-    ax.set_title("AI exposure vs monetary policy sensitivity in Sweden")
+    # no title: the caption carries it (Editor's C6)
     ax.legend(title="AI exposure quartile", loc="lower left", fontsize=8,
               title_fontsize=9)
 
