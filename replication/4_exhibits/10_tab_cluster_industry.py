@@ -51,7 +51,7 @@ FEMALE = "post_x_high_x_young_x_female"
 ROWS = [
     (r"Tightening months ($\hat\gamma_1$)", RB),
     (r"Interim, through 2023 ($\hat\gamma_0$)", INTER),
-    (r"Adoption, from 2024 ($\hat\gamma_2$)", POST),
+    (r"Later period, from 2024 ($\hat\gamma_2$)", POST),
     ("STEP", None),
     ("Quarter 1", "q1_x_high_x_young"),
     ("Quarter 2", "q2_x_high_x_young"),
@@ -61,12 +61,12 @@ ROWS = [
 SEX_ROWS = [
     (r"Young men, tightening months ($\hat\gamma_1$)", RB),
     (r"Young men, interim through 2023 ($\hat\gamma_0$)", INTER),
-    (r"Young men, adoption from 2024 ($\hat\gamma_2$)", POST),
+    (r"Young men, later period from 2024 ($\hat\gamma_2$)", POST),
     (r"Female differential, tightening months",
      "rb_x_high_x_young_x_female"),
     (r"Female differential, interim through 2023",
      "interim_x_high_x_young_x_female"),
-    (r"Female differential, adoption from 2024", FEMALE),
+    (r"Female differential, later period from 2024", FEMALE),
 ]
 # The industry-cluster count of each panel, as the export held it when
 # this script was written. A different count means a different panel.
@@ -195,7 +195,7 @@ def pooled_panel(band: str) -> tuple[str, int, int, list]:
     rows = []
     for label, term in ROWS:
         if term is None:
-            rows.append(("Step from the 2023 level",
+            rows.append((r"Later minus interim, $\tau$",
                          coef_cell(f"{band} step", step),
                          se_cell(f"{band} step, employer", step,
                                  se_diff(ve, POST, INTER)),
@@ -232,7 +232,7 @@ def sex_panel() -> tuple[str, int, int, list]:
                      se_cell(f"sexes {term}, industry", c, ind)))
 
     women = float(d.loc[POST, "coef"]) + float(d.loc[FEMALE, "coef"])
-    rows.append(("Young women, adoption from 2024",
+    rows.append(("Young women, later period from 2024",
                  coef_cell("young women", women),
                  se_cell("young women, employer", women,
                          se_sum(ve, POST, FEMALE)),
@@ -271,7 +271,7 @@ def main() -> int:
             print(f"    {label[:44]:44s} {c:>12s}  {emp:>14s}  {ind:>14s}")
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.9\textwidth}\footnotesize\vspace{4pt}",
-            r"The headline specification of Equation~(2) with standard errors clustered by employer and, alternatively, by the employer's three-digit industry. Coefficients are identical under the two clusterings and printed once. The step from the 2023 level is the adoption term minus the interim term. Panel~C is the sex split of Equation~(2) at 22--25; the row for young women is the male step plus the female differential. Stars mark $p<0.05$ under the clustering in whose column they stand.",
+            r"The headline specification of Equation~(2) with standard errors clustered by employer and, alternatively, by the employer's three-digit industry. Coefficients are identical under the two clusterings and printed once. $\tau$ is the later-period term minus the interim term. Panel~C is the sex split of Equation~(2) at 22--25; the row for young women is the male step plus the female differential. Stars mark $p<0.05$ under the clustering in whose column they stand.",
             r"\end{minipage}", r"\end{table}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

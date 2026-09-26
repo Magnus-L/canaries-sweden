@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "Replication package for 'Same Storm, Different Boats: Generative AI and Young Workers Within Firms'"
+title: "Replication package for 'Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms'"
 message: "If you use this package, please cite the paper and the package."
 type: software
 # The paper's four authors, in the paper's order. Only ORCID iDs verified against
@@ -38,14 +38,14 @@ license:
   - MIT
   - CC-BY-4.0
 repository-code: "https://github.com/Magnus-L/canaries-sweden"
-version: "2026-09-24"
-date-released: "2026-09-24"
+version: "2026-09-26"
+date-released: "2026-09-26"
 # DOI PLACEHOLDER: the package will be deposited on Zenodo through a GitHub
 # release on acceptance. Add the DOI it assigns here, as
 #   doi: "10.5281/zenodo.<to be assigned on deposit>"
 references:
   - type: article
-    title: "Same Storm, Different Boats: Generative AI and Young Workers Within Firms"
+    title: "Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms"
     authors:
       - family-names: Lodefalk
         given-names: Magnus
@@ -56,4 +56,4 @@ references:
       - family-names: Engberg
         given-names: Erik
     year: 2026
-    notes: "Manuscript under revision at Economics Letters (September 2026); earlier version Örebro University Working Paper 2026:2 and Ratio Working Paper 388. Replaced with the journal reference at acceptance."
+    notes: "Revised version submitted to Economics Letters (EL67898R1), October 2026 [date to be set at submission]; earlier version Örebro University Working Paper 2026:2 and Ratio Working Paper 388. Replaced with the journal reference at acceptance."

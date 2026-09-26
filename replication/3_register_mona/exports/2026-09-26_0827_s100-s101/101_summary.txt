@@ -1,0 +1,135 @@
+PROVENANCE OF THE POOLED DIFFERENCES, AND THE RAW POOLED REBUILD
+================================================================
+
+GATE pooled: tau -0.0399 (0.0102)
+GATE sex: tau -0.0714 (0.0109)
+
+I. THE REGISTER VINTAGES:
+  Individ_2019: rows 8,492,723, persons 8,492,678, persons_multirow 45, persons_multisex 8, persons_multibirth 3
+  Individ_2021: rows 8,613,219, persons 8,613,191, persons_multirow 28, persons_multisex 7, persons_multibirth 0
+  Individ_2023: rows 8,748,116, persons 8,748,088, persons_multirow 28, persons_multisex 9, persons_multibirth 0
+
+R. CELL BY CELL:
+  anomalous_2021                     multisex_person_months             162
+  anomalous_2021                     multibirth_person_months           0
+  sexsum_minus_pooled_2021           cells_with_gap                     162
+  sexsum_minus_pooled_2021           cells_unexplained                  0
+  sexsum_minus_pooled_2021           person_months_gap                  162
+  sexsum_minus_pooled_2021           share_explained                    1.000000
+  rawpool_vs_pooled_2021             share_identical                    1.000000
+  rawpool_vs_pooled_2021             max_abs_diff                       0
+  raw99sum_minus_pooled_2021         cells_with_gap                     162
+  raw99sum_minus_pooled_2021         cells_unexplained                  0
+  raw99sum_minus_pooled_2021         person_months_gap                  162
+  raw99sum_minus_pooled_2021         share_explained                    1.000000
+  anomalous_2022                     multisex_person_months             159
+  anomalous_2022                     multibirth_person_months           0
+  sexsum_minus_pooled_2022           cells_with_gap                     159
+  sexsum_minus_pooled_2022           cells_unexplained                  0
+  sexsum_minus_pooled_2022           person_months_gap                  159
+  sexsum_minus_pooled_2022           share_explained                    1.000000
+  rawpool_vs_pooled_2022             share_identical                    1.000000
+  rawpool_vs_pooled_2022             max_abs_diff                       0
+  raw99sum_minus_pooled_2022         cells_with_gap                     159
+  raw99sum_minus_pooled_2022         cells_unexplained                  0
+  raw99sum_minus_pooled_2022         person_months_gap                  159
+  raw99sum_minus_pooled_2022         share_explained                    1.000000
+  anomalous_2023                     multisex_person_months             179
+  anomalous_2023                     multibirth_person_months           0
+  sexsum_minus_pooled_2023           cells_with_gap                     179
+  sexsum_minus_pooled_2023           cells_unexplained                  0
+  sexsum_minus_pooled_2023           person_months_gap                  179
+  sexsum_minus_pooled_2023           share_explained                    1.000000
+  rawpool_vs_pooled_2023             share_identical                    1.000000
+  rawpool_vs_pooled_2023             max_abs_diff                       0
+  raw99sum_minus_pooled_2023         cells_with_gap                     179
+  raw99sum_minus_pooled_2023         cells_unexplained                  0
+  raw99sum_minus_pooled_2023         person_months_gap                  179
+  raw99sum_minus_pooled_2023         share_explained                    1.000000
+  anomalous_2024                     multisex_person_months             179
+  anomalous_2024                     multibirth_person_months           0
+  sexsum_minus_pooled_2024           cells_with_gap                     179
+  sexsum_minus_pooled_2024           cells_unexplained                  0
+  sexsum_minus_pooled_2024           person_months_gap                  179
+  sexsum_minus_pooled_2024           share_explained                    1.000000
+  rawpool_vs_pooled_2024             share_identical                    1.000000
+  rawpool_vs_pooled_2024             max_abs_diff                       0
+  raw99sum_minus_pooled_2024         cells_with_gap                     179
+  raw99sum_minus_pooled_2024         cells_unexplained                  0
+  raw99sum_minus_pooled_2024         person_months_gap                  179
+  raw99sum_minus_pooled_2024         share_explained                    1.000000
+  anomalous_2025                     multisex_person_months             92
+  anomalous_2025                     multibirth_person_months           0
+  sexsum_minus_pooled_2025           cells_with_gap                     92
+  sexsum_minus_pooled_2025           cells_unexplained                  0
+  sexsum_minus_pooled_2025           person_months_gap                  92
+  sexsum_minus_pooled_2025           share_explained                    1.000000
+  rawpool_vs_pooled_2025             share_identical                    1.000000
+  rawpool_vs_pooled_2025             max_abs_diff                       0
+  raw99sum_minus_pooled_2025         cells_with_gap                     92
+  raw99sum_minus_pooled_2025         cells_unexplained                  0
+  raw99sum_minus_pooled_2025         person_months_gap                  92
+  raw99sum_minus_pooled_2025         share_explained                    1.000000
+  estimation_panel_22_25             cells_with_gap                     657
+  estimation_panel_22_25             cells_unexplained                  0
+  estimation_panel_22_25             person_months_gap                  657
+  estimation_panel_22_25             share_explained                    1.000000
+  estimation_panel_22_25             differing_cells_retained_by_fit    657
+  estimation_panel_22_25             differing_cells_headline_zero      0
+
+F. TAU:
+  gate_pooled              -0.03986 (0.01025)
+  gate_sex                 -0.07138 (0.01087)
+  sex_no_multisex          -0.07138 (0.01087)
+
+VERDICTS:
+  R2: THE INDEPENDENT POOLED REBUILD EQUALS THE HEADLINE COUNTS; max |diff| by year [0.0, 0.0, 0.0, 0.0, 0.0]
+  R3: 99S POOLED GAP IS PERSONS RECORDED UNDER TWO SEXES; share explained by year [1.0, 1.0, 1.0, 1.0, 1.0], panel 1.000000
+  R4 (female differential without multisex persons): MOVES BY LESS THAN A TENTH OF AN SE; -0.07138 (0.01087) against -0.07138 (0.01087)
+
+FITS: 3 of 3 attempted came back. A run far shorter than the estimate (1 to 1.5 hours) is a failure.
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  L_counts_2021: 11 rows without an employer id dropped
+  L_counts_sex_2021: 11 rows without an employer id dropped
+  rawpool_2021: 11 rows without an employer id dropped
+  R_counts_raw_2021: 11 rows without an employer id dropped
+  L_counts_2022: 11 rows without an employer id dropped
+  L_counts_sex_2022: 14 rows without an employer id dropped
+  rawpool_2022: 11 rows without an employer id dropped
+  R_counts_raw_2022: 14 rows without an employer id dropped
+  L_counts_2023: 4 rows without an employer id dropped
+  L_counts_sex_2023: 4 rows without an employer id dropped
+  rawpool_2023: 4 rows without an employer id dropped
+  R_counts_raw_2023: 4 rows without an employer id dropped
+  L_counts_2024: 72 rows without an employer id dropped
+  L_counts_sex_2024: 143 rows without an employer id dropped
+  rawpool_2024: 72 rows without an employer id dropped
+  R_counts_raw_2024: 143 rows without an employer id dropped
+  L_counts_2025: 36 rows without an employer id dropped
+  L_counts_sex_2025: 72 rows without an employer id dropped
+  rawpool_2025: 36 rows without an employer id dropped
+  R_counts_raw_2025: 72 rows without an employer id dropped
+  L_counts_sex: 244 rows without an employer id dropped
+  L_counts: 134 rows without an employer id dropped
+  L_counts: 134 rows without an employer id dropped
+  F: the raw pooled rebuild equals L_counts in every cell of every year, so its tau is Table 1's by construction; not refitted
+  F: no multibirth person in the panel years; the pooled counts need no correction
+  L_counts_sex: 244 rows without an employer id dropped
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATES. Pooled -0.0578 (0.0155), tau -0.0399 (0.0102); sex -0.0858
+  (0.0142), tau -0.0714 (0.0109); within 0.0005. A miss stops Part F.
+  R2. The independent pooled rebuild equals the headline counts if RP
+  equals L_counts in every cell of every year.
+  R3. 99's pooled gap is persons recorded under two sexes if every cell
+  where the sex-split sum differs from L_counts differs by exactly the
+  multisex persons in it, every year and on the estimation panel.
+  R4. A tau moves by less than 0.1 SE when the anomalous persons
+  are removed.
+  Counts below 5 are suppressed before anything leaves MONA.
+
+Runtime 80.5 min. memory available: 592.8 GB

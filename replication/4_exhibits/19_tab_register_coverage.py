@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 19_tab_register_coverage.py: the three tables of Online Appendix Part IV on
-the coverage of the occupation register: Table A25 (IV.1), Table A26 (IV.2)
-and Table A27 (IV.3).
+the coverage of the occupation register: Table A30 (IV.1), Table A31 (IV.2)
+and Table A32 (IV.3).
 
 tableIV1_coverage.tex: Panel A, the share of employment excluded for want of
 any occupation code, by year and age band; Panel B, the age of the code in
@@ -10,11 +10,13 @@ any occupation code, by year and age band; Panel B, the age of the code in
 incumbents, recent hires and entrants pooled over 2020-2023 (script 40).
 tableIV2_vintage.tex: the half-year event study of the submitted design at ages
 22-25, estimated separately on workers coded from the 2021, 2022 and 2023
-registers (script 41). tableIV3_backtest.tex: the as-of backtest, the true and
-as-of coefficients at the two truncations and the artefact, as-of minus true
-(script 45); the note adds the change in the reported design's adoption step
-when its score is restricted to codes observed in 2019, and the share of
-employers that keep their quartile (script 82, part C).
+registers (script 41), and beneath it the person-months of workers aged 22-25
+behind each column by half-year from 2023 (script 40's vintage composition).
+tableIV3_backtest.tex: the as-of backtest, the completed-vintage and as-of
+coefficients at the two truncations and their difference (script 45); the
+note adds the change in the reported design's adoption step when its score is
+restricted to codes observed in 2019, and the share of employers that keep
+their quartile (script 82, part C).
 
 The table notes contain four typed numbers from the backtest (+0.019, -0.288,
 -0.307, and about -0.17 for the submitted design).
@@ -70,8 +72,10 @@ def t1():
                      for v, g in d.groupby("vintage")}
 
     L = [r"\begin{table}[ht!]", r"\centering", r"\footnotesize",
-         r"\caption{Occupation-code coverage: complete after 2019, and the "
-         r"cost is the age of the code.}", r"\label{tab:iv_coverage}",
+         r"\caption[Occupation-code coverage in the occupation-linked "
+         r"population, and the age of the code]{Occupation-code coverage in "
+         r"the occupation-linked population, and the age of the code.}",
+         r"\label{tab:iv_coverage}",
          r"\begin{tabular}{lcccc}", r"\toprule",
          r"\multicolumn{5}{l}{\textit{Panel A. Share of employment excluded "
          r"for want of any code, by age band}} \\", r"\addlinespace[2pt]",
@@ -104,16 +108,23 @@ def t1():
             L.append(f"{lab} & \\multicolumn{{4}}{{c}}"
                      f"{{{grp.loc[g, 'rate']:.1f}\\%}} \\\\")
     L += [r"\bottomrule", r"\end{tabular}",
-          r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}Panel~A: the share of employed workers for whom no occupation code can be assigned from any register vintage when the most recent code is carried forward; it is non-zero only in 2019, where employment spells are left-censored. Panel~B: the age of the code carried, by year; the register is published with a two-year lag. Panel~C: the share of person-employer pairs carrying a current code, by worker group, 2020 to 2023 pooled.\end{minipage}", r"\end{table}"]
+          r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}Panel~A: the share of employed workers aged 22 to 69 with a birth year in the register used for whom no occupation code can be assigned, taking each year's own register up to 2022 and, from 2023, the most recent code in the 2023, 2022 and 2021 registers; it is non-zero only in 2019, where employment spells are left-censored. Workers with no record in the register used are outside the denominator. Panel~B: the age of the code carried, by year; the register is published with a two-year lag. Panel~C: the share of person-employer pairs carrying a current code, by worker group, 2020 to 2023 pooled.\end{minipage}", r"\end{table}"]
     (TABLES / "tableIV1_coverage.tex").write_text("\n".join(L) + "\n")
     print("  tableIV1_coverage.tex")
     print("   match rates:", grp["rate"].round(1).to_dict())
 
 
 def t2():
-    """Event studies run separately on each code vintage."""
+    """Event studies run separately on each code vintage, and beneath them
+    the person-months behind each column from 2023, when the columns first
+    differ (script 40's vintage composition, summed to half-years)."""
     ve = pd.read_csv(S41 / "output_41__vintage_es.csv")
     mp = pd.read_csv(S41 / "output_41__margin_pair_counts.csv")
+    vc = pd.read_csv(S40 / "vintage_composition.csv")
+    vc = vc[vc.age_group == "22-25"].copy()
+    month = vc.year_month.str[5:7].astype(int)
+    vc["half"] = vc.year_month.str[:4] + month.map(lambda m: "H1" if m <= 6 else "H2")
+    pm = vc.groupby(["half", "vintage"]).n_emp.sum().unstack()
     L = [r"\begin{table}[ht!]", r"\centering", r"\footnotesize",
          r"\caption{The half-year event study estimated separately on workers "
          r"coded from each register vintage, ages 22--25.}",
@@ -129,11 +140,35 @@ def t2():
             row.append("--" if r.empty else
                        f"${float(r.iloc[0]['coef']):+.3f}$ ({float(r.iloc[0]['se']):.3f})")
         L.append(" & ".join(row) + r" \\")
+    L += [r"\midrule",
+          r"\multicolumn{4}{l}{\emph{Person-months of workers aged 22--25 in "
+          r"each column}} \\"]
+    halves = [h for h in per if h >= "2023H1" and h in pm.index]
+    if not halves:
+        raise SystemExit("  vintage_composition.csv holds no half-year from "
+                         "2023 for ages 22-25; nothing is written")
+    for h in halves:
+        cells = [f"{int(pm.loc[h, v]):,}".replace(",", "{,}")
+                 for v in (2021, 2022, 2023)]
+        L.append(f"{h} & " + " & ".join(cells) + r" \\")
+    # The note states the ranges to the nearest hundred and tenth of a
+    # million (488 to 7,837 person-months; 2.10 to 2.31 million).
+    lo = int(pm.loc[halves, [2021, 2022]].min().min())
+    hi = int(pm.loc[halves, [2021, 2022]].max().max())
+    big = pm.loc[halves, 2023] / 1e6
+    if not (round(lo, -2) >= 500 and round(hi, -2) <= 8000
+            and round(big.min(), 1) >= 2.1 and round(big.max(), 1) <= 2.3):
+        raise SystemExit(f"  the note's ranges (500 to 8,000; 2.1 to 2.3 "
+                         f"million) no longer hold: {lo}, {hi}, "
+                         f"{big.min():.2f}, {big.max():.2f}; nothing is written")
+    print(f"   person-months by vintage, 2021 and 2022 columns: {lo:,} to "
+          f"{hi:,}; 2023 column {big.min():.2f} to {big.max():.2f} million")
     L += [r"\bottomrule", r"\end{tabular}",
-          r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}Each column restricts the submitted, occupation-classified event study to workers whose code comes from the stated register year; reference 2022H1, standard errors clustered by employer. Conditioning on code vintage conditions on how recently the register observed a worker, which depends on tenure, entry and mobility, so the subsamples shrink sharply in the later periods and no column estimates a treatment effect.\end{minipage}", r"\end{table}"]
+          r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}Each column restricts the submitted, occupation-classified event study, re-estimated by Poisson pseudo-maximum likelihood, to workers whose code comes from the stated register year; reference 2022H1, standard errors clustered by employer. Conditioning on code vintage conditions on how recently the register observed a worker, which depends on tenure, entry and mobility, so the subsamples shrink sharply in the later periods and no column estimates a treatment effect. The lower panel gives the person-months behind each column from 2023, when the columns first differ: the 2021 and 2022 columns rest on between 500 and 8{,}000 person-months a half-year against about 2.1 to 2.3 million in the 2023 column.\end{minipage}", r"\end{table}"]
     (TABLES / "tableIV2_vintage.tex").write_text("\n".join(L) + "\n")
     print("  tableIV2_vintage.tex  (pairs 2022: "
-          f"{mp[mp.year == 2022].n_pairs.sum():,})")
+          f"{mp[mp.year == 2022].n_pairs.sum():,}; person-months by vintage "
+          f"from {halves[0]} to {halves[-1]})")
 
 
 def rescoring_artefact() -> tuple[float, float]:
@@ -168,10 +203,11 @@ def t3():
     rescored, keep_share = rescoring_artefact()
     L = [r"\begin{table}[ht!]", r"\centering", r"\footnotesize",
          r"\caption{The as-of backtest: what the register's lag alone "
-         r"produces in years where the true age gap is observable.}",
+         r"produces in years where completed-vintage codes are available.}",
          r"\label{tab:iv_backtest}",
          r"\begin{tabular}{lccc}", r"\toprule",
-         r"Register truncated at & True codes & As-of codes & Artefact \\",
+         r"Register truncated at & Completed-vintage codes & As-of codes & "
+         r"Difference \\",
          r"\midrule"]
     for t in sorted(a.trunc.unique()):
         tr = a[(a.trunc == t) & (a.assignment == "true")].iloc[0]
@@ -184,23 +220,25 @@ def t3():
     L += [r"\bottomrule", r"\end{tabular}",
           r"\begin{minipage}{0.90\textwidth}\footnotesize\vspace{4pt}"
           r"The coefficient is the submitted design's $\hat\gamma_2$ on "
-          r"2019--2023, years in which every worker's true contemporaneous "
-          r"occupation is observed. The as-of column re-runs it having "
-          r"truncated the register at the stated year and rebuilt the coding "
-          r"cascade as it would have been, which imposes on those years "
-          r"exactly the staleness that 2024--25 inherit. \textbf{The artefact "
-          r"is the gap between the two columns, not the as-of coefficient.} "
-          r"At the 2021 truncation the lag moves an estimate of $+0.019$, "
-          r"indistinguishable from zero, to $-0.288$; the artefact is "
-          r"$-0.307$. A design of that kind returns about $-0.17$ on these data, "
-          r"so the lag alone can produce more than the whole of it. "
-          r"The design the paper "
-          r"reports admits no occupation code recorded after 2019, so this "
-          r"test does not apply to it. Its own 2019 codes are not all fresh: "
-          r"restricting the score to those observed in 2019, rather than "
-          r"carried back from earlier files, moves its adoption step by "
+          r"2019--2023, years in which the completed register vintages are "
+          r"available. The as-of arm also loses workers the truncated "
+          r"register cannot code, so the difference combines coding and "
+          r"sample inclusion. The as-of column re-runs it having truncated "
+          r"the register at the stated year and rebuilt the coding cascade "
+          r"as it would have been, which imposes on those years exactly the "
+          r"staleness that 2024--25 inherit. \textbf{The difference is the "
+          r"gap between the two columns, not the as-of coefficient.} At the "
+          r"2021 truncation the lag moves an estimate of $+0.019$, "
+          r"indistinguishable from zero, to $-0.288$; the difference is "
+          r"$-0.307$. A design of that kind returns about $-0.17$ on these "
+          r"data, so the lag alone can produce more than the whole of it. "
+          r"The design the paper reports reads no occupation file after the "
+          r"2019 vintage, and its employment counts need no current code. "
+          r"Its own 2019 codes are not all fresh: restricting the score to "
+          r"those observed in 2019, rather than carried back from earlier "
+          r"files, moves its adoption step by "
           f"${rescored:+.3f}$, and {100 * keep_share:.1f} per cent of "
-          r"employers keep their quartile. Source: scripts 45, 68 and 82."
+          r"employers keep their quartile."
           r"\end{minipage}", r"\end{table}"]
     (TABLES / "tableIV3_backtest.tex").write_text("\n".join(L) + "\n")
     print(f"  tableIV3_backtest.tex  (vintage restriction {rescored:+.4f}, "

@@ -267,3 +267,62 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-04-28_s32/attrition_by_quartile.csv,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
 2026-04-28_s32/step1_poisson_current.csv,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
 2026-04-28_s32/kauhanen_summary.txt,32 (archive/submitted_design/),,,,not read by any exhibit or manifest row
+2026-09-25_1459_s99/99_summary.txt,99,25_tab_nonmatch.py,OA275,Online Appendix Table A41; IV.4,read by the package
+2026-09-25_1459_s99/measurement_estimates.csv,99,,OA260 OA261 OA262 OA263 OA264 OA265 OA277 OA278 OA279,IV.1; VI.1,read by the package
+2026-09-25_1459_s99/measurement_reconciliation.csv,99,25_tab_nonmatch.py,,Online Appendix Table A41,read by the package
+2026-09-25_1459_s99/measurement_totals.csv,99,,,,not read by any exhibit or manifest row
+2026-09-25_1459_s99/vcov_s99_baseline_22_25.csv,99,,,,not read by any exhibit or manifest row
+2026-09-25_1459_s99/vcov_s99_gate_22_25.csv,99,,,,not read by any exhibit or manifest row
+2026-09-25_1459_s99/vcov_s99_other_22_25.csv,99,,,,not read by any exhibit or manifest row
+2026-09-25_1459_s99/vcov_s99_rebuilt_22_25.csv,99,,,,not read by any exhibit or manifest row
+2026-09-25_1832_s95-s96-s98/95_summary.txt,95,02_figure2_age_profile.py 23_tab_final_checks.py,,Figure 2 of the paper; Online Appendix Table A25,read by the package
+2026-09-25_1832_s95-s96-s98/96_summary.txt,96,23_tab_final_checks.py,,Online Appendix Table A25,read by the package
+2026-09-25_1832_s95-s96-s98/98_summary.txt,98,26_tab_backtest_arms.py,,Online Appendix Table A33,read by the package
+2026-09-25_1832_s95-s96-s98/backtest_common.csv,98,26_tab_backtest_arms.py,,Online Appendix Table A33,read by the package
+2026-09-25_1832_s95-s96-s98/payroll_cohorts.csv,96,23_tab_final_checks.py,OA236 OA237 OA238 OA239,"Online Appendix Table A25; III.2, Table A25 Panel C",read by the package
+2026-09-25_1832_s95-s96-s98/pension_reference.csv,95,02_figure2_age_profile.py 23_tab_final_checks.py,M061 M062 M063 M064 M065 M066 M067 M068 M069 M070 M081 OA191 OA192 OA193 OA194 OA195 OA196 OA197 OA198 OA199 OA200 OA201 OA202 OA203,"Figure 2 of the paper; Online Appendix Table A25; Figure 2; III.2; III.2, Table A25 Panel A; III.2, Table A25 Panel B; Section 3",read by the package
+2026-09-25_1832_s95-s96-s98/vcov_s96_gradient_nc_ec.csv,96,,,,not read by any exhibit or manifest row
+2026-09-25_1832_s95-s96-s98/vcov_s98_headline_gate.csv,98,,,,not read by any exhibit or manifest row
+2026-09-25_1832_s95-s96-s98/vcov_s98_stacked_T2021.csv,98,,,,not read by any exhibit or manifest row
+2026-09-25_1832_s95-s96-s98/vcov_s98_stacked_T2022.csv,98,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/97_summary.txt,97,23_tab_final_checks.py 27_fig_prepath_female.py,,Online Appendix Figure A6; Online Appendix Table A25,read by the package
+2026-09-25_2250_s97/headline_checks.csv,97,01_table1_headline.py 23_tab_final_checks.py 27_fig_prepath_female.py,M071 M072 M073 M075 M080 M082 OA204 OA205 OA206 OA207 OA208 OA209 OA210 OA211 OA212 OA213 OA214 OA215 OA216 OA217 OA218 OA219 OA228 OA229 OA230 OA231 OA232 OA233 OA234 OA235 OA240 OA241 OA242 OA243 OA244 OA245 OA246 OA247 OA248,"Online Appendix Figure A6; Online Appendix Table A25; Table 1 of the paper; III.2 sexes; III.2 sexes, Table A25 Panel E; III.2 sexes, Table A25 note; III.2, Fig. A6 caption; III.2, Table A25 Panel D; III.2, Table A25 Panel F; Section 3",read by the package
+2026-09-25_2250_s97/vcov_s97_gate_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_gate_26_30.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_i_base_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_k_base_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_k_base_26_30.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_k_lev_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_k_lev_26_30.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_p_drift_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_p_drift_indcl_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_p_path_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_p_path_indcl_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_q_continuous_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_q_quartiles_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-25_2250_s97/vcov_s97_sex_gate_22_25.csv,97,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/100_summary.txt,100,24_tab_unlinked.py,,Online Appendix Table A40,read by the package
+2026-09-26_0827_s100-s101/101_summary.txt,101,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/provenance.csv,101,,OA280 OA281 OA282 OA283 OA284 OA285 OA286 OA287 OA288,VI.1,read by the package
+2026-09-26_0827_s100-s101/tipping_point.csv,100,24_tab_unlinked.py,OA294 OA295 OA296 OA297 OA298 OA299 OA300 OA301 OA302 OA303 OA304 OA305 OA306,"Online Appendix Table A40; VI.1, Table A40",read by the package
+2026-09-26_0827_s100-s101/unlinked_accounting.csv,100,24_tab_unlinked.py,OA289 OA290 OA291 OA292 OA293,"Online Appendix Table A40; VI.1, Table A40",read by the package
+2026-09-26_0827_s100-s101/unlinked_accounting_sex.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/unlinked_by_month.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/unlinked_by_month_sex.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_P_gate.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_P_k0.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_P_kstar.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_P_xall.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_P_xdiff.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_S_gate.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_S_k0.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_S_kstar.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_S_xall.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s100_S_xdiff.csv,100,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s101_gate_pooled.csv,101,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s101_gate_sex.csv,101,,,,not read by any exhibit or manifest row
+2026-09-26_0827_s100-s101/vcov_s101_no_multisex.csv,101,,,,not read by any exhibit or manifest row
+2026-09-26_1040_s98b/98_summary.txt,98,26_tab_backtest_arms.py,,Online Appendix Table A33,read by the package
+2026-09-26_1040_s98b/backtest_common.csv,98,26_tab_backtest_arms.py,OA266 OA267 OA268 OA269 OA270 OA271 OA272,"Online Appendix Table A33; IV.3, Table A33",read by the package
+2026-09-26_1040_s98b/vcov_s98_stacked_T2021.csv,98,,,,not read by any exhibit or manifest row
+2026-09-26_1040_s98b/vcov_s98_stacked_T2022.csv,98,,,,not read by any exhibit or manifest row

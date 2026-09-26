@@ -1,0 +1,63 @@
+THE YOUTH PAYROLL REDUCTION ON FIXED BIRTH COHORTS
+==================================================
+
+SFS 2021:55: pay disbursed 1 Jan 2021 - 31 Mar 2023, to those who at
+the start of the year had turned 18 but not 23 (born Y-23 to Y-19);
+only the pension contribution in Jun-Aug 2021 and 2022. Groups by
+birth year alone, no age filter: nobody enters or leaves a group.
+
+COHORTS, STATUTORY ELIGIBILITY AND AGES (age = year - birth year):
+  born 1994:  0 months eligible; aged 27 in 2021, 29 in 2023, 31 in 2025
+  born 1995:  0 months eligible; aged 26 in 2021, 28 in 2023, 30 in 2025
+  born 1996:  0 months eligible; aged 25 in 2021, 27 in 2023, 29 in 2025
+  born 1997:  0 months eligible; aged 24 in 2021, 26 in 2023, 28 in 2025
+  born 1998: 12 months eligible; aged 23 in 2021, 25 in 2023, 27 in 2025
+  born 1999: 24 months eligible; aged 22 in 2021, 24 in 2023, 26 in 2025
+  born 2000: 27 months eligible; aged 21 in 2021, 23 in 2023, 25 in 2025
+  born 2001: 27 months eligible; aged 20 in 2021, 22 in 2023, 24 in 2025
+  born 2002: 27 months eligible; aged 19 in 2021, 21 in 2023, 23 in 2025
+  born 2003: 15 months eligible; aged 18 in 2021, 20 in 2023, 22 in 2025
+  born 2004:  3 months eligible; aged 17 in 2021, 19 in 2023, 21 in 2025
+  reference born 1956-1990: aged 31-65 in 2021, 35-69 in 2025
+
+GATE: 22-25 tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+
+C. COHORT-SPECIFIC EXPOSURE GRADIENTS (later minus interim),
+   against the fixed reference born 1956-1990:
+  never covered, born 1994-1997      +0.0536 (0.0068) t +7.94
+  ever covered, born 1998-2003       +0.2155 (0.0139) t +15.48
+  1998-2003 minus 1994-1997          +0.1618 (0.0113) t +14.27
+
+D. THE DOSE (optional; no verdict):
+  class_nc       gradient                    +0.0535 (0.0068)  nc, 0 months eligible
+  class_e1998    gradient                    +0.1739 (0.0143)  e1998, 12 months eligible
+  class_e1999    gradient                    +0.2126 (0.0172)  e1999, 24 months eligible
+  class_e2000_02 gradient                    +0.2442 (0.0160)  e2000_02, 27 months eligible
+  class_e2003    gradient                    +0.2255 (0.0271)  e2003, 15 months eligible
+  dose_linear    gradient_at_zero_dose       +0.0592 (0.0069)  born 1994-2003
+  dose_linear    gradient_per_year_eligible  +0.0852 (0.0061)  born 1994-2003
+
+VERDICT:
+  B1: neither pattern is clean; both reported as they come
+    never covered +0.0536 (0.0068); ever covered +0.2155 (0.0139)
+
+FITS: 4 of 4 attempted came back.
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  D: statutory months eligible nc 0, e1998 12, e1999 24, e2000_02 27, e2003 15
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATE. Table 1 at 22-25 within 0.0005 on the paper's panel:
+  -0.0578 (0.0155), tau -0.0399 (0.0102); a miss stops the script.
+  B1. The pattern extends to cohorts the reduction never covered if
+  the gradient for those born 1994-1997 is negative and
+  distinguishable at five per cent; the payroll rival is not excluded
+  if the gradient for 1998-2003 is and 1994-1997's is not.
+  B2. The dose (statutory years of eligibility) carries no verdict.
+  Labels: a cohort-specific exposure GRADIENT, not tau.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 92.4 min. memory available: 427.9 GB

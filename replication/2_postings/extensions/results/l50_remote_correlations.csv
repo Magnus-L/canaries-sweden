@@ -1,0 +1,27 @@
+pair,n_occ,unweighted,ad_weighted_2122,employment_weighted_2024,spearman
+remote_share x DAIOE pctl_rank_genai,369,0.6783478560469935,0.7497626709699022,0.7540830912249078,0.7684983073794829
+remote_share x Dingel-Neiman teleworkable,369,0.5649398874742806,0.587978864767154,0.5998472206522918,0.5721612761745105
+DAIOE pctl_rank_genai x Dingel-Neiman teleworkable,369,0.7453375901704709,0.7742056076530486,0.7919342715084072,0.7217795842418465
+"off-diagonal share, median cuts DAIOE x remote",369,0.15718157181571815,0.11556704772061904,0.1281352491124411,
+share of DAIOE Q4 occupations also RemoteHigh,91,0.7362637362637363,0.8054529688134016,,
+remote_share distribution: count,369,369.0,,,
+remote_share distribution: mean,369,0.032387787249217474,,,
+remote_share distribution: std,369,0.04664218388043843,,,
+remote_share distribution: min,369,0.0,,,
+remote_share distribution: 10%,369,0.0,,,
+remote_share distribution: 25%,369,0.0004626684402290209,,,
+remote_share distribution: 50%,369,0.007300102657693624,,,
+remote_share distribution: 75%,369,0.04832390074009578,,,
+remote_share distribution: 90%,369,0.11011984964640138,,,
+remote_share distribution: max,369,0.21082621082621084,,,
+remote_share ad-weighted mean 2021-22,369,0.041291281655151814,,,
+employer remote_share distribution (l09 employers): count,10643,10643.0,,,
+employer remote_share distribution (l09 employers): mean,10643,0.0495322444248184,,,
+employer remote_share distribution (l09 employers): std,10643,0.14619828249271058,,,
+employer remote_share distribution (l09 employers): min,10643,0.0,,,
+employer remote_share distribution (l09 employers): 10%,10643,0.0,,,
+employer remote_share distribution (l09 employers): 25%,10643,0.0,,,
+employer remote_share distribution (l09 employers): 50%,10643,0.0,,,
+employer remote_share distribution (l09 employers): 75%,10643,0.006329113924050633,,,
+employer remote_share distribution (l09 employers): 90%,10643,0.14285714285714285,,,
+employer remote_share distribution (l09 employers): max,10643,1.0,,,

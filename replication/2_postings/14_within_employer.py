@@ -321,17 +321,17 @@ def _tex(rows_df, trip):
     lines = [r"\scriptsize",
              r"\setlength{\tabcolsep}{3.5pt}",
              r"\begin{tabular}{lccrr}", r"\toprule",
-             r"Sample & PostRB $\times$ High & PostGPT $\times$ High & Employers & $N$ \\", r"\midrule"]
+             r"Sample & Post-rate-rise $\times$ High & Post-launch $\times$ High & Employers & $N$ \\", r"\midrule"]
     for v, lab in labels:
         if v not in set(rows_df["variant"]):
             continue
         f_, n_ = nf(rows_df, v)
         lines.append(f"{lab} & {cell(rows_df, v, 'rb_x_high')} & {cell(rows_df, v, 'gpt_x_high')} & {f_} & {n_} \\\\")
     lines += [r"\midrule", r"\multicolumn{5}{l}{\textit{Entry-level differential, one panel (employer $\times$ quartile $\times$ entry flag $\times$ month)}} \\"]
-    for t, lab in (("rb_x_high", "PostRB $\\times$ High, non-entry advertisements"),
-                   ("gpt_x_high", "PostGPT $\\times$ High, non-entry advertisements"),
-                   ("rb_x_high_x_entry", "PostRB $\\times$ High $\\times$ Entry"),
-                   ("gpt_x_high_x_entry", "PostGPT $\\times$ High $\\times$ Entry")):
+    for t, lab in (("rb_x_high", "Post-rate-rise $\\times$ High, non-entry advertisements"),
+                   ("gpt_x_high", "Post-launch $\\times$ High, non-entry advertisements"),
+                   ("rb_x_high_x_entry", "Post-rate-rise $\\times$ High $\\times$ Entry"),
+                   ("gpt_x_high_x_entry", "Post-launch $\\times$ High $\\times$ Entry")):
         r = trip[trip["term"] == t].iloc[0]
         star = "$^{***}$" if r.pval < .01 else "$^{**}$" if r.pval < .05 else "$^{*}$" if r.pval < .1 else ""
         lines.append(f"{lab} & \\multicolumn{{2}}{{c}}{{{r.coef:.3f}{star} ({r.se:.3f})}} & {int(r.n_firms):,} & {int(r.n_obs):,} \\\\")

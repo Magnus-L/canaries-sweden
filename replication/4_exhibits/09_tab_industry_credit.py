@@ -1,31 +1,35 @@
 #!/usr/bin/env python3
 """
-09_tab_industry_credit.py: Online Appendix Table A20 (Section III.2), an
+09_tab_industry_credit.py: Online Appendix Table A24 (Section III.2), an
 industry-specific age shock and the credit channel as rival explanations for
 the decline of the young inside exposed employers.
 
 Poisson with employer-by-month, employer-by-age and month-by-age effects,
-exposure the employer's 2019 occupation mix, treatment January 2024, no
-calendar terms, clustered by employer; each row reads against the baseline on
-its own panel. Panel A: the adoption step with and without three-digit
-industry (2019) interacted with age band and month, on the employers that
-carry an industry code (script 80, part C, run within script 83); retained is
-the ratio of the two steps. Panel B: on the employers with a 2019 balance sheet
-(Serrano), the step among the less leveraged exposed employers, the additional
-step among the more leveraged (above-median one minus equity over assets), their
-average with its standard error from the exported covariance, and leverage x
-young (script 73). The rule for Panel A, fixed before the run, is that the step
-survives if it keeps its sign and at least half its size; for Panel B, at least
-80 per cent of the same-sample baseline.
+exposure the employer's 2019 occupation mix, clustered by employer. Panel A
+carries the interim and calendar-quarter terms of Equation (2): it reports
+tau (the later term minus the interim term, its standard error from the
+exported covariance of the two) and the step from the tightening months, each
+with and without three-digit industry (2019) interacted with age band and
+month, on the employers that carry an industry code (script 80, part C, run
+within script 83); retained is the ratio of the two taus and of the two steps.
+Panel B carries neither the interim nor the calendar terms, so its step is at
+January 2024 against the April 2022 to December 2023 average: on the employers
+with a 2019 balance sheet (Serrano), the step among the less leveraged exposed
+employers, the additional step among the more leveraged (above-median one
+minus equity over assets), their average with its standard error from the
+exported covariance, and leverage x young (script 73). The rule for Panel A,
+fixed before the run, is that the estimate survives if it keeps its sign and
+at least half its size; for Panel B, at least 80 per cent of the same-sample
+baseline.
 
-Every printed estimate is checked against 83_summary.txt, the run's own
-report; the leverage coverage (85.0 and 84.3 per cent) and median splits
-(0.693 and 0.689) quoted in the note are typed below and checked against the
-same file.
+Every printed step is checked against 83_summary.txt, the run's own report,
+and every standard error against its own exported covariance; the leverage
+coverage (85.0 and 84.3 per cent) and median splits (0.693 and 0.689) quoted
+in the note are typed below and checked against the same file.
 
 Exports read: 3_register_mona/exports/2026-09-23_0655_s82-partB_s83-partsBCD/
-  occ_rest_industry.csv, occ_rest_credit.csv, vcov_r73_lev_<band>.csv,
-  83_summary.txt
+  occ_rest_industry.csv, vcov_s80_indseas2_{base,ind}_<band>.csv,
+  occ_rest_credit.csv, vcov_r73_lev_<band>.csv, 83_summary.txt
 Output: output/tables/tableA_industry_credit.tex
 
     python 4_exhibits/09_tab_industry_credit.py [export_dir]
@@ -48,6 +52,7 @@ BANDS = ["22-25", "26-30"]
 BASE_SPEC = "baseline_same_sample"
 IND_SPEC = "industry_age_month"
 EXPO = "post_x_high_x_young"
+INTERIM = "interim_x_high_x_young"
 TRIPLE = "post_x_high_x_young_x_lev"
 LEV = "post_x_young_x_lev"
 SAME = "baseline_on_balance_sheet_sample"
@@ -204,8 +209,36 @@ def panel_a(said: dict) -> dict:
                              f"industry groups and the summary says "
                              f"{s['groups']}")
         agree(f"{band} share not from 2019", share, s["share"])
+        # tau = post minus interim on each fit, its standard error from the
+        # exported covariance of the two terms (V_pp + V_ii - 2 V_pi); the
+        # retained share of tau is the ratio of the two taus.
+        taus = {}
+        for name, spec, vfile in (("base", BASE_SPEC, "base"),
+                                  ("ind", IND_SPEC, "ind")):
+            us = band.replace("-", "_")
+            v = pd.read_csv(need(f"vcov_s80_indseas2_{vfile}_{us}.csv"),
+                            index_col=0)
+            f = pd.read_csv(need("occ_rest_industry.csv"))
+            f = f[(f.young_band == band) & (f.spec == spec)
+                  & (f.get("status", "ok") == "ok")].set_index("term")
+            for t in (EXPO, INTERIM):
+                if t not in f.index:
+                    raise SystemExit(f"  occ_rest_industry.csv: no {t} row "
+                                     f"for {band} {spec}")
+                diag = float(v.loc[t, t]) ** 0.5
+                if abs(diag - float(f.loc[t, "se"])) > 5e-5:
+                    raise SystemExit(f"  {band} {spec} {t}: the exported "
+                                     f"standard error is not the square root "
+                                     f"of its own variance; nothing is written")
+            c = float(f.loc[EXPO, "coef"]) - float(f.loc[INTERIM, "coef"])
+            var = (float(v.loc[EXPO, EXPO]) + float(v.loc[INTERIM, INTERIM])
+                   - 2.0 * float(v.loc[EXPO, INTERIM]))
+            taus[name] = (c, float(np.sqrt(var)))
+        kept_tau = 100.0 * taus["ind"][0] / taus["base"][0]
         a[band] = {"base": (float(b.coef), float(b.se)),
                    "ind": (float(i.coef), float(i.se)),
+                   "tau_base": taus["base"], "tau_ind": taus["ind"],
+                   "kept_tau": kept_tau,
                    "kept": kept, "n_firms": n_firms, "n_groups": n_groups,
                    "share": share}
     return a
@@ -275,25 +308,32 @@ def main() -> int:
         return f"{label} & " + " & ".join(values) + r" \\"
 
     print("  Panel A. An industry-specific age shock")
-    rows_a = [row("Baseline", "base", a),
-              row(r"With industry $\times$ age $\times$ month", "ind", a),
-              plain("Retained (per cent)",
+    rows_a = [row(r"$\tau$, baseline on the same employers", "tau_base", a),
+              row(r"$\tau$ with industry $\times$ age $\times$ month",
+                  "tau_ind", a),
+              plain(r"Retained, $\tau$ (per cent)",
+                    [f"{a[band]['kept_tau']:.0f}" for band in BANDS]),
+              row("Step from the tightening months, baseline", "base", a),
+              row(r"Step from the tightening months, with industry $\times$ "
+                  r"age $\times$ month", "ind", a),
+              plain("Retained, step (per cent)",
                     [f"{a[band]['kept']:.0f}" for band in BANDS]),
               plain("Employers",
                     [thousands(a[band]["n_firms"]) for band in BANDS]),
               plain("Three-digit industry groups",
                     [f"{a[band]['n_groups']}" for band in BANDS])]
     for band in BANDS:
-        verdict = "SURVIVES" if a[band]["kept"] >= 50 else "DOES NOT SURVIVE"
-        print(f"      {band}: industry retains {a[band]['kept']:.0f} per cent, "
-              f"{verdict} the 50 per cent rule")
+        verdict = "SURVIVES" if a[band]["kept_tau"] >= 50 else "DOES NOT SURVIVE"
+        print(f"      {band}: industry retains {a[band]['kept_tau']:.0f} per "
+              f"cent of tau ({a[band]['kept']:.0f} of the step), {verdict} "
+              f"the 50 per cent rule")
 
     print("  Panel B. The credit channel")
     rows_b = [row("Baseline on this sample", "same", b),
               row("Baseline, full panel", "full", b),
-              row("Adoption step, less leveraged half", "expo", b),
+              row("Step at January 2024, less leveraged half", "expo", b),
               row("Additional step, more leveraged half", "triple", b),
-              row("Adoption step averaged over the halves", "avg", b),
+              row("Step at January 2024 averaged over the halves", "avg", b),
               row(r"Leverage $\times$ young, all employers in the sample",
                   "lev", b),
               plain("Retained, averaged step over baseline (per cent)",
@@ -323,7 +363,7 @@ def main() -> int:
     tex += [
         r"\bottomrule", r"\end{tabular}",
         r"\begin{minipage}{0.9\textwidth}\footnotesize\vspace{4pt}",
-        r"Poisson with the paper's three fixed effects, exposure the employer's 2019 occupation mix, treatment January 2024, clustered by employer; the calendar cycle is not removed, so each row reads against the baseline in its own panel. Panel~A: industry is the employer's three-digit NACE in 2019 (under 2 per cent coded from another year), interacted with age band and month, on the employers that carry a code. Panel~B: leverage is one minus equity over assets on the 2019 balance sheet, split at the median, for the limited companies that file one (85 per cent of each panel); the averaged step is the first plus half the second credit row. $^{*}$ $p<0.05$.",
+        r"Poisson with the paper's three fixed effects, exposure the employer's 2019 occupation mix, clustered by employer. Panel~A carries the interim and calendar-quarter terms of Equation~(2), so both $\tau$ and the step from the tightening months are reported. Panel~B carries neither: its step is at January 2024 against the April 2022 to December 2023 average, without the calendar cycle removed, so each row reads against the baseline in its own panel. Panel~A: industry is the employer's three-digit NACE in 2019 (under 2 per cent coded from another year), interacted with age band and month, on the employers that carry a code. Panel~B: leverage is one minus equity over assets on the 2019 balance sheet, split at the median, for the limited companies that file one (85 per cent of each panel); the averaged step is the first plus half the second credit row. $^{*}$ $p<0.05$.",
         r"\end{minipage}", r"\end{table}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

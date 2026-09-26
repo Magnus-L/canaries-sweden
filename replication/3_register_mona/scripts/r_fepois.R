@@ -7,9 +7,8 @@
 # on the exchange file mona_common.run_fepois writes, with standard errors
 # clustered on the column named by --cluster (employer_id by default) and an
 # optional cell weight. This is the pooled specification of the withdrawn
-# occupation design: the reproduction of the submitted estimate (script
-# 39), the as-of backtest (script 45) and the education design comparison
-# (script 47h).
+# occupation design and of the as-of backtest (script 45), the education
+# design comparison (script 47h) and the teleworkability check (script 46).
 # Every estimate the paper reports is fitted through r_fepois_multi.R.
 #
 # USAGE
@@ -25,7 +24,8 @@
 #   <cluster>         the cluster column
 #
 # OUTPUT COLUMNS
-#   term, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s,
+#   term, coef, se, pvalue, n_obs (input rows), n_obs_fit (rows the fit
+#   used), n_emp_total, converged, elapsed_s,
 #   status ('ok', 'dropped' for a term absorbed by the effects, or the
 #   failure reason). A failure still writes the file, so the calling script
 #   reads a status row rather than crashing.
@@ -75,6 +75,7 @@ write_failure <- function(output_path, msg, elapsed = 0) {
         se         = c(NA_real_, NA_real_),
         pvalue     = c(NA_real_, NA_real_),
         n_obs      = c(NA_integer_, NA_integer_),
+        n_obs_fit  = c(NA_integer_, NA_integer_),
         n_emp_total = c(NA_real_, NA_real_),
         converged  = c(FALSE, FALSE),
         elapsed_s  = c(elapsed, elapsed),
@@ -130,7 +131,8 @@ read_exchange <- function(path, nrows = -1L) {
     #   colClasses  skips the character-first pass. Inferred from a
     #               sample rather than assumed, because run_fepois and
     #               run_fepois_es hand over STRING fixed effects and
-    #               forcing those to numeric returns NA coefficients.
+    #               forcing those to numeric returns NA coefficients,
+    #               which the harness caught on 21 September.
     #   quote/comment  disabling both removes per-field scanning that
     #               cannot match anything in a file we wrote ourselves.
     cat("reader: read.csv, pre-allocated\n")
@@ -194,15 +196,17 @@ cluster_formula <- as.formula(paste("~", cluster_col))
 # rc=3221225477 with "*** recursive gc invocation", R's collector
 # failing.
 #
-# The node itself is not the constraint: the batch nodes reported
-# between 362 and 738 GB free throughout, including at every failure.
-# What binds is the per-job cap and, more than threads, the NUMBER of
-# fixed effects: a 30.5M-row fit with three effects succeeded where a
-# 28.5M-row fit with four failed at two threads in the same job. Drop a
-# nested, redundant effect before reaching for the thread count.
+# This is NOT contention between lanes. An earlier version of this note
+# blamed three lanes running at once; 178 log lines across the whole
+# revision report the node between 362 and 738 GB free, including every
+# crash, so the machine was never short. What binds is the per-job cap
+# and, more than threads, the NUMBER of fixed effects: on 21 September
+# a 30.5M-row fit with three effects succeeded while a 28.5M-row fit
+# with four died at two threads in the same job. Drop a nested,
+# redundant effect before reaching for the thread count.
 #
 # A modest thread count costs wall-clock and buys the fit completing.
-# Override with CANARIES_R_THREADS when a job runs alone on a node.
+# Override with CANARIES_R_THREADS when a lane runs alone.
 # ---------------------------------------------------------------------
 # The env var cannot be set from inside the MONA batch submitter, so the
 # thread count has to arrive on the command line or it is never honoured.
@@ -252,6 +256,16 @@ fit <- tryCatch(
 
 elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
+# THE OBSERVATIONS THE FIT ACTUALLY USED. n_obs is the input row count,
+# taken before the fit; fixest then drops the observations of any fixed-
+# effect group whose outcome is zero throughout (and singletons). Until
+# 26 Sep 2026 every caller reported n_obs as "cells used", so 98's
+# "dropped by PPML" read 0 in every row (the ChatGPT review's finding).
+# n_obs_fit is nobs(fit), the count after those removals.
+n_obs_fit <- tryCatch(as.integer(nobs(fit)), error = function(e) NA_integer_)
+cat(sprintf("rows used by the fit: %s of %d\n",
+            ifelse(is.na(n_obs_fit), "NA", format(n_obs_fit)), n_obs))
+
 # ----------------------------------------------------------------------
 # Extract coefficients
 # ----------------------------------------------------------------------
@@ -272,6 +286,7 @@ for (tm in terms_wanted) {
             se         = as.numeric(co[tm, "Std. Error"]),
             pvalue     = as.numeric(co[tm, "Pr(>|z|)"]),
             n_obs      = n_obs,
+            n_obs_fit  = n_obs_fit,
             n_emp_total = n_emp_total,
             converged  = isTRUE(fit$convStatus),
             elapsed_s  = elapsed,
@@ -286,6 +301,7 @@ for (tm in terms_wanted) {
             se         = NA_real_,
             pvalue     = NA_real_,
             n_obs      = n_obs,
+            n_obs_fit  = n_obs_fit,
             n_emp_total = n_emp_total,
             converged  = isTRUE(fit$convStatus),
             elapsed_s  = elapsed,

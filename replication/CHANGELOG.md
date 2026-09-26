@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-09-26: the package brought to the manuscript of 26 September
+
+The manuscript, online appendix and response letter were rewritten on 25 and 26 September
+around tau, the later period against the interim period, and five further register runs
+(lanes 37a to 38b) were brought out of MONA. The package follows.
+
+- `3_register_mona/`: scripts 95 to 102, the lane helper `_lane.py` and the six lane runners
+  join `scripts/` (56 files; `check_mona_scripts.py` finds the runners' as-run copies in
+  `revision/upload/`); the R wrappers are the 26 September versions, which add the retained
+  observations to a fit's output (`SCRIPTS.csv` records which exports the earlier versions
+  produced). Five export runs join `exports/` under neutral names (59 files; the internal
+  filing notes stay out), listed in `EXPORT_RUNS.csv` and `EXPORTS.csv`; `master.py` gains
+  chapter 10 with the settings each job ran with. Lane 38c (script 102) is shipped as
+  submitted; its export is pending.
+- `4_exhibits/`: `01` rebuilds Table 1 in its five-row design on tau, checked against
+  script 97's re-estimation; `02` draws Figure 2 on tau from the eight-band panel of script
+  95; `09` and `18` add the tau rows of OA Tables A24 and A27 from the exported covariances;
+  `07`, `08`, `10`, `14` and `19` carry the current labels, captions and notes, and `19`
+  adds the person-month panel of Table A31; six builders are new (`22` the components behind
+  the headline, `23` the final checks, `24` the unlinked payslips, `25` the non-match rates,
+  `26` the three-arm backtest, `27` the female pre-path figure). 27 builders, 1 figure and
+  the monthly diagnostic of `03` now serve the offline appendix.
+- `2_postings/`: `14` and `16` print the manuscript's labels ("Post-rate-rise",
+  "Post-launch", "month-of-year"); five scripts are new (`19` the teleworkability split on
+  the current window, which now draws panel (b) of Figure A2; `20` the Eloundou table;
+  `21` the posting robustness table; `22` the remote-work measures table; `23` the monthly
+  coverage figure). `extensions/` holds the two remote-work estimation scripts as they ran
+  in the research repository, with their occupation-level results and a README of the
+  inputs they need; `run_public.sh` runs 19 to 23.
+- `0_verification/`: the table comparison accepts the co-author markup a printed file may
+  still carry (`\add{x}` read as x, `\del{x}` and `\rem{x}` removed) and ignores whole-line
+  comments; `MANIFEST.csv` regenerated against the 26 September texts (400 rows: 361 numbers
+  and 39 tables; the rows of numbers no longer printed removed, 145 rows added). The numbers
+  the manifest found to disagree with their source in the last printed digit are listed in
+  `VERIFICATION.md`, section 5, for the authors to correct in the manuscript.
+- `MAPPING.csv`, `README.md`, `CITATION.cff` and `VERIFICATION.md` updated to the
+  manuscript's title, status and exhibit numbers; `FILES.csv` rebuilt.
+
 ## 2026-09-25: licences, archival and the scope of what is shipped
 
 - Licences: MIT for the code (`LICENSE`), CC BY 4.0 for the documentation, the aggregated

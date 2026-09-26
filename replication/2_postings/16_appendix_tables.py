@@ -114,16 +114,16 @@ def t_extended():
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{llccr}", r"\hline\hline",
-        r"Window & Estimator & PostRB $\times$ High & PostGPT $\times$ High & $N$ \\",
+        r"Window & Estimator & Post-rate-rise $\times$ High & Post-launch $\times$ High & $N$ \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
 
 
 def t_seasonality():
     d = pd.read_csv(SRC / "postings_seasonality.csv")
     lab = {"S0_baseline": "Baseline (occupation and month FE)",
-           "S1_groupseason": r"$+$ one-digit occupation group $\times$ calendar month",
+           "S1_groupseason": r"$+$ one-digit occupation group $\times$ month-of-year",
            "S2_groupmonth": r"$+$ one-digit occupation group $\times$ month of sample",
-           "S1_poisson": "Poisson, with group $\\times$ calendar month"}
+           "S1_poisson": "Poisson, with one-digit group $\\times$ month-of-year"}
     rows = []
     for k, v in lab.items():
         s = d[d["spec"] == k]
@@ -137,7 +137,7 @@ def t_seasonality():
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{lcc}", r"\hline\hline",
-        r"Specification & PostRB $\times$ High & PostGPT $\times$ High \\",
+        r"Specification & Post-rate-rise $\times$ High & Post-launch $\times$ High \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
 
 
@@ -159,7 +159,7 @@ def t_firm_design():
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3pt}",
         r"\begin{tabular}{lccrr}", r"\hline\hline",
-        r"Sample & PostRB $\times$ High & PostGPT $\times$ High & Employers & $N$ \\",
+        r"Sample & Post-rate-rise $\times$ High & Post-launch $\times$ High & Employers & $N$ \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
 
     h = pd.read_csv(SRC / "firm_heterogeneity.csv")
@@ -181,7 +181,7 @@ def t_firm_design():
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3pt}",
         r"\begin{tabular}{llcr}", r"\hline\hline",
-        r"Dimension & Cell & PostGPT $\times$ High & Employers \\",
+        r"Dimension & Cell & Post-launch $\times$ High & Employers \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}"]))
 
 
@@ -196,7 +196,7 @@ def t_deciles():
                     f"{coef(gp.coef, gp.se, gp.pval)}" + r" \\")
     write("postings_deciles.tex", "\n".join([
         r"\begin{tabular}{lcc}", r"\hline\hline",
-        r"Exposure decile & PostRB $\times$ decile & PostGPT $\times$ decile \\",
+        r"Exposure decile & Post-rate-rise $\times$ decile & Post-launch $\times$ decile \\",
         r"\hline", *rows, r"\hline\hline", r"\end{tabular}",
         r"% Decile 5, the median, is the omitted reference."]))
 

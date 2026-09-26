@@ -10,9 +10,10 @@ young band, 2022Q1 omitted, standard errors clustered by employer (script 86,
 which runs script 78's part A on the occupation-mix score). The two young
 bands are separate fits on their own panels. Lower panel: a linear trend on
 January 2021 to November 2022, fitted with the calendar terms and the
-tightening window in (script 83); the pre-period counts as flat if the trend
-lies within two standard errors of zero. The second row scales the monthly
-trend and its standard error by the twenty-three months of the window.
+tightening window in (script 83); the last row reports whether a zero trend
+is rejected at two standard errors, which does not establish a flat
+pre-period. The second row scales the monthly trend and its standard error
+by the twenty-three months of the window.
 
 The script writes nothing unless each band has one row per quarter and one
 panel size, the omitted quarter is exported as the reference, every standard
@@ -231,8 +232,8 @@ def drift_panel() -> tuple[list[str], dict[str, int]]:
     rows.append(f"The tightening window & {line} \\\\")
     print(f"  {'the tightening window':34s} {line}")
     line = " & ".join("Yes" if flat[b] else "No" for b in BANDS)
-    rows.append(f"Flat within two standard errors & {line} \\\\")
-    print(f"  {'flat within two standard errors':34s} {line}")
+    rows.append(f"Zero linear drift not rejected & {line} \\\\")
+    print(f"  {'zero linear drift not rejected':34s} {line}")
     line = " & ".join(thousands(firms[b]) for b in BANDS)
     rows.append(f"Employers & {line} \\\\")
     print(f"  {'employers':34s} {line}")
@@ -353,8 +354,7 @@ def main() -> int:
             r"calendar terms, 2022Q1 the reference; standard errors clustered by employer;",
             r"$^{*}$ $p<0.05$. Lower panel: a separate fit of a linear monthly trend on",
             r"January 2021 to November 2022, with the calendar terms and the tightening",
-            r"window in; the second row scales it to the twenty-three months. The pre-period",
-            r"counts as flat if the trend lies within two standard errors of zero.",
+            r"window in; the second row scales it to the twenty-three months. The last row reports whether a zero trend is rejected at two standard errors, which does not establish a flat pre-period.",
             r"\end{minipage}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

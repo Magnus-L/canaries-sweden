@@ -3,22 +3,28 @@ identity row per generated table (exhibit numbers as the manuscript prints them)
 import csv
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
+# Exhibit numbers as the online appendix compiles on 26 September 2026
+# (Tables A13, A28 and A38 are typed in the manuscript and have no builder).
 TABLES = [("Table 1", "table1_headline_v3"), ("Table A1", "top_bottom_occupations"),
           ("Table A2", "tableI2_sumstats_employment"), ("Table A3", "tableI2b_sumstats_postings_v3"),
-          ("Table A4", "postings_accounting"), ("Table A5", "coverage_by_source"),
-          ("Table A6", "postings_extended"), ("Table A7", "postings_seasonality"),
-          ("Table A8", "postings_deciles"), ("Table A9", "tableA_descriptive_bands"),
-          ("Table A11", "tableA_window"), ("Table A12", "tableA_fixed_contrasts"),
-          ("Table A13", "tableA_profile_split65"), ("Table A14", "tableA_age_profile"),
-          ("Table A15", "tableA_gender_split"), ("Table A16", "tableA_education_mix"),
-          ("Table A17", "tableA_contrast_by_track"), ("Table A18", "tableA_occ_mix_by_sex"),
-          ("Table A19", "tableA_prepath"), ("Table A20", "tableA_industry_credit"),
-          ("Table A21", "tableA_cluster_industry"), ("Table A22", "tableA_size_reliability"),
-          ("Table A24", "public_yreg"), ("Table A25", "tableIV1_coverage"),
-          ("Table A26", "tableIV2_vintage"), ("Table A27", "tableIV3_backtest"),
-          ("Table A28", "tableA_occ_coverage"), ("Table A29", "firm_within_variants"),
-          ("Table A30", "firm_within_did"), ("Table A31", "firm_heterogeneity"),
-          ("Table A33", "tableA_uncounted")]
+          ("Table A4", "tableA_remote_measures"), ("Table A5", "postings_accounting"),
+          ("Table A6", "coverage_by_source"), ("Table A7", "tableA_posting_robustness"),
+          ("Table A8", "postings_extended"), ("Table A9", "postings_seasonality"),
+          ("Table A10", "tableA_eloundou_postings"), ("Table A11", "postings_deciles"),
+          ("Table A12", "tableA_descriptive_bands"), ("Table A14", "tableA_window"),
+          ("Table A15", "tableA_headline_components"), ("Table A16", "tableA_fixed_contrasts"),
+          ("Table A17", "tableA_profile_split65"), ("Table A18", "tableA_age_profile"),
+          ("Table A19", "tableA_gender_split"), ("Table A20", "tableA_education_mix"),
+          ("Table A21", "tableA_contrast_by_track"), ("Table A22", "tableA_occ_mix_by_sex"),
+          ("Table A23", "tableA_prepath"), ("Table A24", "tableA_industry_credit"),
+          ("Table A25", "tableA_final_checks"), ("Table A26", "tableA_cluster_industry"),
+          ("Table A27", "tableA_size_reliability"), ("Table A29", "public_yreg"),
+          ("Table A30", "tableIV1_coverage"), ("Table A31", "tableIV2_vintage"),
+          ("Table A32", "tableIV3_backtest"), ("Table A33", "tableIV4_backtest_arms"),
+          ("Table A34", "tableA_occ_coverage"), ("Table A35", "firm_within_variants"),
+          ("Table A36", "firm_within_did"), ("Table A37", "firm_heterogeneity"),
+          ("Table A39", "tableA_uncounted"), ("Table A40", "tableA_unlinked"),
+          ("Table A41", "tableA_nonmatch")]
 HDR = ["id", "kind", "document", "where", "statistic", "printed", "source", "locator",
        "transform", "status", "note"]
 rows = []

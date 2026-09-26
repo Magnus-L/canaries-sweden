@@ -43,12 +43,16 @@ ORDER
 Chapter 1 builds the caches every later chapter reads (monthly counts by
 employer and age band, flows, counts by sex and education, the completed
 industry key, the uncounted payslips). It must run first and takes about
-twenty-three hours run in sequence. Chapters 2 to 8 can then run in any order and, within a
-chapter, jobs can be submitted in parallel: each writes to its own folder
-and uses its own exchange folder for R (CANARIES_RWORK_TAG). Chapter 7
-needs the vintage panel that its first job (script 39) builds. Chapter 9
-repeats the education-route comparison that the paper does not report; it
-is listed for completeness.
+twenty-three hours run in sequence. Chapters 2 to 8 and 10 can then run in
+any order and, within a chapter, jobs can be submitted in parallel: each
+writes to its own folder and uses its own exchange folder for R
+(CANARIES_RWORK_TAG). Chapter 7 needs the vintage panel that its first job
+(script 39) builds. Chapter 9 repeats the education-route comparison that
+the paper does not report; it is listed for completeness. Chapter 10 holds
+the final checks of 25 and 26 September 2026 (scripts 95 to 102), which
+ran through the lane runners shipped beside the scripts (run_lane37a.py to
+run_lane38c.py); the runners are kept for the record and master.py sets the
+same variables.
 
 The runtimes are the wall-clock minutes observed in MONA in September 2026
 or, where no summary recorded one, the time budget the job ran under. The
@@ -82,6 +86,9 @@ CHAPTERS = {
     8: "Rival explanations: teleworkability, the youth payroll reduction, "
        "uncounted payslips",
     9: "Comparison only: the education route (not reported in the paper)",
+    10: "Final checks on tau: pension ages, birth cohorts, credit, the female "
+        "differential, the exposure specification, the raw rebuild of the "
+        "counts, the three-arm backtest, unlinked payslips, count provenance",
 }
 
 # One entry per batch job. `env` holds the variables the job ran with in
@@ -251,6 +258,61 @@ JOBS = [
     dict(ch=9, script="78_final_checks.py", minutes=300,
          env={"CANARIES_78_PARTS": "BC", "CANARIES_78_OUT": "output_78b",
               "CANARIES_RWORK_TAG": "_25b"}, makes="education route"),
+
+    # -- 10. final checks on tau (25 and 26 September 2026) ------------------
+    # These nine jobs ran through the lane runners shipped in scripts/
+    # (run_lane37a.py to run_lane38c.py, each a list of stages for _lane.py),
+    # which set the same variables. Every script reproduces Table 1's tau on
+    # its own panel before any check runs; the runtimes are those recorded in
+    # the summaries.
+    dict(ch=10, script="99_measurement.py", minutes=57,
+         env={"CANARIES_99_OUT": "output_99", "CANARIES_82_OUT": "output_99",
+              "CANARIES_RWORK_TAG": "_37a"},
+         makes="the raw rebuild of the counts; non-match over all declared "
+               "person-months (OA Table A41); tau by presence in November 2022 "
+               "(OA IV.1)"),
+    dict(ch=10, script="98_backtest_common.py", minutes=107,
+         env={"CANARIES_98_OUT": "output_98", "CANARIES_RWORK_TAG": "_37b"},
+         makes="the three-arm as-of backtest on common support (OA Table A33; "
+               "exported again by the job below)"),
+    dict(ch=10, script="97_headline_checks.py", minutes=244,
+         env={"CANARIES_97_OUT": "output_97", "CANARIES_82_OUT": "output_97",
+              "CANARIES_80_OUT": "output_97", "CANARIES_73_OUT": "output_97",
+              "CANARIES_RWORK_TAG": "_37b"},
+         makes="the credit test on tau; the female differential's pre-path, "
+               "drift and industry test; the exposure specification (OA Table "
+               "A25, Panels D to F; OA Figure A6; the second record of Table 1)"),
+    dict(ch=10, script="95_pension_reference.py", minutes=218,
+         env={"CANARIES_95_OUT": "output_95", "CANARIES_82_OUT": "output_95",
+              "CANARIES_RWORK_TAG": "_37c"},
+         makes="tau with the older reference restricted; the eight-band "
+               "profile on tau (Figure 2 of the paper; OA Table A25, Panels A "
+               "and B)"),
+    dict(ch=10, script="96_payroll_cohorts.py", minutes=92,
+         env={"CANARIES_96_OUT": "output_96", "CANARIES_82_OUT": "output_95",
+              "CANARIES_RWORK_TAG": "_37c"},
+         makes="fixed birth cohorts against the youth payroll reduction (OA "
+               "Table A25, Panel C)"),
+    dict(ch=10, script="101_count_provenance.py", minutes=81,
+         env={"CANARIES_101_OUT": "output_101", "CANARIES_82_OUT": "output_100",
+              "CANARIES_RWORK_TAG": "_38a"},
+         makes="the provenance of the pooled and sex-specific counts (OA VI.1)"),
+    dict(ch=10, script="100_tipping_point.py", minutes=134,
+         env={"CANARIES_100_OUT": "output_100", "CANARIES_82_OUT": "output_100",
+              "CANARIES_RWORK_TAG": "_38a"},
+         makes="unlinked payslips, the tipping point and the extremal "
+               "allocations (OA Table A40)"),
+    dict(ch=10, script="98_backtest_common.py", minutes=93,
+         env={"CANARIES_98_OUT": "output_98b", "CANARIES_RWORK_TAG": "_38b"},
+         makes="the same backtest, exported with the observations each fit "
+               "retained; the export OA Table A33 is built from"),
+    dict(ch=10, script="102_month_of_year.py", minutes=180,
+         env={"CANARIES_102_OUT": "output_102", "CANARIES_82_OUT": "output_102",
+              "CANARIES_80_OUT": "output_102", "CANARIES_73_OUT": "output_102",
+              "CANARIES_RWORK_TAG": "_38c"},
+         makes="tau and the female differential with month-of-year terms in "
+               "place of the calendar-quarter terms (lane 38c; its export had "
+               "not left MONA when the package was assembled)"),
 ]
 
 # Inputs the scripts read from the project's input folder (mona_common.SHARE).

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-14_tab_window.py: Online Appendix Table A11 (Section III.2), the level after
-adoption read against the months before the rate rise.
+14_tab_window.py: Online Appendix Table A14 (Section III.2), the period
+coefficients of Equation (2) and the headline tau.
 
-Equation (2) keeps the Riksbank interaction switched on through the post
-period, so its adoption coefficient is a step from the tightening months.
-Confining that interaction to a window, April to November 2022, makes the
-later terms read against January 2021 to March 2022 (script 83). Poisson with
-employer-by-month, employer-by-age and month-by-age effects and the calendar
-terms, exposure the 2019 occupation mix, clustered by employer; each young band
-is its own fit. The fourth row, the step from the 2023 level, is the post term
-minus the interim term with the standard error from their covariance.
+The paper writes Equation (2) with three mutually exclusive period
+indicators, so b_R, b_I and b_L are levels against January 2021 to March
+2022; script 83 estimates that parameterisation (the tightening indicator
+confined to April to November 2022). Poisson with employer-by-month,
+employer-by-age and month-by-age effects and the calendar terms, exposure the
+2019 occupation mix, clustered by employer; each young band is its own fit.
+The fourth row, tau = b_L - b_I, is the later term minus the interim term
+with the standard error from their covariance, the headline of Table 1.
 
 Nothing is written unless every row is status ok, every standard error equals
 the square root of its own covariance diagonal to six decimals, and every
@@ -41,11 +41,11 @@ TIGHT = "rbw_x_high_x_young"
 INTERIM = "interim_x_high_x_young"
 POST = "post_x_high_x_young"
 FITTED = [
-    (TIGHT, "Tightening months, April to November 2022"),
-    (INTERIM, "The thirteen months after the launch"),
-    (POST, "The level after adoption, from January 2024"),
+    (TIGHT, r"Tightening months, April to November 2022 ($b_R$)"),
+    (INTERIM, r"Interim period ($b_I$)"),
+    (POST, r"Later period ($b_L$)"),
 ]
-DERIVED_LABEL = "The step from the 2023 level"
+DERIVED_LABEL = r"Later minus interim ($\tau$)"
 SE_DP = 6                       # the covariance check, decimals
 CELL = re.compile(r"^\$([-+][0-9.]+)(\^\{\*\})?\$ \(([0-9.]+)\)$")
 
@@ -175,8 +175,9 @@ def main() -> int:
     print(f"  {'Employers':44s} {counts}")
 
     tex = [r"\begin{table}[ht!]", r"\centering",
-           r"\caption{The level after adoption, read against the months "
-           r"before the rate rise.}",
+           r"\caption[The period coefficients of Equation (2)]{The period "
+           r"coefficients of Equation~(2), each period against January 2021 "
+           r"to March 2022, and the headline $\tau$.}",
            r"\label{tab:window}", r"\footnotesize",
            r"\begin{tabular}{@{}lcc@{}}", r"\toprule",
            "Term & " + " & ".join(b.replace("-", "--") for b in BANDS)
@@ -185,7 +186,7 @@ def main() -> int:
     tex += rows
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.88\textwidth}\footnotesize\vspace{4pt}",
-            r"Poisson with employer-by-month, employer-by-age and month-by-age effects and the calendar-quarter terms; exposure is the employer's 2019 occupation mix; standard errors clustered by employer. The Riksbank interaction is a window, April to November 2022, so the second and third rows are levels against January 2021 to March 2022 rather than steps; the fitted means are those of Equation~(2). The fourth row is the third minus the second, the step Table~1 of the paper reports. Each band is fitted on its own panel. $^{*}$ $p<0.05$.",
+            r"Poisson with employer-by-month, employer-by-age and month-by-age effects and the calendar-quarter terms; exposure is the employer's 2019 occupation mix; standard errors clustered by employer. The three period indicators are mutually exclusive, so each row is a level against January 2021 to March 2022. The cumulative parameterisation of Table~\ref{tab:headline_components} describes the same fitted means. The fourth row is the headline of Table~1 of the paper. Each band is fitted on its own panel. $^{*}$ $p<0.05$.",
             r"\end{minipage}", r"\end{table}"]
 
     TABLES.mkdir(parents=True, exist_ok=True)

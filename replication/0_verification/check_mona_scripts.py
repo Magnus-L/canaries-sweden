@@ -22,7 +22,9 @@ for every file, in two ways.
 What each shipped file is compared against, in order of preference:
 
   1. the as-run copy in the research repository, revision/mona/<file>,
-     when the package sits inside that repository (the default);
+     when the package sits inside that repository (the default), or
+     revision/upload/<file> for the lane runners, which were staged for
+     upload there and never lived in revision/mona;
   2. otherwise the code fingerprint recorded for the as-run copy in
      3_register_mona/SCRIPTS.csv (column as_run_code_fingerprint), so
      that a standalone copy of the package can still be checked.
@@ -143,8 +145,14 @@ def main() -> int:
              else "the fingerprints in SCRIPTS.csv"))
     for p in shipped:
         mine = fingerprint(p)
-        if use_files and (as_run / p.name).is_file():
-            theirs, source = fingerprint(as_run / p.name), "as-run file"
+        as_run_copy = as_run / p.name
+        if use_files and not as_run_copy.is_file():
+            # The lane runners were staged for upload beside the scripts and
+            # never lived in revision/mona; their as-run copies are the
+            # uploaded files.
+            as_run_copy = as_run.parent / "upload" / p.name
+        if use_files and as_run_copy.is_file():
+            theirs, source = fingerprint(as_run_copy), "as-run file"
         elif recorded.get(p.name):
             theirs, source = recorded[p.name], "SCRIPTS.csv"
         else:

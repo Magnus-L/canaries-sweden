@@ -1,8 +1,8 @@
-# Replication package for "Same Storm, Different Boats: Generative AI and Young Workers Within Firms"
+# Replication package for "Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms"
 
-Magnus Lodefalk, Lydia Löthman, Michael Koch and Erik Engberg. Manuscript under revision at
-*Economics Letters* (EL67898), September 2026. Corresponding author: Magnus Lodefalk,
-Örebro University School of Business, <magnus.lodefalk@oru.se>.
+Magnus Lodefalk, Lydia Löthman, Michael Koch and Erik Engberg. Revised version submitted to
+*Economics Letters* (EL67898R1), October 2026 [date to be set at submission]. Corresponding
+author: Magnus Lodefalk, Örebro University School of Business, <magnus.lodefalk@oru.se>.
 
 ## Overview
 
@@ -12,26 +12,33 @@ uses 4.9 million public job advertisements from Platsbanken, 2020 to June 2026, 
 DAIOE generative-AI exposure index. The **employment margin** uses the monthly employer
 declarations for every employee in Sweden, linked to Statistics Sweden's registers inside its
 secure environment MONA, and compares young workers with their older colleagues inside the
-same employer.
+same employer; its headline is $\tau$, the change in the young-to-older employment ratio from
+the interim period (December 2022 to December 2023) to the later period (January 2024 to June
+2025) at top-quartile relative to less exposed employers.
 
 The package reproduces the paper in three tiers:
 
 1. **Public data (packs 1, 2 and 5).** Download and process the advertisements and the
    auxiliary series, estimate every posting result and build every table and figure that rests
-   on public data: Figure 1, Online Appendix Tables A1, A3 to A8, A18, A24 and A29 to A31, and
-   Figures A1 to A4 and A9. One command, about 45 minutes on a laptop once the archives are
-   downloaded.
+   on public data: Figure 1, Online Appendix Tables A1, A3 to A11, A22, A29 and A35 to A37, and
+   Figures A1 to A4. One command, about 45 minutes on a laptop once the archives are
+   downloaded. Two estimation scripts behind the realised remote-work columns of Table A4 ran
+   on inputs the package does not ship; they are included with their results
+   (`2_postings/extensions/`).
 2. **Register exhibits (pack 4).** Rebuild every register table and figure (Table 1, Figures 2
    and 3, and the remaining Online Appendix exhibits) from the aggregated results exported from
    MONA, which the package holds. No register access needed; under a minute.
 3. **Register estimation (pack 3).** The scripts that produced those exports, as they ran
    inside MONA on project P1207, with a runner that executes them in order. Rerunning them
-   requires access to the registers (see "Data availability"); about 53 hours of batch time.
+   requires access to the registers (see "Data availability"); about 70 hours of batch time.
 
 A verification layer (pack 0) checks that the code shipped for MONA is the code that ran, that
-every generated table is identical to the table the manuscript prints, and that each of 215
+every generated table is identical to the table the manuscript prints, and that each of 361
 numbers printed in the text of the paper and the online appendix agrees with the file it comes
-from.
+from. Its result on the manuscript of 26 September 2026 is in `VERIFICATION.md`: 56 of 56
+register files identical in code, 38 of 39 tables identical to print, 346 of the 351 checkable
+numbers agreeing with their source; the six last-digit discrepancies it found are listed there
+for correction in the manuscript.
 
 ## Data availability and provenance statements
 
@@ -40,7 +47,7 @@ from.
 - [x] The authors of the manuscript have legitimate access to and permission to use the data used in this manuscript.
 - [x] The authors of the manuscript have documented permission to redistribute and publish the data contained within this replication package, for the public data shipped in `data/raw/` and for the aggregated exports in `3_register_mona/exports/`, which passed Statistics Sweden's output review before they left MONA.
 - [x] Some data cannot be made publicly available: the register microdata behind every employment estimate, described below.
-- [x] Some public data are not redistributed but fetched or rebuilt by the package's code: the Platsbanken archives, the Yahoo Finance index series and the employer counts of Online Appendix Part V, described below.
+- [x] Some public data are not redistributed but fetched or rebuilt by the package's code: the Platsbanken archives, the Yahoo Finance index series, the WFH Map release and the employer counts of Online Appendix Part V, described below.
 
 ### Summary of availability
 
@@ -48,7 +55,7 @@ from.
 - [x] Some data **cannot be made** publicly available.
 - [ ] **No data can be made** publicly available.
 
-The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the published-aggregates check of III.6) rests entirely on public data and can be reproduced end to end from this package. The employment margin (Table 1, Figures 2 and 3, Online Appendix Parts I.2, III and IV) rests on individual-level registers that never leave Statistics Sweden; the package holds the code that ran on them, as it ran, and every aggregate it exported, so every register table and figure can be rebuilt and every printed register number checked, but not recomputed without register access.
+The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the published-aggregates check of III.6) rests entirely on public data and can be reproduced end to end from this package. The employment margin (Table 1, Figures 2 and 3, Online Appendix Parts I.2, III, IV and VI.1) rests on individual-level registers that never leave Statistics Sweden; the package holds the code that ran on them, as it ran, and every aggregate it exported, so every register table and figure can be rebuilt and every printed register number checked, but not recomputed without register access.
 
 ### Details on each data source
 
@@ -59,13 +66,14 @@ The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the 
 | SSYK 2012 to ISCO-08 correspondence (`ssyk2012_isco08.xlsx`) | crosswalk to O*NET-based scores | Statistics Sweden, <https://www.scb.se> | CC0 | yes |
 | SOC 2010 to ISCO-08 crosswalk (`isco_soc_crosswalk2.xls`) | crosswalk | US Bureau of Labor Statistics, <https://www.bls.gov/soc/> | public domain | yes |
 | Teleworkability by SOC occupation (`dingel_neiman_telework.csv`) | telework split, OA II.3 and III.2 | Dingel and Neiman (2020), <https://github.com/jdingel/DingelNeiman-workathome> | GPL-3.0 (repository licence) | yes |
-| GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Table A14 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
-| Indeed Hiring Lab job-postings index, United States (`indeed_us_aggregate.csv`) | Figure A1(a) | Indeed Hiring Lab, <https://github.com/hiring-lab/job_postings_tracker> | CC BY 4.0 | yes |
-| OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1, Figure A1 | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), fetched with `yfinance` by `1_data_public/03_market_and_policy_series.py` | Yahoo terms of service (see note) | no; fetched by the script, see note |
-| Riksbank policy rate | Figure A1(d) | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
-| Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A18 and A24 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
+| GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Tables A10 and A18 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
+| Remote and hybrid work in United States job postings, WFH Map public release (`remote_work_in_job_ads_public_data.xlsx`, fetched 24 September 2026) | the Hansen et al. column of OA Table A4 | Hansen, Lambert, Bloom, Davis, Sadun and Taska (2023), <https://wfhmap.com/data/> (Category A, free download) | free to download; no licence grants redistribution | no; see `2_postings/extensions/README.md` |
+| Indeed Hiring Lab job-postings index, United States (`indeed_us_aggregate.csv`) | the posting-context figure of the offline appendix | Indeed Hiring Lab, <https://github.com/hiring-lab/job_postings_tracker> | CC BY 4.0 | yes |
+| OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1; the offline appendix | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), fetched with `yfinance` by `1_data_public/03_market_and_policy_series.py` | Yahoo terms of service (see note) | no; fetched by the script, see note |
+| Riksbank policy rate | the offline appendix's posting-context figure | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
+| Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A22 and A29 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
 | Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see note |
-| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
+| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A4 | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
 | Monthly employer declarations at the individual level (AGI, *Arbetsgivardeklaration på individnivå*), 2019 to June 2025; LISA (*Individ*) 2015 to 2023 with the embedded occupation register (*Yrkesregistret*); the education register (SUN 2020); the ICT surveys of enterprises (ITFtg) and individuals (BITA 2024); the enterprise register (*Företagsdatabasen*); Serrano balance sheets (2019) | every employment estimate | Statistics Sweden, through the MONA environment, project P1207 (ORU-MICRO-AI) | confidential | no (the aggregated exports are) |
 
 **Yahoo Finance.** Yahoo's terms restrict redistribution of its data, so the daily index series are not shipped. `1_data_public/03_market_and_policy_series.py` fetches them with the `yfinance` package whenever they are absent, on the windows of the paper's own downloads: the OMX Stockholm 30 (`^OMX`) and the OMX Stockholm All-Share (`^OMXSPI`) from 1 January 2020 to 18 September 2026, the date of the paper's download, and the S&P 500 (`^GSPC`) from 1 January 2020 to 23 February 2026, the last close before the download of 24 February 2026. The month of each download is incomplete and is dropped, so the monthly series run to August 2026. A fetch on 25 September 2026 reproduced the paper's monthly series exactly. With `--refresh` the script fetches the OMX series to the present instead.
@@ -99,11 +107,11 @@ No random numbers are drawn anywhere in the package, so no seed is set.
 | Tier | Machine | Runtime |
 |---|---|---|
 | Download of the eight Platsbanken archives (6.2 GB) | any, with a network connection | depends on the connection |
-| Packs 1, 2 and 5 | Apple M2, 8 cores, 16 GB, macOS 26.6; peak memory 3.4 GB | 42 minutes (the longest steps are the within-employer design, 12 and 7 minutes, and the processing of the archives, about 5 minutes each) |
+| Packs 1, 2 and 5 | Apple M2, 8 cores, 16 GB, macOS 26.6; peak memory 3.4 GB | 45 minutes (the longest steps are the within-employer design, 12 and 7 minutes, and the processing of the archives, about 5 minutes each) |
 | HonestDiD bounds computed from scratch (`--cold`) | as above | several hours; a cache of the paper's run is shipped |
 | Pack 4 | as above | under 30 seconds |
 | Pack 0 | as above | under a minute |
-| Pack 3, chapters 1 to 8 | a MONA batch server (100 GB of memory per job) | about 53 hours in sequence; the data build of chapter 1 about 23 hours |
+| Pack 3, chapters 1 to 8 and 10 | a MONA batch server (100 GB of memory per job) | about 70 hours in sequence; the data build of chapter 1 about 23 hours; chapter 10 about 17 hours |
 
 ## Description of the code
 
@@ -120,7 +128,7 @@ replication/
   data/raw/, data/DATA-MANIFEST.csv   the small public inputs, with source, date, licence
   0_verification/                     the checks
   1_data_public/                      download and processing of the public data
-  2_postings/                         the posting analyses
+  2_postings/                         the posting analyses (and extensions/, see below)
   3_register_mona/                    the register scripts, their inputs and their exports
   4_exhibits/                         the register tables and figures, from the exports
   5_occupation_register_public/       the two tables built from published occupational statistics
@@ -131,21 +139,24 @@ replication/
 Each pack has a README listing its scripts in run order with what each estimates, the exhibit
 it serves, what it reads and writes, and its runtime; each script's docstring says the same.
 Scripts are numbered in run order within a pack. The register scripts keep the numbers under
-which they ran (39 to 93), because those numbers name every exported file.
+which they ran (39 to 102), because those numbers name every exported file.
 
 - `1_data_public/` downloads and verifies the Platsbanken archives (01), rebuilds the
   occupation-by-month counts (02), builds the stock-market, policy-rate and US series (03), and
   merges the counts with the DAIOE quartiles (04).
 - `2_postings/` estimates Equation (1) and its variants, the event study and the HonestDiD
   bounds, the diagnostics of Online Appendix Part II, and the within-employer design of Part V
-  (scripts 01 to 18; `2_postings/README.md`).
-- `3_register_mona/` holds the 41 files that ran in MONA, the three public score files they
-  read, the 25 export runs brought out of MONA (268 files, of which the package reads 59),
+  (scripts 01 to 23; `2_postings/README.md`). `2_postings/extensions/` holds the two
+  remote-work estimation scripts behind Table A4 as they ran in the research repository, with
+  their occupation-level results and a README of the inputs they need.
+- `3_register_mona/` holds the 56 files that ran in MONA, the three public score files they
+  read, the 30 export runs brought out of MONA (327 files, of which the package reads 76),
   `master.py`, and the disclosure rules (`DISCLOSURE.md`).
-- `4_exhibits/` holds 21 builders, one per register exhibit, in the paper's order, and
+- `4_exhibits/` holds 27 builders, one per register exhibit, in the paper's order, and
   `run_all.py`. Each checks its inputs against a second record of the same fit before writing
-  (standard errors against the exported covariance, rows against the run's own summary).
-- `5_occupation_register_public/` builds Online Appendix Tables A24 and A18 from Statistics
+  (standard errors against the exported covariance, rows against the run's own summary, Table 1
+  against a separate re-estimation of every $\tau$ it prints).
+- `5_occupation_register_public/` builds Online Appendix Tables A29 and A22 from Statistics
   Sweden's published employment by occupation and age.
 - `0_verification/`: `check_mona_scripts.py` (the shipped MONA code equals the code that ran,
   by syntax tree), `check_manifest.py` (every row of `MANIFEST.csv`), `build_file_inventory.py`
@@ -173,7 +184,7 @@ Register estimation, inside MONA (requires access to the registers):
 1. Copy `3_register_mona/scripts/` and `master.py` into the project folder and the input files
    into its `input` folder; set the project folder in `mona_common.py` (`PROJECT`).
 2. `python master.py --list` prints the plan; `python master.py --chapter 1 --run` builds the
-   caches, then chapters 2 to 8. Submit through MONA's batch client as described in
+   caches, then chapters 2 to 8 and 10. Submit through MONA's batch client as described in
    `3_register_mona/README.md`.
 3. Bring out the export folders through Statistics Sweden's output review and place them in
    `3_register_mona/exports/`; pack 4 then rebuilds the exhibits from them.
@@ -181,60 +192,75 @@ Register estimation, inside MONA (requires access to the registers):
 ## List of tables and programs
 
 `MAPPING.csv` is the complete list, with one row per exhibit and per register-backed claim in
-the text, and the exact export files. In brief:
+the text, and the exact export files. In brief (exhibit numbers as the online appendix
+compiles on 26 September 2026):
 
 | Exhibit | Program | Output |
 |---|---|---|
 | Figure 1 | `2_postings/18_figures.py` | `fig1_two_panel.pdf` |
 | Table 1 | `4_exhibits/01_table1_headline.py` | `table1_headline_v3.tex` |
-| Figure 2 | `4_exhibits/02_figure2_age_profile.py` | `fig2_age_profile_v3.pdf` |
+| Figure 2 | `4_exhibits/02_figure2_age_profile.py` | `fig2_age_profile_v4.pdf` |
 | Figure 3 | `4_exhibits/03_figure3_quarterly_path.py` | `fig2_spreading_v3.pdf` |
 | OA Table A1 | `2_postings/13_top_bottom_occupations.py` | `top_bottom_occupations.tex` |
 | OA Table A2 | `4_exhibits/04_tab_estimation_sample.py` | `tableI2_sumstats_employment.tex` |
 | OA Table A3 | `2_postings/10_summary_statistics.py` | `tableI2b_sumstats_postings_v3.tex` |
-| OA Figure A1 | `2_postings/18_figures.py` | `figA_posting_context.pdf` |
-| OA Figure A2 | `2_postings/07_event_study.py`, `08_honestdid.R`, `09_honestdid_figure.py` | `figA3_event_study_v3.png`, `figA6_rambachan_roth_v3.png` |
-| OA Figure A3 | `2_postings/11_rate_sensitivity.py`, `12_telework_split.py` | `figA_rate_sensitivity_scatter.png`, `figA_telework_robustness.png` |
-| OA Tables A4, A5 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
-| OA Tables A6, A7 | `2_postings/03`, `06`, `16` | `postings_extended.tex`, `postings_seasonality.tex` |
-| OA Figure A4, Table A8 | `2_postings/04_decile_gradient.py`, `16` | `postings_decile_gradient.pdf`, `postings_deciles.tex` |
-| OA Table A9 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
+| OA Figure A1 | `2_postings/07_event_study.py`, `08_honestdid.R`, `09_honestdid_figure.py` | `figA3_event_study_v3.png`, `figA6_rambachan_roth_v3.png` |
+| OA Figure A2 | `2_postings/11_rate_sensitivity.py`, `19_telework_split_extended.py` | `figA_rate_sensitivity_scatter.png`, `figA_telework_robustness.png` |
+| OA Table A4 | `2_postings/22_tab_remote_measures.py` (from `19` and `extensions/results/`) | `tableA_remote_measures.tex` |
+| OA Tables A5, A6 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
+| OA Figure A3 | `2_postings/23_fig_posting_coverage_monthly.py` | `fig_posting_coverage_monthly.pdf` |
+| OA Table A7 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
+| OA Tables A8, A9 | `2_postings/03`, `06`, `16` | `postings_extended.tex`, `postings_seasonality.tex` |
+| OA Table A10 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
+| OA Figure A4, Table A11 | `2_postings/04_decile_gradient.py`, `16` | `postings_decile_gradient.pdf`, `postings_deciles.tex` |
+| OA Table A12 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
 | OA Figure A5 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage_v3.pdf` |
-| OA Table A10 | typed in the manuscript (definitions only) | |
-| OA Tables A11, A12 | `4_exhibits/14_tab_window.py`, `13_tab_fixed_contrasts.py` | `tableA_window.tex`, `tableA_fixed_contrasts.tex` |
-| OA Figure A6 | `4_exhibits/03_figure3_quarterly_path.py --monthly` | `fig2_spreading_monthly_v3.pdf` |
-| OA Tables A13, A14 | `4_exhibits/08_tab_profile_bands.py`, `11_tab_continuous_profile.py` | `tableA_profile_split65.tex`, `tableA_age_profile.tex` |
-| OA Tables A15 to A17 | `4_exhibits/15`, `16`, `17` | `tableA_gender_split.tex`, `tableA_education_mix.tex`, `tableA_contrast_by_track.tex` |
-| OA Table A18 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
-| OA Figure A7, Table A19 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
-| OA Tables A20, A21 | `4_exhibits/09_tab_industry_credit.py`, `10_tab_cluster_industry.py` | `tableA_industry_credit.tex`, `tableA_cluster_industry.tex` |
-| OA Tables A22, A28 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
-| OA Tables A23, A32 | typed in the manuscript (literature and sources) | |
-| OA Table A24 | `5_occupation_register_public/01_published_age_gap.py` | `public_yreg.tex` |
-| OA Tables A25 to A27, Figure A8 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
-| OA Tables A29 to A31, Figure A9 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16`, `18` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex`, `fig3_firm_entry_es.pdf` |
-| OA Table A33 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
+| OA Table A13 | typed in the manuscript (definitions only) | |
+| OA Tables A14, A15 | `4_exhibits/14_tab_window.py`, `22_tab_headline_components.py` | `tableA_window.tex`, `tableA_headline_components.tex` |
+| OA Table A16 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
+| OA Tables A17, A18 | `4_exhibits/08_tab_profile_bands.py`, `11_tab_continuous_profile.py` | `tableA_profile_split65.tex`, `tableA_age_profile.tex` |
+| OA Figure A6 | `4_exhibits/27_fig_prepath_female.py` | `fig_prepath_female.pdf` |
+| OA Tables A19 to A21 | `4_exhibits/15`, `16`, `17` | `tableA_gender_split.tex`, `tableA_education_mix.tex`, `tableA_contrast_by_track.tex` |
+| OA Table A22 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
+| OA Figure A7, Table A23 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
+| OA Tables A24, A25, A26 | `4_exhibits/09_tab_industry_credit.py`, `23_tab_final_checks.py`, `10_tab_cluster_industry.py` | `tableA_industry_credit.tex`, `tableA_final_checks.tex`, `tableA_cluster_industry.tex` |
+| OA Tables A27, A34 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
+| OA Tables A28, A38 | typed in the manuscript (literature and sources) | |
+| OA Table A29 | `5_occupation_register_public/01_published_age_gap.py` | `public_yreg.tex` |
+| OA Tables A30 to A32, Figure A8 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
+| OA Table A33 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
+| OA Tables A35 to A37 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
+| OA Table A39 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
+| OA Table A40 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |
+| OA Table A41 | `4_exhibits/25_tab_nonmatch.py` | `tableA_nonmatch.tex` |
 
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of
-`master.py` that produces each.
+`master.py` that produces each. The lane 38c check (script 102, month-of-year terms) was
+submitted to MONA on 26 September 2026 and its export had not left MONA when the package was
+assembled; the script is shipped and `MAPPING.csv` carries the item as pending.
 
 ## Scope: the offline appendix
 
 The manuscript repository also holds an offline appendix (`appendix_offline_v3.tex`) with
-material from earlier versions of the paper. It is not part of the publication, and the
-package holds no code for its exhibits.
+material from earlier versions of the paper and, since 26 September 2026, three exhibits and
+one passage moved out of the online appendix: the posting-context figure (`18_figures.py`,
+`figA_posting_context.pdf`), the entry-level event study of the within-employer design
+(`18_figures.py`, `fig3_firm_entry_es.pdf`), the monthly counterpart of Figure 3
+(`4_exhibits/03 --monthly`, `fig2_spreading_monthly_v3.pdf`) and the passage "How the three
+results fare". The package still builds those three figures. The offline appendix is not part
+of the publication, and the package holds no code for its other exhibits.
 
 ## Licence
 
 The code (every `.py`, `.R`, `.do` and `.sh` file) is released under the MIT licence
 (`LICENSE`). The documentation, the aggregated register exports in `3_register_mona/exports/`,
-the derived data files the authors built (`data/raw/postings_ssyk4_monthly_2026-02-24.csv`)
-and the tables, figures and result files the code writes are released under the Creative
-Commons Attribution 4.0 International licence (CC BY 4.0, `LICENSE-docs`). Third-party data
-shipped in `data/raw/` and `3_register_mona/inputs/` keep their own licences, listed in the
-table above and in `data/DATA-MANIFEST.csv`. Register microdata are not part of the package
-and are not licensed by it.
+the derived data files the authors built (`data/raw/postings_ssyk4_monthly_2026-02-24.csv`,
+`2_postings/extensions/results/`) and the tables, figures and result files the code writes
+are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0,
+`LICENSE-docs`). Third-party data shipped in `data/raw/` and `3_register_mona/inputs/` keep
+their own licences, listed in the table above and in `data/DATA-MANIFEST.csv`. Register
+microdata are not part of the package and are not licensed by it.
 
 ## Archival
 
@@ -257,6 +283,9 @@ Engberg, E., Görg, H., Lodefalk, M., Javed, F., Längkvist, M., Monteiro, N. P.
 H., Pulito, G., Schroeder, S. and Tang, A. (2024). AI Unboxed and Jobs: A Novel
 Measure and Firm-Level Evidence from Three Countries. IZA Discussion Paper 16717.
 
+Hansen, S., Lambert, P. J., Bloom, N., Davis, S. J., Sadun, R. and Taska, B. (2023). Remote
+Work across Jobs, Companies, and Space. NBER Working Paper 31007. Data: <https://wfhmap.com/data/>.
+
 Indeed Hiring Lab. Job postings tracker. <https://github.com/hiring-lab/job_postings_tracker>.
 
 JobTech Development, Arbetsförmedlingen. Historical job advertisements (Platsbanken).
@@ -278,20 +307,3 @@ through MONA, 2026.
 The package was prepared by the authors with assistance from Claude (Anthropic) in writing,
 running and verifying code, as the paper's declaration on generative AI states. Every script
 and document was reviewed by the authors, who take responsibility for it.
-
-## Exhibit provenance for the online-appendix exhibits added in the revision round (September 2026)
-
-The table notes in the online appendix no longer name scripts; the mapping is here.
-
-| Exhibit | Built by (MONA script, then local) |
-|---|---|
-| OA Table `tab:final_checks` (pension ages, birth cohorts, credit on tau, female pre-path and industry test, exposure specification) | 95, 96, 97 |
-| OA Table `tab:unlinked` (unlinked payslips, tipping point, extremal allocations) | 100 |
-| OA Table `tab:nonmatch` (occupation non-match over all declared person-months) | 99 |
-| OA Table `tab:iv_vintage`, lower panel (person-months by code vintage) | 40 (vintage_composition export) |
-| OA Table `tab:iv_backtest` | 45, 68, 82 |
-| OA Table `tab:iv_backtest_arms` (three-arm decomposition) | 98 |
-| Figure 2 of the paper (age profile on tau, eight bands) | 95, drawn by `revision/local/l61_fig_age_profile_v4.py` |
-| OA Figure `fig:prepath_female` | 97, drawn by `revision/local/l62_fig_prepath_female.py` |
-| OA Figure `fig:posting_coverage_monthly` | local, `revision/local/l63_fig_posting_coverage_monthly.py` on l01/l51 outputs |
-| Count provenance behind the OA's rebuild paragraph (the nine two-sex persons) | 101 |

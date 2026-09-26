@@ -1,0 +1,27 @@
+design,sample,spec,estimator,term,coef,se,pval,n_obs,n_firms,note
+within_employer,all ads,l09_a_baseline,Poisson,rb_x_high,0.003985239627382843,0.010956111592782368,0.7160478357643487,881443,12141,
+within_employer,all ads,l09_a_baseline,Poisson,gpt_x_high,-0.15774227830485313,0.012526116252466192,0.0,881443,12141,
+within_employer,all ads,finer_ai_only,Poisson,rb_x_high,0.003985239627382541,0.0109561088589916,0.7160477679821149,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,all ads,finer_ai_only,Poisson,gpt_x_high,-0.1577422783048524,0.01252611312998512,0.0,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,rb_x_high,0.03290658426193738,0.013501779501054785,0.014801347023512879,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,gpt_x_high,-0.1787870205483854,0.015570984181305588,0.0,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,rb_x_rhigh,-0.05302584151466646,0.016843927830014704,0.0016435307761568652,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,gpt_x_rhigh,0.03887865505393068,0.0219538199509789,0.07657251946368615,1242639,12141,employer x quartile x remote-high cells; l09 employers
+within_employer,entry-level ads,l09_c_baseline,Poisson,rb_x_high,-0.006768073198495551,0.11700620964060444,0.9538731213081748,49246,1265,
+within_employer,entry-level ads,l09_c_baseline,Poisson,gpt_x_high,-0.19557156781994653,0.06461205747523632,0.002471094462403789,49246,1265,
+within_employer,entry-level ads,finer_joint,Poisson,rb_x_high,0.06235329812682505,0.14677791119192643,0.6709723378218841,65678,1265,employer x quartile x remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,gpt_x_high,-0.19365872231968909,0.07290764680536987,0.007902213097959798,65678,1265,employer x quartile x remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,rb_x_rhigh,-0.1537978788884221,0.10824528205012045,0.1553668994063362,65678,1265,employer x quartile x remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,gpt_x_rhigh,-0.005141396555777644,0.07708256014751581,0.9468206397222756,65678,1265,employer x quartile x remote-high cells; l09 entry employers
+within_employer,"all ads, high-remote employers",split,Poisson,rb_x_high,0.0024804324752862746,0.012265581266901329,0.8397392169922031,370371,2817,median employer remote share 0.0000
+within_employer,"all ads, high-remote employers",split,Poisson,gpt_x_high,-0.16256801283303976,0.014186471256140193,0.0,370371,2817,median employer remote share 0.0000
+within_employer,"all ads, low-remote employers",split,Poisson,rb_x_high,0.013632919290135208,0.022084734694693017,0.5370364916952859,511072,9324,median employer remote share 0.0000
+within_employer,"all ads, low-remote employers",split,Poisson,gpt_x_high,-0.12932022999600484,0.02192250175295609,3.6577270101645354e-09,511072,9324,median employer remote share 0.0000
+within_employer,"entry-level ads, high-remote employers",split,Poisson,rb_x_high,-0.006870471020632396,0.12214005717881424,0.9551420446550298,41516,845,median employer remote share 0.0000
+within_employer,"entry-level ads, high-remote employers",split,Poisson,gpt_x_high,-0.19300875245293952,0.06632178627034267,0.0036121339694283883,41516,845,median employer remote share 0.0000
+within_employer,"entry-level ads, low-remote employers",split,Poisson,rb_x_high,-0.011089512348985966,0.2566876453025827,0.9655402229412289,7730,420,median employer remote share 0.0000
+within_employer,"entry-level ads, low-remote employers",split,Poisson,gpt_x_high,-0.2406247050996561,0.3054795450150996,0.43087514071488764,7730,420,median employer remote share 0.0000
+within_employer,all ads,split_interaction,Poisson,rb_x_high,0.013632919291596287,0.02208449301240212,0.5370320366578729,881443,12141,difference high-remote minus low-remote employers
+within_employer,all ads,split_interaction,Poisson,gpt_x_high,-0.1293202299928767,0.021922271843073896,3.6563558847291233e-09,881443,12141,difference high-remote minus low-remote employers
+within_employer,all ads,split_interaction,Poisson,rb_x_high_x_rememp,-0.011152486816308153,0.025261198376031406,0.658860581744386,881443,12141,difference high-remote minus low-remote employers
+within_employer,all ads,split_interaction,Poisson,gpt_x_high_x_rememp,-0.03324778284016518,0.026111049236491855,0.20290367533548404,881443,12141,difference high-remote minus low-remote employers

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-18_tab_score_precision_and_coverage.py: Online Appendix Table A22 (Section
-III.3, the precision of the firm score) and Table A28 (Section IV.4, the codes
+18_tab_score_precision_and_coverage.py: Online Appendix Table A27 (Section
+III.3, the precision of the firm score) and Table A34 (Section IV.4, the codes
 the exposure score is built from).
 
 tableA_occ_coverage.tex: for incumbents aged 31 to 69 on the 2019 payroll, by
@@ -16,10 +16,13 @@ appendix export labels "used".
 
 tableA_size_reliability.tex: Panel A, the reliability of the firm score at
 quantiles of the incumbent count, by employers and by incumbent employment, and
-the shares below a reliability of one half; Panel B, the adoption step at the
-reported floor, at a floor of sixty person-months and in two firm-size groups
-(1 to 3 and 4 or more incumbents; the intended terciles degenerate), with the
-national quartile carried in unchanged (script 83, parts C and D).
+the shares below a reliability of one half; Panel B, tau (the later term minus
+the interim term, its standard error from the exported covariance) and the
+step from the tightening months at the reported floor, at a floor of sixty
+person-months and in two firm-size groups (1 to 3 and 4 or more incumbents;
+the intended terciles degenerate), with the national quartile carried in
+unchanged (script 83, parts C and D). The reported floor is Table 1's sample,
+and its tau must reproduce Table 1 before anything is written.
 
 Two numbers in the coverage note are typed, not read: the 2.5 per cent of
 resolved codes taken from a year before 2019, and the 7.4 per cent of the
@@ -48,6 +51,7 @@ S83 = EXPORTS / "2026-09-23_0655_s82-partB_s83-partsBCD"
 
 BANDS = ["22-25", "26-30", "31-34", "35-40", "41-49", "50+"]
 TERM = "post_x_high_x_young"
+INTERIM = "interim_x_high_x_young"
 
 
 def write(name: str, lines: list) -> None:
@@ -148,6 +152,26 @@ def coverage() -> None:
     write("tableA_occ_coverage.tex", tex)
 
 
+def tau_by_size(size: pd.DataFrame, spec: str, band: str) -> tuple[float, float]:
+    """tau = post minus interim on one size arm, its standard error from the
+    exported covariance of the two terms; the exported standard errors must
+    be the square roots of their own variances first."""
+    f = size[(size.spec == spec) & (size.young_band == band)
+             & (size.get("status", "ok") == "ok")].set_index("term")
+    v = pd.read_csv(S83 / f"vcov_s83_size_{spec}_{band.replace('-', '_')}.csv",
+                    index_col=0)
+    for t in (TERM, INTERIM):
+        if t not in f.index:
+            raise SystemExit(f"  occ_rest_size.csv: no {t} row for {spec} {band}")
+        if abs(float(v.loc[t, t]) ** 0.5 - float(f.loc[t, "se"])) > 5e-5:
+            raise SystemExit(f"  {spec} {band} {t}: the exported standard error "
+                             f"is not the square root of its own variance")
+    c = float(f.loc[TERM, "coef"]) - float(f.loc[INTERIM, "coef"])
+    var = (float(v.loc[TERM, TERM]) + float(v.loc[INTERIM, INTERIM])
+           - 2.0 * float(v.loc[TERM, INTERIM]))
+    return c, float(var) ** 0.5
+
+
 def size_reliability() -> None:
     rel = pd.read_csv(S83 / "occ_rest_reliability.csv")
     size = pd.read_csv(S83 / "occ_rest_size.csv")
@@ -156,10 +180,17 @@ def size_reliability() -> None:
     thin = rel[rel.block == "thin"].iloc[0]
     v = rel[rel.block == "variance"].set_index("item")["value"]
     p = size[size.term == TERM]
+    # The reported floor is Table 1's sample, so its tau must be Table 1's.
+    for band, want in (("22-25", (-0.0399, 0.0102)), ("26-30", (-0.0403, 0.0067))):
+        got = tau_by_size(size, "floor_5", band)
+        if (round(got[0], 4), round(got[1], 4)) != want:
+            raise SystemExit(f"  floor_5 {band}: tau {got[0]:+.4f} ({got[1]:.4f}) "
+                             f"is not Table 1's {want}; nothing is written")
 
     tex = [r"\begin{table}[ht!]", r"\centering",
-           r"\caption{The precision of a firm score averaged over its "
-           r"incumbents, and what it does to the adoption step}",
+           r"\caption[The precision of a firm score, and what it does to the "
+           r"estimates]{The precision of a firm score averaged over its "
+           r"incumbents, and what it does to the estimates}",
            r"\label{tab:size_reliability}", r"\footnotesize",
            r"\begin{tabular}{lrr}", r"\toprule",
            r"\multicolumn{3}{l}{\textit{Panel A. Reliability of the firm "
@@ -178,7 +209,7 @@ def size_reliability() -> None:
                f"{float(thin.share_employment) * 100:.1f}\\% of employment "
                f"\\\\")
     tex += [r"\addlinespace[4pt]", r"\midrule",
-            r"\multicolumn{3}{l}{\textit{Panel B. The adoption step by the "
+            r"\multicolumn{3}{l}{\textit{Panel B. The estimates by the "
             r"number of incumbents behind the score}} \\",
             r" & Ages 22--25 & Ages 26--30 \\", r"\midrule"]
     lab = {"floor_5": "Reported floor, five incumbent person-months",
@@ -186,19 +217,24 @@ def size_reliability() -> None:
            "tercile_2": "Employers with 1 to 3 incumbents",
            "tercile_3": "Employers with 4 or more incumbents"}
     for spec in ("floor_5", "floor_60", "tercile_2", "tercile_3"):
+        taus = [tau_by_size(size, spec, band) for band in ("22-25", "26-30")]
+        cells = [f"${c:+.4f}$ ({se:.4f})" for c, se in taus]
+        tex.append(f"{lab[spec]}, $\\tau$ & {cells[0]} & {cells[1]} \\\\")
         cells = []
         for band in ("22-25", "26-30"):
             r = p[(p.spec == spec) & (p.young_band == band)]
             cells.append(f"${float(r.coef.iloc[0]):+.4f}$ "
                          f"({float(r.se.iloc[0]):.4f})" if len(r) else "")
-        tex.append(f"{lab[spec]} & {cells[0]} & {cells[1]} \\\\")
+        tex.append(f"\\quad step from the tightening months & {cells[0]} & "
+                   f"{cells[1]} \\\\")
         cells = []
         for band in ("22-25", "26-30"):
             r = p[(p.spec == spec) & (p.young_band == band)]
             cells.append(f"{int(r.n_firms.iloc[0]):,}" if len(r) else "")
         tex.append(f"\\quad employers in the panel & {cells[0]} & "
                    f"{cells[1]} \\\\")
-    note = r"Panel~A: reliability is the share of the variance in the firm score that is signal rather than sampling noise, which rises with the number of incumbents behind the score; it is reported and not used to correct any estimate, since the measurement error is not classical. Panel~B: the adoption step of Equation~(2), clustered by employer, with the national exposure quartile carried into every arm unchanged. The size groups split at four incumbents, because the incumbent count is too skewed for thirds."
+        print(f"  {spec:10s} tau " + "  ".join(f"{c:+.4f} ({se:.4f})" for c, se in taus))
+    note = r"Panel~A: reliability is the share of the variance in the firm score that is signal rather than sampling noise, which rises with the number of incumbents behind the score; it is reported and not used to correct any estimate, since the measurement error is not classical. Panel~B: $\tau$ and the step from the tightening months of Equation~(2), clustered by employer, with the national exposure quartile carried into every arm unchanged. The size groups split at four incumbents, because the incumbent count is too skewed for thirds."
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
             note, r"\end{minipage}", r"\end{table}"]

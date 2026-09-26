@@ -1,0 +1,90 @@
+THE FEMALE DIFFERENTIAL'S PRE-PATH AND INDUSTRY TEST, AND THE
+CREDIT TEST ON TAU
+==============================================================
+
+tau = adoption step minus interim, SE from the clustered covariance
+of the same fit (V_LL + V_II - 2 V_LI).
+
+GATES:
+  stock 22-25: tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+  stock 26-30: tau -0.0403 (0.0067); Table 1 -0.0403 (0.0067)
+  sex 22-25: female differential tau -0.0714 (0.0109); Table 1 -0.0714 (0.0109)
+
+K. THE CREDIT TEST ON TAU (balance-sheet sample):
+  22-25 base_balance_sheet   hy_tau           -0.0429 (0.0102) t -4.23
+  22-25 leverage             hy_tau           -0.0439 (0.0143) t -3.06
+  22-25 leverage             hy_x_lev_tau     +0.0020 (0.0201) t +0.10
+  22-25 leverage             young_x_lev_tau  +0.0024 (0.0071) t +0.34
+  26-30 base_balance_sheet   hy_tau           -0.0415 (0.0076) t -5.45
+  26-30 leverage             hy_tau           -0.0658 (0.0126) t -5.21
+  26-30 leverage             hy_x_lev_tau     +0.0450 (0.0154) t +2.92
+  26-30 leverage             young_x_lev_tau  -0.0100 (0.0053) t -1.87
+
+P. THE FEMALE DIFFERENTIAL BEFORE THE LAUNCH (2021-01 to 2022-11), x High x Young x Female:
+  2021Q1 -0.0208 (0.0119)
+  2021Q2 -0.0250 (0.0125)
+  2021Q3 -0.0630 (0.0148)
+  2021Q4 -0.0036 (0.0111)
+  2022Q2 -0.0068 (0.0077)
+  2022Q3 -0.0729 (0.0133)
+  2022Q4 -0.0200 (0.0123)
+  drift: trend +0.00137 per month, SE 0.00097 by employer, 0.00112 by industry
+
+Q. THE EXPOSURE SPECIFICATION, 22-25 (tau):
+  continuous score, per baseline SD  -0.0105 (0.0040)
+  Q2 against Q1                    +0.0015 (0.0074)
+  Q3 against Q1                    +0.0085 (0.0166)
+  Q4 against Q1                    -0.0367 (0.0103)
+
+I. INDUSTRY x AGE x SEX x MONTH, same employers:
+  base_industry_sample     hyf_tau  -0.0716 (0.0109)
+  base_industry_sample     hy_tau   -0.0059 (0.0120)
+  industry_age_sex_month   hyf_tau  -0.0467 (0.0141)
+  industry_age_sex_month   hy_tau   -0.0068 (0.0128)
+
+VERDICTS:
+  K1: CREDIT DOES NOT CARRY TAU; 22-25 tau -0.0439 (0.0143) with leverage in, 102% of the same-sample -0.0429
+  P1: THE DIFFERENTIAL WAS FLAT BEFORE THE LAUNCH; trend +0.00137 (0.00097) per month, over 23 months +0.0315
+  I1: THE DIFFERENTIAL IS NOT AN INDUSTRY SHOCK; tau -0.0467 (0.0141), 65% of the same-sample -0.0716
+
+NOT REFITTED (tau recovered from saved exports, see the docstring):
+  industry x age x month: l58_tau_recovered.py from vcov_s80_indseas2_*
+  floor of sixty and the size split: l58 from vcov_s83_size_*
+  hires and separations: vcov_s82_hires_22_25, vcov_s82_seps_22_25 (lane 28c); tau +0.0084 (0.0342) and +0.0300 (0.0144) by the same arithmetic
+
+FITS: 15 of 15 attempted came back. A run far shorter than the estimate (2 to 2.5 hours) is a failure, not a result.
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  73: no FEK table answered the probe; using Serrano
+  73: leverage year filter: BSLSLUT in 2019, 581,879 of 9,681,255 balance-sheet rows kept
+  73: leverage built from Serrano_bokslut_20230614: 1 - EKSU/TILLGSU, keyed on P1207_Lopnr_ORGNR, 2019 balance sheets, 561,460 firms
+  Q: continuous score standardised on 104,217 employers, incumbent-weighted mean 52.35 and SD 17.63 percentile points
+  K/22-25: 88,613 of 104,217 panel employers carry a 2019 balance sheet (85.0%)
+  K/22-25: leverage split at 0.693 (>=), 50.0% of the balance-sheet employers high
+  K/26-30: 98,669 of 117,090 panel employers carry a 2019 balance sheet (84.3%)
+  K/26-30: leverage split at 0.689 (>=), 50.0% of the balance-sheet employers high
+  P: pre-launch window 2021-01 to 2022-11, 23 months, 100,631 employers
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  P: industry clusters 260; 436 employers without a code share one residual cluster
+  80: industry key: read from I_industry_key.parquet, 1,082,543 firms
+  I: 103,728 of 104,217 employers of the sex panel carry a three-digit code and form the sample for both fits; 259 industry groups
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATES. Stock: Table 1 within 0.0005 at 22-25 (-0.0578 (0.0155), tau
+  -0.0399 (0.0102)) and 26-30 (-0.0482 (0.0104), tau -0.0403 (0.0067))
+  before Part K. Sex: -0.0858 (0.0142), tau -0.0714 (0.0109) before
+  Parts P and I. A miss is a hard stop.
+  K1. Credit does not carry tau if at 22-25 the High x Young tau with
+  the leverage terms in keeps at least half of the same-sample
+  baseline and stays negative and distinguishable at five per cent.
+  P1. The differential was flat before the launch if the monthly
+  trend on High x Young x Female lies within two SE of zero.
+  I1. The differential is not an industry shock if its tau under
+  industry x age x sex x month keeps at least half of the same-sample
+  baseline and stays negative and distinguishable at five per cent.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 243.5 min. memory available: 488.4 GB

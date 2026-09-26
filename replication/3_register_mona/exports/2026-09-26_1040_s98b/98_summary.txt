@@ -1,0 +1,51 @@
+THE THREE-ARM AS-OF BACKTEST
+============================
+
+Estimator: 45's submitted design (employment at 22-25 in employer x
+exposure-quartile x month cells, 2019-2023; PostRB x High and
+PostGPT x High; employer-by-quartile and employer-by-month effects;
+Poisson; clustered by employer). Pseudo-dates for cutoff T: hike
+April T-1, launch December T-1; reference period before the hike.
+As-of cascade: own-year code to T, then Individ T, T-1, T-2.
+A = completed codes, full sample; B = completed codes, workers the
+as-of construction retains; C = as-of codes, same workers as B.
+
+HEADLINE GATE: tau -0.0399 (0.0102)
+
+CUTOFF 2021:
+  A          own        +0.0193 (0.0129)  cells 7,944,780, used by the fit 5,110,406, dropped by PPML 2,834,374, employers 41,569
+  asof_all   own        -0.2875 (0.0171)  cells 7,036,920, used by the fit 4,596,578, dropped by PPML 2,440,342, employers 36,727
+  B          own        +0.0048 (0.0127)  cells 7,568,940, used by the fit 4,880,824, dropped by PPML 2,688,116, employers 39,640
+  C          own        -0.2851 (0.0171)  cells 7,020,060, used by the fit 4,583,759, dropped by PPML 2,436,301, employers 36,650
+  A          harmonised -0.0020 (0.0131)  cells 6,834,660, used by the fit 4,551,077, dropped by PPML 2,283,583, employers 35,068
+  B          harmonised -0.0134 (0.0127)  cells 6,782,880, used by the fit 4,465,763, dropped by PPML 2,317,117, employers 35,068
+  C          harmonised -0.2897 (0.0172)  cells 6,751,320, used by the fit 4,448,006, dropped by PPML 2,303,314, employers 35,068
+  B_minus_A  harmonised -0.0115 (0.0026)  cells 20,368,860, used by the fit 13,464,846, dropped by PPML 6,904,014
+  C_minus_B  harmonised -0.2762 (0.0129)  cells 20,368,860, used by the fit 13,464,846, dropped by PPML 6,904,014
+  C_minus_A  harmonised -0.2877 (0.0136)  cells 20,368,860, used by the fit 13,464,846, dropped by PPML 6,904,014
+
+CUTOFF 2022:
+  A          own        +0.0176 (0.0111)  cells 7,944,780, used by the fit 5,110,406, dropped by PPML 2,834,374, employers 41,569
+  asof_all   own        -0.1452 (0.0122)  cells 7,530,960, used by the fit 4,886,125, dropped by PPML 2,644,835, employers 39,373
+  B          own        +0.0064 (0.0110)  cells 7,799,040, used by the fit 5,023,457, dropped by PPML 2,775,583, employers 40,831
+  C          own        -0.1415 (0.0122)  cells 7,517,580, used by the fit 4,875,597, dropped by PPML 2,641,983, employers 39,312
+  A          harmonised +0.0047 (0.0111)  cells 7,443,900, used by the fit 4,866,275, dropped by PPML 2,577,625, employers 38,599
+  B          harmonised -0.0042 (0.0110)  cells 7,420,560, used by the fit 4,831,993, dropped by PPML 2,588,567, employers 38,599
+  C          harmonised -0.1436 (0.0122)  cells 7,399,260, used by the fit 4,820,431, dropped by PPML 2,578,829, employers 38,599
+  B_minus_A  harmonised -0.0090 (0.0013)  cells 22,263,720, used by the fit 14,518,699, dropped by PPML 7,745,021
+  C_minus_B  harmonised -0.1394 (0.0064)  cells 22,263,720, used by the fit 14,518,699, dropped by PPML 7,745,021
+  C_minus_A  harmonised -0.1484 (0.0068)  cells 22,263,720, used by the fit 14,518,699, dropped by PPML 7,745,021
+
+SUPPORT T2021: the stacked fit used 13,464,846 cells; the three separate harmonised fits 13,464,846 (the same support)
+SUPPORT T2022: the stacked fit used 14,518,699 cells; the three separate harmonised fits 14,518,699 (the same support)
+Cells used = observations the fit kept (fixest drops all-zero
+fixed-effect groups and singletons); dropped = input minus used.
+
+READ RULE: no verdict; if C - B is under half of C - A at the
+2021 cutoff, the artefact is sample inclusion as much as coding.
+
+NOTES:
+  T2021: the harmonised support holds 35,068 employers (A 41,569, B 39,640, C 36,650)
+  T2022: the harmonised support holds 38,599 employers (A 41,569, B 40,831, C 39,312)
+
+Runtime 93.4 min. memory available: 678.3 GB

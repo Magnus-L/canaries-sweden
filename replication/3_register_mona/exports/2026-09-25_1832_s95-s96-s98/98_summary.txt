@@ -1,0 +1,46 @@
+THE THREE-ARM AS-OF BACKTEST
+============================
+
+Estimator: 45's submitted design (employment at 22-25 in employer x
+exposure-quartile x month cells, 2019-2023; PostRB x High and
+PostGPT x High; employer-by-quartile and employer-by-month effects;
+Poisson; clustered by employer). Pseudo-dates for cutoff T: hike
+April T-1, launch December T-1; reference period before the hike.
+As-of cascade: own-year code to T, then Individ T, T-1, T-2.
+A = completed codes, full sample; B = completed codes, workers the
+as-of construction retains; C = as-of codes, same workers as B.
+
+HEADLINE GATE: tau -0.0399 (0.0102)
+
+CUTOFF 2021:
+  A          own        +0.0193 (0.0129)  cells 7,944,780, dropped by PPML 0, employers 41,569
+  asof_all   own        -0.2875 (0.0171)  cells 7,036,920, dropped by PPML 0, employers 36,727
+  B          own        +0.0048 (0.0127)  cells 7,568,940, dropped by PPML 0, employers 39,640
+  C          own        -0.2851 (0.0171)  cells 7,020,060, dropped by PPML 0, employers 36,650
+  A          harmonised -0.0020 (0.0131)  cells 6,834,660, dropped by PPML 0, employers 35,068
+  B          harmonised -0.0134 (0.0127)  cells 6,782,880, dropped by PPML 0, employers 35,068
+  C          harmonised -0.2897 (0.0172)  cells 6,751,320, dropped by PPML 0, employers 35,068
+  B_minus_A  harmonised -0.0115 (0.0026)  cells 20,368,860, dropped by PPML 0
+  C_minus_B  harmonised -0.2762 (0.0129)  cells 20,368,860, dropped by PPML 0
+  C_minus_A  harmonised -0.2877 (0.0136)  cells 20,368,860, dropped by PPML 0
+
+CUTOFF 2022:
+  A          own        +0.0176 (0.0111)  cells 7,944,780, dropped by PPML 0, employers 41,569
+  asof_all   own        -0.1452 (0.0122)  cells 7,530,960, dropped by PPML 0, employers 39,373
+  B          own        +0.0064 (0.0110)  cells 7,799,040, dropped by PPML 0, employers 40,831
+  C          own        -0.1415 (0.0122)  cells 7,517,580, dropped by PPML 0, employers 39,312
+  A          harmonised +0.0047 (0.0111)  cells 7,443,900, dropped by PPML 0, employers 38,599
+  B          harmonised -0.0042 (0.0110)  cells 7,420,560, dropped by PPML 0, employers 38,599
+  C          harmonised -0.1436 (0.0122)  cells 7,399,260, dropped by PPML 0, employers 38,599
+  B_minus_A  harmonised -0.0090 (0.0013)  cells 22,263,720, dropped by PPML 0
+  C_minus_B  harmonised -0.1394 (0.0064)  cells 22,263,720, dropped by PPML 0
+  C_minus_A  harmonised -0.1484 (0.0068)  cells 22,263,720, dropped by PPML 0
+
+READ RULE: no verdict; if C - B is under half of C - A at the
+2021 cutoff, the artefact is sample inclusion as much as coding.
+
+NOTES:
+  T2021: the harmonised support holds 35,068 employers (A 41,569, B 39,640, C 36,650)
+  T2022: the harmonised support holds 38,599 employers (A 41,569, B 40,831, C 39,312)
+
+Runtime 106.9 min. memory available: 387.4 GB

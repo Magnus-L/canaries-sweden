@@ -1,0 +1,69 @@
+PENSION AGES: THE PROFILE SPLIT AT 60 AND 65, AND THE REFERENCE
+RESTRICTED TO 31-59 AND 31-49
+================================================================
+
+tau = adoption step minus interim (b_L - b_I), SE from the
+clustered covariance of the same fit (V_LL + V_II - 2 V_LI).
+
+GATE (the paper's six bands, from the eight-band pull):
+  22-25: tau -0.0399 (0.0102)   adoption -0.0578 (0.0155)   Table 1 tau -0.0399 (0.0102)
+  26-30: tau -0.0403 (0.0067)   adoption -0.0482 (0.0104)   Table 1 tau -0.0403 (0.0067)
+
+R. TAU WITH THE REFERENCE RESTRICTED (own sample | E49):
+  22-25 vs 31-69: own -0.0399 (0.0102)   E49 -0.0405 (0.0103)   E49 employers 98,508
+  22-25 vs 31-59: own -0.0339 (0.0102)   E49 -0.0350 (0.0103)   E49 employers 98,508
+  22-25 vs 31-49: own -0.0325 (0.0101)   E49 -0.0325 (0.0101)   E49 employers 98,508
+  26-30 vs 31-69: own -0.0403 (0.0067)   E49 -0.0407 (0.0068)   E49 employers 112,114
+  26-30 vs 31-59: own -0.0349 (0.0067)   E49 -0.0354 (0.0067)   E49 employers 112,114
+  26-30 vs 31-49: own -0.0308 (0.0062)   E49 -0.0308 (0.0062)   E49 employers 112,114
+
+P. THE PROFILE AGAINST 41-49, ONE SAMPLE (tau | gamma_2-style):
+  22-25  tau -0.0239 (0.0110)   gamma_2-style 8 bands -0.0215 (0.0124)   7 bands -0.0217 (0.0124)
+  26-30  tau -0.0174 (0.0077)   gamma_2-style 8 bands -0.0105 (0.0087)   7 bands -0.0105 (0.0087)
+  31-34  tau +0.0108 (0.0058)   gamma_2-style 8 bands +0.0166 (0.0067)   7 bands +0.0167 (0.0067)
+  35-40  tau +0.0154 (0.0049)   gamma_2-style 8 bands +0.0183 (0.0056)   7 bands +0.0184 (0.0056)
+  50-59  tau +0.0254 (0.0034)   gamma_2-style 8 bands +0.0336 (0.0038)   7 bands +nan (nan)
+  60-64  tau +0.0504 (0.0059)   gamma_2-style 8 bands +0.0687 (0.0073)   7 bands +nan (nan)
+  65-69  tau +0.0857 (0.0175)   gamma_2-style 8 bands +0.1903 (0.0322)   7 bands +0.1902 (0.0321)
+  50-64  tau +nan (nan)   gamma_2-style 8 bands +nan (nan)   7 bands +0.0392 (0.0039)
+
+VERDICTS:
+  R1: THE HEADLINE DOES NOT REST ON THE PENSION AGES
+      E49 22-25 against 31-59: -0.0350 (0.0103) t -3.42  87% of the 31-69 tau
+      E49 22-25 against 31-49: -0.0325 (0.0101) t -3.23  80% of the 31-69 tau
+  P1: THE OLDER GAIN IS NOT A PENSION-AGE EFFECT
+      50-59 tau +0.0254 (0.0034) t +7.58
+
+FITS: 13 of 13 attempted came back. A run far shorter than the estimate (2 to 3 hours) is a failure, not a result.
+
+NOTES:
+  data check 2021: rows without an employer id, dropped before the comparison: 0 in the pull, 11 in L_counts_2021
+  data check 2022: rows without an employer id, dropped before the comparison: 0 in the pull, 11 in L_counts_2022
+  data check 2023: rows without an employer id, dropped before the comparison: 0 in the pull, 4 in L_counts_2023
+  data check 2024: rows without an employer id, dropped before the comparison: 0 in the pull, 72 in L_counts_2024
+  data check 2025: rows without an employer id, dropped before the comparison: 0 in the pull, 36 in L_counts_2025
+  data check: the eight-band pull collapsed to six bands differs from 47L's L_counts in 0 of 39,889,993 employer-band-month cells
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  R/22-25: E49 keeps 98,508 of the 104,217 employers of the headline panel
+  R/26-30: E49 keeps 112,114 of the 117,090 employers of the headline panel
+  P: the seven- and eight-band fits run on the same 104,333 employers
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATE. The eight-band pull, collapsed to six bands, must reproduce
+  Table 1 within 0.0005 (coef and SE): 22-25 -0.0578 (0.0155), tau
+  -0.0399 (0.0102); 26-30 -0.0482 (0.0104), tau -0.0403 (0.0067).
+  A miss stops the script; nothing from it is quoted.
+  R1. The headline does not rest on the pension ages if, on the
+  common sample E49 at 22-25, tau against 31-59 AND against 31-49 are
+  each negative and distinguishable from zero at five per cent.
+  P1. The older gain is not a pension-age effect if 50-59 has a
+  positive tau distinguishable from zero at five per cent; if the
+  gain sits only in 60-64 and 65-69, pension ages are a live
+  explanation and the paper must say so.
+  Part P runs only if the seven-band profile reproduces lane 31's
+  split at 65 within 0.0005 on 104,333 employers.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 217.9 min. memory available: 409.7 GB

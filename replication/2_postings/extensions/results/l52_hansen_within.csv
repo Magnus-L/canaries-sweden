@@ -1,0 +1,17 @@
+design,sample,spec,estimator,term,coef,se,pval,n_obs,n_firms,note
+within_employer,all ads,l09_a_baseline,Poisson,rb_x_high,0.003985239627382843,0.010956111592782368,0.7160478357643487,881443,12141,
+within_employer,all ads,l09_a_baseline,Poisson,gpt_x_high,-0.15774227830485313,0.012526116252466192,0.0,881443,12141,
+within_employer,all ads,finer_ai_only,Poisson,rb_x_high,0.003985239627382638,0.010956108933371381,0.7160477698262986,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,all ads,finer_ai_only,Poisson,gpt_x_high,-0.1577422783048516,0.0125261132654617,0.0,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,rb_x_high,0.03461418399644602,0.011383694356295401,0.002360437101511792,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,gpt_x_high,-0.169945835487713,0.013537932812656124,0.0,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,rb_x_rhigh,-0.06815239235168968,0.013878218932244283,9.073107749557607e-07,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,all ads,finer_joint,Poisson,gpt_x_rhigh,0.027107537426981625,0.018518325555127724,0.143242514803942,1237747,12141,employer x quartile x Hansen remote-high cells; l09 employers
+within_employer,entry-level ads,l09_c_baseline,Poisson,rb_x_high,-0.006768073198495551,0.11700620964060444,0.9538731213081748,49246,1265,
+within_employer,entry-level ads,l09_c_baseline,Poisson,gpt_x_high,-0.19557156781994653,0.06461205747523632,0.002471094462403789,49246,1265,
+within_employer,entry-level ads,finer_ai_only,Poisson,rb_x_high,-0.006768073198498627,0.11701868359656831,0.9538780328598746,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_ai_only,Poisson,gpt_x_high,-0.19557156781995078,0.06461893761389785,0.002473730222369408,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,rb_x_high,0.009800192264724918,0.14177134359110763,0.9448887283126179,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,gpt_x_high,-0.18862685788875355,0.0753722897240167,0.012328402643767555,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,rb_x_rhigh,-0.0358591309258803,0.0784826841281626,0.6477393287692093,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers
+within_employer,entry-level ads,finer_joint,Poisson,gpt_x_rhigh,-0.015353134987474095,0.06300140721223396,0.807466959312964,64267,1265,employer x quartile x Hansen remote-high cells; l09 entry employers

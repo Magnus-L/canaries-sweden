@@ -68,6 +68,11 @@ step "$PYTHON" 2_postings/15_within_employer_heterogeneity.py
 step "$PYTHON" 2_postings/16_appendix_tables.py
 step "$PYTHON" 2_postings/17_accounting_to_june_2026.py
 step "$PYTHON" 2_postings/18_figures.py
+step "$PYTHON" 2_postings/19_telework_split_extended.py
+step "$PYTHON" 2_postings/20_eloundou_postings.py
+step "$PYTHON" 2_postings/21_posting_robustness.py
+step "$PYTHON" 2_postings/22_tab_remote_measures.py
+step "$PYTHON" 2_postings/23_fig_posting_coverage_monthly.py
 
 # -- Pack 5: published occupational statistics ----------------------------------
 step "$PYTHON" 5_occupation_register_public/01_published_age_gap.py

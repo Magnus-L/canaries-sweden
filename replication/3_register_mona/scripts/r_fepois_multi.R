@@ -23,7 +23,8 @@
 #   the cluster column.
 #
 # OUTPUT
-#   <out.csv>        term, coef, se, pvalue, n_obs, n_emp_total, converged,
+#   <out.csv>        term, coef, se, pvalue, n_obs (input rows), n_obs_fit
+#                    (rows the fit used), n_emp_total, converged,
 #                    elapsed_s, status; one row per term, 'dropped' when a
 #                    term is absorbed by the effects.
 #   <out>_vcov.csv   the clustered covariance of the terms, so that a linear
@@ -63,6 +64,7 @@ fes   <- trimws(strsplit(fe_raw, ",")[[1]])
 write_failure <- function(msg, elapsed = 0) {
     df <- data.frame(term = terms, coef = NA_real_, se = NA_real_,
                      pvalue = NA_real_, n_obs = NA_integer_,
+                     n_obs_fit = NA_integer_,
                      n_emp_total = NA_real_, converged = FALSE,
                      elapsed_s = elapsed, status = msg,
                      stringsAsFactors = FALSE)
@@ -82,9 +84,11 @@ if (!file.exists(input_path)) {
 #
 # base read.csv parses every field as character first and then converts,
 # and it grows the frame by reallocation, so peak memory runs many times
-# the size of the finished object. A twenty-six-million-row input killed
-# R with "*** recursive gc invocation", which is the allocator giving up
-# during garbage collection, on a node with 733 GB free.
+# the size of the finished object. On 21 Sep 2026 a twenty-six-million-row
+# input killed R with "*** recursive gc invocation", which is the
+# allocator giving up during garbage collection, on a node with 733 GB
+# free. Eight fits across this round died the same way and we blamed the
+# panel size.
 #
 # Two fixes, in order of preference. data.table::fread reads a gzipped
 # file directly, in parallel, at roughly the size of the result. If it is
@@ -114,7 +118,8 @@ read_exchange <- function(path, nrows = -1L) {
     #   colClasses  skips the character-first pass. Inferred from a
     #               sample rather than assumed, because run_fepois and
     #               run_fepois_es hand over STRING fixed effects and
-    #               forcing those to numeric returns NA coefficients.
+    #               forcing those to numeric returns NA coefficients,
+    #               which the harness caught on 21 September.
     #   quote/comment  disabling both removes per-field scanning that
     #               cannot match anything in a file we wrote ourselves.
     cat("reader: read.csv, pre-allocated\n")
@@ -159,15 +164,17 @@ cluster_formula <- as.formula(paste("~", cluster_col))
 # rc=3221225477 with "*** recursive gc invocation", R's collector
 # failing.
 #
-# The node itself is not the constraint: the batch nodes reported
-# between 362 and 738 GB free throughout, including at every failure.
-# What binds is the per-job cap and, more than threads, the NUMBER of
-# fixed effects: a 30.5M-row fit with three effects succeeded where a
-# 28.5M-row fit with four failed at two threads in the same job. Drop a
-# nested, redundant effect before reaching for the thread count.
+# This is NOT contention between lanes. An earlier version of this note
+# blamed three lanes running at once; 178 log lines across the whole
+# revision report the node between 362 and 738 GB free, including every
+# crash, so the machine was never short. What binds is the per-job cap
+# and, more than threads, the NUMBER of fixed effects: on 21 September
+# a 30.5M-row fit with three effects succeeded while a 28.5M-row fit
+# with four died at two threads in the same job. Drop a nested,
+# redundant effect before reaching for the thread count.
 #
 # A modest thread count costs wall-clock and buys the fit completing.
-# Override with CANARIES_R_THREADS when a job runs alone on a node.
+# Override with CANARIES_R_THREADS when a lane runs alone.
 # ---------------------------------------------------------------------
 # The env var cannot be set from inside the MONA batch submitter, so the
 # thread count has to arrive on the command line or it is never honoured.
@@ -194,6 +201,12 @@ fit <- tryCatch(
         quit(status = 1)
     })
 elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+# The observations the fit used: n_obs is the input row count, taken
+# before fixest drops all-zero fixed-effect groups and singletons (see
+# r_fepois.R; added 26 Sep 2026).
+n_obs_fit <- tryCatch(as.integer(nobs(fit)), error = function(e) NA_integer_)
+cat(sprintf("rows used by the fit: %s of %d\n",
+            ifelse(is.na(n_obs_fit), "NA", format(n_obs_fit)), n_obs))
 
 co <- summary(fit)$coeftable
 
@@ -201,8 +214,10 @@ co <- summary(fit)$coeftable
 # coefficient table as <output>_vcov.csv. A linear combination of terms
 # (a net level = step during tightening + step at adoption; a difference
 # between two bands; a sum of quarter terms) then gets a standard error
-# from the SAME fit rather than from a second run. vcov(fit) returns the
-# covariance under the clustering the fit was given.
+# from the SAME fit instead of a second trip to the lab. Added 22 Sep 2026
+# when the paper needed the level after adoption relative to the pre-hike
+# months and nothing exported could give its standard error. vcov(fit)
+# returns the covariance under the clustering the fit was given.
 vc <- tryCatch(vcov(fit), error = function(e) NULL)
 if (!is.null(vc)) {
     keep <- intersect(terms, rownames(vc))
@@ -219,13 +234,14 @@ out_rows <- lapply(terms, function(tm) {
         data.frame(term = tm, coef = as.numeric(co[tm, "Estimate"]),
                    se = as.numeric(co[tm, "Std. Error"]),
                    pvalue = as.numeric(co[tm, "Pr(>|z|)"]),
-                   n_obs = n_obs, n_emp_total = n_emp_total,
+                   n_obs = n_obs, n_obs_fit = n_obs_fit,
+                   n_emp_total = n_emp_total,
                    converged = isTRUE(fit$convStatus),
                    elapsed_s = elapsed, status = "ok",
                    stringsAsFactors = FALSE)
     } else {
         data.frame(term = tm, coef = NA_real_, se = NA_real_,
-                   pvalue = NA_real_, n_obs = n_obs,
+                   pvalue = NA_real_, n_obs = n_obs, n_obs_fit = n_obs_fit,
                    n_emp_total = n_emp_total,
                    converged = isTRUE(fit$convStatus),
                    elapsed_s = elapsed, status = "dropped",

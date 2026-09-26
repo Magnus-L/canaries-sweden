@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 check_manifest.py: compare every number the paper and its online appendix print
 with the file it is computed from, and report PASS or FAIL for each.
 
@@ -40,8 +40,11 @@ generated table. Each row is checked twice:
 
   Rows of kind `table` compare a generated table in output/tables/ with the
   file of the same name that the manuscript inputs, line by line after
-  stripping trailing whitespace; every number in the table is then checked at
-  once.
+  stripping trailing whitespace, dropping blank lines and whole-line comments,
+  and accepting the co-author markup of the revision (\add{x} is read as x,
+  \del{x} and \rem{x} are removed), so that a printed file still carrying
+  markup compares equal when its accepted text is the built text; every
+  number in the table is then checked at once.
 
 Status per row: PASS, FAIL (with the reason), or MISSING when the source file
 is not in the package (a MONA export that was never brought out). A row may
@@ -209,6 +212,47 @@ def at_source(row: dict) -> tuple[str, str]:
         return "FAIL", f"{type(ex).__name__}: {ex}"
 
 
+def strip_command(text: str, cmd: str, keep: bool) -> str:
+    r"""Remove every \cmd{...} from TeX source, brace-aware, keeping the
+    argument's text when `keep` is true (an insertion) and dropping it
+    otherwise (a deletion)."""
+    out, i, tag = [], 0, "\\" + cmd + "{"
+    while True:
+        j = text.find(tag, i)
+        if j < 0:
+            out.append(text[i:])
+            break
+        out.append(text[i:j])
+        k, depth = j + len(tag), 1
+        while depth and k < len(text):
+            c = text[k]
+            if c == "\\":
+                k += 2
+                continue
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+            k += 1
+        inner = text[j + len(tag):k - 1]
+        out.append(strip_command(inner, cmd, keep) if keep else "")
+        i = k
+    return "".join(out)
+
+
+def table_lines(text: str) -> list[str]:
+    r"""The lines of a table file as they are compared: the co-author
+    markup of the revision is accepted (\add{x} becomes x, \del{x} and
+    \rem{x} are removed), whole-line comments and blank lines are dropped,
+    and trailing whitespace is stripped. A builder writes no comments and
+    no markup, so a printed file that carries either still compares equal
+    when its accepted text is the built text."""
+    for cmd, keep in (("del", False), ("add", True), ("rem", False)):
+        text = strip_command(text, cmd, keep)
+    return [ln.rstrip() for ln in text.splitlines()
+            if ln.strip() and not ln.lstrip().startswith("%")]
+
+
 def table_identity(row: dict, paper: Path) -> tuple[str, str]:
     built = PACKAGE / row["source"].strip()
     printed = paper / row["document"].strip()
@@ -216,8 +260,8 @@ def table_identity(row: dict, paper: Path) -> tuple[str, str]:
         return "MISSING", f"not built: {row['source']} (run the pack that writes it)"
     if not printed.is_file():
         return "FAIL", f"manuscript table not found: {row['document']}"
-    a = [ln.rstrip() for ln in built.read_text(encoding="utf-8").splitlines()]
-    b = [ln.rstrip() for ln in printed.read_text(encoding="utf-8").splitlines()]
+    a = table_lines(built.read_text(encoding="utf-8"))
+    b = table_lines(printed.read_text(encoding="utf-8"))
     if a == b:
         return "PASS", ""
     for i, (x, y) in enumerate(zip(a, b), 1):

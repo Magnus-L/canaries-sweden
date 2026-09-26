@@ -1,0 +1,86 @@
+MISSING DEMOGRAPHICS: ACCOUNTING, TIPPING POINT, EXTREMAL
+ALLOCATION
+==========================================================
+
+GATE pooled 22-25 tau: -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+GATE female differential tau: -0.0714 (0.0109); Table 1 -0.0714 (0.0109)
+
+POOLED (unlinked = no register or no birth year):
+  U_high_later                     55,634
+  A_high_later                     23,217,373
+  share_unlinked_high_interim      0.2620%
+  share_unlinked_other_interim     0.1955%
+  share_unlinked_other_later       0.2000%
+  excess_own_rate                  -5,203
+  excess_differential              -6,238
+  young_pm_high_later_Y            1,012,337
+  m_star                           4.0800%
+  young_pm_needed                  41,303
+  needed_over_U_high_later         0.74
+  tau scaled_k0      -0.00013 (0.01025)
+  tau scaled_kstar   -0.00000 (0.01025)
+  tau x_all          -0.04101 (0.01002)
+  tau x_diff         -0.03109 (0.01020)
+
+SEX (unlinked = those or no sex 1/2):
+  U_high_later                     55,634
+  A_high_later                     23,217,373
+  share_unlinked_high_interim      0.2620%
+  share_unlinked_other_interim     0.1955%
+  share_unlinked_other_later       0.2000%
+  excess_own_rate                  -5,203
+  excess_differential              -6,238
+  young_pm_high_later_Y            490,946
+  m_star                           7.4297%
+  young_pm_needed                  36,476
+  needed_over_U_high_later         0.66
+  tau scaled_k0      -0.00028 (0.01088)
+  tau scaled_kstar   -0.00000 (0.01088)
+  tau x_all          -0.07242 (0.01131)
+  tau x_diff         -0.05645 (0.01110)
+
+VERDICTS:
+  T1 (tau at 22-25): T1 NOT MET; m* 4.08%, needed 41,303 young person-months against 55,634 unlinked at exposed employers in the later period (0.74 times)
+  T2 (tau at 22-25): THE EXTREMAL ALLOCATION LEAVES IT NEGATIVE; tau under X_all -0.0410 (0.0100)
+  T3 (the female differential): T3 NOT MET; m* 7.43%, needed 36,476 young person-months against 55,634 unlinked at exposed employers in the later period (0.66 times)
+  T4 (the female differential): THE EXTREMAL ALLOCATION LEAVES IT NEGATIVE; tau under X_all -0.0724 (0.0113)
+
+FITS: 10 of 10 attempted came back. A run far shorter than the estimate (2.5 to 3 hours) is a failure.
+
+NOTES:
+  82: cascade audit: 712,124 employer-band cells, 39 disagree with 47L's head count; total 5,111,523 against 5,111,278. A disagreement means a vintage holds more than one row for a person and the totals are NOT the head count; say so before quoting any coverage figure
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  linkage: 40 employer-month rows without an employer id (cannot belong to a panel employer)
+  A: 104,217 of 104,217 panel employers appear in the linkage pull (every panel employer declares someone; a shortfall is a key problem, not a data one)
+  T/P: k0 1.04067 gives tau -0.00013; secant k* 1.04080 gives tau -0.00000 (verified)
+  X/P/all: 99,820 of 99,820 unlinked person-months at exposed employers (interim and later) found a young cell in the panel; the rest cannot be allocated
+  X/P/diff: 7,889 of 7,889 excess later-period unlinked person-months allocated
+  A_sex: 104,217 of 104,217 panel employers appear in the linkage pull (every panel employer declares someone; a shortfall is a key problem, not a data one)
+  T/S: k0 1.07399 gives tau -0.00028; secant k* 1.07430 gives tau -0.00000 (verified)
+  X/S/all: 96,244 of 99,820 unlinked person-months at exposed employers (interim and later) found a young cell in the panel; the rest cannot be allocated
+  X/S/diff: 7,147 of 7,889 excess later-period unlinked person-months allocated
+
+ASSUMPTIONS:
+  1. Unlinked workers belong to the employer that declared them, in the
+     month declared.
+  2. Missingness enters as young person-months added to exposed young
+     cells; older bands and other employers stay as observed (the most
+     adverse direction for tau).
+  3. The tipping point is a counterfactual on the counts, not a model
+     of who the unlinked are. The declaration carries no age.
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATES. Pooled: Table 1 at 22-25 within 0.0005, -0.0578 (0.0155), tau
+  -0.0399 (0.0102). Sex: -0.0858 (0.0142), tau -0.0714 (0.0109). A miss
+  stops the design it gates.
+  T1. Missing demographics cannot tip tau if m* x Y exceeds the unlinked
+  person-months at exposed employers in the later period (U_HL).
+  T2. The extremal allocation leaves tau negative if tau under X_all is
+  negative and distinguishable from zero at five per cent.
+  T3, T4. The same for the female differential.
+  A verifying fit further than 0.1 SE from zero is reported as
+  such, and m* is then the secant estimate only.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 134.0 min. memory available: 578.2 GB
