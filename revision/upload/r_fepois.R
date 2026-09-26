@@ -24,7 +24,8 @@
 #   <cluster>         the cluster column
 #
 # OUTPUT COLUMNS
-#   term, coef, se, pvalue, n_obs, n_emp_total, converged, elapsed_s,
+#   term, coef, se, pvalue, n_obs (input rows), n_obs_fit (rows the fit
+#   used), n_emp_total, converged, elapsed_s,
 #   status ('ok', 'dropped' for a term absorbed by the effects, or the
 #   failure reason). A failure still writes the file, so the calling script
 #   reads a status row rather than crashing.
@@ -74,6 +75,7 @@ write_failure <- function(output_path, msg, elapsed = 0) {
         se         = c(NA_real_, NA_real_),
         pvalue     = c(NA_real_, NA_real_),
         n_obs      = c(NA_integer_, NA_integer_),
+        n_obs_fit  = c(NA_integer_, NA_integer_),
         n_emp_total = c(NA_real_, NA_real_),
         converged  = c(FALSE, FALSE),
         elapsed_s  = c(elapsed, elapsed),
@@ -254,6 +256,16 @@ fit <- tryCatch(
 
 elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
+# THE OBSERVATIONS THE FIT ACTUALLY USED. n_obs is the input row count,
+# taken before the fit; fixest then drops the observations of any fixed-
+# effect group whose outcome is zero throughout (and singletons). Until
+# 26 Sep 2026 every caller reported n_obs as "cells used", so 98's
+# "dropped by PPML" read 0 in every row (the ChatGPT review's finding).
+# n_obs_fit is nobs(fit), the count after those removals.
+n_obs_fit <- tryCatch(as.integer(nobs(fit)), error = function(e) NA_integer_)
+cat(sprintf("rows used by the fit: %s of %d\n",
+            ifelse(is.na(n_obs_fit), "NA", format(n_obs_fit)), n_obs))
+
 # ----------------------------------------------------------------------
 # Extract coefficients
 # ----------------------------------------------------------------------
@@ -274,6 +286,7 @@ for (tm in terms_wanted) {
             se         = as.numeric(co[tm, "Std. Error"]),
             pvalue     = as.numeric(co[tm, "Pr(>|z|)"]),
             n_obs      = n_obs,
+            n_obs_fit  = n_obs_fit,
             n_emp_total = n_emp_total,
             converged  = isTRUE(fit$convStatus),
             elapsed_s  = elapsed,
@@ -288,6 +301,7 @@ for (tm in terms_wanted) {
             se         = NA_real_,
             pvalue     = NA_real_,
             n_obs      = n_obs,
+            n_obs_fit  = n_obs_fit,
             n_emp_total = n_emp_total,
             converged  = isTRUE(fit$convStatus),
             elapsed_s  = elapsed,

@@ -46,6 +46,16 @@ STALE_CODE = D.loc[D["exposure_quartile"] == 1, "ssyk4"].iloc[0]
 EMPS = list(range(1, 121))
 MONTHS = [f"{y}-{m:02d}" for y in range(2019, 2024) for m in range(1, 13)]
 DROP, STALE = 0.25, 0.25
+# Employers whose young cell in the LOWER exposure group is zero in every
+# month, while their top-quartile young cell is populated. 98 keeps them
+# (they employ young workers), the zero-filled panel carries their lower
+# cell in every month, and fixest drops that all-zero employer-by-group
+# block: these are the cells the post-fit count must report as dropped.
+# Zeroing BOTH groups does not test the mechanism, because 98 excludes an
+# employer with no young workers before the fit. Set below; empty for the
+# two decomposition worlds. None divisible by 10, so the 'extra' as-of
+# rows never repopulate the cell.
+ZERO_EMPS: set = set()
 
 
 def world(kind: str, trunc: int) -> pd.DataFrame:
@@ -59,6 +69,8 @@ def world(kind: str, trunc: int) -> pd.DataFrame:
     d = pd.DataFrame(rows, columns=["employer_id", "year_month", "ssyk_true",
                                     "age_group", "lam", "late"])
     n = fx.poisson_same_noise(d["lam"].to_numpy(), 98)
+    n = np.where(d["employer_id"].isin(ZERO_EMPS) & (d["age_group"] == "22-25")
+                 & (d["ssyk_true"] == LO), 0, n)
     u = np.random.default_rng(980).random(len(d))
     hit = (d["late"] & (d["ssyk_true"] == Q4) & (d["age_group"] == "22-25")
            ).to_numpy()
@@ -123,6 +135,47 @@ for kind in ("drop", "stale"):
               d["C_minus_B"][0] / ca > 0.9, f"{d['C_minus_B'][0]:+.4f}")
     WORLD_GATE = {(t, a): s98.val(t, a) for t in s98.TRUNCATIONS
                   for a in ("A", "asof_all")}
+
+print("\n--- POST-FIT SUPPORT: nine employers with no young workers in the lower group ---")
+ZERO_EMPS = set(range(111, 120))
+install("stale")
+s98.ROWS.clear(); s98.FAILURES.clear(); s98.NOTES.clear()
+keep = s98.check_gate
+s98.check_gate = lambda trunc: None
+daioe = mc.load_daioe()
+s98.run_cutoff(2021, daioe, set(daioe["ssyk4"].astype(str)))
+s98.check_gate = keep
+check("zero world: every fit came back", not s98.FAILURES, "; ".join(s98.FAILURES))
+a_own = next(r for r in s98.ROWS if r["trunc"] == 2021 and r["arm"] == "A"
+             and r["support"] == "own")
+planted = len(ZERO_EMPS) * len(MONTHS)              # employers x months, one group
+check("zero world: the post-fit count is populated",
+      a_own["cells_used"] == a_own["cells_used"], str(a_own))
+# fixest removes the all-zero employer-by-group block (planted cells) and
+# then the top-quartile cells it leaves alone in their employer-by-month
+# groups (singletons): twice the planted count in the true-code arms.
+check("zero world: the fit dropped the planted block plus the singletons it leaves",
+      a_own["cells"] - a_own["cells_used"] == 2 * planted,
+      f"cells {a_own['cells']:,}, used {a_own['cells_used']}, planted {planted:,}")
+harm = [r for r in s98.ROWS if r["trunc"] == 2021 and r["support"] == "harmonised"
+        and r["arm"] in s98.STACK]
+drops = {r["arm"]: r["cells"] - r["cells_used"] for r in harm}
+# In the STALE world the as-of arm C carries a third cell per employer-
+# month (the stale code's quartile), so removing the all-zero block leaves
+# no singleton and C drops the block alone: the support differs between
+# arms, which is what the SUPPORT line is for.
+check("zero world: A and B drop block plus singletons, C drops the block alone",
+      drops.get("A") == 2 * planted and drops.get("B") == 2 * planted
+      and drops.get("C") == planted, str(drops))
+s98.save()
+s98.write_summary()
+summ0 = (s98.OUT / "98_summary.txt").read_text()
+check("zero world: the summary prints the non-zero drop",
+      f"dropped by PPML {2 * planted:,}" in summ0 and f"dropped by PPML {planted:,}" in summ0, summ0[summ0.find("CUTOFF 2021"):][:400])
+check("zero world: the summary states the stacked and separate support",
+      "SUPPORT T2021" in summ0, "\n".join(l for l in summ0.splitlines() if "SUPPORT" in l))
+ZERO_EMPS = set()
+install("stale")                                 # restore the world main() is gated on
 
 print("\n--- the backtest gate stops on 45's published numbers ---")
 try:

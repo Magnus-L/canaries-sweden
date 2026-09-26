@@ -200,6 +200,18 @@ def build(panel, keep, col, daioe, trunc) -> pd.DataFrame:
     return bal
 
 
+def used_obs(r: pd.DataFrame) -> int:
+    """The observations the fit USED. The R wrappers write n_obs_fit
+    (nobs(fit), after fixest drops all-zero fixed-effect groups and
+    singletons) beside n_obs (the input rows) since 26 Sep 2026. Before
+    that only n_obs existed, so "cells used" was the input count and
+    "dropped by PPML" read 0 in every row (the ChatGPT review of trip 37).
+    An old wrapper returns NaN here rather than the input count."""
+    if "n_obs_fit" in r.columns and r["n_obs_fit"].notna().any():
+        return int(r["n_obs_fit"].dropna().max())
+    return np.nan
+
+
 def fit_one(bal, trunc, arm, support) -> None:
     row = {"trunc": trunc, "arm": arm, "support": support, "gamma2": np.nan,
            "se2": np.nan, "cells": len(bal), "cells_used": np.nan,
@@ -217,7 +229,7 @@ def fit_one(bal, trunc, arm, support) -> None:
         if len(g2):
             row.update(gamma2=float(g2["coef"].iloc[0]),
                        se2=float(g2["se"].iloc[0]),
-                       cells_used=int(g2["n_obs"].iloc[0]), status="ok")
+                       cells_used=used_obs(g2), status="ok")
         else:
             FAILURES.append(f"{arm}_{support}_T{trunc}")
             row["status"] = "failed"
@@ -280,7 +292,7 @@ def stacked(panels: dict, trunc: int) -> None:
             se = float(np.sqrt(var)) if var > 0 else np.nan
         ROWS.append({"trunc": trunc, "arm": name, "support": "harmonised",
                      "gamma2": c, "se2": se, "cells": len(s),
-                     "cells_used": int(g["n_obs"].max()), "n_firms": np.nan,
+                     "cells_used": used_obs(r), "n_firms": np.nan,
                      "person_months_22_25": np.nan, "status": "derived"})
         print(f"  T{trunc} {name}: {c:+.4f} ({se:.4f})")
     save()
@@ -350,7 +362,7 @@ def headline_gate() -> None:
     pc, ps = float(g.loc[p_, "coef"]), float(g.loc[p_, "se"])
     ROWS.append({"trunc": 0, "arm": "headline_tau_22_25", "support": "paper",
                  "gamma2": c, "se2": s, "cells": len(b),
-                 "cells_used": int(g["n_obs"].max()),
+                 "cells_used": used_obs(r),
                  "n_firms": int(b["employer_id"].nunique()),
                  "person_months_22_25": np.nan, "status": "gate"})
     save()
@@ -386,13 +398,28 @@ def write_summary() -> None:
             if r["trunc"] != trunc:
                 continue
             used = r["cells_used"]
-            drop = (r["cells"] - used) if used == used else np.nan
+            fitted = (f"used by the fit {int(used):,}, dropped by PPML "
+                      f"{int(r['cells'] - used):,}" if used == used else
+                      "used by the fit n/a (the R wrapper predates the "
+                      "post-fit count)")
             L.append(f"  {r['arm']:<10} {r['support']:<10} {r['gamma2']:+.4f} "
-                     f"({r['se2']:.4f})  cells {r['cells']:,}, dropped by "
-                     f"PPML {drop if drop == drop else 'n/a'}"
+                     f"({r['se2']:.4f})  cells {r['cells']:,}, {fitted}"
                      + (f", employers {int(r['n_firms']):,}"
                         if r["n_firms"] == r["n_firms"] else ""))
         L.append("")
+    for trunc in TRUNCATIONS:
+        sep = [x["cells_used"] for x in ROWS if x["trunc"] == trunc
+               and x["support"] == "harmonised" and x["arm"] in STACK]
+        stk = next((x["cells_used"] for x in ROWS if x["trunc"] == trunc
+                    and x["arm"] == "C_minus_A"), np.nan)
+        if len(sep) == 3 and all(v == v for v in sep) and stk == stk:
+            L.append(f"SUPPORT T{trunc}: the stacked fit used {int(stk):,} "
+                     f"cells; the three separate harmonised fits "
+                     f"{int(sum(sep)):,} "
+                     f"({'the same support' if int(stk) == int(sum(sep)) else 'NOT the same support'})")
+    L.append("Cells used = observations the fit kept (fixest drops all-zero")
+    L.append("fixed-effect groups and singletons); dropped = input minus used.")
+    L.append("")
     L += ["READ RULE: no verdict; if C - B is under half of C - A at the",
           "2021 cutoff, the artefact is sample inclusion as much as coding."]
     if NOTES:
