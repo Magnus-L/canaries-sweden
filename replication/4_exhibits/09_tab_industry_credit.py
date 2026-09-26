@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-09_tab_industry_credit.py: Online Appendix Table A24 (Section III.2), an
+09_tab_industry_credit.py: Online Appendix Table A20 (Section III.2), an
 industry-specific age shock and the credit channel as rival explanations for
 the decline of the young inside exposed employers.
 

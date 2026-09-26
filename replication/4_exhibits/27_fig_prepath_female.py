@@ -10,7 +10,7 @@ employer-by-month and month-by-age effects), so that the seasonal cycle is
 visible; script 97, part P, specs `path` (clustered by employer) and
 `path_indcl` (clustered by three-digit industry). Whiskers are 95 per cent
 intervals under each clustering. The drift test with the calendar terms on
-is Table A25, Panel E.
+is Table A21, Panel E.
 
 Nothing is drawn unless both clusterings carry every quarter and the
 omitted reference, the two clusterings agree in every coefficient, and every

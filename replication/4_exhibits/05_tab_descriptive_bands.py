@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-05_tab_descriptive_bands.py: Online Appendix Table A9 (Section III.1), the
+05_tab_descriptive_bands.py: Online Appendix Table A10 (Section III.1), the
 descriptive counterpart of the within-employer age design.
 
 Workers counted by employer, age band and month on the 2019 exposure

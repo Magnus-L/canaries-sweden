@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-17_tab_contrast_by_track.py: Online Appendix Table A17 (Section III.2), the
+17_tab_contrast_by_track.py: Online Appendix Table A16 (Section III.2), the
 young against the prime-aged inside exposed employers after adoption, by
 education track, calendar cycle removed.
 

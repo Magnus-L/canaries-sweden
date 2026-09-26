@@ -158,7 +158,7 @@ def main() -> int:
                  "high_exposure_eloundou", "employees_2024"]].to_string(index=False),
             "", "The employer classification averages the score over an employer's 2019",
             "incumbents inside MONA and was not rebuilt on the Eloundou score; the",
-            "age profile on the Eloundou score is OA Table A18 (script 63)."]
+            "age profile on the Eloundou score is OA Table A17 (script 63)."]
     (config.RESULTS / "exposure_measure_agreement.txt").write_text(
         "\n".join(txt) + "\n", encoding="utf-8")
     print(f"\n  wrote {csv_out.name} and exposure_measure_agreement.txt")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-23_tab_final_checks.py: Online Appendix Table A25 (Section III.2), the checks
+23_tab_final_checks.py: Online Appendix Table A21 (Section III.2), the checks
 on tau from the final register run: pension ages, birth cohorts, credit, the
 female differential and the exposure specification.
 

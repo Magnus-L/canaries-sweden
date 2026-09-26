@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-16_tab_education_mix.py: Online Appendix Table A16 (Section III.2), the
+16_tab_education_mix.py: Online Appendix Table A18 (Section III.2), the
 education of employed 22-25 year olds by sex, inside and outside top-quartile
 employers, 2023.
 

@@ -210,20 +210,20 @@ compiles on 26 September 2026):
 | OA Table A4 | `2_postings/22_tab_remote_measures.py` (from `19` and `extensions/results/`) | `tableA_remote_measures.tex` |
 | OA Tables A5, A6 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
 | OA Figure A3 | `2_postings/23_fig_posting_coverage_monthly.py` | `fig_posting_coverage_monthly.pdf` |
-| OA Table A7 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
+| OA Table A8 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
 | OA Tables A8, A9 | `2_postings/03`, `06`, `16` | `postings_extended.tex`, `postings_seasonality.tex` |
-| OA Table A10 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
+| OA Table A9 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
 | OA Table A11 (decile figure now in the offline appendix) | `2_postings/04_decile_gradient.py`, `16` | `postings_decile_gradient.pdf`, `postings_deciles.tex` |
 | OA Table A12 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
 | OA Figure A4 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage_v3.pdf` |
 | OA Table A13 | typed in the manuscript (definitions only) | |
 | OA Tables A14, A15 | `4_exhibits/14_tab_window.py`, `22_tab_headline_components.py` | `tableA_window.tex`, `tableA_headline_components.tex` |
-| OA Table A16 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
+| OA Table A18 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
 | OA Tables A17, A18 | `4_exhibits/08_tab_profile_bands.py`, `11_tab_continuous_profile.py` | `tableA_profile_split65.tex`, `tableA_age_profile.tex` |
 | OA Figure A5 | `4_exhibits/27_fig_prepath_female.py` | `fig_prepath_female.pdf` |
 | OA Tables A19 to A21 | `4_exhibits/15`, `16`, `17` | `tableA_gender_split.tex`, `tableA_education_mix.tex`, `tableA_contrast_by_track.tex` |
-| OA Table A22 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
-| OA Figure A6, Table A23 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
+| OA Table A26 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
+| OA Figure A6, Table A19 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
 | OA Tables A24, A25, A26 | `4_exhibits/09_tab_industry_credit.py`, `23_tab_final_checks.py`, `10_tab_cluster_industry.py` | `tableA_industry_credit.tex`, `tableA_final_checks.tex`, `tableA_cluster_industry.tex` |
 | OA Tables A27, A34 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
 | OA Tables A28, A38 | typed in the manuscript (literature and sources) | |

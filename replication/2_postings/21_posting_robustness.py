@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 21_posting_robustness.py: the posting robustness table on the window to June
-2026 (Online Appendix Table A7).
+2026 (Online Appendix Table A8).
 
 WHAT IT ESTIMATES
 Equation (1), ln(postings) on occupation and month effects, PostRB x High
@@ -38,7 +38,7 @@ INPUTS   data/processed/postings_daioe_merged_extended.csv (03);
 OUTPUTS  output/results/posting_robustness_extended.csv,
          postings_ssyk4_monthly_2026H1_vacancies.csv (the 2026 positions,
          cached; delete it to re-stream); output/tables/tableA_posting_robustness.tex
-SERVES   Online Appendix II.6, Table A7
+SERVES   Online Appendix II.6, Table A8
 RUNTIME  about 2 minutes (the two 2026 archives are streamed once)
 """
 

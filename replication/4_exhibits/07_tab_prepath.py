@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-07_tab_prepath.py: Online Appendix Table A19 (Section III.2), the quarterly
+07_tab_prepath.py: Online Appendix Table A23 (Section III.2), the quarterly
 path on the plain specification and, beneath it, the pre-launch drift test.
 
 Upper panel: Poisson on employer by age by month counts with

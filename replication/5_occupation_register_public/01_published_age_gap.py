@@ -19,7 +19,7 @@ INPUTS   data/raw/scb_yreg54bas.json (the saved response of the Statistics
          again); data/processed/daioe_quartiles.csv
 OUTPUTS  output/results/public_yreg_check.csv, public_yreg_summary.txt;
          output/tables/public_yreg.tex
-SERVES   Online Appendix III.6, Table A24 (16 to 24 is the band whose gap
+SERVES   Online Appendix III.6, Table A20 (16 to 24 is the band whose gap
          falls most by 2024, by 0.006)
 RUNTIME  seconds
 """

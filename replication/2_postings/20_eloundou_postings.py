@@ -2,7 +2,7 @@
 """
 20_eloundou_postings.py: Equation (1) with the GPT-exposure score of
 Eloundou et al. (2024) in place of DAIOE, on the window to June 2026, and
-on the common occupation sample (Online Appendix Table A10).
+on the common occupation sample (Online Appendix Table A9).
 
 WHAT IT ESTIMATES
 ln(postings), zero cells dropped, occupation and month effects, PostRB x
@@ -28,7 +28,7 @@ INPUTS   data/processed/postings_daioe_merged_extended.csv (03);
          output/results/postings_extended_did.csv (03)
 OUTPUTS  output/results/eloundou_postings_extended.csv;
          output/tables/tableA_eloundou_postings.tex
-SERVES   Online Appendix II.8 (Table A10; the 341 occupations, -0.135 and
+SERVES   Online Appendix II.8 (Table A9; the 341 occupations, -0.135 and
          -0.094 of the text) and Section 3 of the paper
 RUNTIME  about 30 seconds
 """

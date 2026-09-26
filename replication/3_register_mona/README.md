@@ -51,7 +51,7 @@ exactly those hashes.
 |---|---|---|---|
 | `daioe_quartiles.dta` | DAIOE generative-AI exposure and its quartile, 423 SSYK 2012 four-digit occupations | `e217df0d…41bbb` | `1_data_public/04`, `data/processed/daioe_quartiles.csv` |
 | `dingel_neiman_ssyk4.dta` | Dingel and Neiman (2020) teleworkability mapped to 423 SSYK occupations | `a63bf527…868a58` | the SOC 2010 to ISCO-08 to SSYK 2012 route of `2_postings/12` applied to `data/raw/dingel_neiman_telework.csv` |
-| `eloundou_ssyk4.dta` | Eloundou et al. (2024) exposure score and high-exposure flag for 394 SSYK occupations | `d47b771e…eda93` | the same route applied to the authors' `occ_level.csv` (MIT licence); `2_postings/20` reads this file for OA Table A10 and checks its hash |
+| `eloundou_ssyk4.dta` | Eloundou et al. (2024) exposure score and high-exposure flag for 394 SSYK occupations | `d47b771e…eda93` | the same route applied to the authors' `occ_level.csv` (MIT licence); `2_postings/20` reads this file for OA Table A9 and checks its hash |
 
 The fourth, `utb_grupp2_sun2020_niva3_inr4_nyckel.dta`, maps SUN 2020 education codes
 (level at three digits, field at four) to the education groups that define the
@@ -125,10 +125,10 @@ of observations each Poisson fit retained, with every estimate unchanged, and OA
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
 (script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and
 reports tau and the female differential beside the same run's gate on Table 1's
-specification (OA Table A25, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
+specification (OA Table A21, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
 employers by the Eloundou et al. (2024) rating through 82's chain and re-fits Table 1's tau at 22-25
 and 26-30 and the female differential on the employers both indices score, DAIOE beside Eloundou, with
-the agreement of the two classifications (OA Table A25, Panel H, the same builder).
+the agreement of the two classifications (OA Table A21, Panel H, the same builder).
 
 ## The code that ran
 
@@ -167,7 +167,7 @@ exceptions, none of which changes an exported estimate:
   headline was restated after the run. The exported summary reports that the four-
   decimal agreement check failed (by 5 to 11 units in the fifth decimal, a
   consequence of the 2019 start of the panel) and so declined to draw the path; the
-  estimates are those shown in OA Figure A7 and Table A23.
+  estimates are those shown in OA Figure A7 and Table A19.
 - `66_plain_magnitudes.py`: a printed reading note was corrected after the run.
 - `63_measure_robustness.py` and `68_seasonal_control.py` ran twice; the exports the
   exhibits read (`output_63` and the 21:52 export of 68) come from the code shipped.

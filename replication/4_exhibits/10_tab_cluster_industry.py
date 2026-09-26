@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-10_tab_cluster_industry.py: Online Appendix Table A21 (Section III.2), every
+10_tab_cluster_industry.py: Online Appendix Table A25 (Section III.2), every
 term of the headline design under two clusterings, employer and three-digit
 industry.
 

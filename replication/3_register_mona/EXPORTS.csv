@@ -67,7 +67,7 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-21_0733_s66/output_66__66_log.txt,66,,,,not read by any exhibit or manifest row
 2026-09-21_0733_s66/output_66__66_summary.txt,66,,,,not read by any exhibit or manifest row
 2026-09-21_0733_s66/output_66__plain_flows.csv,66,,,,not read by any exhibit or manifest row
-2026-09-21_0733_s66/output_66__plain_stock.csv,66,05_tab_descriptive_bands.py,,Online Appendix Table A9,read by the package
+2026-09-21_0733_s66/output_66__plain_stock.csv,66,05_tab_descriptive_bands.py,,Online Appendix Table A10,read by the package
 2026-09-21_0812_s68/68_log.txt,68,04_tab_estimation_sample.py,,Online Appendix Table A2,read by the package
 2026-09-21_0812_s68/68_summary.txt,68,,,,not read by any exhibit or manifest row
 2026-09-21_0812_s68/seasonal_gender.csv,68,,,,not read by any exhibit or manifest row
@@ -101,10 +101,10 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-22_0712_s75-s77/vcov_s77_engineering.csv,77,,,,not read by any exhibit or manifest row
 2026-09-22_0712_s75-s77/vcov_s77_health_education_care.csv,77,,,,not read by any exhibit or manifest row
 2026-09-22_0712_s75-s77/vcov_s77_other.csv,77,,,,not read by any exhibit or manifest row
-2026-09-22_1333_s78/78_summary.txt,78,07_tab_prepath.py,,Online Appendix Table A10,read by the package
+2026-09-22_1333_s78/78_summary.txt,78,07_tab_prepath.py,,Online Appendix Table A9,read by the package
 2026-09-22_1333_s78/boundary_may.csv,78,,,,not read by any exhibit or manifest row
 2026-09-22_1333_s78/predrift.csv,78,,,,not read by any exhibit or manifest row
-2026-09-22_1333_s78/prepath_plain.csv,78,06_fig_prepath.py 07_tab_prepath.py,,Online Appendix Figure A5; Online Appendix Table A10,read by the package
+2026-09-22_1333_s78/prepath_plain.csv,78,06_fig_prepath.py 07_tab_prepath.py,,Online Appendix Figure A5; Online Appendix Table A9,read by the package
 2026-09-22_1333_s78/skill_placebo.csv,78,,,,not read by any exhibit or manifest row
 2026-09-22_1333_s78/vcov_s78_boundary_may_22_25.csv,78,,,,not read by any exhibit or manifest row
 2026-09-22_1333_s78/vcov_s78_predrift_22_25.csv,78,,,,not read by any exhibit or manifest row
@@ -118,8 +118,8 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-22_1333_s78/vcov_s78_skill_edu_22_25.csv,78,,,,not read by any exhibit or manifest row
 2026-09-22_1333_s78/vcov_s78_skill_edu_26_30.csv,78,,,,not read by any exhibit or manifest row
 2026-09-22_2232_s82-partA/82_summary.txt,82,,,,not read by any exhibit or manifest row
-2026-09-22_2232_s82-partA/occ_route_appendix_coverage.csv,82,18_tab_score_precision_and_coverage.py,,Online Appendix Table A22 and Table A28,read by the package
-2026-09-22_2232_s82-partA/occ_route_coverage.csv,82,04_tab_estimation_sample.py 18_tab_score_precision_and_coverage.py,M013 OA114 OA115 OA116 OA117,Online Appendix Table A2; Online Appendix Table A22 and Table A28; Section 2; IV.4 text,read by the package
+2026-09-22_2232_s82-partA/occ_route_appendix_coverage.csv,82,18_tab_score_precision_and_coverage.py,,Online Appendix Table A26 and Table A28,read by the package
+2026-09-22_2232_s82-partA/occ_route_coverage.csv,82,04_tab_estimation_sample.py 18_tab_score_precision_and_coverage.py,M013 OA114 OA115 OA116 OA117,Online Appendix Table A2; Online Appendix Table A26 and Table A28; Section 2; IV.4 text,read by the package
 2026-09-22_2232_s82-partA/occ_route_ssyk3_book.csv,82,,,,not read by any exhibit or manifest row
 2026-09-22_2327_s82-partC/82_summary.txt,82,,,,not read by any exhibit or manifest row
 2026-09-22_2327_s82-partC/occ_route_flows.csv,82,,,,not read by any exhibit or manifest row
@@ -138,15 +138,15 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-23_0655_s82-partB_s83-partsBCD/83_summary.txt,83,09_tab_industry_credit.py,,Online Appendix Table A12,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_cluster.csv,83,01_table1_headline.py 10_tab_cluster_industry.py,,Table 1 of the paper; Online Appendix Table A13,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_credit.csv,83,09_tab_industry_credit.py,,Online Appendix Table A12,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_drift.csv,83,01_table1_headline.py 07_tab_prepath.py,OA089 OA090 OA091 OA092 OA093 OA094,Table 1 of the paper; Online Appendix Table A10; III.2 pre-period,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_drift.csv,83,01_table1_headline.py 07_tab_prepath.py,OA089 OA090 OA091 OA092 OA093 OA094,Table 1 of the paper; Online Appendix Table A9; III.2 pre-period,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_industry.csv,83,09_tab_industry_credit.py,M053 M054 OA095,Online Appendix Table A12; Section 3; III.2 industry,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_reliability.csv,83,18_tab_score_precision_and_coverage.py,OA102 OA103 OA104,Online Appendix Table A22 and Table A28; III.3 text,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_size.csv,83,18_tab_score_precision_and_coverage.py,M010 OA001 OA105,Online Appendix Table A22 and Table A28; Section 2; III.3 text,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_window.csv,83,01_table1_headline.py 14_tab_window.py,OA064,Table 1 of the paper; Online Appendix Table A17,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_reliability.csv,83,18_tab_score_precision_and_coverage.py,OA102 OA103 OA104,Online Appendix Table A26 and Table A28; III.3 text,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_size.csv,83,18_tab_score_precision_and_coverage.py,M010 OA001 OA105,Online Appendix Table A26 and Table A28; Section 2; III.3 text,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/occ_rest_window.csv,83,01_table1_headline.py 14_tab_window.py,OA064,Table 1 of the paper; Online Appendix Table A16,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_flows.csv,82,01_table1_headline.py 04_tab_estimation_sample.py,M057 M058 M059,Table 1 of the paper; Online Appendix Table A2; Section 3,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_gender.csv,82,01_table1_headline.py,,Table 1 of the paper; III.2 sexes,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_headline.csv,82,01_table1_headline.py 04_tab_estimation_sample.py,M001 M012 M025 M026 M028 M029 M030 M031 OA106 OA118,Table 1 of the paper; Online Appendix Table A2; Abstract; Section 2; Section 3; III.2 pre-period; III.5 text; IV.4 text,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_profile.csv,82,01_table1_headline.py 04_tab_estimation_sample.py 08_tab_profile_bands.py 17_tab_contrast_by_track.py,M033 M034 M035 M036 M037 M038,Table 1 of the paper; Online Appendix Table A2; Online Appendix Table A11; Online Appendix Table A20; Section 3; Figure 2; III.5 text,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_profile.csv,82,01_table1_headline.py 04_tab_estimation_sample.py 08_tab_profile_bands.py 17_tab_contrast_by_track.py,M033 M034 M035 M036 M037 M038,Table 1 of the paper; Online Appendix Table A2; Online Appendix Table A11; Online Appendix Table A24; Section 3; Figure 2; III.5 text,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_ssyk3_book.csv,82,,,,not read by any exhibit or manifest row
 2026-09-23_0655_s82-partB_s83-partsBCD/occ_route_vintage.csv,82,,OA112 OA113,IV.3 text,read by the package
 2026-09-23_0655_s82-partB_s83-partsBCD/vcov_r73_base_22-25.csv,83,,,,not read by any exhibit or manifest row
@@ -190,10 +190,10 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_size_tercile_2_26_30.csv,83,,,,not read by any exhibit or manifest row
 2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_size_tercile_3_22_25.csv,83,,,,not read by any exhibit or manifest row
 2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_size_tercile_3_26_30.csv,83,,,,not read by any exhibit or manifest row
-2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_window_22_25.csv,83,14_tab_window.py,,Online Appendix Table A17,read by the package
-2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_window_26_30.csv,83,14_tab_window.py,,Online Appendix Table A17,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_window_22_25.csv,83,14_tab_window.py,,Online Appendix Table A16,read by the package
+2026-09-23_0655_s82-partB_s83-partsBCD/vcov_s83_window_26_30.csv,83,14_tab_window.py,,Online Appendix Table A16,read by the package
 2026-09-23_0917_s84/84_summary.txt,84,,,,not read by any exhibit or manifest row
-2026-09-23_0917_s84/occ_route_path.csv,84,03_figure3_quarterly_path.py 13_tab_fixed_contrasts.py,,Figure 3 of the paper; Online Appendix Table A16,read by the package
+2026-09-23_0917_s84/occ_route_path.csv,84,03_figure3_quarterly_path.py 13_tab_fixed_contrasts.py,,Figure 3 of the paper; Online Appendix Table A18,read by the package
 2026-09-23_0917_s84/vcov_s84_path_month_22_25.csv,84,,,,not read by any exhibit or manifest row
 2026-09-23_0917_s84/vcov_s84_path_month_26_30.csv,84,,,,not read by any exhibit or manifest row
 2026-09-23_0917_s84/vcov_s84_path_quarter_22_25.csv,84,,,,not read by any exhibit or manifest row
@@ -203,31 +203,31 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-23_1001_s85/vcov_s85_profile_plain.csv,85,,,,not read by any exhibit or manifest row
 2026-09-23_1001_s85/vcov_s85_profile_seasonal.csv,85,,,,not read by any exhibit or manifest row
 2026-09-23_1125_s85/85_summary.txt,85,,,,not read by any exhibit or manifest row
-2026-09-23_1125_s85/occ_route_descriptive_full.csv,85,05_tab_descriptive_bands.py,,Online Appendix Table A9,read by the package
+2026-09-23_1125_s85/occ_route_descriptive_full.csv,85,05_tab_descriptive_bands.py,,Online Appendix Table A10,read by the package
 2026-09-23_1125_s85/occ_route_profile_arms.csv,85,,,,not read by any exhibit or manifest row
 2026-09-23_1125_s85/occ_route_split65.csv,85,04_tab_estimation_sample.py 08_tab_profile_bands.py,,Online Appendix Table A2; Online Appendix Table A11,read by the package
 2026-09-23_1125_s85/vcov_s78_prof_split.csv,85,08_tab_profile_bands.py,,Online Appendix Table A11,read by the package
 2026-09-23_1125_s85/vcov_s85_profile_plain.csv,85,,,,not read by any exhibit or manifest row
 2026-09-23_1125_s85/vcov_s85_profile_seasonal.csv,85,,,,not read by any exhibit or manifest row
-2026-09-23_1234_s86/86_summary.txt,86,07_tab_prepath.py,,Online Appendix Table A10,read by the package
+2026-09-23_1234_s86/86_summary.txt,86,07_tab_prepath.py,,Online Appendix Table A9,read by the package
 2026-09-23_1234_s86/occ_route_predrift.csv,86,,,,not read by any exhibit or manifest row
-2026-09-23_1234_s86/occ_route_prepath.csv,86,06_fig_prepath.py 07_tab_prepath.py,,Online Appendix Figure A5; Online Appendix Table A10,read by the package
+2026-09-23_1234_s86/occ_route_prepath.csv,86,06_fig_prepath.py 07_tab_prepath.py,,Online Appendix Figure A5; Online Appendix Table A9,read by the package
 2026-09-23_1234_s86/vcov_s78_predrift_22_25.csv,86,,,,not read by any exhibit or manifest row
 2026-09-23_1234_s86/vcov_s78_predrift_26_30.csv,86,,,,not read by any exhibit or manifest row
 2026-09-23_1234_s86/vcov_s78_prepath_22_25.csv,86,,,,not read by any exhibit or manifest row
 2026-09-23_1234_s86/vcov_s78_prepath_26_30.csv,86,,,,not read by any exhibit or manifest row
-2026-09-23_1352_s87/87_summary.txt,87,15_tab_gender_split.py,,Online Appendix Table A18,read by the package
-2026-09-23_1352_s87/occ_route_education_mix_by_sex.csv,87,15_tab_gender_split.py 16_tab_education_mix.py 17_tab_contrast_by_track.py,M044 OA086 OA088,Online Appendix Table A18; Online Appendix Table A19; Online Appendix Table A20; Section 3; III.2 field,read by the package
-2026-09-23_1352_s87/occ_route_gender_by_track.csv,87,15_tab_gender_split.py,M044 OA086 OA088,Online Appendix Table A18; Section 3; III.2 field,read by the package
-2026-09-23_1352_s87/occ_route_gender_split.csv,87,01_table1_headline.py 15_tab_gender_split.py,M043 OA085 OA087,Table 1 of the paper; Online Appendix Table A18; Section 3; III.2 field,read by the package
+2026-09-23_1352_s87/87_summary.txt,87,15_tab_gender_split.py,,Online Appendix Table A17,read by the package
+2026-09-23_1352_s87/occ_route_education_mix_by_sex.csv,87,15_tab_gender_split.py 16_tab_education_mix.py 17_tab_contrast_by_track.py,M044 OA086 OA088,Online Appendix Table A17; Online Appendix Table A23; Online Appendix Table A24; Section 3; III.2 field,read by the package
+2026-09-23_1352_s87/occ_route_gender_by_track.csv,87,15_tab_gender_split.py,M044 OA086 OA088,Online Appendix Table A17; Section 3; III.2 field,read by the package
+2026-09-23_1352_s87/occ_route_gender_split.csv,87,01_table1_headline.py 15_tab_gender_split.py,M043 OA085 OA087,Table 1 of the paper; Online Appendix Table A17; Section 3; III.2 field,read by the package
 2026-09-23_1352_s87/vcov_s87_all.csv,87,,,,not read by any exhibit or manifest row
 2026-09-23_1352_s87/vcov_s87_business_law_social.csv,87,,,,not read by any exhibit or manifest row
 2026-09-23_1352_s87/vcov_s87_engineering.csv,87,,,,not read by any exhibit or manifest row
 2026-09-23_1352_s87/vcov_s87_health_education_care.csv,87,,,,not read by any exhibit or manifest row
 2026-09-23_1352_s87/vcov_s87_ict.csv,87,,,,not read by any exhibit or manifest row
 2026-09-23_1352_s87/vcov_s87_other.csv,87,,,,not read by any exhibit or manifest row
-2026-09-23_1407_s88/88_summary.txt,88,17_tab_contrast_by_track.py,,Online Appendix Table A20,read by the package
-2026-09-23_1407_s88/occ_route_contrast_by_track.csv,88,04_tab_estimation_sample.py 17_tab_contrast_by_track.py,M045 M046 M047 M048,Online Appendix Table A2; Online Appendix Table A20; Section 3,read by the package
+2026-09-23_1407_s88/88_summary.txt,88,17_tab_contrast_by_track.py,,Online Appendix Table A24,read by the package
+2026-09-23_1407_s88/occ_route_contrast_by_track.csv,88,04_tab_estimation_sample.py 17_tab_contrast_by_track.py,M045 M046 M047 M048,Online Appendix Table A2; Online Appendix Table A24; Section 3,read by the package
 2026-09-23_1407_s88/vcov_s88_all.csv,88,,,,not read by any exhibit or manifest row
 2026-09-23_1407_s88/vcov_s88_business_law_social.csv,88,,,,not read by any exhibit or manifest row
 2026-09-23_1407_s88/vcov_s88_engineering.csv,88,,,,not read by any exhibit or manifest row
@@ -275,18 +275,18 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-25_1459_s99/vcov_s99_gate_22_25.csv,99,,,,not read by any exhibit or manifest row
 2026-09-25_1459_s99/vcov_s99_other_22_25.csv,99,,,,not read by any exhibit or manifest row
 2026-09-25_1459_s99/vcov_s99_rebuilt_22_25.csv,99,,,,not read by any exhibit or manifest row
-2026-09-25_1832_s95-s96-s98/95_summary.txt,95,02_figure2_age_profile.py 23_tab_final_checks.py,,Figure 2 of the paper; Online Appendix Table A25,read by the package
-2026-09-25_1832_s95-s96-s98/96_summary.txt,96,23_tab_final_checks.py,,Online Appendix Table A25,read by the package
+2026-09-25_1832_s95-s96-s98/95_summary.txt,95,02_figure2_age_profile.py 23_tab_final_checks.py,,Figure 2 of the paper; Online Appendix Table A21,read by the package
+2026-09-25_1832_s95-s96-s98/96_summary.txt,96,23_tab_final_checks.py,,Online Appendix Table A21,read by the package
 2026-09-25_1832_s95-s96-s98/98_summary.txt,98,26_tab_backtest_arms.py,,Online Appendix Table A33,read by the package
 2026-09-25_1832_s95-s96-s98/backtest_common.csv,98,26_tab_backtest_arms.py,,Online Appendix Table A33,read by the package
-2026-09-25_1832_s95-s96-s98/payroll_cohorts.csv,96,23_tab_final_checks.py,OA236 OA237 OA238 OA239,"Online Appendix Table A25; III.2, Table A25 Panel C",read by the package
-2026-09-25_1832_s95-s96-s98/pension_reference.csv,95,02_figure2_age_profile.py 23_tab_final_checks.py,M061 M062 M063 M064 M065 M066 M067 M068 M069 M070 M081 OA191 OA192 OA193 OA194 OA195 OA196 OA197 OA198 OA199 OA200 OA201 OA202 OA203,"Figure 2 of the paper; Online Appendix Table A25; Figure 2; III.2; III.2, Table A25 Panel A; III.2, Table A25 Panel B; Section 3",read by the package
+2026-09-25_1832_s95-s96-s98/payroll_cohorts.csv,96,23_tab_final_checks.py,OA236 OA237 OA238 OA239,"Online Appendix Table A21; III.2, Table A21 Panel C",read by the package
+2026-09-25_1832_s95-s96-s98/pension_reference.csv,95,02_figure2_age_profile.py 23_tab_final_checks.py,M061 M062 M063 M064 M065 M066 M067 M068 M069 M070 M081 OA191 OA192 OA193 OA194 OA195 OA196 OA197 OA198 OA199 OA200 OA201 OA202 OA203,"Figure 2 of the paper; Online Appendix Table A21; Figure 2; III.2; III.2, Table A21 Panel A; III.2, Table A21 Panel B; Section 3",read by the package
 2026-09-25_1832_s95-s96-s98/vcov_s96_gradient_nc_ec.csv,96,,,,not read by any exhibit or manifest row
 2026-09-25_1832_s95-s96-s98/vcov_s98_headline_gate.csv,98,,,,not read by any exhibit or manifest row
 2026-09-25_1832_s95-s96-s98/vcov_s98_stacked_T2021.csv,98,,,,not read by any exhibit or manifest row
 2026-09-25_1832_s95-s96-s98/vcov_s98_stacked_T2022.csv,98,,,,not read by any exhibit or manifest row
-2026-09-25_2250_s97/97_summary.txt,97,23_tab_final_checks.py 27_fig_prepath_female.py,,Online Appendix Figure A6; Online Appendix Table A25,read by the package
-2026-09-25_2250_s97/headline_checks.csv,97,01_table1_headline.py 23_tab_final_checks.py 27_fig_prepath_female.py,M071 M072 M073 M075 M080 M082 OA204 OA205 OA206 OA207 OA208 OA209 OA210 OA211 OA212 OA213 OA214 OA215 OA216 OA217 OA218 OA219 OA228 OA229 OA230 OA231 OA232 OA233 OA234 OA235 OA240 OA241 OA242 OA243 OA244 OA245 OA246 OA247 OA248,"Online Appendix Figure A6; Online Appendix Table A25; Table 1 of the paper; III.2 sexes; III.2 sexes, Table A25 Panel E; III.2 sexes, Table A25 note; III.2, Fig. A6 caption; III.2, Table A25 Panel D; III.2, Table A25 Panel F; Section 3",read by the package
+2026-09-25_2250_s97/97_summary.txt,97,23_tab_final_checks.py 27_fig_prepath_female.py,,Online Appendix Figure A6; Online Appendix Table A21,read by the package
+2026-09-25_2250_s97/headline_checks.csv,97,01_table1_headline.py 23_tab_final_checks.py 27_fig_prepath_female.py,M071 M072 M073 M075 M080 M082 OA204 OA205 OA206 OA207 OA208 OA209 OA210 OA211 OA212 OA213 OA214 OA215 OA216 OA217 OA218 OA219 OA228 OA229 OA230 OA231 OA232 OA233 OA234 OA235 OA240 OA241 OA242 OA243 OA244 OA245 OA246 OA247 OA248,"Online Appendix Figure A6; Online Appendix Table A21; Table 1 of the paper; III.2 sexes; III.2 sexes, Table A21 Panel E; III.2 sexes, Table A21 note; III.2, Fig. A6 caption; III.2, Table A21 Panel D; III.2, Table A21 Panel F; Section 3",read by the package
 2026-09-25_2250_s97/vcov_s97_gate_22_25.csv,97,,,,not read by any exhibit or manifest row
 2026-09-25_2250_s97/vcov_s97_gate_26_30.csv,97,,,,not read by any exhibit or manifest row
 2026-09-25_2250_s97/vcov_s97_i_base_22_25.csv,97,,,,not read by any exhibit or manifest row
@@ -326,8 +326,8 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1040_s98b/backtest_common.csv,98,26_tab_backtest_arms.py,OA266 OA267 OA268 OA269 OA270 OA271 OA272,"Online Appendix Table A33; IV.3, Table A33",read by the package
 2026-09-26_1040_s98b/vcov_s98_stacked_T2021.csv,98,,,,not read by any exhibit or manifest row
 2026-09-26_1040_s98b/vcov_s98_stacked_T2022.csv,98,,,,not read by any exhibit or manifest row
-2026-09-26_1208_s102/102_summary.txt,102,23_tab_final_checks.py,,Online Appendix Table A25 Panel G,read by the package
-2026-09-26_1208_s102/month_of_year.csv,102,23_tab_final_checks.py,OA311 OA312 OA313 OA314 OA315 OA316 M085,Online Appendix Table A25 Panel G; III.2 text; paper Section 3 (0.002),read by the package
+2026-09-26_1208_s102/102_summary.txt,102,23_tab_final_checks.py,,Online Appendix Table A21 Panel G,read by the package
+2026-09-26_1208_s102/month_of_year.csv,102,23_tab_final_checks.py,OA311 OA312 OA313 OA314 OA315 OA316 M085,Online Appendix Table A21 Panel G; III.2 text; paper Section 3 (0.002),read by the package
 2026-09-26_1208_s102/vcov_s102_gate_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_gate_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_moy_22_25.csv,102,,,,not read by any exhibit or manifest row
@@ -336,9 +336,9 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1208_s102/vcov_s102_sex_gate_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_sex_moy_22_25.csv,102,,,,not read by any exhibit or manifest row
 2026-09-26_1208_s102/vcov_s102_sex_moy_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
-2026-09-26_1527_s103/103_summary.txt,103,23_tab_final_checks.py,,Online Appendix Table A25 Panel H,read by the package
-2026-09-26_1527_s103/classification_agreement.csv,103,23_tab_final_checks.py,OA333 OA334 OA335 OA336,Online Appendix Table A25 Panel H note; III.2 and Part I text,read by the package
-2026-09-26_1527_s103/eloundou_classification.csv,103,23_tab_final_checks.py,OA325 OA326 OA327 OA328 OA329 OA330 OA331 OA332 M086 M087,Online Appendix Table A25 Panel H; III.2 text; paper Section 3,read by the package
+2026-09-26_1527_s103/103_summary.txt,103,23_tab_final_checks.py,,Online Appendix Table A21 Panel H,read by the package
+2026-09-26_1527_s103/classification_agreement.csv,103,23_tab_final_checks.py,OA333 OA334 OA335 OA336,Online Appendix Table A21 Panel H note; III.2 and Part I text,read by the package
+2026-09-26_1527_s103/eloundou_classification.csv,103,23_tab_final_checks.py,OA325 OA326 OA327 OA328 OA329 OA330 OA331 OA332 M086 M087,Online Appendix Table A21 Panel H; III.2 text; paper Section 3,read by the package
 2026-09-26_1527_s103/vcov_s103_daioe_common_22_25.csv,103,,,,not read by any exhibit or manifest row
 2026-09-26_1527_s103/vcov_s103_daioe_common_26_30.csv,103,,,,not read by any exhibit or manifest row
 2026-09-26_1527_s103/vcov_s103_eloundou_22_25.csv,103,,,,not read by any exhibit or manifest row

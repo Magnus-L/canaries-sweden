@@ -14,7 +14,7 @@ occupation (pyfixest).
 
 INPUTS   data/processed/postings_daioe_merged_extended.csv (03)
 OUTPUTS  output/results/postings_seasonality.csv
-SERVES   Section 3 and Online Appendix II.7, Table A7 (through 16)
+SERVES   Section 3 and Online Appendix II.7, Table A8 (through 16)
 RUNTIME  under a minute
 """
 

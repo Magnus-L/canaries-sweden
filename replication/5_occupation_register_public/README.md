@@ -7,8 +7,8 @@ reproduce without a connection; each can query the API again.
 
 | Script | What it produces | Exhibit | Runtime |
 |---|---|---|---|
-| `01_published_age_gap.py` | for each published age band, the log employment gap between top-quartile occupations and the rest, and its change since 2022 (2020 to 2024) | Online Appendix Table A24 | seconds |
-| `02_occupation_mix_by_sex.py` | the employment-weighted DAIOE exposure of women's and men's occupations by age band, 2024 | Online Appendix Table A18; one sentence of Section 3 | seconds |
+| `01_published_age_gap.py` | for each published age band, the log employment gap between top-quartile occupations and the rest, and its change since 2022 (2020 to 2024) | Online Appendix Table A20 | seconds |
+| `02_occupation_mix_by_sex.py` | the employment-weighted DAIOE exposure of women's and men's occupations by age band, 2024 | Online Appendix Table A17; one sentence of Section 3 | seconds |
 | `03_exposure_measure_agreement.py` | how alike DAIOE and the Eloundou score rank occupations: their correlation across the 393 occupations both score (checked against the register run's own number) and the employment-weighted agreement on the top-quartile cut, 2024 | the data section's sentence on the two measures (Online Appendix Part I) | seconds |
 
 `01` reads the quartiles of `1_data_public/04`; `02` reads `3_register_mona/inputs/daioe_quartiles.dta`,

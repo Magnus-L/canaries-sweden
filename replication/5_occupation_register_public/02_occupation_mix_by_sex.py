@@ -18,7 +18,7 @@ INPUTS   data/raw/scb_yreg54bas_ssyk4_age_sex_2024.json, the saved response
          scb_yreg54bas_query.json; --refresh queries the API again.
          3_register_mona/inputs/daioe_quartiles.dta
 OUTPUTS  output/tables/tableA_occ_mix_by_sex.tex
-SERVES   Online Appendix III.2, Table A18; the sentence of Section 3 on the
+SERVES   Online Appendix III.2, Table A17; the sentence of Section 3 on the
          occupations young women and men hold
 RUNTIME  seconds
 

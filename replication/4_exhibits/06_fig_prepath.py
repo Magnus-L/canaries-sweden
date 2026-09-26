@@ -11,7 +11,7 @@ terms, so the seasonal cycle is visible. The path is drawn as four series, one
 per calendar quarter, against the year; whiskers are 95 per cent intervals
 clustered by employer. The panel reaches back to 2019 and is larger than the
 headline panel. The verdict on the pre-period is the linear drift test of
-Table 1 and Table A19.
+Table 1 and Table A23.
 
 Export read: 3_register_mona/exports/2026-09-23_1234_s86/occ_route_prepath.csv
 (script 86); script 78's export on the education-based score,
