@@ -23,13 +23,16 @@ differential at 22-25 with industry x age x sex x month effects and its
 pre-launch drift, clustered by employer and by industry (script 97, parts I
 and P). Panel F: the exposure specification, the continuous score per
 baseline standard deviation and the quartiles against the first (script 97,
-part Q).
+part Q). Panel G: tau and the female differential with eleven month-of-year
+terms in place of the three calendar-quarter terms, each beside the same
+run's gate on Table 1's specification, standard errors by employer and by
+industry (script 102, parts G and M).
 
 Nothing is written unless every exported standard error of a derived tau is
 the square root of the exported variance of the difference, every count the
 panel titles state is the one the export holds, and every estimate agrees to
 its printed decimals with the summary its own run printed (95_summary.txt,
-96_summary.txt, 97_summary.txt). The note's median leverage (0.693, 0.689),
+96_summary.txt, 97_summary.txt, 102_summary.txt). The note's median leverage (0.693, 0.689),
 third-quarter term and score standard deviation (17.6) are read from the
 exports and the summaries too.
 
@@ -37,6 +40,7 @@ Exports read (3_register_mona/exports/):
   2026-09-25_1832_s95-s96-s98/  pension_reference.csv, 95_summary.txt,
       payroll_cohorts.csv, 96_summary.txt
   2026-09-25_2250_s97/  headline_checks.csv, 97_summary.txt
+  2026-09-26_1208_s102/  month_of_year.csv, 102_summary.txt
 Output: output/tables/tableA_final_checks.tex (a bare tabular and note; the
         appendix supplies the float and caption)
 
@@ -55,6 +59,7 @@ from config import EXPORTS, TABLES  # noqa: E402
 
 S95 = EXPORTS / "2026-09-25_1832_s95-s96-s98"
 S97 = EXPORTS / "2026-09-25_2250_s97"
+S102 = EXPORTS / "2026-09-26_1208_s102"
 
 RE_EST = r"([-+][0-9.]+) \(([0-9.]+)\)"
 
@@ -321,6 +326,57 @@ def panel_f(said_text: str) -> tuple[list, float]:
     return rows, float(m.group(1))
 
 
+def est2(c: float, se_emp: float, se_ind: float, dp: int = 4) -> str:
+    return f"${c:+.{dp}f}$ ({se_emp:.{dp}f}; {se_ind:.{dp}f})"
+
+
+def panel_g() -> list:
+    """Eleven month-of-year terms in place of the three quarter terms
+    (script 102): tau and the female differential, each with both
+    clusterings, beside the same run's gate on Table 1's specification."""
+    d = rows_ok(need(S102, "month_of_year.csv"))
+    text = need(S102, "102_summary.txt").read_text(encoding="utf-8", errors="replace")
+    # The summary prints the pair of lines twice: first for tau, then for the
+    # female differential.
+    said = re.findall(r"(quarter terms \(Table 1\)|month-of-year terms)\s+tau "
+                      r"([-+][0-9.]+)\s+SE ([0-9.]+) by employer, ([0-9.]+) by industry",
+                      text)
+    if len(said) != 4:
+        raise SystemExit("  102_summary.txt: expected four movement lines")
+    rows, firms = [], set()
+    for label, term, part_e, part_i, si in (
+            ("$\\tau$ at 22--25", "hy_tau", ("gate", "month_of_year"),
+             ("gate_indcl", "month_of_year_indcl"), 0),
+            ("Female differential at 22--25", "hyf_tau",
+             ("sex_gate", "sex_month_of_year"),
+             ("sex_gate_indcl", "sex_month_of_year_indcl"), 2)):
+        cells = []
+        for j, (spec_e, spec_i) in enumerate(zip(part_e, part_i)):
+            re_ = pick(d, "month_of_year.csv", spec=spec_e, young_band="22-25", term=term)
+            ri_ = pick(d, "month_of_year.csv", spec=spec_i, young_band="22-25", term=term)
+            for what, r in (("employer", re_), ("industry", ri_)):
+                derived_se_check(r, f"Panel G {label} {spec_e} {what}")
+                firms.add(int(r.n_firms))
+            if abs(float(re_.coef) - float(ri_.coef)) > 1e-9:
+                raise SystemExit(f"  Panel G {spec_e}: the two clusterings differ "
+                                 "in the coefficient")
+            _, s_c, s_e, s_i = said[si + j]
+            if round(float(re_.coef), 4) != float(s_c) \
+                    or round(float(re_.se), 4) != float(s_e) \
+                    or round(float(ri_.se), 4) != float(s_i):
+                raise SystemExit(f"  Panel G {spec_e}: the export gives "
+                                 f"{float(re_.coef):+.4f} ({float(re_.se):.4f}; "
+                                 f"{float(ri_.se):.4f}) and the summary {s_c} ({s_e}; "
+                                 f"{s_i}); nothing is written")
+            cells.append(est2(float(re_.coef), float(re_.se), float(ri_.se)))
+        rows.append(f"{label}, SE by employer and by industry & & "
+                    + " & ".join(cells) + r" \\")
+    if firms != {104217}:
+        raise SystemExit(f"  Panel G: the fits run on {firms} employers, not "
+                         f"the 104,217 the title states")
+    return [r" & & Quarter terms (Table 1) & Month-of-year terms \\"] + rows
+
+
 def main() -> int:
     said97 = need(S97, "97_summary.txt").read_text(encoding="utf-8", errors="replace")
     a, _ = panel_a()
@@ -329,6 +385,7 @@ def main() -> int:
     dd, medians = panel_d(said97)
     e, q3 = panel_e(said97)
     f, sd = panel_f(said97)
+    g = panel_g()
     print("  every panel reproduces its run's own summary")
 
     tex = [r"\begin{tabular}{lccc}", r"\toprule",
@@ -357,13 +414,17 @@ def main() -> int:
             r"\multicolumn{4}{l}{\emph{Panel F. The exposure specification at "
             r"22--25, 104{,}217 employers}} \\"]
     tex += f
+    tex += [r"\midrule",
+            r"\multicolumn{4}{l}{\emph{Panel G. Eleven month-of-year terms in place "
+            r"of the three calendar-quarter terms, 104{,}217 employers}} \\"]
+    tex += g
     note = (
         r"$\tau$ is the later-period coefficient minus the interim one from the same Poisson fit, standard errors clustered by employer unless stated. Every fit reproduces Table~1 of the paper on its own sample before any check is run. Panel~A: the young band against the stated older bands, on the employers that hold both the young band and ages 31--49. Panel~B: seven bands against 41--49 in one fit. Panel~C: groups defined by birth year alone, so no one enters or leaves a group as they age; the reduction covered pay from January 2021 to March 2023 for those who had turned 18 but not 23 at the start of the year \citep{sfs202155}. Panel~D: leverage is one minus equity over total assets in the 2019 balance sheet, split at the median ("
         + f"{medians['22-25']:.3f} at 22--25, {medians['26-30']:.3f} at 26--30"
         + r"); the rows are the terms of one fit. Panel~E: the drift is the monthly trend on the young $\times$ exposed $\times$ female term with calendar-quarter terms; a third-quarter term absorbs a seasonal dip ("
         + f"${q3[0]:+.3f}$, SE {q3[1]:.3f}"
         + r"). Panel~F: the score's baseline standard deviation is "
-        + f"{sd:.1f}" + r" percentile points.")
+        + f"{sd:.1f}" + r" percentile points. Panel~G: the month-of-year terms, December omitted, are interacted with exposure and the young band (and with sex on the sex panel), everything else as in Equation~(2); the two columns come from separate fits, so the difference between them carries no standard error of its own.")
     tex += [r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.92\textwidth}\footnotesize\vspace{4pt}",
             note, r"\end{minipage}"]

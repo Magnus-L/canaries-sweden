@@ -131,7 +131,7 @@ replication/
   2_postings/                         the posting analyses (and extensions/, see below)
   3_register_mona/                    the register scripts, their inputs and their exports
   4_exhibits/                         the register tables and figures, from the exports
-  5_occupation_register_public/       the two tables built from published occupational statistics
+  5_occupation_register_public/       two tables and one check built from published occupational statistics
   archive/                            records kept for provenance, not run
   output/                             what a run writes (tables/, figures/, results/)
 ```
@@ -150,14 +150,15 @@ which they ran (39 to 102), because those numbers name every exported file.
   remote-work estimation scripts behind Table A4 as they ran in the research repository, with
   their occupation-level results and a README of the inputs they need.
 - `3_register_mona/` holds the 56 files that ran in MONA, the three public score files they
-  read, the 30 export runs brought out of MONA (327 files, of which the package reads 76),
+  read, the 31 export runs brought out of MONA (337 files, of which the package reads 78),
   `master.py`, and the disclosure rules (`DISCLOSURE.md`).
 - `4_exhibits/` holds 27 builders, one per register exhibit, in the paper's order, and
   `run_all.py`. Each checks its inputs against a second record of the same fit before writing
   (standard errors against the exported covariance, rows against the run's own summary, Table 1
   against a separate re-estimation of every $\tau$ it prints).
 - `5_occupation_register_public/` builds Online Appendix Tables A29 and A22 from Statistics
-  Sweden's published employment by occupation and age.
+  Sweden's published employment by occupation and age, and states how alike DAIOE and the
+  Eloundou score rank occupations (the data section's sentence on the two measures).
 - `0_verification/`: `check_mona_scripts.py` (the shipped MONA code equals the code that ran,
   by syntax tree), `check_manifest.py` (every row of `MANIFEST.csv`), `build_file_inventory.py`
   (writes `FILES.csv`) and `_assemble_manifest.py` (assembles `MANIFEST.csv` from its parts).
@@ -227,6 +228,7 @@ compiles on 26 September 2026):
 | OA Tables A27, A34 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
 | OA Tables A28, A38 | typed in the manuscript (literature and sources) | |
 | OA Table A29 | `5_occupation_register_public/01_published_age_gap.py` | `public_yreg.tex` |
+| OA Part I, the sentence on the two exposure measures | `5_occupation_register_public/03_exposure_measure_agreement.py` | `exposure_measure_agreement.csv` (results) |
 | OA Tables A30 to A32, Figure A8 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
 | OA Table A33 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
 | OA Tables A35 to A37 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |

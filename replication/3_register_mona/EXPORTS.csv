@@ -326,3 +326,13 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_1040_s98b/backtest_common.csv,98,26_tab_backtest_arms.py,OA266 OA267 OA268 OA269 OA270 OA271 OA272,"Online Appendix Table A33; IV.3, Table A33",read by the package
 2026-09-26_1040_s98b/vcov_s98_stacked_T2021.csv,98,,,,not read by any exhibit or manifest row
 2026-09-26_1040_s98b/vcov_s98_stacked_T2022.csv,98,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/102_summary.txt,102,23_tab_final_checks.py,,Online Appendix Table A25 Panel G,read by the package
+2026-09-26_1208_s102/month_of_year.csv,102,23_tab_final_checks.py,OA311 OA312 OA313 OA314 OA315 OA316 M085,Online Appendix Table A25 Panel G; III.2 text; paper Section 3 (0.002),read by the package
+2026-09-26_1208_s102/vcov_s102_gate_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_gate_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_moy_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_moy_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_sex_gate_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_sex_gate_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_sex_moy_22_25.csv,102,,,,not read by any exhibit or manifest row
+2026-09-26_1208_s102/vcov_s102_sex_moy_indcl_22_25.csv,102,,,,not read by any exhibit or manifest row

@@ -14,7 +14,7 @@ package.
 |---|---|
 | `scripts/` | The 56 files that ran in MONA: 45 Python scripts (39 to 102, and `_lane.py`), the shared module `mona_common.py`, three R wrappers around `fixest`, and the six lane runners (`run_lane37a.py` to `run_lane38c.py`) under which the scripts of chapter 10 were submitted |
 | `inputs/` | Three occupation-level score files the scripts read from the project's input folder |
-| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (30 exports, 327 files) |
+| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (31 exports, 337 files) |
 | `master.py` | Runs the scripts inside MONA, chapter by chapter, with the settings each job ran with |
 | `SCRIPTS.csv` | One row per file: its role, the chapters it serves, and the hashes that tie it to the copy that ran |
 | `EXPORTS.csv` | One row per exported file: the script that wrote it and the exhibit or printed number it feeds |
@@ -110,7 +110,7 @@ the tables and figures outside MONA.
 ### Chapter 10 and the lane runners
 
 The scripts of chapter 10 were written after the second external review of 25 September
-2026 and ran on 25 and 26 September as five lanes (37a to 37c, 38a and 38b), each a
+2026 and ran on 25 and 26 September as six lanes (37a to 37c, 38a to 38c), each a
 one-line list of stages for `_lane.py`, which runs the stages in order, skips a stage
 whose summary already exists, and caps what it echoes to the console (MONA's batch
 submitter blocks on a full pipe). The runners are shipped so that the record of how the
@@ -120,10 +120,9 @@ does not; its summary prints the read rules that were fixed before the run and t
 verdicts. Script 98 ran twice: the second run (lane 38b) added to its export the number
 of observations each Poisson fit retained, with every estimate unchanged, and OA Table A33
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
-(script 102, tau and the female differential with month-of-year terms in place of the
-calendar-quarter terms) was submitted on 26 September and its export had not left MONA
-when the package was assembled; the script and its runner are shipped, and `MAPPING.csv`
-carries the item as pending.
+(script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and
+reports tau and the female differential beside the same run's gate on Table 1's
+specification (OA Table A25, Panel G, built by `4_exhibits/23`).
 
 ## The code that ran
 
