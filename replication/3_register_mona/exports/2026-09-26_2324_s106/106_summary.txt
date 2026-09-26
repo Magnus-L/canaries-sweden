@@ -1,0 +1,64 @@
+AI EXPOSURE AGAINST WORKING FROM HOME ON THE HEADLINE DESIGN
+(LANE 39b)
+==================================================================
+
+tau = later minus interim from one fit, SE from the clustered
+covariance (V_LL + V_II - 2 V_LI), employer clustering. Both scores
+from 82's chain on the same 2019 incumbents; z_wfh is the employer
+teleworkability mean standardised with incumbent weights.
+
+GATES (DAIOE, Table 1's specification and sample):
+  stock 22-25: tau -0.0399 (0.0102); Table 1 -0.0399 (0.0102)
+  sex 22-25: female differential tau -0.0714 (0.0109); Table 1 -0.0714 (0.0109)
+
+THE TWO SCORES:
+  262,089 employers carry both; Spearman +0.862, Pearson +0.881; 74.6% in the same quartile; top quartiles: 97,875 AI, 93,589 teleworkability, 86,803 both
+  median halves (AI x teleworkability): ai0_wfh0 112,834, ai0_wfh1 18,211, ai1_wfh0 18,213, ai1_wfh1 112,831
+
+J. THE JOINT SPECIFICATION, common employers (read rule J1):
+  AI only (same-sample baseline), tau_AI       -0.0399 (0.0102)  t -3.89  [-0.060, -0.020]
+  joint, tau_AI (High x Young)                 -0.0527 (0.0178)  t -2.96  [-0.088, -0.018]
+  joint, tau_WFH per SD (z_wfh x Young)        +0.0077 (0.0064)  t +1.20  [-0.005, +0.020]
+  teleworkability only, tau_WFH per SD         -0.0069 (0.0033)  t -2.10  [-0.013, -0.000]
+
+O. THE SPLIT-SAMPLE CELLS on tau (read rule O1; 1 and 3 discriminate):
+  ai_in_low_wfh    tau +0.0200 (0.0629) t +0.32   employers 59,325  <- discriminating
+  ai_in_high_wfh   tau -0.0438 (0.0141) t -3.11   employers 44,892
+  wfh_in_low_ai    tau -0.0253 (0.0525) t -0.48   employers 62,860  <- discriminating
+  wfh_in_high_ai   tau -0.0265 (0.0145) t -1.82   employers 41,357
+  89's rule: NO VERDICT (the two discriminating cells do not separate the readings)
+
+S. THE FEMALE DIFFERENTIAL, common employers (read rule S1):
+  sex, AI only, tau_F (High x Young x Female)  -0.0714 (0.0109)  t -6.56  [-0.093, -0.050]
+  sex, joint, tau_F,AI                         -0.0591 (0.0190)  t -3.10  [-0.096, -0.022]
+  sex, joint, tau_F,WFH per SD                 -0.0067 (0.0075)  t -0.89  [-0.021, +0.008]
+  sex, joint, tau_AI (High x Young)            -0.0168 (0.0240)  t -0.70  [-0.064, +0.030]
+  sex, joint, tau_WFH per SD (z x Young)       +0.0062 (0.0090)  t +0.69  [-0.011, +0.024]
+
+FITS: 11 of 11 attempted came back (11 planned). A run far shorter than the estimate (2.5 to 3 hours) is a failure, not a result.
+
+NOTES:
+  82/daioe: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/daioe: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  82/wfh: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82/wfh: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.24 Q2 0.26 Q3 0.25 Q4 0.25
+  the two employer scores correlate at Spearman +0.862 (Pearson +0.881) on 262,089 employers; 74.6% share a quartile; z_wfh standardised with incumbent weights, mean 0.459, SD 0.247
+  stock: 104,217 employers in the DAIOE panel, 104,217 also scored on teleworkability (0 lost)
+  sex: 104,217 employers in the DAIOE panel, 104,217 also scored on teleworkability (0 lost)
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATES. Stock 22-25: Table 1 within 0.0005, later -0.0578 (0.0155),
+  tau -0.0399 (0.0102). Sex 22-25: -0.0858 (0.0142), tau -0.0714
+  (0.0109). A miss is a hard stop; nothing from the run is quotable.
+  J1. tau_AI from the joint fit beside the AI-only tau on the same
+  employers, both SEs, and tau_WFH per SD beside it, with the
+  correlation of the two scores. A wide interval is reported as wide;
+  it is neither a zero nor a defence.
+  O1. 89's rule: AI is the operative score only if the young decline
+  appears among employers in the LOW-teleworkability half and not
+  among employers in the LOW-AI half; otherwise no verdict. An
+  imprecise cell is imprecise, never a zero.
+  S1. As J1 for the female differential.
+  Employer counts below 5 are suppressed with their statistic.
+
+Runtime 115.6 min. memory available: 728.1 GB

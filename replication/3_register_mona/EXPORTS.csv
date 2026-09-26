@@ -365,3 +365,17 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_2103_s105/vcov_s105_placebo_shift_24_26_30.csv,105,,,,not read by any exhibit or manifest row
 2026-09-26_2103_s105/vcov_s105_placebo_shift_36_22_25.csv,105,,,,not read by any exhibit or manifest row
 2026-09-26_2103_s105/vcov_s105_seps_indcl_22_25.csv,105,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/106_summary.txt,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_ai_in_high_wfh_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_ai_in_low_wfh_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_ai_only_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_gate_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_joint_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_sex_ai_only_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_sex_gate_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_sex_joint_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_wfh_in_high_ai_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_wfh_in_low_ai_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/vcov_s106_wfh_only_22_25.csv,106,,,,not read by any exhibit or manifest row
+2026-09-26_2324_s106/wfh_headline.csv,106,,OA362-OA375 M096 M097,Online Appendix III.2 text; paper Section 3,read by the package
+2026-09-26_2324_s106/wfh_scores_overlap.csv,106,,,,not read by any exhibit or manifest row
