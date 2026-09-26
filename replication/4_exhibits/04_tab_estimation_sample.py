@@ -40,6 +40,7 @@ S82A = EXPORTS / "2026-09-22_2232_s82-partA"
 S82B = EXPORTS / "2026-09-23_0655_s82-partB_s83-partsBCD"
 S85 = EXPORTS / "2026-09-23_1125_s85"
 S88 = EXPORTS / "2026-09-23_1407_s88"
+S95 = EXPORTS / "2026-09-25_1832_s95-s96-s98"
 
 ROWS = [("22-25", "stock"), ("22-25", "hires"), ("22-25", "seps"),
         ("26-30", "stock"), ("26-30", "hires"), ("26-30", "seps")]
@@ -188,6 +189,10 @@ def main() -> int:
          "holds 41--49 and another band",
          one_firm_count(S85 / "occ_route_split65.csv",
                         "the seven-band split")),
+        ("Age profile, eight bands (Figure~2 of the paper), seven contrasts against 41--49",
+         "holds 41--49 and another band",
+         one_firm_count(S95 / "pension_reference.csv",
+                        "the eight-band profile", part="P", spec="p8_tau")),
         ("Contrast by field of education, three bands",
          "holds 41--49, 22--25 or 26--30",
          one_firm_count(S88 / "occ_route_contrast_by_track.csv",

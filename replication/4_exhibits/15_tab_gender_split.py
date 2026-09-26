@@ -202,8 +202,8 @@ def main() -> int:
           f"composition {composition:+.4f}, ratio {ratio:.3f}")
 
     tex = [r"\begin{table}[ht!]", r"\centering",
-           r"\caption{The female differential at 22--25 by education track, "
-           r"and its split into composition and within-track components.}",
+           r"\caption{The female differential at 22--25 within education tracks, "
+           r"and its weighted average.}",
            r"\label{tab:gender_split}", r"\scriptsize",
            # The track labels are long; a narrower column gap keeps the
            # table inside the text block.
@@ -219,7 +219,7 @@ def main() -> int:
             + cell("pooled", pooled, pooled_se) + r" & & \\",
             "Within tracks (weighted) & & "
             + cell("within", within, within_se) + r" & & \\",
-            f"Composition (residual) & & ${composition:+.4f}$" + r" & & \\",
+            f"Pooled minus weighted within-track estimate & & ${composition:+.4f}$" + r" & & \\",
             f"Ratio within / pooled & & {ratio:.2f}" + r" & & \\",
             r"\bottomrule", r"\end{tabular}",
             r"\begin{minipage}{0.94\textwidth}\footnotesize\vspace{4pt}",
