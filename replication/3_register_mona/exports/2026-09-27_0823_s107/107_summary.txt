@@ -1,0 +1,94 @@
+THE PANDEMIC YEAR: THE FEMALE DIFFERENTIAL BEFORE 2021, THE POOLED
+SLOPE NET OF 2020, AND WHICH GROUP MOVED (LANE 39c)
+==================================================================
+
+tau = later minus interim from one fit, SE from the clustered
+covariance; employer clustering. Exposure: 82's occupation-route score.
+
+GATE (the sex specification, Table 1's sample):
+  female differential tau -0.0714 (0.0109); Table 1 -0.0714 (0.0109)
+
+F1. THE FEMALE PLACEBO (read rule F1):
+  S = 36: female differential tau +0.0518 (0.0103), t +5.02, 4.75 of the differential's SE; young men's tau -0.0640 (0.0094)
+    windows: reference to 2019-03, tightening 2019-04 to 2019-11, interim 2019-12 to 2020-12, later 2021-01 to 2022-11
+  S = 24: female differential tau +0.0081 (0.0098), t +0.83, 0.74 of the differential's SE; young men's tau -0.0000 (0.0087)
+    windows: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+
+F2. THE FEMALE DRIFT from January 2019 (read rule F2):
+  female differential: trend +0.002717 (0.000474) per month, t +5.73, NOT FLAT; carried over 15.5 months +0.0421
+  young, both sexes: trend -0.004558 (0.000466) per month, t -9.77, NOT FLAT; carried over 15.5 months -0.0707
+
+F3. THE FEMALE QUARTERLY PATH 2019Q1 to 2022Q4 (High x Young x Female, 2022Q1 omitted):
+    2019Q1   -0.0880 (0.0164)
+    2019Q2   -0.0970 (0.0165)
+    2019Q3   -0.1323 (0.0182)
+    2019Q4   -0.0813 (0.0168)
+    2020Q1   -0.0632 (0.0148)
+    2020Q2   -0.0777 (0.0166)
+    2020Q3   -0.1173 (0.0173)
+    2020Q4   -0.0518 (0.0151)
+    2021Q1   -0.0239 (0.0119)
+    2021Q2   -0.0275 (0.0125)
+    2021Q3   -0.0648 (0.0148)
+    2021Q4   -0.0057 (0.0111)
+    2022Q1   reference
+    2022Q2   -0.0071 (0.0078)
+    2022Q3   -0.0734 (0.0133)
+    2022Q4   -0.0209 (0.0123)
+
+P. THE POOLED DRIFT FROM 2019 WITH A PANDEMIC-YEAR TERM (read rule P1):
+  trend -0.003173 (0.000426) per month, t -7.44, NOT FLAT; carried over 15.5 months -0.0492
+  pandemic-year term (March 2020 to February 2021 x High x Young) -0.0196 (0.0054), t -3.65
+  lane 39a's trend without the term: -0.003209 (0.000430)
+
+R. WHICH GROUP MOVED (read rule R1; quarterly_counts.csv):
+  all: young (22-25) per 100 older (31-69), first quarters, top | rest
+    2019Q1: 6.60 | 9.73
+    2020Q1: 6.31 | 9.30
+    2021Q1: 5.76 | 8.90
+    2022Q1: 6.02 | 9.34
+    2023Q1: 5.96 | 9.19
+    2024Q1: 5.67 | 8.91
+    2025Q1: 5.50 | 8.72
+  women: young (22-25) per 100 older (31-69), first quarters, top | rest
+    2019Q1: 7.11 | 9.00
+    2020Q1: 6.85 | 8.54
+    2021Q1: 6.31 | 8.02
+    2022Q1: 6.58 | 8.27
+    2023Q1: 6.44 | 8.13
+    2024Q1: 6.01 | 8.03
+    2025Q1: 5.83 | 8.14
+  men: young (22-25) per 100 older (31-69), first quarters, top | rest
+    2019Q1: 6.17 | 10.58
+    2020Q1: 5.85 | 10.17
+    2021Q1: 5.30 | 9.91
+    2022Q1: 5.54 | 10.55
+    2023Q1: 5.56 | 10.39
+    2024Q1: 5.39 | 9.93
+    2025Q1: 5.22 | 9.39
+
+FITS: 6 of 6 attempted came back (6 planned). A run far shorter than the estimate (2 to 3 hours) is a failure, not a result.
+
+NOTES:
+  82: floor: on incumbent PERSON-MONTHS in 2019, the same unit as the education route's, so the two floors are commensurable
+  82: occupation route: 262,089 employers scored at a floor of 5 person-months, median coverage of the code 100.0%, 7.4% of coded incumbents from a year before 2019; quartile shares of incumbent employment Q1 0.25 Q2 0.25 Q3 0.25 Q4 0.25
+  pulled and cached L_counts_sex_2019: 10,820,131 cells, 2.2 min
+  pulled and cached L_counts_sex_2020: 10,806,679 cells, 2.5 min
+  sex pre-period panel from 2019-01: months 2019-01 to 2022-11 (47), 113,299 employers
+  placebo_shift_36 sex: reference to 2019-03, tightening 2019-04 to 2019-11, interim 2019-12 to 2020-12, later 2021-01 to 2022-11
+  placebo_shift_24 sex: reference to 2020-03, tightening 2020-04 to 2020-11, interim 2020-12 to 2021-12, later 2022-01 to 2022-11
+  R: counts on the 104,217 employers of the headline panel at 22-25
+
+READ RULES, FIXED BEFORE THE RUN:
+  GATE. The sex specification on the paper's panel reproduces Table 1's
+  female differential within 0.0005 (-0.0858 (0.0142), tau -0.0714
+  (0.0109)); a miss is a hard stop.
+  F1. Each female placebo tau (boundaries moved back S months, panel
+  ending November 2022) with its SE and in units of the differential's
+  SE. Of the order of the differential, whichever sign: the differential
+  also moved in the pandemic year. Near zero: it did not. Nothing else.
+  F2. The female drift from January 2019, FLAT / NOT FLAT under 78's rule.
+  P1. The pooled trend from 2019 and the pandemic-year term side by side.
+  R1. Head counts as they are; cells under 5 employers suppressed.
+
+Runtime 107.2 min. memory available: 732.5 GB
