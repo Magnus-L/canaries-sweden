@@ -36,11 +36,15 @@ THE ROUTES, all run through 71's itftg_arm and bita_arm unchanged
                    Eloundou-exposed, does DAIOE exposure alone predict use?
   eloundou_only    employers NOT in the DAIOE top quartile; "high" =
                    Eloundou top. The mirror.
-The last two are the discriminating comparison: the firms on which the
-two classifications disagree. They are thin (about 7.5 per cent of each
-top quartile), so the threshold on top-quartile firms with an outcome is
+  joint            the common employers, BOTH top-quartile dummies in one
+                   regression (plus log size for the firm tables): each
+                   index's coefficient holding the other fixed, and the
+                   difference DAIOE minus Eloundou with its SE from the
+                   same fit's robust covariance.
+The disagreement routes are thin (about 7.5 per cent of each top
+quartile), so the threshold on top-quartile firms with an outcome is
 lowered from 71's 100 to 30 FOR THESE TWO ROUTES ONLY, fixed before the
-run; the summary prints the counts.
+run; the summary prints the counts. The joint fit uses 71's threshold.
 
 READ RULES, FIXED BEFORE THE RUN
   G.  daioe_all reproduces 83's 2023 ITFtg any-AI gap within 0.05 points,
@@ -48,11 +52,12 @@ READ RULES, FIXED BEFORE THE RUN
   A1. daioe_common and eloundou_common are reported side by side for every
       survey table and outcome, in points with SEs, on the same firms; the
       difference is stated without a test (the two share their firms).
-  A2. The disagreement routes: DAIOE is called the better predictor of an
-      outcome only if daioe_only is positive and distinguishable from zero
-      at five per cent while eloundou_only is not; the mirror for
-      Eloundou; otherwise "no discrimination". Language generation (the
-      generative-AI question) is read first, any AI second.
+  A2. The disagreement routes and the joint fit are REPORTED, NOT
+      ADJUDICATED: no verdict rule is fixed in advance (ML, 27 Sep). The
+      evidence on which index predicts better is the joint fit's two
+      coefficients and their difference (SE, p), read beside the
+      disagreement routes. Language generation (the generative-AI
+      question) is read first, any AI second.
   Employer and person counts below five are suppressed.
 
 EXPORT (output_108/)
@@ -101,11 +106,11 @@ READ_RULES = [
     "      3,587 firms) within 0.05 points, or nothing is quotable.",
     "  A1. daioe_common beside eloundou_common for every table and outcome,",
     "      same firms, points with SEs; the difference is not tested.",
-    "  A2. On the disagreement routes, DAIOE is the better predictor of an",
-    "      outcome only if daioe_only > 0 at five per cent and eloundou_only",
-    "      is not; the mirror for Eloundou; otherwise no discrimination.",
+    "  A2. Disagreement routes and the joint fit (both dummies in one",
+    "      regression, difference DAIOE minus Eloundou with its SE) are",
+    "      reported, not adjudicated: no verdict rule is fixed in advance.",
     "      Language generation first, any AI second. The top-quartile",
-    "      threshold is 30 on these two routes only (71's 100 elsewhere).",
+    "      threshold is 30 on the two disagreement routes only.",
     f"  Counts below {FLOOR} are suppressed.",
 ]
 
@@ -170,7 +175,41 @@ def build_routes(expo_d: pd.DataFrame, expo_e: pd.DataFrame, s73) -> dict:
                  f"{len(both):,}; top on DAIOE only {len(top_d - top_e):,}, on "
                  f"Eloundou only {len(top_e - top_d):,}, on both {len(top_d & top_e):,}")
     return {"daioe_all": d, "daioe_common": dc, "eloundou_common": ec,
-            "daioe_only": d_only, "eloundou_only": e_only}
+            "daioe_only": d_only, "eloundou_only": e_only,
+            "joint": dc, "joint_top_e": top_e}
+
+
+def joint_lpm(s71, top_e: set):
+    """A stand-in for 71's lpm used on the joint route only. Same model
+    (OLS, or WLS with 71's weights; HC1 errors), with the Eloundou
+    top-quartile dummy added beside 71's 'high' (the DAIOE dummy). Returns
+    71's row format plus 'high_e' and a 'diff' row, DAIOE minus Eloundou,
+    whose SE comes from the fit's own robust covariance, so the two
+    coefficients' dependence on the same firms is accounted for."""
+    import statsmodels.api as sm
+
+    def f(df, y, xs, weights=None):
+        df = df.assign(high_e=df["employer_id"].isin(top_e).astype(int))
+        xs = ["high", "high_e"] + [x for x in xs if x != "high"]
+        d = df[[y] + xs].dropna()
+        if len(d) < 30 or d[y].nunique() < 2 or d["high"].eq(d["high_e"]).all():
+            return None
+        X = sm.add_constant(d[xs].astype(float), has_constant="add")
+        if weights is not None:
+            w = weights.reindex(d.index).astype(float)
+            m = sm.WLS(d[y].astype(float), X, weights=w).fit(cov_type="HC1")
+        else:
+            m = sm.OLS(d[y].astype(float), X).fit(cov_type="HC1")
+        V = m.cov_params()
+        diff = m.params["high"] - m.params["high_e"]
+        se = float(np.sqrt(V.loc["high", "high"] + V.loc["high_e", "high_e"]
+                           - 2 * V.loc["high", "high_e"]))
+        out = pd.DataFrame({"term": m.params.index, "coef": m.params.values,
+                            "se": m.bse.values, "n": len(d)})
+        return pd.concat([out, pd.DataFrame({"term": ["diff"], "coef": [diff],
+                                             "se": [se], "n": [len(d)]})],
+                         ignore_index=True)
+    return f
 
 
 def run_arms(routes: dict, s71, s73) -> tuple:
@@ -190,7 +229,7 @@ def run_arms(routes: dict, s71, s73) -> tuple:
         schema = s71.discover(conn)
         if schema.empty:
             raise RuntimeError("the catalogue returned no survey table")
-        main = {k: v for k, v in routes.items() if k not in THIN_ROUTES}
+        main = {k: v for k, v in routes.items() if k not in THIN_ROUTES + ("joint", "joint_top_e")}
         thin = {k: v for k, v in routes.items() if k in THIN_ROUTES}
         s71.itftg_arm(conn, schema, main, size, sink, counts)
         s71.bita_arm(conn, schema, main, sink, counts)
@@ -201,6 +240,15 @@ def run_arms(routes: dict, s71, s73) -> tuple:
             s71.bita_arm(conn, schema, thin, sink, counts)
         finally:
             s71.MIN_ITFTG_HIGH = keep
+        if "joint" in routes:
+            real_lpm = s71.lpm
+            try:
+                s71.lpm = joint_lpm(s71, routes["joint_top_e"])
+                j = {"joint": routes["joint"]}
+                s71.itftg_arm(conn, schema, j, size, sink, counts)
+                s71.bita_arm(conn, schema, j, sink, counts)
+            finally:
+                s71.lpm = real_lpm
     finally:
         try:
             conn.close()
@@ -214,7 +262,11 @@ def run_arms(routes: dict, s71, s73) -> tuple:
 def tidy(rows: pd.DataFrame) -> pd.DataFrame:
     if rows.empty:
         return rows
-    hi = rows[rows["term"] == "high"].copy()
+    hi = rows[(rows["term"] == "high") | ((rows["route"] == "joint")
+                                         & rows["term"].isin(["high_e", "diff"]))].copy()
+    j = hi["route"] == "joint"
+    hi.loc[j, "route"] = hi.loc[j, "term"].map({"high": "joint_daioe", "high_e": "joint_eloundou",
+                                                "diff": "joint_diff"})
     hi["coef_points"] = 100 * hi["coef"]
     hi["se_points"] = 100 * hi["se"]
     hi["t"] = hi["coef"] / hi["se"]
@@ -233,21 +285,6 @@ def gate(t: pd.DataFrame) -> list:
     if n != GATE_N:
         bad.append(f"gate on {n:,} firms against 83's {GATE_N:,}")
     return bad
-
-
-def verdict(t: pd.DataFrame, source: str, outcome: str) -> str:
-    def g(route):
-        r = t[(t.route == route) & (t.source == source) & (t.outcome == outcome)]
-        return (float(r.coef_points.iloc[0]), float(r.se_points.iloc[0])) if len(r) == 1 else None
-    d, e = g("daioe_only"), g("eloundou_only")
-    if d is None or e is None:
-        return "NOT ESTIMABLE (a disagreement route is missing or below threshold)"
-    sig = lambda x: x[0] > 0 and x[0] > 1.96 * x[1]  # noqa: E731
-    if sig(d) and not sig(e):
-        return "DAIOE the better predictor"
-    if sig(e) and not sig(d):
-        return "ELOUNDOU the better predictor"
-    return "NO DISCRIMINATION"
 
 
 def write_summary(t: pd.DataFrame, c: pd.DataFrame) -> None:
@@ -272,7 +309,17 @@ def write_summary(t: pd.DataFrame, c: pd.DataFrame) -> None:
             v = {r.route: r for r in g.itertuples()}
             parts = [f"{k.split('_')[0]}-only {v[k].coef_points:+6.2f} ({v[k].se_points:.2f}) n {int(v[k].n):,}"
                      for k in THIN_ROUTES if k in v]
-            L.append(f"  {src:<22} {out:<13} " + "   ".join(parts) + f"   -> {verdict(t, src, out)}")
+            L.append(f"  {src:<22} {out:<13} " + "   ".join(parts))
+        L += ["", "A3. JOINT FIT, COMMON FIRMS, BOTH DUMMIES (points, SE; diff = DAIOE minus Eloundou, p two-sided):"]
+        from math import erfc, sqrt
+        for (src, out), g in t[t.route.str.startswith("joint_")].groupby(["source", "outcome"]):
+            v = {r.route: r for r in g.itertuples()}
+            if all(k in v for k in ("joint_daioe", "joint_eloundou", "joint_diff")):
+                a, b, dd = v["joint_daioe"], v["joint_eloundou"], v["joint_diff"]
+                p = erfc(abs(dd.coef_points / dd.se_points) / sqrt(2))
+                L.append(f"  {src:<22} {out:<13} DAIOE {a.coef_points:+6.2f} ({a.se_points:.2f})  "
+                         f"Eloundou {b.coef_points:+6.2f} ({b.se_points:.2f})  "
+                         f"diff {dd.coef_points:+6.2f} ({dd.se_points:.2f}) p {p:.3f}  n {int(a.n):,}")
     else:
         L.append("NO ESTIMATES")
     if not c.empty:

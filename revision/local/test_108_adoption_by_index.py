@@ -14,9 +14,13 @@ with 0.30 against 0.08. So DAIOE is the better predictor by construction:
     (tier 2 against tiers 0-1) reads about zero.
 Because every DAIOE-top firm is also Eloundou-top in this world, the
 daioe_only route has NO top firms and must be reported below threshold,
-while eloundou_only must read about zero: the verdict must not be
-"ELOUNDOU the better predictor". A second world swaps the planted use to
-tier 2 (the Eloundou-only tier) and the verdict must become "ELOUNDOU".
+while eloundou_only must read about zero. The joint fit (both dummies) must
+put the planted gap on DAIOE (tier 3 = DAIOE top AND Eloundou top, tier 2 =
+Eloundou top only, so the DAIOE dummy picks up tier 3 against tier 2) and
+about zero on Eloundou, with a significant positive difference. A second
+world swaps the planted use to tier 2 (the Eloundou-only tier): the joint
+fit must then put it on Eloundou and a negative difference. No verdict is
+computed: the script reports, it does not adjudicate (ML, 27 Sep).
 
 Checked: the routes are built as specified; 71's arms run on them
 through a planted catalogue and read_sql; the gate reads the daioe_all
@@ -116,21 +120,27 @@ for name, use_tier in (("DAIOE world", 3), ("ELOUNDOU world", 2)):
     print(t.to_string())
     check(f"{name}: daioe_all, daioe_common and eloundou_common estimated for both outcomes",
           all(len(g(r, o)) == 1 for r in ("daioe_all", "daioe_common", "eloundou_common") for o in ("ai_any", "ai_genai")))
-    v_any, v_gen = s108.verdict(t, "ITFtg_Stora_2023", "ai_any"), s108.verdict(t, "ITFtg_Stora_2023", "ai_genai")
-    print(f"  verdicts: any {v_any}; genai {v_gen}")
+    J = lambda r: float(g(r, "ai_any").coef_points.iloc[0]) if len(g(r, "ai_any")) == 1 else None  # noqa: E731
+    jd, je, jdiff = J("joint_daioe"), J("joint_eloundou"), J("joint_diff")
+    jse = float(g("joint_diff", "ai_any").se_points.iloc[0]) if jdiff is not None else None
+    check(f"{name}: the joint fit reports DAIOE, Eloundou and their difference",
+          None not in (jd, je, jdiff) and abs(jdiff - (jd - je)) < 1e-6)
     if name == "DAIOE world":
         check("DAIOE world: daioe_common reads the planted any-AI gap (1 - 0.4*0.7 against 1 - 0.8*0.92 = 45.6 points) on any AI, and eloundou_common less",
               abs(float(g("daioe_common", "ai_any").coef_points.iloc[0]) - 45.6) < 6
               and float(g("eloundou_common", "ai_any").coef_points.iloc[0]) < float(g("daioe_common", "ai_any").coef_points.iloc[0]),
               f'{float(g("daioe_common", "ai_any").coef_points.iloc[0]):.1f}')
-        check("DAIOE world: eloundou_only reads about zero and the verdict is never ELOUNDOU",
-              len(g("eloundou_only", "ai_any")) == 1 and abs(float(g("eloundou_only", "ai_any").coef_points.iloc[0])) < 6
-              and "ELOUNDOU" not in v_any and "ELOUNDOU" not in v_gen)
-        check("DAIOE world: daioe_only has no top firm, so the verdict is NOT ESTIMABLE",
-              v_any.startswith("NOT ESTIMABLE"))
+        check("DAIOE world: eloundou_only reads about zero",
+              len(g("eloundou_only", "ai_any")) == 1 and abs(float(g("eloundou_only", "ai_any").coef_points.iloc[0])) < 6)
+        check("DAIOE world: daioe_only has no top firm, so it is not estimated",
+              len(g("daioe_only", "ai_any")) == 0)
+        check("DAIOE world: joint fit puts the planted 45.6-point gap on DAIOE, Eloundou about zero, diff significant",
+              abs(jd - 45.6) < 6 and abs(je) < 6 and jdiff > 1.96 * jse, f"{jd:.1f} {je:.1f} {jdiff:.1f} ({jse:.1f})")
     else:
         check("ELOUNDOU world: eloundou_only reads the planted any-AI gap (1 - 0.4*0.7 against 1 - 0.8*0.92 = 45.6 points) (daioe_only has no top firm in this world)",
-              abs(float(g("eloundou_only", "ai_any").coef_points.iloc[0]) - 45.6) < 6, f"{v_any}")
+              abs(float(g("eloundou_only", "ai_any").coef_points.iloc[0]) - 45.6) < 6)
+        check("ELOUNDOU world: joint fit puts the gap on Eloundou (tier 2 against 0-1) and DAIOE negative (tier 3 against 2), diff significant negative",
+              abs(je - 45.6) < 6 and abs(jd + 45.6) < 6 and jdiff < -1.96 * jse, f"{jd:.1f} {je:.1f} {jdiff:.1f} ({jse:.1f})")
 
 print("\n--- the gate and main() ---")
 SURVEY["df"] = plant_survey(3)
@@ -150,6 +160,7 @@ sys.stdout = _stdout
 summ = (s108.OUT / "108_summary.txt").read_text()
 out = pd.read_csv(s108.OUT / "adoption_by_index.csv")
 check("main() returns 0 and writes both files", rc == 0 and (s108.OUT / "adoption_counts.csv").exists(), f"rc {rc} {s108.FAILURES}")
-check("the summary prints the gate, A1 and A2", "GATE: PASSES" in summ and "A1. SAME FIRMS" in summ and "A2. THE DISAGREEMENT" in summ)
+check("the summary prints the gate, A1, A2 and A3, and no verdict", "GATE: PASSES" in summ and "A1. SAME FIRMS" in summ
+      and "A2. THE DISAGREEMENT" in summ and "A3. JOINT FIT" in summ and "better predictor" not in summ)
 check("no identifier column is exported", "employer_id" not in out.columns)
 check.done()
