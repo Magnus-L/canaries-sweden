@@ -337,6 +337,27 @@ JOBS = [
                "months, panel ending November 2022) and the flows at 22-25 "
                "clustered by industry (lane 39a; OA Table A19 bottom panel, "
                "Table A15 Panel D)"),
+    dict(ch=10, script="106_wfh_headline.py", minutes=150,
+         env={"CANARIES_106_OUT": "output_106", "CANARIES_82_OUT": "output_106",
+              "CANARIES_80_OUT": "output_106", "CANARIES_73_OUT": "output_106",
+              "CANARIES_RWORK_TAG": "_39"},
+         makes="AI exposure and employer teleworkability in one headline fit, "
+               "the split cells and the female extension (lane 39b; OA III.2; "
+               "paper Section 3)"),
+    dict(ch=10, script="107_pandemic_year.py", minutes=120,
+         env={"CANARIES_107_OUT": "output_107", "CANARIES_82_OUT": "output_107",
+              "CANARIES_80_OUT": "output_107", "CANARIES_73_OUT": "output_107",
+              "CANARIES_RWORK_TAG": "_39c"},
+         makes="the sexes in the backdated placebo, the female pre-period path "
+               "and drift from 2019, and the pandemic-year indicator (lane 39c; "
+               "OA III.2; paper Section 3)"),
+    dict(ch=10, script="108_adoption_by_index.py", minutes=5,
+         env={"CANARIES_108_OUT": "output_108", "CANARIES_103_OUT": "output_108",
+              "CANARIES_82_OUT": "output_108", "CANARIES_80_OUT": "output_108",
+              "CANARIES_73_OUT": "output_108"},
+         makes="DAIOE against the Eloundou rating as predictors of reported AI "
+               "use in Statistics Sweden's surveys, each alone and both "
+               "together (lane 39d; OA Table A22; SQL only, no R)"),
 ]
 
 # Inputs the scripts read from the project's input folder (mona_common.SHARE).

@@ -379,3 +379,16 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-26_2324_s106/vcov_s106_wfh_only_22_25.csv,106,,,,not read by any exhibit or manifest row
 2026-09-26_2324_s106/wfh_headline.csv,106,,OA362-OA375 M096 M097,Online Appendix III.2 text; paper Section 3,read by the package
 2026-09-26_2324_s106/wfh_scores_overlap.csv,106,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/107_summary.txt,107,,OA384,"Online Appendix III.2 text (first-quarter ratios, pending)",read by hand
+2026-09-27_0823_s107/female_prepath.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/pandemic_year.csv,107,,M098 OA376-OA383,Online Appendix III.2 text; paper Section 3; letter R1.6,read by the package
+2026-09-27_0823_s107/quarterly_counts.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_pooled_drift_pandemic_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_sex_drift_from_2019_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_sex_gate_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_sex_placebo_shift_24_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_sex_placebo_shift_36_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_0823_s107/vcov_s107_sex_prepath_22_25.csv,107,,,,not read by any exhibit or manifest row
+2026-09-27_1009_s108/108_summary.txt,108,4_exhibits/29_tab_adoption_by_index.py,,Online Appendix Table A22 (cross-check),read by the package
+2026-09-27_1009_s108/adoption_by_index.csv,108,4_exhibits/29_tab_adoption_by_index.py,OA385-OA396,Online Appendix Table A22 and III.2 text; paper Section 3; letter C5,read by the package
+2026-09-27_1009_s108/adoption_counts.csv,108,,,,not read by any exhibit or manifest row
