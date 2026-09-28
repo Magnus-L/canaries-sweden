@@ -23,6 +23,13 @@ current numbers.
 - The READMEs, `DISCLOSURE.md` and `VERIFICATION.md` state the current counts: 67 MONA files
   (scripts 39 to 108), 38 export runs with 393 files, 29 builders; 67 of 67 files identical in
   code, 41 of 41 tables and 411 of 419 numbers passing, none failing.
+- `2_postings/00_employer_counts.py` is new: it rebuilds the employer counts of Online
+  Appendix Part V from the public archives, so Part V now reproduces end to end
+  (`run_public.sh` runs it when the file is absent). It counts advertisements and the
+  entry-level flag only, pseudonymises sole traders with a key that is never published, and
+  reproduces the paper's file in every cell (`VERIFICATION.md`, section 4). The pack no longer
+  refers to the lab's advertisement monitor, which built the paper's file.
+- The replication README and `CITATION.cff` carry the submission date, 30 September 2026.
 - `FILES.csv` rebuilt.
 
 ## 2026-09-26: the package brought to the manuscript of 26 September

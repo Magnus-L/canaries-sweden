@@ -11,6 +11,7 @@ them in this order. Exhibit numbers are those of the online appendix as compiled
 
 | Script | Estimates or builds | Exhibit | Runtime |
 |---|---|---|---|
+| `00_employer_counts.py` | the employer-by-month-by-occupation advertisement counts of Part V, rebuilt from the archives (run when the file is absent) | input to 14 and 15 | 5 min |
 | `01_postings_accounting.py` | advertisements by year and reason for removal, 2020 to 2025; valid-code share by month and channel | Section 2; inputs to Tables A10 and A11 | 5.5 min |
 | `02_coverage_diagnostics.py` | active occupations by month, zero cells by quartile, the 400 to 369 reconciliation, 2020 to 2025 | Section 2; II.8 | 1 s |
 | `03_extend_2026_and_did.py` | the counts for January to June 2026 from the closed-quarter archives; Equation (1) on the windows to December 2025 and June 2026, OLS and Poisson | Section 3 ($\beta_1=-0.127$, $\beta_2=-0.059$); Table A4; Figure 1 input | 1 min |
@@ -79,13 +80,13 @@ checking that both scripts reproduce the baselines of 03 and 14.
 Scripts 14 and 15 read `CANARIES_FIRM_CUBE`, counts of distinct advertisements by employer
 (organisation number), month, four-digit occupation and municipality for January 2021 to
 June 2026, and `CANARIES_SCB_BULK`, Statistics Sweden's business-register bulk file
-(distributed free by Bolagsverket) for industry and registration date. The count file was
-built from the same public Platsbanken archives by the AI-Econ Lab's advertisement monitor
-(its extraction script `firm_dimension_extract2.py`, 21 August 2026). It is not shipped,
-because it is a firm-level derived file with one row per employer and month; the package
-documents its construction instead, which a replicator can repeat from the archives:
+(distributed free by Bolagsverket) for industry and registration date. The count file has
+one row per employer and month, so it is not shipped; `00_employer_counts.py` rebuilds it
+from the public archives under the rules the paper's build used, and writes it to
+`CANARIES_FIRM_CUBE` (default `data/raw/firm_month_v2.csv.gz`):
 
-- archives 2021 to 2026-Q2 (the annual 2025 archive as republished on 22 July 2026);
+- archives 2021 to 2026-Q2 (the annual 2025 archive as republished on 22 July 2026, which
+  holds the same advertisements as the paper's copy);
 - within each archive, advertisements are de-duplicated on a digest of the headline, the
   employer's name and the first 400 characters of the description;
 - publication month January 2021 to June 2026; advertisements without a usable organisation
@@ -93,10 +94,17 @@ documents its construction instead, which a replicator can repeat from the archi
   before 2021);
 - the occupation is the first `legacy_ams_taxonomy_id` of `occupation_group`;
 - organisation numbers of sole traders, which are personal identity numbers, are replaced by
-  a keyed hash at extraction and never stored;
+  a keyed hash and never written. The key is read from `CANARIES_EF_KEY`, or drawn at random
+  for the run; the paper's key is not published. The pseudonyms depend on the key, the counts
+  and estimates do not;
 - the entry-level flag is the regular expression
   `\b(nyexaminerad|nyutexaminerad|junior|trainee(?:program)?|ingen erfarenhet|utan (?:tidigare )?erfarenhet)\b`
   on the lower-cased headline, description, requirements and conditions.
 
-Its SHA-256 is in `data/DATA-MANIFEST.csv`. Whether to ship the count file, or the extraction
-script, is open.
+The SHA-256 of the paper's file is in `data/DATA-MANIFEST.csv`. A rebuild differs from it in
+its bytes, for two reasons that change no count: the pseudonyms of sole traders depend on the
+key, and the paper's file lists an employer-month-occupation-municipality cell once per archive
+it appears in (12,987 cells appear twice), where 00 sums them into one row. Scripts 14 and 15
+sum the counts before they estimate. On 28 September 2026 a rebuild with the paper's key
+reproduced the paper's file cell by cell once its repeated cells were summed: 1,881,167 cells,
+2,713,590 advertisements and 72,513 entry-level advertisements, with no cell differing.

@@ -1,7 +1,7 @@
 # Replication package for "Same Storm, Different Boats: Generative AI and the Age Gradient Within Firms"
 
 Magnus Lodefalk, Lydia Löthman, Michael Koch and Erik Engberg. Revised version submitted to
-*Economics Letters* (EL67898R1), October 2026 [date to be set at submission]. Corresponding
+*Economics Letters* (EL67898R1), 30 September 2026. Corresponding
 author: Magnus Lodefalk, Örebro University School of Business, <magnus.lodefalk@oru.se>.
 
 ## Overview
@@ -74,12 +74,12 @@ The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the 
 | Riksbank policy rate | the offline appendix's posting-context figure | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
 | Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A23 and A31 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
 | Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see note |
-| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A9 | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
+| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A9 | built from the Platsbanken archives above by `2_postings/00_employer_counts.py` (employer organisation number as printed in each advertisement) | derived from CC0 data | no; rebuilt by the package, see note |
 | Monthly employer declarations at the individual level (AGI, *Arbetsgivardeklaration på individnivå*), 2019 to June 2025; LISA (*Individ*) 2015 to 2023 with the embedded occupation register (*Yrkesregistret*); the education register (SUN 2020); the ICT surveys of enterprises (ITFtg) and individuals (BITA 2024); the enterprise register (*Företagsdatabasen*); Serrano balance sheets (2019) | every employment estimate | Statistics Sweden, through the MONA environment, project P1207 (ORU-MICRO-AI) | confidential | no (the aggregated exports are) |
 
 **Yahoo Finance.** Yahoo's terms restrict redistribution of its data, so the daily index series are not shipped. `1_data_public/03_market_and_policy_series.py` fetches them with the `yfinance` package whenever they are absent, on the windows of the paper's own downloads: the OMX Stockholm 30 (`^OMX`) and the OMX Stockholm All-Share (`^OMXSPI`) from 1 January 2020 to 18 September 2026, the date of the paper's download, and the S&P 500 (`^GSPC`) from 1 January 2020 to 23 February 2026, the last close before the download of 24 February 2026. The month of each download is incomplete and is dropped, so the monthly series run to August 2026. A fetch on 25 September 2026 reproduced the paper's monthly series exactly. With `--refresh` the script fetches the OMX series to the present instead.
 
-**Employer counts for Part V.** Online Appendix Part V reads counts of distinct advertisements by employer (organisation number), month, four-digit occupation and municipality, January 2021 to June 2026 (`firm_month_v2.csv.gz`). The file is not shipped: it is a firm-level derived file, with one row per employer and month, so the package documents instead how to rebuild it from the public archives. Its construction (archives, de-duplication, window, occupation field, the treatment of organisation numbers that are personal identity numbers, and the entry-level flag) is set out in `2_postings/README.md`, and its SHA-256 is recorded in `data/DATA-MANIFEST.csv`. Scripts 14 and 15 of pack 2 read it from `CANARIES_FIRM_CUBE`, and the industry and registration date of each employer from Statistics Sweden's business-register bulk file, which Bolagsverket distributes free of charge (`CANARIES_SCB_BULK`).
+**Employer counts for Part V.** Online Appendix Part V reads counts of distinct advertisements by employer (organisation number), month, four-digit occupation and municipality, January 2021 to June 2026 (`firm_month_v2.csv.gz`). The file is not shipped, because it has one row per employer and month; `2_postings/00_employer_counts.py` rebuilds it from the public archives, and `run_public.sh` runs it when the file is absent. Its rules (archives, de-duplication, window, occupation field, the pseudonymisation of organisation numbers that are personal identity numbers, and the entry-level flag) are set out in `2_postings/README.md`; the SHA-256 of the paper's file is recorded in `data/DATA-MANIFEST.csv`. Scripts 14 and 15 of pack 2 read it from `CANARIES_FIRM_CUBE`, and the industry and registration date of each employer from Statistics Sweden's business-register bulk file, which Bolagsverket distributes free of charge (`CANARIES_SCB_BULK`).
 
 **Register data.** The registers were delivered by Statistics Sweden (SCB) to the ORU-MICRO-AI database of Örebro University under project P1207, after approval by the Swedish Ethical Review Authority (Etikprövningsmyndigheten; decisions 2021-05040, 2022-03330-02, 2024-01714-0 and 2025-04205-02). They are analysed inside MONA (Microdata Online Access), SCB's secure remote environment; microdata never leave SCB's servers, and only aggregates that have passed SCB's output review are exported. Researchers affiliated with a Swedish institution may apply to SCB for access to the same registers (<https://www.scb.se/en/services/ordering-data-and-statistics/ordering-microdata/>, <mona@scb.se>); access requires an ethical approval and an SCB project agreement and typically takes several months. Researchers abroad can obtain access through a Swedish host institution. A replicator wishing to rerun the register scripts on P1207 itself should contact the corresponding author, who will assist with the application. The authors will preserve the data and the MONA project folder for at least five years after publication. One further register input cannot be shipped: `utb_grupp2_sun2020_niva3_inr4_nyckel.dta`, a correspondence from Statistics Sweden's education groups to SUN 2020 fields built by a co-author for another project and not released; it is used only by the cuts by field of education (scripts 76, 87 and 88) and is available from the authors on request.
 
@@ -147,7 +147,7 @@ which they ran (39 to 108), because those numbers name every exported file.
   merges the counts with the DAIOE quartiles (04).
 - `2_postings/` estimates Equation (1) and its variants, the event study and the HonestDiD
   bounds, the diagnostics of Online Appendix Part II, and the within-employer design of Part V
-  (scripts 01 to 24; `2_postings/README.md`). `2_postings/extensions/` holds the two
+  (scripts 00 to 24; `2_postings/README.md`). `2_postings/extensions/` holds the two
   remote-work estimation scripts behind Table A9 as they ran in the research repository, with
   their occupation-level results and a README of the inputs they need.
 - `3_register_mona/` holds the 67 files that ran in MONA, the three public score files they
@@ -174,9 +174,10 @@ Public data and register exhibits:
    `data/raw/platsbanken/` (or give `--no-download` and set `CANARIES_JOBADS_DIR` to a folder
    that already holds them), verifies them against the digests of the paper's run, and runs
    packs 1, 2, 5, 4 and 0 in that order. Step 03 of pack 1 fetches the Yahoo Finance series,
-   so the first run needs a network connection. Part V additionally needs the two inputs
-   described under "Data availability" (`CANARIES_FIRM_CUBE`, `CANARIES_SCB_BULK`); without
-   them steps 14 and 15 of pack 2 stop with a message and the rest of the run is unaffected.
+   so the first run needs a network connection. Part V rebuilds its employer counts from the
+   archives (step 00 of pack 2) and additionally needs Statistics Sweden's business-register
+   bulk file (`CANARIES_SCB_BULK`, see "Data availability"); without it steps 14 and 15 of
+   pack 2 stop with a message and the rest of the run is unaffected.
 3. Tables are written to `output/tables/`, figures to `output/figures/`, estimates to
    `output/results/`, each under the file name the manuscript uses. With the manuscript folder
    at `CANARIES_PAPER_DIR`, `python 0_verification/check_manifest.py` compares them with print.
@@ -238,7 +239,7 @@ compiles on 28 September 2026):
 | OA Part I, the sentence on the two exposure measures | `5_occupation_register_public/03_exposure_measure_agreement.py` | `exposure_measure_agreement.csv` (results) |
 | OA Tables A32 to A34, Figure A7 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
 | OA Table A35 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
-| OA Tables A37 to A39 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
+| OA Tables A37 to A39 | `2_postings/00_employer_counts.py`, `14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
 | OA Table A41 | `4_exhibits/28_tab_payment_rule.py` | `tableA_payment_rule.tex` |
 | OA Table A42 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
 | OA Table A43 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |

@@ -102,6 +102,13 @@ research repository on inputs the package does not ship (`2_postings/extensions/
 `2_postings/22` checks that their AI-only baselines equal those of `03` and `14` before it
 builds the table from their results.
 
+The employer counts of Online Appendix Part V are not shipped; `2_postings/00` rebuilds them from
+the archives. On 28 September 2026 a rebuild from the same archives with the paper's key
+reproduced the paper's file in every cell once the cells that file lists once per archive were
+summed (1,881,167 cells, 2,713,590 advertisements, 72,513 entry-level, no cell differing), and
+scripts 14, 15 and 16 run on the rebuild write
+result files and Tables A37 to A39 byte-identical to those from the paper's file.
+
 ## 5. Inconsistencies between the manuscript and its sources
 
 Found by the manifest against the 26 September manuscript, each a last-digit matter, and corrected

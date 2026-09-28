@@ -8,6 +8,8 @@
 # Settings, all optional (see config.py):
 #   CANARIES_JOBADS_DIR  the Platsbanken archives (default data/raw/platsbanken)
 #   CANARIES_FIRM_CUBE   the employer-by-month advertisement counts of Part V
+#                        (built by 2_postings/00 when absent)
+#   CANARIES_EF_KEY      the key that pseudonymises sole traders (random if unset)
 #   CANARIES_SCB_BULK    Statistics Sweden's business-register bulk file
 #   PYTHON, RSCRIPT      the interpreters (default python3, Rscript)
 #
@@ -46,6 +48,12 @@ step "$PYTHON" 1_data_public/03_market_and_policy_series.py
 step "$PYTHON" 1_data_public/04_merge_and_classify.py
 
 # -- Pack 2: the posting margin -------------------------------------------------
+# The employer counts of Part V are rebuilt from the archives unless a file is
+# already in place (CANARIES_FIRM_CUBE, default data/raw/firm_month_v2.csv.gz).
+FIRM_CUBE_PATH="${CANARIES_FIRM_CUBE:-data/raw/firm_month_v2.csv.gz}"
+if [ ! -f "$FIRM_CUBE_PATH" ]; then
+  step "$PYTHON" 2_postings/00_employer_counts.py
+fi
 step "$PYTHON" 2_postings/01_postings_accounting.py
 step "$PYTHON" 2_postings/02_coverage_diagnostics.py
 step "$PYTHON" 2_postings/03_extend_2026_and_did.py

@@ -434,14 +434,15 @@ def main():
     pd.DataFrame(es_rows).to_csv(config.RESULTS / "firm_within_es.csv",
                                  index=False)
     meta = [
-        "GENERATOR: AIEL Monitor firm cube (firm_month_v2, built 20 Aug",
-        "2026, frozen v1.5 pipeline, distinct-ad unit). Population:",
+        "INPUT: employer-by-month-by-occupation counts (firm_month_v2,",
+        "built by 2_postings/00 from the Platsbanken archives; distinct",
+        "advertisements). Population:",
         "employers with organisationsnummer in the ad (99.1-99.4% of ads",
         "from Jan 2021; 0% before -- the panel starts 2021-01).",
         "Window 2021-01..2026-06 (official closed-quarter files).",
         "Pre-Riksbank window is 15 months (orgnr constraint).",
-        "Entry-level flag: the Monitor's entry definition on the ad's",
-        "experience requirement. Variant b drops SNI-78 staffing agencies",
+        "Entry-level flag: the regular expression of 2_postings/00 on the",
+        "ad's text (graduate, junior, trainee, no experience required). Variant b drops SNI-78 staffing agencies",
         "(register match) and prefix-2 public orgnrs.",
     ]
     (config.RESULTS / "firm_within_meta.txt").write_text("\n".join(meta))
