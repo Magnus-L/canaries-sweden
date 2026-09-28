@@ -70,6 +70,25 @@ def set_rcparams():
     })
 
 
+def save_png_rgb(fig, out, dpi: int = 300) -> None:
+    """Write a PNG with an opaque white background (RGB, no alpha channel).
+
+    Matplotlib writes RGBA PNGs. LaTeX engines can mishandle the alpha
+    channel of a raster figure (a blank page in the online appendix on 28
+    September 2026), so figures the manuscript includes as PNG are
+    flattened onto white before they are saved.
+    """
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi)
+    buf.seek(0)
+    img = Image.open(buf)
+    flat = Image.new("RGB", img.size, (255, 255, 255))
+    flat.paste(img, mask=img.getchannel("A") if img.mode == "RGBA" else None)
+    flat.save(out, dpi=(dpi, dpi))
+
+
 def save_pdf_png(fig, stem: str) -> None:
     """Write <stem>.pdf and <stem>.png (300 dpi) into output/figures."""
     for ext in (".pdf", ".png"):

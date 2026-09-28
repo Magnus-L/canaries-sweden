@@ -215,6 +215,7 @@ compiles on 28 September 2026):
 | OA Table A9 | `2_postings/22_tab_remote_measures.py` (from `19` and `extensions/results/`) | `tableA_remote_measures.tex` |
 | OA Tables A10, A11 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
 | OA Figure A3 | `2_postings/23_fig_posting_coverage_monthly.py` | `fig_posting_coverage_monthly.pdf` |
+| OA II.7 and Section 1, the unscored occupation codes (3 military, 26 managerial, 2 other; 3.7 per cent of advertisements) | `2_postings/24_unscored_codes.py` | `unscored_codes.csv` (results) |
 | OA Table A12 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
 | OA Figure A4 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage_v3.pdf` |
 | OA Table A13 | typed in the manuscript (definitions only) | |
@@ -244,9 +245,9 @@ compiles on 28 September 2026):
 
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of
-`master.py` that produces each. The lane 38c check (script 102, month-of-year terms) was
-submitted to MONA on 26 September 2026 and its export had not left MONA when the package was
-assembled; the script is shipped and `MAPPING.csv` carries the item as pending.
+`master.py` that produces each. The last check to run, lane 38c
+(script 102, month-of-year terms), returned on 26 September 2026 (export `2026-09-26_1208_s102`)
+and is reported in Online Appendix Table A26, Panel G.
 
 ## Scope: the offline appendix
 

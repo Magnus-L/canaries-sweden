@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import (config, set_rcparams, DARK_BLUE, ORANGE, TEAL,  # noqa: E402
-                     GRAY, LIGHT_GRAY, Q_COLORS)
+                     GRAY, LIGHT_GRAY, Q_COLORS, save_png_rgb)
 
 import pandas as pd  # noqa: E402
 import numpy as np  # noqa: E402
@@ -302,7 +302,7 @@ def plot_telework_comparison(results: pd.DataFrame):
 
     plt.tight_layout()
     out = FIGURES / "figA_telework_robustness.png"
-    fig.savefig(out, dpi=300)
+    save_png_rgb(fig, out)
     plt.close()
     print(f"\n  Saved: {out.name}")
 

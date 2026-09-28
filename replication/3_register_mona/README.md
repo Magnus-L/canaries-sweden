@@ -93,15 +93,15 @@ within a chapter can run side by side.
 | Chapter | Scripts | Exhibits |
 |---|---|---|
 | 1 Data build | 47h, 47L, 54, 67, 76, 78 (parts E, F), 79 (part C), 80 (part A) | caches only |
-| 2 Table 1 and the sample | 82 (parts A, B, C), 68 | Table 1; OA Tables A2, A15, A17, A34 |
-| 3 First stage and specification | 83 (parts A to D) | Table 1; OA Figure A5; Tables A14, A15, A23, A24, A26, A27 |
-| 4 The age profile | 85, 63 | OA Tables A12, A17, A18 |
-| 5 Timing | 84, 86, 91 | Figure 3; OA Figure A7; Tables A16, A23; the boundary sweep of III.2 |
-| 6 Heterogeneity | 87, 88 | OA Tables A15, A19, A20, A21 |
-| 7 Register coverage | 39, 40, 41, 45, 49 | OA Part IV, Tables A30 to A32, Figure A8; the submitted estimate |
-| 8 Rival explanations | 89, 90, 92, 93 | Section 3; OA II.3, III.2; Table A39 |
+| 2 Table 1 and the sample | 82 (parts A, B, C), 68 | Table 1; Figure 3; OA Tables A2, A15, A19, A34, A36 |
+| 3 First stage and specification | 83 (parts A to D) | Table 1; OA Figure A4; Tables A2, A14, A15, A17, A18, A24, A28 |
+| 4 The age profile | 85, 63 | OA Tables A2, A12, A19, A25 |
+| 5 Timing | 84, 86, 91 | Figure 3; OA Figure A5; Tables A16, A17; the boundary sweep of III.2 |
+| 6 Heterogeneity | 87, 88 | OA Tables A2, A15, A20, A21, A22 |
+| 7 Register coverage | 39, 40, 41, 45, 49 | OA Part IV, Tables A32 to A34, Figure A7; the submitted estimate |
+| 8 Rival explanations | 89, 90, 92, 93 | Section 3; OA II.6, III.2; Table A42 |
 | 9 Comparison only | 47j, 61, 66, 70, 71, 73, 74, 75, 77, 78 (parts A to D, G) | the education route, not reported |
-| 10 Final checks on tau | 95, 96, 97, 98, 99, 100, 101, 102, 103, 104 | Figure 2; OA Figure A6; Tables A21, A33, A39, A41, A42; the second record of Table 1 |
+| 10 Final checks on tau | 95, 96, 97, 98, 99, 100, 101, 102, 103, 104 | Figure 2; OA Figure A6; Tables A26, A27, A35, A41, A43, A44; the second record of Table 1 |
 
 `EXPORTS.csv` gives the exhibit behind every exported file, and the package-level
 `MANIFEST.csv` ties each printed number to its file; `4_exhibits/` turns the exports into
@@ -121,14 +121,14 @@ verdicts. A fourth backtest arm, re-scoring the same 2019 incumbents from the re
 stood in 2021 to separate re-coding from carry-back, was specified in script 98; the data
 delivery returned no scorable employer for it, so it produced no estimate and the online
 appendix does not report it. Script 98 ran twice: the second run (lane 38b) added to its export the number
-of observations each Poisson fit retained, with every estimate unchanged, and OA Table A33
+of observations each Poisson fit retained, with every estimate unchanged, and OA Table A35
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
 (script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and
 reports tau and the female differential beside the same run's gate on Table 1's
-specification (OA Table A21, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
+specification (OA Table A26, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
 employers by the Eloundou et al. (2024) rating through 82's chain and re-fits Table 1's tau at 22-25
 and 26-30 and the female differential on the employers both indices score, DAIOE beside Eloundou, with
-the agreement of the two classifications (OA Table A21, Panel H, the same builder).
+the agreement of the two classifications (OA Table A26, Panel H, the same builder).
 
 ## The code that ran
 
@@ -167,7 +167,7 @@ exceptions, none of which changes an exported estimate:
   headline was restated after the run. The exported summary reports that the four-
   decimal agreement check failed (by 5 to 11 units in the fifth decimal, a
   consequence of the 2019 start of the panel) and so declined to draw the path; the
-  estimates are those shown in OA Figure A7 and Table A19.
+  estimates are those shown in OA Figure A5 and Table A17.
 - `66_plain_magnitudes.py`: a printed reading note was corrected after the run.
 - `63_measure_robustness.py` and `68_seasonal_control.py` ran twice; the exports the
   exhibits read (`output_63` and the 21:52 export of 68) come from the code shipped.

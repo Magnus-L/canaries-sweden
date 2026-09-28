@@ -34,6 +34,7 @@ them in this order. Exhibit numbers are those of the online appendix as compiled
 | `21_posting_robustness.py` | Equation (1) under six variations of the construction (positions advertised as the outcome, no pandemic months, terciles, no ICT occupations, a balanced panel), with the Poisson and month-of-year rows carried from 03 and 06 | II.2; Table A5 | 25 s (streams the two 2026 archives once) |
 | `22_tab_remote_measures.py` | the table of three remote-work measures against AI exposure, from 19 and from the result files of the two estimation scripts in `extensions/` | II.6; Table A9 | 1 s |
 | `23_fig_posting_coverage_monthly.py` | the monthly coverage series: valid-code share by channel, active occupations, zero cells on the scored grid | II.8; Figure A3 | 3 s |
+| `24_unscored_codes.py` | the 31 codes the index does not score, by kind (military, managerial without the level split, other), and their share of advertisements | Section 1; II.7 | 2 s |
 
 `_common.py` holds the figure style of 07, 09, 11 and 12 and the loader through which 03, 10,
 17, 19 and 21 reuse the advertisement classification of 01 and 15 reuses the panel of 14.

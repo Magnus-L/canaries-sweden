@@ -38,14 +38,12 @@ occupations added back), so both of those are identical line by line.
 Figures were compared by rendering both versions to images. The three figures added in the
 revision (Figure 2 of the paper, `fig2_age_profile_v4`; Online Appendix Figures A3,
 `fig_posting_coverage_monthly`, and A6, `fig_prepath_female`) are pixel-identical to the files
-the manuscript includes (2.5, 4.9 and 2.5 million pixels, none differing). Panel (b) of Figure
-A2 (`figA_telework_robustness.png`) shows the same estimates but renders at a different size:
-the manuscript's copy is the 24 September drawing, made before the pack's figure style was
-applied to script 12 (`2_postings/19` now draws it with that style), and replacing it with the
-built one would change no estimate. On 28 September both panels of Figure A2 were flattened in
-the manuscript from RGBA to RGB at 1,800 pixels, to stop a transparent PNG from leaving a blank
-page; nothing visible on the white page changes. Every other figure is unchanged since the
-25 September check, where all were pixel-identical.
+the manuscript includes (2.5, 4.9 and 2.5 million pixels, none differing). Both panels of
+Figure A2 are, since 28 September, the files the pack builds: scripts 11 and 12 now save them
+without an alpha channel (`save_png_rgb` in `_common.py`), because a transparent PNG left a
+blank page in the online appendix, and the manuscript's copies were replaced by the builds.
+The flattened builds are pixel-identical to the earlier transparent ones laid on white. Every
+other figure is unchanged since the 25 September check, where all were pixel-identical.
 
 The table notes of the online appendix are the text the manuscript prints on 28 September.
 Where a builder's text changed between versions of the manuscript only strings changed; the
@@ -58,24 +56,24 @@ checking that every exported standard error is the square root of its own diagon
 
 `python 0_verification/check_manifest.py`
 
-`MANIFEST.csv` holds 417 numbers printed in the running text, captions and hand-typed notes of
+`MANIFEST.csv` holds 419 numbers printed in the running text, captions and hand-typed notes of
 the paper and the online appendix, each tied to the file it is computed from. A row passes when
 the number appears in the manuscript and the source value rounds to it at the printed
-precision. **Result: 404 PASS, 0 FAIL, 13 PENDING** (plus the 41 table rows above, all PASS).
+precision. **Result: 411 PASS, 0 FAIL, 8 PENDING** (plus the 41 table rows above, all PASS).
 The last-digit discrepancies the 26 September check found have since been corrected in the
 manuscript (section 5).
 
 The pending rows are numbers that no script of the package writes to a file, among them the
 $R^2 = 0.998$ of the independent reproduction (`archive/`), the split of the 2,844
-advertisements of the 2026 archives dated outside the half-year (2,657, 100 and 187), the
-counts of military, managerial and other unpriced occupation codes (3, 26, 2; counted by hand
-from `occupation_reconciliation_lists.txt`, which the pack writes), the 3.7 per cent of
-advertisements in the unpriced codes, and the precision and recall of the remote-work text
+advertisements of the 2026 archives dated outside the half-year (2,657, 100 and 187), two
+readings of printed figures (the "eight" log points of Table A17 and the first-quarter
+ratios of script 107's summary), and the precision and recall of the remote-work text
 rule on hand-read samples (about 94 and 90 per cent; the rule's agreement with the structured
-field is in `2_postings/extensions/results/l50_remote_validation.csv`).
-
-Numbers that depend on lane 38c (script 102, the month-of-year check) are not yet in the
-manuscript and have no rows; `MAPPING.csv` carries the item as pending.
+field is in `2_postings/extensions/results/l50_remote_validation.csv`). The counts of
+unscored occupation codes (3 military, 26 managerial of which 25 lack the split into levels, 2
+other) and their 3.7 per cent of advertisements, pending until 28 September, are now written
+by `2_postings/24_unscored_codes.py` and pass. Every MONA run the manuscript reports has
+returned; the last, lane 38c (script 102, month-of-year terms), is Table A26, Panel G.
 
 ## 4. The public tiers reproduce from the archives
 

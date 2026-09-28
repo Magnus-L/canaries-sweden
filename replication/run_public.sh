@@ -73,6 +73,7 @@ step "$PYTHON" 2_postings/20_eloundou_postings.py
 step "$PYTHON" 2_postings/21_posting_robustness.py
 step "$PYTHON" 2_postings/22_tab_remote_measures.py
 step "$PYTHON" 2_postings/23_fig_posting_coverage_monthly.py
+step "$PYTHON" 2_postings/24_unscored_codes.py
 
 # -- Pack 5: published occupational statistics ----------------------------------
 step "$PYTHON" 5_occupation_register_public/01_published_age_gap.py
