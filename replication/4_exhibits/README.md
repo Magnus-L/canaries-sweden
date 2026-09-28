@@ -36,7 +36,7 @@ published statistic, and each has a row in `MANIFEST.csv`.
 
 ## Builders, in paper order
 
-Exhibit numbers are those of the online appendix as compiled on 26 September
+Exhibit numbers are those of the online appendix as compiled on 28 September
 2026.
 
 | Builder | Exhibit | Exports read (folder under `3_register_mona/exports/`) | Output | Time |
@@ -73,10 +73,10 @@ Exhibit numbers are those of the online appendix as compiled on 26 September
 | `29_tab_adoption_by_index.py` | OA Table A27 | `2026-09-27_1009_s108` (script 108) | `tableA_adoption_by_index.tex` | 1 s |
 
 Figures are written as PDF (the file the manuscript includes) and as PNG at
-300 dots per inch. The remaining exhibits of the online appendix (Figure 1,
-the posting tables and figures of Parts II and V, the published-aggregates
-table A29 and the occupation-mix table A22) are built from public data in
-packs 2 and 5. The monthly diagnostic of `03 --monthly` moved from the online
+300 dots per inch. The remaining exhibits (Figure 1 of the paper, the posting
+tables and figures of Parts II and V of the online appendix, the
+published-aggregates Table A31 and the occupation-mix Table A23) are built from
+public data in packs 2 and 5. The monthly diagnostic of `03 --monthly` moved from the online
 appendix to the offline appendix on 26 September 2026 and is still built.
 
 ## Typed values
@@ -116,12 +116,12 @@ These values are written into a builder rather than read from an export:
   third-quarter term and the score's standard deviation in the note are read
   from the exports and summaries.
 - `24_tab_unlinked.py`: Table 1's tau and the female differential's tau as
-  the gate the builder requires (-0.0399 (0.0102), -0.0714 (0.0109)); the
+  the check the builder requires (-0.0399 (0.0102), -0.0714 (0.0109)); the
   difference row of Panel A is the difference of the shares as printed, to
   three decimals.
 
-The table notes are the text the online appendix prints, as it stood on
-26 September 2026; a rebuilt table is identical to the printed one once the
-co-author markup still carried by two printed files (`table1_headline_v3.tex`,
-`tableA_headline_components.tex`'s comment header) is accepted, which
-`0_verification/check_manifest.py` does before comparing.
+The table notes are the text the online appendix printed on 26 September 2026.
+On 28 September a number of printed tables were copy-edited (minus signs, en
+dashes, some labels, and wrapping to fit the page) without any number changing,
+so `0_verification/check_manifest.py` compares those tables number by number,
+cell by cell, and the rest line by line (`VERIFICATION.md`, section 2).

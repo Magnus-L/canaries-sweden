@@ -6,15 +6,17 @@ author: Magnus Lodefalk, Örebro University School of Business, <magnus.lodefalk
 
 ## Overview
 
-The paper reads two dates, the Riksbank's first rate rise in April 2022 and the launch of
-ChatGPT in November 2022, on two margins of the Swedish labour market. The **posting margin**
-uses 4.9 million public job advertisements from Platsbanken, 2020 to June 2026, matched to the
-DAIOE generative-AI exposure index. The **employment margin** uses the monthly employer
-declarations for every employee in Sweden, linked to Statistics Sweden's registers inside its
-secure environment MONA, and compares young workers with their older colleagues inside the
-same employer; its headline is $\tau$, the change in the young-to-older employment ratio from
-the interim period (December 2022 to December 2023) to the later period (January 2024 to June
-2025) at top-quartile relative to less exposed employers.
+After 2022, Swedish job advertisements fell while share prices rose. Two explanations
+compete: the Riksbank's monetary tightening, which began in April 2022, and the release of
+ChatGPT in November 2022. The paper examines both on two sources. The first is 4.9 million
+public job advertisements from Platsbanken, January 2020 to June 2026, matched to the DAIOE
+generative-AI exposure index. The second is the monthly payroll declarations for every
+employee in Sweden, linked to Statistics Sweden's registers inside its secure environment
+MONA, which let us compare young workers with their older colleagues at the same employer.
+The headline estimate, $\tau$, is how much more the young-to-older employment ratio changed
+at the employers most exposed to AI (the top quartile) than at other employers, from the
+interim period (December 2022 to December 2023) to the later period (January 2024 to June
+2025).
 
 The package reproduces the paper in three tiers:
 
@@ -32,13 +34,12 @@ The package reproduces the paper in three tiers:
    inside MONA on project P1207, with a runner that executes them in order. Rerunning them
    requires access to the registers (see "Data availability"); about 70 hours of batch time.
 
-A verification layer (pack 0) checks that the code shipped for MONA is the code that ran, that
-every generated table is identical to the table the manuscript prints, and that each of 361
-numbers printed in the text of the paper and the online appendix agrees with the file it comes
-from. Its result on the manuscript of 26 September 2026 is in `VERIFICATION.md`: 56 of 56
-register files identical in code, 38 of 39 tables identical to print, 346 of the 351 checkable
-numbers agreeing with their source; the six last-digit discrepancies it found are listed there
-for correction in the manuscript.
+A verification layer (pack 0) checks three things, with these results on the manuscript of
+28 September 2026 (`VERIFICATION.md`): the code shipped for MONA is the code that ran (67 of
+67 files identical in code); every table the package builds is the table the manuscript
+prints (41 of 41); and every number printed in the text of the paper and the online appendix
+agrees with the file it comes from (411 of 419, none disagreeing; the other eight are hand
+counts or readings of printed figures, listed in `VERIFICATION.md`).
 
 ## Data availability and provenance statements
 
@@ -65,13 +66,13 @@ The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the 
 | DAIOE generative-AI exposure by SSYK 2012 occupation and year, of which the paper uses the 2023 cross-section (`daioe_ssyk2012.csv`) | exposure quartiles, both margins | Engberg et al. (2024); the file as distributed by the index's authors in February 2026, two of whom are authors of this paper | redistributed with the authors' permission | yes |
 | SSYK 2012 to ISCO-08 correspondence (`ssyk2012_isco08.xlsx`) | crosswalk to O*NET-based scores | Statistics Sweden, <https://www.scb.se> | CC0 | yes |
 | SOC 2010 to ISCO-08 crosswalk (`isco_soc_crosswalk2.xls`) | crosswalk | US Bureau of Labor Statistics, <https://www.bls.gov/soc/> | public domain | yes |
-| Teleworkability by SOC occupation (`dingel_neiman_telework.csv`) | telework split, OA II.3 and III.2 | Dingel and Neiman (2020), <https://github.com/jdingel/DingelNeiman-workathome> | GPL-3.0 (repository licence) | yes |
-| GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Tables A10 and A18 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
+| Teleworkability by SOC occupation (`dingel_neiman_telework.csv`) | telework split, OA II.6 and III.2 | Dingel and Neiman (2020), <https://github.com/jdingel/DingelNeiman-workathome> | GPL-3.0 (repository licence) | yes |
+| GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Tables A6, A25, A26 (Panel H) and A27 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
 | Remote and hybrid work in United States job postings, WFH Map public release (`remote_work_in_job_ads_public_data.xlsx`, fetched 24 September 2026) | the Hansen et al. column of OA Table A9 | Hansen, Lambert, Bloom, Davis, Sadun and Taska (2023), <https://wfhmap.com/data/> (Category A, free download) | free to download; no licence grants redistribution | no; see `2_postings/extensions/README.md` |
 | Indeed Hiring Lab job-postings index, United States (`indeed_us_aggregate.csv`) | the posting-context figure of the offline appendix | Indeed Hiring Lab, <https://github.com/hiring-lab/job_postings_tracker> | CC BY 4.0 | yes |
 | OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1; the offline appendix | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), fetched with `yfinance` by `1_data_public/03_market_and_policy_series.py` | Yahoo terms of service (see note) | no; fetched by the script, see note |
 | Riksbank policy rate | the offline appendix's posting-context figure | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
-| Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A22 and A29 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
+| Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A23 and A31 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
 | Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see note |
 | Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A9 | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
 | Monthly employer declarations at the individual level (AGI, *Arbetsgivardeklaration på individnivå*), 2019 to June 2025; LISA (*Individ*) 2015 to 2023 with the embedded occupation register (*Yrkesregistret*); the education register (SUN 2020); the ICT surveys of enterprises (ITFtg) and individuals (BITA 2024); the enterprise register (*Företagsdatabasen*); Serrano balance sheets (2019) | every employment estimate | Statistics Sweden, through the MONA environment, project P1207 (ORU-MICRO-AI) | confidential | no (the aggregated exports are) |
@@ -139,24 +140,24 @@ replication/
 Each pack has a README listing its scripts in run order with what each estimates, the exhibit
 it serves, what it reads and writes, and its runtime; each script's docstring says the same.
 Scripts are numbered in run order within a pack. The register scripts keep the numbers under
-which they ran (39 to 102), because those numbers name every exported file.
+which they ran (39 to 108), because those numbers name every exported file.
 
 - `1_data_public/` downloads and verifies the Platsbanken archives (01), rebuilds the
   occupation-by-month counts (02), builds the stock-market, policy-rate and US series (03), and
   merges the counts with the DAIOE quartiles (04).
 - `2_postings/` estimates Equation (1) and its variants, the event study and the HonestDiD
   bounds, the diagnostics of Online Appendix Part II, and the within-employer design of Part V
-  (scripts 01 to 23; `2_postings/README.md`). `2_postings/extensions/` holds the two
+  (scripts 01 to 24; `2_postings/README.md`). `2_postings/extensions/` holds the two
   remote-work estimation scripts behind Table A9 as they ran in the research repository, with
   their occupation-level results and a README of the inputs they need.
-- `3_register_mona/` holds the 56 files that ran in MONA, the three public score files they
-  read, the 32 export runs brought out of MONA (350 files, of which the package reads 81),
+- `3_register_mona/` holds the 67 files that ran in MONA, the three public score files they
+  read, the 38 export runs brought out of MONA (393 files, of which the package reads 91),
   `master.py`, and the disclosure rules (`DISCLOSURE.md`).
-- `4_exhibits/` holds 27 builders, one per register exhibit, in the paper's order, and
+- `4_exhibits/` holds 29 builders, one per register exhibit, in the paper's order, and
   `run_all.py`. Each checks its inputs against a second record of the same fit before writing
   (standard errors against the exported covariance, rows against the run's own summary, Table 1
   against a separate re-estimation of every $\tau$ it prints).
-- `5_occupation_register_public/` builds Online Appendix Tables A29 and A22 from Statistics
+- `5_occupation_register_public/` builds Online Appendix Tables A31 and A23 from Statistics
   Sweden's published employment by occupation and age, and states how alike DAIOE and the
   Eloundou score rank occupations (the data section's sentence on the two measures).
 - `0_verification/`: `check_mona_scripts.py` (the shipped MONA code equals the code that ran,
@@ -245,8 +246,8 @@ compiles on 28 September 2026):
 
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of
-`master.py` that produces each. The last check to run, lane 38c
-(script 102, month-of-year terms), returned on 26 September 2026 (export `2026-09-26_1208_s102`)
+`master.py` that produces each. The last check to run, script 102
+(month-of-year terms), returned on 26 September 2026 (export `2026-09-26_1208_s102`)
 and is reported in Online Appendix Table A26, Panel G.
 
 ## Scope: the offline appendix

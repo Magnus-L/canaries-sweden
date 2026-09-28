@@ -13,7 +13,7 @@ this package; the executable code is the code that ran on 28 April 2026, which
 
 | File | Kept because |
 |---|---|
-| `32_mona_kauhanen_robustness.py` | Online Appendix VI.1 quotes its non-match series, 9.2 to 10.5 per cent of employer-declaration person-months (`3_register_mona/exports/2026-04-28_s32/attrition_yearly_totals.csv`); its first specification is the submitted design, whose estimate of $-0.174$ at ages 22 to 25 the paper quotes as "about $-0.17$" (reproduced by script 39 of the register tier). The design is withdrawn (Online Appendix Part IV). |
+| `32_mona_kauhanen_robustness.py` | Its first specification is the submitted design, whose estimate of $-0.174$ at ages 22 to 25 Online Appendix IV.3 quotes as "about $-0.17$" (reproduced by script 39 of the register tier). The design is withdrawn (Online Appendix Part IV). The script's non-match series, 9.2 to 10.5 per cent of employer-declaration person-months (`3_register_mona/exports/2026-04-28_s32/attrition_yearly_totals.csv`), was quoted by the submitted version and is replaced in the revision by the rebuild from the raw declarations (script 99, Online Appendix Table A44). |
 | `r_fepois.R` | The Poisson wrapper script 32 calls, as it stood when the script ran. |
 
 ## `independent_reproduction/`

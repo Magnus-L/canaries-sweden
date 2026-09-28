@@ -5,7 +5,7 @@ design of Online Appendix Part V. The scripts read the public files of pack 1 an
 tables to `output/tables/`, figures to `output/figures/` and estimates to `output/results/`,
 each under the file name the manuscript uses. `run_public.sh` at the package root runs
 them in this order. Exhibit numbers are those of the online appendix as compiled on
-26 September 2026.
+28 September 2026.
 
 ## Scripts, in run order
 

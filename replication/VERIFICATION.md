@@ -13,7 +13,7 @@ The register files were copied from the versions that ran and only their comment
 docstrings were rewritten. The check parses the shipped file and the as-run file into Python
 syntax trees with docstrings removed (for R, token streams without comments) and compares them.
 **Result: 67 of 67 identical** (28 September 2026). The as-run copies are `revision/mona/<file>` in the research
-repository and, for the six lane runners, `revision/upload/<file>`, where they were staged for
+repository and, for the eleven runners through which the last register scripts were submitted, `revision/upload/<file>`, where they were staged for
 MONA. The same check confirms the two files of `archive/submitted_design/` against their
 originals. `3_register_mona/SCRIPTS.csv` records, per file, the SHA-256 of the copy that ran
 and its syntax-tree fingerprint, so the check also runs on the package alone
@@ -73,7 +73,7 @@ field is in `2_postings/extensions/results/l50_remote_validation.csv`). The coun
 unscored occupation codes (3 military, 26 managerial of which 25 lack the split into levels, 2
 other) and their 3.7 per cent of advertisements, pending until 28 September, are now written
 by `2_postings/24_unscored_codes.py` and pass. Every MONA run the manuscript reports has
-returned; the last, lane 38c (script 102, month-of-year terms), is Table A26, Panel G.
+returned; the last, script 102 (month-of-year terms), is Table A26, Panel G.
 
 ## 4. The public tiers reproduce from the archives
 

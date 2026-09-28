@@ -29,7 +29,10 @@ or employer-level value of a register variable.
   missing and leaves zero as it is; the floor is five. Scripts 82 to 85 and 87 to 90
   write their tables through a `save()` function that applies it, scripts 91 to 93
   apply it directly, and the summaries print counts through `cnt()`, which prints
-  "(suppressed)" for the same range. The regression files written through script 78's
+  "(suppressed)" for the same range. The scripts of chapter 10 (95 to 108) write through
+  the same `save()` and `enforce_min_cell`, except 104 and 108, which apply the same floor
+  of five in their own code: 104 suppresses any cell resting on fewer than five employers
+  (`suppress()`), and 108 blanks any count of one to four before it writes. The regression files written through script 78's
   functions (by 78 and 86) carry only coefficients and the size of the whole
   estimation panel, which runs to hundreds of thousands of employers.
 - **Shares with their numerators.** Script 79 (`floor_table`) suppresses a share

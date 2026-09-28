@@ -12,9 +12,9 @@ package.
 
 | Path | What it is |
 |---|---|
-| `scripts/` | The 56 files that ran in MONA: 45 Python scripts (39 to 102, and `_lane.py`), the shared module `mona_common.py`, three R wrappers around `fixest`, and the six lane runners (`run_lane37a.py` to `run_lane38c.py`) under which the scripts of chapter 10 were submitted |
+| `scripts/` | The 67 files that ran in MONA: 51 numbered Python scripts (39 to 108) and `_lane.py`, the shared module `mona_common.py`, three R wrappers around `fixest`, and the eleven lane runners (`run_lane37a.py` to `run_lane39d.py`) under which the scripts of chapter 10 were submitted |
 | `inputs/` | Three occupation-level score files the scripts read from the project's input folder |
-| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (32 exports, 350 files) |
+| `exports/` | Every aggregated file brought out of MONA for this revision, one folder per export, listed with its SHA-256 in `exports/EXPORT_RUNS.csv` (38 exports, 393 files) |
 | `master.py` | Runs the scripts inside MONA, chapter by chapter, with the settings each job ran with |
 | `SCRIPTS.csv` | One row per file: its role, the chapters it serves, and the hashes that tie it to the copy that ran |
 | `EXPORTS.csv` | One row per exported file: the script that wrote it and the exhibit or printed number it feeds |
@@ -51,7 +51,7 @@ exactly those hashes.
 |---|---|---|---|
 | `daioe_quartiles.dta` | DAIOE generative-AI exposure and its quartile, 423 SSYK 2012 four-digit occupations | `e217df0d…41bbb` | `1_data_public/04`, `data/processed/daioe_quartiles.csv` |
 | `dingel_neiman_ssyk4.dta` | Dingel and Neiman (2020) teleworkability mapped to 423 SSYK occupations | `a63bf527…868a58` | the SOC 2010 to ISCO-08 to SSYK 2012 route of `2_postings/12` applied to `data/raw/dingel_neiman_telework.csv` |
-| `eloundou_ssyk4.dta` | Eloundou et al. (2024) exposure score and high-exposure flag for 394 SSYK occupations | `d47b771e…eda93` | the same route applied to the authors' `occ_level.csv` (MIT licence); `2_postings/20` reads this file for OA Table A9 and checks its hash |
+| `eloundou_ssyk4.dta` | Eloundou et al. (2024) exposure score and high-exposure flag for 394 SSYK occupations | `d47b771e…eda93` | the same route applied to the authors' `occ_level.csv` (MIT licence); `2_postings/20` reads this file for OA Table A6 and checks its hash |
 
 The fourth, `utb_grupp2_sun2020_niva3_inr4_nyckel.dta`, maps SUN 2020 education codes
 (level at three digits, field at four) to the education groups that define the
@@ -101,7 +101,7 @@ within a chapter can run side by side.
 | 7 Register coverage | 39, 40, 41, 45, 49 | OA Part IV, Tables A32 to A34, Figure A7; the submitted estimate |
 | 8 Rival explanations | 89, 90, 92, 93 | Section 3; OA II.6, III.2; Table A42 |
 | 9 Comparison only | 47j, 61, 66, 70, 71, 73, 74, 75, 77, 78 (parts A to D, G) | the education route, not reported |
-| 10 Final checks on tau | 95, 96, 97, 98, 99, 100, 101, 102, 103, 104 | Figure 2; OA Figure A6; Tables A26, A27, A35, A41, A43, A44; the second record of Table 1 |
+| 10 Final checks on tau | 95 to 108 | Figure 2; OA Figure A6; Tables A15, A17, A26, A27, A35, A41, A43, A44; the second record of Table 1 |
 
 `EXPORTS.csv` gives the exhibit behind every exported file, and the package-level
 `MANIFEST.csv` ties each printed number to its file; `4_exhibits/` turns the exports into
@@ -110,7 +110,8 @@ the tables and figures outside MONA.
 ### Chapter 10 and the lane runners
 
 The scripts of chapter 10 were written after the second external review of 25 September
-2026 and ran on 25 and 26 September as seven lanes (37a to 37c, 38a to 38d), each a
+2026 and ran from 25 to 27 September in eleven batch submissions, called lanes (37a to 37c, 38a to 38e and 39a
+to 39d; lanes 39a and 39b share one runner, `run_lane39.py`), each a
 one-line list of stages for `_lane.py`, which runs the stages in order, skips a stage
 whose summary already exists, and caps what it echoes to the console (MONA's batch
 submitter blocks on a full pipe). The runners are shipped so that the record of how the
@@ -124,11 +125,16 @@ appendix does not report it. Script 98 ran twice: the second run (lane 38b) adde
 of observations each Poisson fit retained, with every estimate unchanged, and OA Table A35
 is built from that export while `4_exhibits/26` checks it against the first. Lane 38c
 (script 102) replaces the three calendar-quarter terms with eleven month-of-year terms and
-reports tau and the female differential beside the same run's gate on Table 1's
+reports tau and the female differential beside the same run's reproduction of Table 1's
 specification (OA Table A26, Panel G, built by `4_exhibits/23`). Lane 38d (script 103) re-classifies
 employers by the Eloundou et al. (2024) rating through 82's chain and re-fits Table 1's tau at 22-25
 and 26-30 and the female differential on the employers both indices score, DAIOE beside Eloundou, with
-the agreement of the two classifications (OA Table A26, Panel H, the same builder).
+the agreement of the two classifications (OA Table A26, Panel H, the same builder). Lane 38e (script 104) states the payment rule behind the counted person-months (OA Table
+A41). Lanes 39a to 39d (scripts 105 to 108) answer the second review: the drift from 2019
+and a backdated placebo (OA Table A17, bottom panel), the flows clustered by industry (OA
+Table A15, Panel D), AI exposure and teleworkability in one fit (OA III.2), the pandemic
+year and the sexes in the placebo (OA III.2), and which exposure index predicts reported AI
+use (OA Table A27).
 
 ## The code that ran
 
@@ -137,7 +143,7 @@ were rewritten for a reader of the paper (internal working notes removed, the ex
 each script feeds named). No statement, string, number or file name was changed.
 `0_verification/check_mona_scripts.py` proves this for every file: it removes the
 docstrings from both versions, parses each into Python's syntax tree and compares the
-trees (for R, the token streams without comments). All 56 files are identical in code.
+trees (for R, the token streams without comments). All 67 files are identical in code.
 `SCRIPTS.csv` records for each file the SHA-256 of the copy that ran, the last commit
 that changed it in the authors' repository, the SHA-256 of the copy shipped, and the
 syntax-tree fingerprint of the copy that ran, so the check also works on this folder

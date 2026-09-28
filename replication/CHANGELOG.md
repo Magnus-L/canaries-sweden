@@ -1,5 +1,30 @@
 # Changelog
 
+Exhibit numbers in each entry are those of the online appendix on the entry's date; the
+appendix was renumbered on 28 September 2026, and `README.md` and `MAPPING.csv` give the
+current numbers.
+
+## 2026-09-28: the package brought to the manuscript of 28 September
+
+- Exhibit numbers follow the reordered online appendix everywhere they appear: `MANIFEST.csv`
+  (where each number is printed), `MAPPING.csv`, the README's list of exhibits, the pack
+  READMEs, `SCRIPTS.csv` and `EXPORTS.csv`, and the header of every builder.
+- `2_postings/21` adds row 9 of OA Table A5, the 28 unscored non-military codes added back;
+  `4_exhibits/04` prints the labels of OA Table A2 as the manuscript does. Both tables are now
+  identical to print.
+- `2_postings/24` is new: it counts the 31 occupation codes the index does not score (3
+  military, 26 managerial, of which 25 lack the split into levels, and 2 other) and their 3.7
+  per cent of advertisements, numbers the paper, the online appendix and the response letter
+  state and that were previously counted by hand.
+- `2_postings/11` and `12` save the two panels of OA Figure A2 without an alpha channel, which
+  had left a blank page in the online appendix; the manuscript now includes these builds.
+- `0_verification/check_manifest.py` compares a printed table that was copy-edited after it
+  was built (minus signs, en dashes, labels, page fit) number by number, cell by cell.
+- The READMEs, `DISCLOSURE.md` and `VERIFICATION.md` state the current counts: 67 MONA files
+  (scripts 39 to 108), 38 export runs with 393 files, 29 builders; 67 of 67 files identical in
+  code, 41 of 41 tables and 411 of 419 numbers passing, none failing.
+- `FILES.csv` rebuilt.
+
 ## 2026-09-26: the package brought to the manuscript of 26 September
 
 - 27 Sep 2026: script 107 (lane 39c, the sexes in the backdated placebo and the pandemic-year indicator) and script 108 (lane 39d, DAIOE against the Eloundou rating as predictors of reported AI use, each alone and both in one fit) filed with their exports `2026-09-27_0823_s107` and `2026-09-27_1009_s108`; the gate of 108 passed. New builder `4_exhibits/29_tab_adoption_by_index.py` writes OA Table A22 (`tableA_adoption_by_index.tex`), every cell checked against `108_summary.txt`; OA tables from A22 on renumber by one, and MAPPING.csv and the manifest table list follow the compiled appendix. Manifest rows OA385-OA396. Registry catch-up: EXPORT_RUNS.csv gains s104-s108 (it stopped at s103), EXPORTS.csv s107-s108, SCRIPTS.csv 107, 108 and their runners, master.py 106-108; the 105 row of SCRIPTS.csv had unquoted commas that shifted its columns, now repaired (67 of 67 scripts identical in code).

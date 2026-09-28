@@ -10,7 +10,7 @@ large Platsbanken archives are located through `CANARIES_JOBADS_DIR`.
 |---|---|---|---|
 | `01_download_platsbanken.py` | the Platsbanken annual archives 2020 to 2025 and the closed-quarter archives 2026-Q1 and 2026-Q2 in `CANARIES_JOBADS_DIR`; `--verify` compares each with the SHA-256 of the archive the paper used | every posting result | set by the connection (about 6 GB) |
 | `02_process_platsbanken.py` | `data/processed/postings_ssyk4_monthly.csv`, advertisements and vacancies by four-digit SSYK 2012 occupation and month, rebuilt from the archives, and a month-by-month comparison with the frozen counts (`output/results/postings_ssyk4_rebuild_vs_frozen.csv`) | a check on the frozen counts | 5.5 minutes |
-| `03_market_and_policy_series.py` | the OMXS30 and OMX Stockholm All-Share monthly indices (100 in February 2020) and the Riksbank policy rate by month | Figure 1; Online Appendix Figure A1 | seconds |
+| `03_market_and_policy_series.py` | the OMXS30 and OMX Stockholm All-Share monthly indices (100 in February 2020) and the Riksbank policy rate by month | Figure 1; the posting-context figure of the offline appendix | seconds |
 | `04_merge_and_classify.py` | `daioe_quartiles.csv` (the 2023 DAIOE generative-AI percentile and its quartile for 423 occupations) and the posting counts matched to it, 369 occupations | the exposure quartile of every posting estimate | seconds |
 
 Runtimes were measured on an Apple M2 laptop with 16 GB of memory.
