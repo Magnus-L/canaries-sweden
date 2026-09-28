@@ -15,7 +15,7 @@ errors clustered by occupation (pyfixest).
 INPUTS   data/processed/postings_daioe_merged_extended.csv (03)
 OUTPUTS  output/results/postings_poisson.csv, postings_poisson_deciles.csv
 SERVES   Section 3 (neither posting coefficient moves under Poisson) and the
-         note to Online Appendix Table A6 (the balanced panel of 28,782 cells)
+         note to Online Appendix Table A4 (the balanced panel of 28,782 cells)
 RUNTIME  under a minute
 """
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-18_tab_score_precision_and_coverage.py: Online Appendix Table A27 (Section
-III.3, the precision of the firm score) and Table A34 (Section IV.4, the codes
+18_tab_score_precision_and_coverage.py: Online Appendix Table A28 (Section
+III.3, the precision of the firm score) and Table A36 (Section IV.4, the codes
 the exposure score is built from).
 
 tableA_occ_coverage.tex: for incumbents aged 31 to 69 on the 2019 payroll, by

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-13_tab_fixed_contrasts.py: Online Appendix Table A12 (Section III.2), the
+13_tab_fixed_contrasts.py: Online Appendix Table A16 (Section III.2), the
 decline read off the quarterly path on contrasts that do not depend on where
 the adoption window begins.
 

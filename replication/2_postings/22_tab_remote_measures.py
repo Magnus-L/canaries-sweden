@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-22_tab_remote_measures.py: Online Appendix Table A4 (Section II.3), AI
+22_tab_remote_measures.py: Online Appendix Table A9 (Section II.6), AI
 exposure against three measures of remote work on the posting margin.
 
 WHAT IT BUILDS
@@ -31,7 +31,7 @@ INPUTS   2_postings/extensions/results/l50_remote_{horserace,within,correlations
          output/results/telework_did_results_v3.csv (19)
 OUTPUTS  output/tables/tableA_remote_measures.tex;
          output/results/remote_measures_cells.csv
-SERVES   Online Appendix II.3, Table A4, and the remote-work paragraphs of
+SERVES   Online Appendix II.6, Table A9, and the remote-work paragraphs of
          Section 3 of the paper
 RUNTIME  seconds
 """
@@ -76,7 +76,7 @@ def need(path: Path) -> pd.DataFrame:
 
 
 def main():
-    print("The remote-work measures against AI exposure (Table A4)")
+    print("The remote-work measures against AI exposure (Table A9)")
     l50h = need(EXT / "l50_remote_horserace.csv")
     l50w = need(EXT / "l50_remote_within.csv")
     l50c = need(EXT / "l50_remote_correlations.csv")

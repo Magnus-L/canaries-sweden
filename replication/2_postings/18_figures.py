@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-18_figures.py: Figure 1 of the paper, and Figures A1 and A9 of the online
-appendix.
+18_figures.py: Figure 1 of the paper, and the posting-context and
+within-employer figures of the offline appendix.
 
 WHAT IT DRAWS
 Figure 1 (fig1_two_panel): two stacked panels. The upper panel is the OMX
@@ -30,7 +30,8 @@ INPUTS   data/processed/omxs30_monthly.csv, omxspi_monthly.csv,
          postings_quartile_indexed_extended.csv (03), firm_within_es.csv (14)
 OUTPUTS  output/figures/fig1_two_panel, figA_posting_context and
          fig3_firm_entry_es, each as .pdf and .png
-SERVES   Figure 1; Online Appendix Figures A1 and A9
+SERVES   Figure 1; the posting-context and within-employer figures of the
+         offline appendix
 RUNTIME  seconds
 """
 
@@ -193,7 +194,7 @@ def _quartile_series():
 
 
 def figA_posting_context():
-    """Online Appendix II.1, Figure A1: the context of Figure 1.
+    """Offline appendix, posting-context figure: the context of Figure 1.
 
     Whether the Swedish divergence also appears in the United States,
     whether it survives a broader stock index, whether the exposure

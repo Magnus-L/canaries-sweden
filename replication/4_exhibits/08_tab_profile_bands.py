@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-08_tab_profile_bands.py: Online Appendix Table A13 (Section III.2), the age
+08_tab_profile_bands.py: Online Appendix Table A19 (Section III.2), the age
 profile inside exposed employers after adoption: every band against 41-49,
 and the oldest band split at 65.
 

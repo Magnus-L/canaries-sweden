@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-11_tab_continuous_profile.py: Online Appendix Table A14 (Section III.2), the
+11_tab_continuous_profile.py: Online Appendix Table A25 (Section III.2), the
 age profile on continuous occupation-scaled exposure measures.
 
 Six age bands on three continuous measures (DAIOE; the model-graded beta

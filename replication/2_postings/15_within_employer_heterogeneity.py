@@ -19,7 +19,7 @@ carries no size class. Cells with fewer than 100 employers are skipped.
 INPUTS   config.FIRM_CUBE, config.SCB_BULK (through 14);
          data/processed/daioe_quartiles.csv
 OUTPUTS  output/results/firm_heterogeneity.csv
-SERVES   Online Appendix V, Table A31 (through 16)
+SERVES   Online Appendix V, Table A39 (through 16)
 RUNTIME  about 5 minutes
 """
 

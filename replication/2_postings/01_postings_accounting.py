@@ -22,7 +22,7 @@ OUTPUTS  output/results/postings_accounting.csv, postings_coverage_monthly.csv;
          output/tables/postings_accounting.tex (overwritten by 17 with the
          window to June 2026)
 SERVES   Section 2 (4,586,173 advertisements for 2020 to 2025) and Online
-         Appendix II.4 and II.5, through 17
+         Appendix II.7 and II.8, through 17
 RUNTIME  about 25 minutes
 """
 

@@ -14,7 +14,7 @@ breakdown; the full grid is in the CSV.
 
 INPUTS   output/results/posting_rr_honestdid_v3.csv (08)
 OUTPUTS  output/figures/figA6_rambachan_roth_v3.pdf and .png
-SERVES   Online Appendix II.2, Figure A2, panel (b)
+SERVES   Online Appendix II.3, Figure A1, panel (b)
 RUNTIME  seconds
 """
 import sys

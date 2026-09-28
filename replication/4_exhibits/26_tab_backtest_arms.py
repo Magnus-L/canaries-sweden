@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-26_tab_backtest_arms.py: Online Appendix Table A33 (Section IV.3), the as-of
+26_tab_backtest_arms.py: Online Appendix Table A35 (Section IV.3), the as-of
 backtest decomposed into sample inclusion and re-coding on common support
 (script 98).
 

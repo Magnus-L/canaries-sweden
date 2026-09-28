@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-25_tab_nonmatch.py: Online Appendix Table A42 (Section VI.1), occupation
+25_tab_nonmatch.py: Online Appendix Table A44 (Section VI.1), occupation
 non-match over all employer-declaration person-months, by age, rebuilt from
 the raw declarations (script 99, part D).
 
 The denominator is every distinct employer, person and month in the
 declarations, before any exclusion by age, linkage or occupation. A
-person-month has no code under the register rule of Table A30, Panel A: up
+person-month has no code under the register rule of Table A32, Panel A: up
 to 2022 the year's own register, and from 2023 the most recent code in the
 2023, 2022 and 2021 registers. In the export, a code is therefore missing
 when the reconciliation records no code (`none`), a code from a register

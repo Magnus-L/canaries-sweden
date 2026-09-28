@@ -27,7 +27,7 @@ INPUTS   data/processed/postings_daioe_merged.csv, daioe_quartiles.csv (1_data_p
 OUTPUTS  output/figures/figA_rate_sensitivity_scatter.png (and a box plot, not
          in the paper); output/results/rate_sensitivity_correlation.csv,
          rate_sensitivity_by_quartile.csv
-SERVES   Online Appendix II.3, Figure A3, panel (a) (r = 0.035, p = 0.51;
+SERVES   Online Appendix II.6, Figure A2, panel (a) (r = 0.035, p = 0.51;
          -0.020 weighted by posting volume)
 RUNTIME  seconds
 """

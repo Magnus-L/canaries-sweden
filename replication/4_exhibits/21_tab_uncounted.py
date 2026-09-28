@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-21_tab_uncounted.py: Online Appendix Table A33 (Section VI.1), the payslips
+21_tab_uncounted.py: Online Appendix Table A42 (Section VI.1), the payslips
 the employment panel never counts.
 
 A worker enters the panel only if a birth year and a sex can be read from the

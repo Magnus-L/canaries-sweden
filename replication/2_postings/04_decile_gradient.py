@@ -16,7 +16,8 @@ occupation.
 INPUTS   data/processed/postings_daioe_merged_extended.csv (03)
 OUTPUTS  output/results/postings_decile_gradient.csv;
          output/figures/postings_decile_gradient.pdf and .png
-SERVES   Online Appendix II.8: Figure A4 and Table A7 (through 16)
+SERVES   Online Appendix II.5, Table A8 (through 16); the decile figure is
+         in the offline appendix
 RUNTIME  under a minute
 """
 

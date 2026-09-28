@@ -11,29 +11,29 @@ them in this order. Exhibit numbers are those of the online appendix as compiled
 
 | Script | Estimates or builds | Exhibit | Runtime |
 |---|---|---|---|
-| `01_postings_accounting.py` | advertisements by year and reason for removal, 2020 to 2025; valid-code share by month and channel | Section 2; inputs to Tables A5 and A6 | 5.5 min |
-| `02_coverage_diagnostics.py` | active occupations by month, zero cells by quartile, the 400 to 369 reconciliation, 2020 to 2025 | Section 2; II.5 | 1 s |
-| `03_extend_2026_and_did.py` | the counts for January to June 2026 from the closed-quarter archives; Equation (1) on the windows to December 2025 and June 2026, OLS and Poisson | Section 3 ($\beta_1=-0.127$, $\beta_2=-0.059$); Table A8; Figure 1 input | 1 min |
-| `04_decile_gradient.py` | Equation (1) by exposure decile, the median decile the reference | Figure A4, Table A11 | 4 s |
-| `05_poisson_estimators.py` | Equation (1) by Poisson on the balanced panel with its zeros | Section 3; note to Table A8 | 20 s |
-| `06_seasonality.py` | Equation (1) with one-digit occupation group by month-of-year and by month-of-sample effects | Section 3; Table A9 | 20 s |
-| `07_event_study.py` | monthly and quarterly event studies, joint Wald pre-tests, the post-launch average and its covariance | II.2; Figure A1, panel (a) | 8 s |
-| `08_honestdid.R` | the Rambachan and Roth relative-magnitudes bounds (HonestDiD) | II.2; Figure A1, panel (b) | hours cold; 1 s from the cache |
+| `01_postings_accounting.py` | advertisements by year and reason for removal, 2020 to 2025; valid-code share by month and channel | Section 2; inputs to Tables A10 and A11 | 5.5 min |
+| `02_coverage_diagnostics.py` | active occupations by month, zero cells by quartile, the 400 to 369 reconciliation, 2020 to 2025 | Section 2; II.8 | 1 s |
+| `03_extend_2026_and_did.py` | the counts for January to June 2026 from the closed-quarter archives; Equation (1) on the windows to December 2025 and June 2026, OLS and Poisson | Section 3 ($\beta_1=-0.127$, $\beta_2=-0.059$); Table A4; Figure 1 input | 1 min |
+| `04_decile_gradient.py` | Equation (1) by exposure decile, the median decile the reference | Table A8; the decile figure of the offline appendix | 4 s |
+| `05_poisson_estimators.py` | Equation (1) by Poisson on the balanced panel with its zeros | Section 3; note to Table A4 | 20 s |
+| `06_seasonality.py` | Equation (1) with one-digit occupation group by month-of-year and by month-of-sample effects | Section 3; Table A7 | 20 s |
+| `07_event_study.py` | monthly and quarterly event studies, joint Wald pre-tests, the post-launch average and its covariance | II.3; Figure A1, panel (a) | 8 s |
+| `08_honestdid.R` | the Rambachan and Roth relative-magnitudes bounds (HonestDiD) | II.3; Figure A1, panel (b) | hours cold; 1 s from the cache |
 | `09_honestdid_figure.py` | the figure of those bounds | Figure A1, panel (b) | 2 s |
 | `10_summary_statistics.py` | summary statistics of the posting sample | Table A3 | 20 s |
-| `11_rate_sensitivity.py` | revealed sensitivity to the rate rise against exposure | II.3; Figure A2, panel (a) | 3 s |
-| `12_telework_split.py` | Equation (1) in teleworkable and non-teleworkable occupations, on the submitted version's window | II.3; the input 19 checks itself against | 6 s |
+| `11_rate_sensitivity.py` | revealed sensitivity to the rate rise against exposure | II.6; Figure A2, panel (a) | 3 s |
+| `12_telework_split.py` | Equation (1) in teleworkable and non-teleworkable occupations, on the submitted version's window | II.6; the input 19 checks itself against | 6 s |
 | `13_top_bottom_occupations.py` | the ten most and least exposed occupations | Table A1 | 1 s |
-| `14_within_employer.py` (and `--variants`) | the within-employer posting design, its event study and its variants | Section 3; Tables A35, A36; the entry-level event study of the offline appendix | 12 min, and 7 with `--variants` |
-| `15_within_employer_heterogeneity.py` | the same design by industry, employer age and size | Table A37 | 7.5 min |
-| `16_appendix_tables.py` | the LaTeX tables of 03, 04, 06, 14 and 15 (and of 01 until 17 runs) | Tables A6, A8, A9, A11, A36, A37 | 1 s |
-| `17_accounting_to_june_2026.py` | the accounting and coverage carried to June 2026, after four checks against 01, 02 and 03 | Tables A5, A6; the coverage files of II.5 | 3 min |
+| `14_within_employer.py` (and `--variants`) | the within-employer posting design, its event study and its variants | Section 3; Tables A37, A38; the entry-level event study of the offline appendix | 12 min, and 7 with `--variants` |
+| `15_within_employer_heterogeneity.py` | the same design by industry, employer age and size | Table A39 | 7.5 min |
+| `16_appendix_tables.py` | the LaTeX tables of 03, 04, 06, 14 and 15 (and of 01 until 17 runs) | Tables A4, A7, A8, A11, A38, A39 | 1 s |
+| `17_accounting_to_june_2026.py` | the accounting and coverage carried to June 2026, after four checks against 01, 02 and 03 | Tables A10, A11; the coverage files of II.8 | 3 min |
 | `18_figures.py` | Figure 1; the posting-context and entry-level event-study figures, which moved to the offline appendix on 26 September 2026 | Figure 1 | 5 s |
-| `19_telework_split_extended.py` | 12's split on the current window, January 2020 to June 2026, through 12's own functions; draws panel (b) of Figure A2 from that run | II.3; Figure A2, panel (b); column (1) of Table A4 | 6 s |
-| `20_eloundou_postings.py` | Equation (1) with the Eloundou et al. (2024) score in place of DAIOE, all occupations and the common sample of 341 | II.8; Table A10 | 9 s |
-| `21_posting_robustness.py` | Equation (1) under six variations of the construction (positions advertised as the outcome, no pandemic months, terciles, no ICT occupations, a balanced panel), with the Poisson and month-of-year rows carried from 03 and 06 | II.6; Table A7 | 25 s (streams the two 2026 archives once) |
-| `22_tab_remote_measures.py` | the table of three remote-work measures against AI exposure, from 19 and from the result files of the two estimation scripts in `extensions/` | II.3; Table A4 | 1 s |
-| `23_fig_posting_coverage_monthly.py` | the monthly coverage series: valid-code share by channel, active occupations, zero cells on the scored grid | II.5; Figure A3 | 3 s |
+| `19_telework_split_extended.py` | 12's split on the current window, January 2020 to June 2026, through 12's own functions; draws panel (b) of Figure A2 from that run | II.6; Figure A2, panel (b); column (1) of Table A9 | 6 s |
+| `20_eloundou_postings.py` | Equation (1) with the Eloundou et al. (2024) score in place of DAIOE, all occupations and the common sample of 341 | II.2; Table A6 | 9 s |
+| `21_posting_robustness.py` | Equation (1) under six variations of the construction (positions advertised as the outcome, no pandemic months, terciles, no ICT occupations, a balanced panel), with the Poisson and month-of-year rows carried from 03 and 06 | II.2; Table A5 | 25 s (streams the two 2026 archives once) |
+| `22_tab_remote_measures.py` | the table of three remote-work measures against AI exposure, from 19 and from the result files of the two estimation scripts in `extensions/` | II.6; Table A9 | 1 s |
+| `23_fig_posting_coverage_monthly.py` | the monthly coverage series: valid-code share by channel, active occupations, zero cells on the scored grid | II.8; Figure A3 | 3 s |
 
 `_common.py` holds the figure style of 07, 09, 11 and 12 and the loader through which 03, 10,
 17, 19 and 21 reuse the advertisement classification of 01 and 15 reuses the panel of 14.
@@ -63,9 +63,9 @@ into `output/results/` unless `--cold` is given, and 08 then reproduces
 and the intervals it had finished were entered into the cache from its log, whose four
 decimals are exact because the test grid moves in steps of 0.004.
 
-## The remote-work measures (Table A4) and `extensions/`
+## The remote-work measures (Table A9) and `extensions/`
 
-Table A4 sets three remote-work measures against AI exposure. Its Dingel and Neiman column is
+Table A9 sets three remote-work measures against AI exposure. Its Dingel and Neiman column is
 19's result; its Platsbanken and Hansen et al. columns come from two estimation scripts that
 ran in the authors' research repository on inputs the package does not ship (the
 advertisement text of every archive, the employer counts of Part V and the WFH Map file).

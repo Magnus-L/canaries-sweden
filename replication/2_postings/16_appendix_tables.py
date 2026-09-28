@@ -21,7 +21,7 @@ cent and the standard error in parentheses.
 
 INPUTS   output/results/*.csv
 OUTPUTS  output/tables/ (the six files above)
-SERVES   Online Appendix Tables A5 (through 17), A6, A7, A8, A30, A31
+SERVES   Online Appendix Tables A4, A7, A8, A11 (with 17), A38 and A39
 RUNTIME  seconds
 """
 

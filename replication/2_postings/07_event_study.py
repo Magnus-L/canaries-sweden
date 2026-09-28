@@ -35,7 +35,7 @@ OUTPUTS  output/results/posting_es_monthly_v3.csv, posting_es_quarterly_v3.csv,
          output/figures/figA3_event_study_v3.pdf and .png (panel (a) of
          Figure A2) and figA6_rambachan_roth_simplified_v3 (not in the
          paper)
-SERVES   Online Appendix II.2 and Figure A2, panel (a)
+SERVES   Online Appendix II.3 and Figure A1, panel (a)
 RUNTIME  about 2 minutes
 """
 
@@ -251,7 +251,7 @@ def main():
     new, es, qes, grid, vc = analyse(config.POSTINGS_REGRESSION_END)
     assert new["n_cells"] == 28084, new["n_cells"]
     # The pooled coefficients of Equation (1) on the same sample (03), so the
-    # reconciliation in Online Appendix II.2 reads from one file: relative to
+    # reconciliation in Online Appendix II.3 reads from one file: relative to
     # February 2020 the event-study average carries both pooled terms.
     did = pd.read_csv(TAB / "postings_extended_did.csv")
     did = did[(did["window"] == "extended_to_2026-06")

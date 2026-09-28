@@ -148,6 +148,7 @@ def main() -> int:
          r"$\times$ month, 2021:01--2025:06.}",
          r"\label{tab:sumstats_employment_new}",
          r"\begin{tabular}{llrrrr}", r"\toprule",
+         r"\multicolumn{6}{l}{\textit{Panel A. Cells at each stage of construction}} \\",
          r"Band & Outcome & Balanced cells & Zero throughout & Retained & "
          r"Estimated \\", r"\midrule"]
     for band, oc in ROWS:
@@ -161,7 +162,7 @@ def main() -> int:
         else:
             missing_fit.append(f"{band} {oc}")
             est_s = DASH
-        L.append(f"{band} & {oc} & {bal:,} & {drop:,} ({pct}\\%) & "
+        L.append(f"{band.replace('-', '--')} & {'separations' if oc == 'seps' else oc} & {bal:,} & {drop:,} ({pct}\\%) & "
                  f"{skel:,} & {est_s} \\\\")
         print(f"  {band:6s} {oc:6s} balanced {bal:>12,}  zero-throughout "
               f"{drop:>11,} ({pct:2d}%)  skeleton {skel:>12,}  "
@@ -175,26 +176,26 @@ def main() -> int:
     # Panel B. Which employers identify which comparison. Each count comes
     # from the export of the fit that runs on that panel.
     panels = [
-        ("Scored: incumbents aged 31--69 on the 2019 payroll",
-         "no age band required", n_scored),
-        ("Headline, 22--25 against the older bands pooled",
-         "holds 22--25 and an older band", fit[("22-25", "stock")][1]),
-        ("Headline, 26--30 against the older bands pooled",
-         "holds 26--30 and an older band", fit[("26-30", "stock")][1]),
-        ("Age profile, six bands against 41--49",
-         "holds 41--49 and another band",
+        ("Scored employers",
+         "Incumbents aged 31--69 in 2019", n_scored),
+        ("Headline, 22--25",
+         "Employs 22--25 and an older band", fit[("22-25", "stock")][1]),
+        ("Headline, 26--30",
+         "Employs 26--30 and an older band", fit[("26-30", "stock")][1]),
+        ("Age profile, six bands",
+         "Employs 41--49 and another band",
          one_firm_count(S82B / "occ_route_profile.csv",
                         "the six-band profile")),
-        ("Age profile, seven bands, 50 and over split at 65",
-         "holds 22--25 and another band",
+        ("Age profile, seven bands (65 split)",
+         "Employs 22--25 and another band",
          one_firm_count(S85 / "occ_route_split65.csv",
                         "the seven-band split")),
-        ("Age profile, eight bands (Figure~2 of the paper), seven contrasts against 41--49",
-         "holds 22--25 and another band",
+        ("Age profile, eight bands (Figure~2)",
+         "Employs 22--25 and another band",
          one_firm_count(S95 / "pension_reference.csv",
                         "the eight-band profile", part="P", spec="p8_tau")),
-        ("Contrast by field of education, three bands",
-         "holds 41--49, 22--25 or 26--30",
+        ("By field of education, three bands",
+         "Employs 41--49, 22--25 or 26--30",
          one_firm_count(S88 / "occ_route_contrast_by_track.csv",
                         "the three-band contrast", track="all")),
     ]
@@ -202,13 +203,13 @@ def main() -> int:
           r"\multicolumn{6}{l}{\textit{Panel B. Which employers identify "
           r"which comparison}} \\",
           r"\multicolumn{3}{l}{Comparison} & "
-          r"\multicolumn{2}{l}{An employer enters if it} & Employers \\"]
+          r"\multicolumn{2}{l}{Condition for entry} & Employers \\"]
     for label, rule, n in panels:
         L.append(f"\\multicolumn{{3}}{{l}}{{{label}}} & "
                  f"\\multicolumn{{2}}{{l}}{{{rule}}} & {n:,} \\\\")
         print(f"  {label:58s} {rule:34s} {n:>9,}")
 
-    note = r"The panel is balanced over employers, age bands and months and zero-filled. ``Zero throughout'' counts employer-band cells with no employment in any month; the employer-by-age effect predicts them perfectly, so they are dropped before estimation at no cost to any coefficient. ``Retained'' is what remains, and ``Estimated'' the cells at employers with a 2019 exposure score. Flows are estimated at 22--25 only. Panel~B gives the employers in each comparison's own panel."
+    note = r"The panel is balanced over employers, age bands and months and zero-filled. ``Zero throughout'' counts employer-band cells with no employment in any month; the employer-by-age effect predicts them perfectly, so they are dropped before estimation at no cost to any coefficient. ``Retained'' is what remains, and ``Estimated'' the cells at employers with a 2019 exposure score. Flows are estimated at 22--25 only. Panel~B gives the employers in each comparison's own panel. The headline compares each young band with the older bands pooled; the age profiles compare every band with 41--49, the seven-band panel splitting the band aged 50 and over at 65."
     L += [r"\bottomrule", r"\end{tabular}",
           r"\begin{minipage}{0.95\textwidth}\footnotesize\vspace{4pt}" + note,
           r"\end{minipage}", r"\end{table}"]

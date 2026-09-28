@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-29_tab_adoption_by_index.py: Online Appendix table (Section III.2), which
+29_tab_adoption_by_index.py: Online Appendix Table A27 (Section III.2), which
 exposure index picks out the employers that report using AI: the paper's
 DAIOE classification against the Eloundou rating, on the employers both
 indices score (script 108, lane 39d).
 
 Each row is one Statistics Sweden survey and outcome, the waves of OA
-Figure A2 plus the two 2019-21 research-and-development surveys and the 2019
+Figure A4 plus the two 2019-21 research-and-development surveys and the 2019
 IT-expenditure survey. "Separately": the top-quartile differential in
 percentage points on each classification alone (script 71's linear
 probability model, log 2019 size for the firm surveys, survey weights for the

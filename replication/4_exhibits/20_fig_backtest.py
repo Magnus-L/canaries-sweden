@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-20_fig_backtest.py: Online Appendix Figure A8 (Section IV.3), the as-of
+20_fig_backtest.py: Online Appendix Figure A7 (Section IV.3), the as-of
 backtest.
 
 For each truncation of the occupation register (2021 and 2022), the

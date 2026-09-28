@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 19_tab_register_coverage.py: the three tables of Online Appendix Part IV on
-the coverage of the occupation register: Table A30 (IV.1), Table A31 (IV.2)
-and Table A32 (IV.3).
+the coverage of the occupation register: Table A32 (IV.1), Table A33 (IV.2)
+and Table A34 (IV.3).
 
 tableIV1_coverage.tex: Panel A, the share of employment excluded for want of
 any occupation code, by year and age band; Panel B, the age of the code in

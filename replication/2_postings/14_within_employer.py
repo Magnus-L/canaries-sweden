@@ -44,8 +44,9 @@ INPUTS   config.FIRM_CUBE (firm_month_v2.csv.gz), config.SCB_BULK
 OUTPUTS  output/results/firm_within_did.csv, firm_within_es.csv,
          firm_within_meta.txt; with --variants, firm_within_did_variants.csv,
          firm_within_entry_audit.csv and output/tables/firm_within_variants.tex
-SERVES   Section 3 (12,141 employers; -0.158); Online Appendix V, Tables A29
-         (written here) and A30 (through 16), Figure A9 (through 18)
+SERVES   Section 3 (12,141 employers; -0.158); Online Appendix V, Tables A37
+         (written here) and A38 (through 16); the within-employer figure of
+         the offline appendix (through 18)
 RUNTIME  about 10 minutes, and about 15 with --variants
 """
 

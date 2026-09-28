@@ -27,8 +27,8 @@ OUTPUTS  output/results/postings_ssyk4_monthly_2026H1.csv,
          postings_ssyk4_monthly_extended.csv, postings_quartile_indexed_extended.csv,
          postings_extended_did.csv; data/processed/postings_daioe_merged_extended.csv
 SERVES   Section 2 (289,601 advertisements for 2026), Section 3 and Equation
-         (1) (beta_1 = -0.127, beta_2 = -0.059), Online Appendix II.6
-         (Table A6, through 16) and Figure 1 (through 18)
+         (1) (beta_1 = -0.127, beta_2 = -0.059), Online Appendix II.2
+         (Table A4, through 16) and Figure 1 (through 18)
 RUNTIME  about 5 minutes (the 2026 counts are cached in
          postings_ssyk4_monthly_2026H1.csv; delete it to recount)
 """

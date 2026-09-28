@@ -32,7 +32,7 @@ OUTPUTS  output/results/postings_accounting_extended.csv,
          coverage_active_occupations_extended.csv, coverage_zero_cells_extended.csv,
          l51_seam_overlap.csv; output/tables/postings_accounting.tex and
          coverage_by_source.tex
-SERVES   Online Appendix II.4 (Table A4) and II.5 (Table A5 and the two
+SERVES   Online Appendix II.7 (Table A10) and II.8 (Table A11 and the two
          coverage files the text names)
 RUNTIME  about 25 minutes (four archives read in parallel)
 """

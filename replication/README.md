@@ -20,9 +20,9 @@ The package reproduces the paper in three tiers:
 
 1. **Public data (packs 1, 2 and 5).** Download and process the advertisements and the
    auxiliary series, estimate every posting result and build every table and figure that rests
-   on public data: Figure 1, Online Appendix Tables A1, A3 to A11, A22, A29 and A35 to A37, and
-   Figures A1 to A4. One command, about 45 minutes on a laptop once the archives are
-   downloaded. Two estimation scripts behind the realised remote-work columns of Table A4 ran
+   on public data: Figure 1, Online Appendix Tables A1, A3 to A11, A23, A31 and A37 to A39, and
+   Figures A1 to A3. One command, about 45 minutes on a laptop once the archives are
+   downloaded. Two estimation scripts behind the realised remote-work columns of Table A9 ran
    on inputs the package does not ship; they are included with their results
    (`2_postings/extensions/`).
 2. **Register exhibits (pack 4).** Rebuild every register table and figure (Table 1, Figures 2
@@ -67,13 +67,13 @@ The posting margin (Figure 1, Online Appendix Parts I.1, I.2, II and V, and the 
 | SOC 2010 to ISCO-08 crosswalk (`isco_soc_crosswalk2.xls`) | crosswalk | US Bureau of Labor Statistics, <https://www.bls.gov/soc/> | public domain | yes |
 | Teleworkability by SOC occupation (`dingel_neiman_telework.csv`) | telework split, OA II.3 and III.2 | Dingel and Neiman (2020), <https://github.com/jdingel/DingelNeiman-workathome> | GPL-3.0 (repository licence) | yes |
 | GPT exposure ratings by occupation, crosswalked to SSYK 2012 (`3_register_mona/inputs/eloundou_ssyk4.dta`) | alternative exposure measure, OA Tables A10 and A18 | Eloundou et al. (2024), <https://github.com/openai/GPTs-are-GPTs> | MIT (repository licence) | yes, as the crosswalked input |
-| Remote and hybrid work in United States job postings, WFH Map public release (`remote_work_in_job_ads_public_data.xlsx`, fetched 24 September 2026) | the Hansen et al. column of OA Table A4 | Hansen, Lambert, Bloom, Davis, Sadun and Taska (2023), <https://wfhmap.com/data/> (Category A, free download) | free to download; no licence grants redistribution | no; see `2_postings/extensions/README.md` |
+| Remote and hybrid work in United States job postings, WFH Map public release (`remote_work_in_job_ads_public_data.xlsx`, fetched 24 September 2026) | the Hansen et al. column of OA Table A9 | Hansen, Lambert, Bloom, Davis, Sadun and Taska (2023), <https://wfhmap.com/data/> (Category A, free download) | free to download; no licence grants redistribution | no; see `2_postings/extensions/README.md` |
 | Indeed Hiring Lab job-postings index, United States (`indeed_us_aggregate.csv`) | the posting-context figure of the offline appendix | Indeed Hiring Lab, <https://github.com/hiring-lab/job_postings_tracker> | CC BY 4.0 | yes |
 | OMX Stockholm 30, OMX Stockholm All-Share and S&P 500 daily closes | Figure 1; the offline appendix | Yahoo Finance (tickers `^OMX`, `^OMXSPI`, `^GSPC`), fetched with `yfinance` by `1_data_public/03_market_and_policy_series.py` | Yahoo terms of service (see note) | no; fetched by the script, see note |
 | Riksbank policy rate | the offline appendix's posting-context figure | the dates and levels of the Riksbank's policy-rate decisions, <https://www.riksbank.se>, written into `1_data_public/03_market_and_policy_series.py` | public information | in the script |
 | Employment by occupation, age and sex, YREG54BAS (`scb_yreg54bas*.json`) | OA Tables A22 and A29 | Statistics Sweden's statistical database, <https://api.scb.se> (query files shipped) | CC0 | yes |
 | Business-register bulk file (`scb_bulkfil.zip`) | industry and legal form of advertising employers, OA V | Statistics Sweden, distributed by Bolagsverket as an EU high-value dataset, <https://vardefulla-datamangder.bolagsverket.se> | open data, free re-use | no; see note |
-| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A4 | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
+| Employer-by-month-by-occupation advertisement counts (`firm_month_v2.csv.gz`) | OA Part V and the within-employer rows of Table A9 | built from the Platsbanken archives above (employer organisation number as printed in each advertisement) | derived from CC0 data | no; see note |
 | Monthly employer declarations at the individual level (AGI, *Arbetsgivardeklaration på individnivå*), 2019 to June 2025; LISA (*Individ*) 2015 to 2023 with the embedded occupation register (*Yrkesregistret*); the education register (SUN 2020); the ICT surveys of enterprises (ITFtg) and individuals (BITA 2024); the enterprise register (*Företagsdatabasen*); Serrano balance sheets (2019) | every employment estimate | Statistics Sweden, through the MONA environment, project P1207 (ORU-MICRO-AI) | confidential | no (the aggregated exports are) |
 
 **Yahoo Finance.** Yahoo's terms restrict redistribution of its data, so the daily index series are not shipped. `1_data_public/03_market_and_policy_series.py` fetches them with the `yfinance` package whenever they are absent, on the windows of the paper's own downloads: the OMX Stockholm 30 (`^OMX`) and the OMX Stockholm All-Share (`^OMXSPI`) from 1 January 2020 to 18 September 2026, the date of the paper's download, and the S&P 500 (`^GSPC`) from 1 January 2020 to 23 February 2026, the last close before the download of 24 February 2026. The month of each download is incomplete and is dropped, so the monthly series run to August 2026. A fetch on 25 September 2026 reproduced the paper's monthly series exactly. With `--refresh` the script fetches the OMX series to the present instead.
@@ -147,7 +147,7 @@ which they ran (39 to 102), because those numbers name every exported file.
 - `2_postings/` estimates Equation (1) and its variants, the event study and the HonestDiD
   bounds, the diagnostics of Online Appendix Part II, and the within-employer design of Part V
   (scripts 01 to 23; `2_postings/README.md`). `2_postings/extensions/` holds the two
-  remote-work estimation scripts behind Table A4 as they ran in the research repository, with
+  remote-work estimation scripts behind Table A9 as they ran in the research repository, with
   their occupation-level results and a README of the inputs they need.
 - `3_register_mona/` holds the 56 files that ran in MONA, the three public score files they
   read, the 32 export runs brought out of MONA (350 files, of which the package reads 81),
@@ -194,7 +194,7 @@ Register estimation, inside MONA (requires access to the registers):
 
 `MAPPING.csv` is the complete list, with one row per exhibit and per register-backed claim in
 the text, and the exact export files. In brief (exhibit numbers as the online appendix
-compiles on 26 September 2026):
+compiles on 28 September 2026):
 
 | Exhibit | Program | Output |
 |---|---|---|
@@ -205,37 +205,42 @@ compiles on 26 September 2026):
 | OA Table A1 | `2_postings/13_top_bottom_occupations.py` | `top_bottom_occupations.tex` |
 | OA Table A2 | `4_exhibits/04_tab_estimation_sample.py` | `tableI2_sumstats_employment.tex` |
 | OA Table A3 | `2_postings/10_summary_statistics.py` | `tableI2b_sumstats_postings_v3.tex` |
+| OA Table A4 | `2_postings/03_extend_2026_and_did.py`, `16_appendix_tables.py` | `postings_extended.tex` |
+| OA Table A5 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
+| OA Table A6 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
 | OA Figure A1 | `2_postings/07_event_study.py`, `08_honestdid.R`, `09_honestdid_figure.py` | `figA3_event_study_v3.png`, `figA6_rambachan_roth_v3.png` |
+| OA Table A7 | `2_postings/06_seasonality.py`, `16_appendix_tables.py` | `postings_seasonality.tex` |
+| OA Table A8 (the decile figure is in the offline appendix) | `2_postings/04_decile_gradient.py`, `16_appendix_tables.py` | `postings_deciles.tex`, `postings_decile_gradient.pdf` |
 | OA Figure A2 | `2_postings/11_rate_sensitivity.py`, `19_telework_split_extended.py` | `figA_rate_sensitivity_scatter.png`, `figA_telework_robustness.png` |
-| OA Table A4 | `2_postings/22_tab_remote_measures.py` (from `19` and `extensions/results/`) | `tableA_remote_measures.tex` |
-| OA Tables A5, A6 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
+| OA Table A9 | `2_postings/22_tab_remote_measures.py` (from `19` and `extensions/results/`) | `tableA_remote_measures.tex` |
+| OA Tables A10, A11 | `2_postings/17_accounting_to_june_2026.py` | `postings_accounting.tex`, `coverage_by_source.tex` |
 | OA Figure A3 | `2_postings/23_fig_posting_coverage_monthly.py` | `fig_posting_coverage_monthly.pdf` |
-| OA Table A8 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
-| OA Tables A8, A9 | `2_postings/03`, `06`, `16` | `postings_extended.tex`, `postings_seasonality.tex` |
-| OA Table A9 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
-| OA Table A11 (decile figure now in the offline appendix) | `2_postings/04_decile_gradient.py`, `16` | `postings_decile_gradient.pdf`, `postings_deciles.tex` |
 | OA Table A12 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
 | OA Figure A4 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage_v3.pdf` |
 | OA Table A13 | typed in the manuscript (definitions only) | |
 | OA Tables A14, A15 | `4_exhibits/14_tab_window.py`, `22_tab_headline_components.py` | `tableA_window.tex`, `tableA_headline_components.tex` |
-| OA Table A18 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
-| OA Tables A17, A18 | `4_exhibits/08_tab_profile_bands.py`, `11_tab_continuous_profile.py` | `tableA_profile_split65.tex`, `tableA_age_profile.tex` |
-| OA Figure A5 | `4_exhibits/27_fig_prepath_female.py` | `fig_prepath_female.pdf` |
-| OA Tables A19 to A21 | `4_exhibits/15`, `16`, `17` | `tableA_gender_split.tex`, `tableA_education_mix.tex`, `tableA_contrast_by_track.tex` |
-| OA Table A26 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
-| OA Figure A6, Table A19 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
-| OA Tables A24, A25, A26 | `4_exhibits/09_tab_industry_credit.py`, `23_tab_final_checks.py`, `10_tab_cluster_industry.py` | `tableA_industry_credit.tex`, `tableA_final_checks.tex`, `tableA_cluster_industry.tex` |
-| OA Tables A27, A34 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
-| OA Tables A28, A38 | typed in the manuscript (literature and sources) | |
-| OA Table A29 | `5_occupation_register_public/01_published_age_gap.py` | `public_yreg.tex` |
+| OA Table A16 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
+| OA Figure A5, Table A17 | `4_exhibits/06_fig_prepath.py`, `07_tab_prepath.py` | `fig_prepath.pdf`, `tableA_prepath.tex` |
+| OA Table A18 | `4_exhibits/10_tab_cluster_industry.py` | `tableA_cluster_industry.tex` |
+| OA Table A19 | `4_exhibits/08_tab_profile_bands.py` | `tableA_profile_split65.tex` |
+| OA Figure A6 | `4_exhibits/27_fig_prepath_female.py` | `fig_prepath_female.pdf` |
+| OA Tables A20 to A22 | `4_exhibits/15_tab_gender_split.py`, `16_tab_education_mix.py`, `17_tab_contrast_by_track.py` | `tableA_gender_split.tex`, `tableA_education_mix.tex`, `tableA_contrast_by_track.tex` |
+| OA Table A23 | `5_occupation_register_public/02_occupation_mix_by_sex.py` | `tableA_occ_mix_by_sex.tex` |
+| OA Table A24 | `4_exhibits/09_tab_industry_credit.py` | `tableA_industry_credit.tex` |
+| OA Table A25 | `4_exhibits/11_tab_continuous_profile.py` | `tableA_age_profile.tex` |
+| OA Table A26 | `4_exhibits/23_tab_final_checks.py` | `tableA_final_checks.tex` |
+| OA Table A27 | `4_exhibits/29_tab_adoption_by_index.py` | `tableA_adoption_by_index.tex` |
+| OA Tables A28, A36 | `4_exhibits/18_tab_score_precision_and_coverage.py` | `tableA_size_reliability.tex`, `tableA_occ_coverage.tex` |
+| OA Tables A29, A30, A40 | typed in the manuscript (employment protection, literature and data sources) | |
+| OA Table A31 | `5_occupation_register_public/01_published_age_gap.py` | `public_yreg.tex` |
 | OA Part I, the sentence on the two exposure measures | `5_occupation_register_public/03_exposure_measure_agreement.py` | `exposure_measure_agreement.csv` (results) |
-| OA Tables A30 to A32, Figure A7 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
-| OA Table A33 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
-| OA Tables A35 to A37 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
-| OA Table A39 | `4_exhibits/28_tab_payment_rule.py` | `tableA_payment_rule.tex` |
-| OA Table A40 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
-| OA Table A41 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |
-| OA Table A42 | `4_exhibits/25_tab_nonmatch.py` | `tableA_nonmatch.tex` |
+| OA Tables A32 to A34, Figure A7 | `4_exhibits/19_tab_register_coverage.py`, `20_fig_backtest.py` | `tableIV1_coverage.tex`, `tableIV2_vintage.tex`, `tableIV3_backtest.tex`, `figA1_asof_backtest.pdf` |
+| OA Table A35 | `4_exhibits/26_tab_backtest_arms.py` | `tableIV4_backtest_arms.tex` |
+| OA Tables A37 to A39 | `2_postings/14_within_employer.py` (and `--variants`), `15`, `16` | `firm_within_variants.tex`, `firm_within_did.tex`, `firm_heterogeneity.tex` |
+| OA Table A41 | `4_exhibits/28_tab_payment_rule.py` | `tableA_payment_rule.tex` |
+| OA Table A42 | `4_exhibits/21_tab_uncounted.py` | `tableA_uncounted.tex` |
+| OA Table A43 | `4_exhibits/24_tab_unlinked.py` | `tableA_unlinked.tex` |
+| OA Table A44 | `4_exhibits/25_tab_nonmatch.py` | `tableA_nonmatch.tex` |
 
 Every register exhibit in pack 4 reads exports written by the MONA scripts named in
 `MAPPING.csv` (column `mona_scripts`); `3_register_mona/README.md` lists the chapter of

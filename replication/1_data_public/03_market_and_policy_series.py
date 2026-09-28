@@ -21,13 +21,13 @@ WHAT IT BUILDS
   the same way when absent, on the window of the paper's fetch of 24
   February 2026 (1 January 2020 to 23 February 2026). They and the Indeed
   Hiring Lab US postings index (data/raw/indeed_us_aggregate.csv, shipped)
-  are read by the figure of Online Appendix II.1; --refresh fetches both
+  are read by the posting-context figure of the offline appendix; --refresh fetches both
   again.
 
 OUTPUTS  data/processed/omxs30_monthly.csv, omxspi_monthly.csv,
          riksbank_rate.csv, riksbank_monthly.csv
-SERVES   Figure 1 (upper panel) and Online Appendix Figure A1, panels (a),
-         (b) and (d)
+SERVES   Figure 1 (upper panel) and the posting-context figure of the
+         offline appendix, panels (a), (b) and (d)
 RUNTIME  seconds (plus the fetch from Yahoo Finance)
 """
 

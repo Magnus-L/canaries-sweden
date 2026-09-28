@@ -18,7 +18,7 @@ INPUTS   config.POSTINGS_SSYK4; data/processed/daioe_quartiles.csv
 OUTPUTS  output/results/coverage_active_occupations.csv, coverage_zero_cells.csv,
          coverage_quartile_shares.csv, occupation_reconciliation.csv,
          occupation_reconciliation_lists.txt
-SERVES   Section 2 (369 of 400 occupations) and Online Appendix II.4 and II.5
+SERVES   Section 2 (369 of 400 occupations) and Online Appendix II.7 and II.8
 RUNTIME  seconds
 """
 

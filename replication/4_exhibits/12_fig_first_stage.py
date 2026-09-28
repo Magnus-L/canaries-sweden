@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-12_fig_first_stage.py: Online Appendix Figure A5 (Section III.2), the first
+12_fig_first_stage.py: Online Appendix Figure A4 (Section III.2), the first
 stage: reported AI use at top-quartile employers against the rest.
 
 The difference in reported AI use between employers in the top quartile of

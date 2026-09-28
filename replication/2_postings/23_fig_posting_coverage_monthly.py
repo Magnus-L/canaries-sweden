@@ -19,7 +19,7 @@ INPUTS   output/results/postings_coverage_monthly_extended.csv (17),
          postings_ssyk4_monthly_extended.csv (03);
          data/processed/daioe_quartiles.csv (1_data_public/04)
 OUTPUTS  output/figures/fig_posting_coverage_monthly.pdf and .png
-SERVES   Online Appendix II.5, Figure A3 (the 374 to 396 active occupations
+SERVES   Online Appendix II.8, Figure A3 (the 374 to 396 active occupations
          and the one per cent of zero cells in the text)
 RUNTIME  seconds
 """

@@ -28,9 +28,9 @@ INPUTS   data/processed/postings_daioe_merged.csv (12's panel),
          output/results/telework_did_results.csv (12), postings_extended_did.csv (03)
 OUTPUTS  output/results/telework_did_results_v3.csv;
          output/figures/figA_telework_robustness.png (panel (b) of Figure A2)
-SERVES   Online Appendix II.3 (187 and 182 occupations; the post-launch
+SERVES   Online Appendix II.6 (187 and 182 occupations; the post-launch
          coefficient of -0.216 in the non-teleworkable half) and column (1)
-         of Table A4, through 22
+         of Table A9, through 22
 RUNTIME  about 10 seconds
 """
 

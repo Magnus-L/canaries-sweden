@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-28_tab_payment_rule.py: Online Appendix table (Section VI.1), what the
+28_tab_payment_rule.py: Online Appendix Table A41 (Section VI.1), what the
 counting rule admits: the share of counted person-months that carry cash
 pay subject to employer contributions, by age band, exposure group and
 period; what the remainder carries; and the same for the 2019 scoring

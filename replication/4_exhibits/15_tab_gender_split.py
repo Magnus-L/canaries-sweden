@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-15_tab_gender_split.py: Online Appendix Table A15 (Section III.2), the female
+15_tab_gender_split.py: Online Appendix Table A20 (Section III.2), the female
 differential at ages 22-25 by education track, and its split into a
 within-track and a composition component.
 

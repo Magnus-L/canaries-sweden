@@ -23,7 +23,7 @@ INPUTS   data/raw/dingel_neiman_telework.csv, isco_soc_crosswalk2.xls,
          daioe_quartiles.csv
 OUTPUTS  output/figures/figA_telework_robustness.png;
          output/results/telework_did_results.csv, telework_ssyk_mapping.csv
-SERVES   Online Appendix II.3, Figure A3, panel (b) (187 teleworkable and 182
+SERVES   Online Appendix II.6, Figure A2, panel (b) (187 teleworkable and 182
          non-teleworkable occupations; -0.233 in the latter)
 RUNTIME  about a minute
 """

@@ -45,7 +45,12 @@ generated table. Each row is checked twice:
   and accepting the co-author markup of the revision (\add{x} is read as x,
   \del{x} and \rem{x} are removed), so that a printed file still carrying
   markup compares equal when its accepted text is the built text; every
-  number in the table is then checked at once.
+  number in the table is then checked at once. Where the printed file was
+  copy-edited after it was built (wording of labels and notes, minus signs,
+  en-dash ranges, scale-to-fit wrappers), the numbers in the cells of its
+  tabular environments are compared instead, in order: the row passes only
+  if every cell number is the built one, and the report says that the
+  wording or layout differs.
 
 Status per row: PASS, FAIL (with the reason), or MISSING when the source file
 is not in the package (a MONA export that was never brought out). A row may
@@ -265,10 +270,38 @@ def table_identity(row: dict, paper: Path) -> tuple[str, str]:
     b = table_lines(printed.read_text(encoding="utf-8"))
     if a == b:
         return "PASS", ""
-    for i, (x, y) in enumerate(zip(a, b), 1):
+    # The printed table may differ from the built one in wording, notes and
+    # typesetting (minus signs, en-dash ranges, scale-to-fit wrappers) after
+    # copy-editing. What must hold is that every number in the table's cells is
+    # the number the builder computes, in the same order.
+    na = cell_numbers("\n".join(a))
+    nb = cell_numbers("\n".join(b))
+    if na and na == nb:
+        return "PASS", f"cells identical ({len(na)} numbers); wording or layout differs"
+    for i, (x, y) in enumerate(zip(na, nb), 1):
         if x != y:
-            return "FAIL", f"line {i} differs: built '{x[:60]}' / printed '{y[:60]}'"
-    return "FAIL", f"length differs: built {len(a)} lines, printed {len(b)}"
+            return "FAIL", f"cell number {i} differs: built {x} / printed {y}"
+    return "FAIL", f"cell count differs: built {len(na)} numbers, printed {len(nb)}"
+
+
+def cell_numbers(text: str) -> list[str]:
+    r"""The numbers in the cells of every tabular environment of a table file,
+    in order. Captions, notes and layout commands are ignored: minus signs
+    ($-$, the Unicode minus) are normalised, thousands separators removed,
+    ranges such as 22--25 read as two numbers, and lengths, column counts
+    and rule spans dropped."""
+    blocks = re.findall(r"\\begin\{tabular\}(.*?)\\end\{tabular\}", text, re.S)
+    body = "\n".join(blocks)
+    body = re.sub(r"^\{[^\n]*?\}", "", body, flags=re.M)            # column spec
+    body = re.sub(r"\\multicolumn\{\d+\}", "", body)
+    body = re.sub(r"\\cmidrule(\([^)]*\))?\{[^}]*\}", "", body)
+    body = re.sub(r"\\addlinespace(\[[^\]]*\])?", "", body)
+    body = re.sub(r"[\d.]+\\(text|line)width", "", body)
+    body = re.sub(r"[\d.]+(pt|cm|mm|em|ex|in)\b", "", body)
+    body = body.replace("$-$", "-").replace("\u2212", "-").replace("{,}", "")
+    body = re.sub(r"(\d),(\d{3})\b", r"\1\2", body)
+    body = re.sub(r"(\d)-{1,2}(\d)", r"\1 \2", body)                 # ranges
+    return re.findall(r"-?\d+(?:\.\d+)?", body)
 
 
 def main() -> int:
