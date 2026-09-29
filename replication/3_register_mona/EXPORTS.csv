@@ -393,4 +393,4 @@ export_file,script,exhibit_scripts,manifest_rows,used_for,status
 2026-09-27_1009_s108/adoption_by_index.csv,108,4_exhibits/29_tab_adoption_by_index.py,OA385-OA396,Online Appendix Table A27 and III.2 text; paper Section 3; letter C5,read by the package
 2026-09-27_1009_s108/adoption_counts.csv,108,,,,not read by any exhibit or manifest row
 2026-09-29_1317_s109/109_summary.txt,109,,,,not read by any exhibit or manifest row
-2026-09-29_1317_s109/occ_route_plain_flows.csv,109,,,,not read by any exhibit or manifest row
+2026-09-29_1317_s109/occ_route_plain_flows.csv,109,05_tab_descriptive_bands.py,T013,Online Appendix Table A12 Panels C and D; paper Section 3,read by the package
