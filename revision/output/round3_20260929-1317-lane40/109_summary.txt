@@ -1,0 +1,42 @@
+RAW HIRES AND SEPARATIONS ON THE OCCUPATION-ROUTE SCORE
+========================================================
+
+THE GATE: PASSED: headcount reproduces Table A12 in every cell
+
+HEADCOUNT, per month, change pre to post (Q1 .. Q4):
+  22-25  Q1  -8.1%  Q2  -5.9%  Q3  -2.8%  Q4  -8.5%
+  26-30  Q1 -13.0%  Q2 -10.0%  Q3  -7.5%  Q4 -11.5%
+  31-34  Q1  -8.6%  Q2  -3.8%  Q3  -1.5%  Q4  -3.8%
+  35-40  Q1  -2.5%  Q2  +3.1%  Q3  +4.1%  Q4  +2.0%
+  41-49  Q1  -6.0%  Q2  -2.8%  Q3  -1.1%  Q4  -4.6%
+  50+    Q1  -0.8%  Q2  -0.4%  Q3  +1.5%  Q4  +5.9%
+
+HIRES, per month, change pre to post (Q1 .. Q4):
+  22-25  Q1 -12.0%  Q2  -8.2%  Q3  -4.8%  Q4 -10.4%
+  26-30  Q1 -18.1%  Q2 -15.1%  Q3 -12.5%  Q4 -20.5%
+  31-34  Q1 -15.4%  Q2 -12.5%  Q3 -10.0%  Q4 -17.0%
+  35-40  Q1 -11.3%  Q2  -5.0%  Q3  -3.6%  Q4 -11.4%
+  41-49  Q1 -12.4%  Q2  -8.9%  Q3  -6.8%  Q4 -14.0%
+  50+    Q1  -7.3%  Q2  -3.8%  Q3  -2.1%  Q4  +1.1%
+
+SEPARATIONS, per month, change pre to post (Q1 .. Q4):
+  22-25  Q1 -15.0%  Q2 -13.4%  Q3 -10.3%  Q4  -9.2%
+  26-30  Q1 -19.9%  Q2 -18.2%  Q3 -15.6%  Q4 -16.4%
+  31-34  Q1 -16.6%  Q2 -13.5%  Q3 -11.9%  Q4 -13.3%
+  35-40  Q1 -11.7%  Q2  -5.5%  Q3  -5.5%  Q4  -8.2%
+  41-49  Q1 -12.2%  Q2  -8.6%  Q3  -8.6%  Q4 -11.8%
+  50+    Q1  -6.4%  Q2  -3.1%  Q3  -2.7%  Q4  -4.3%
+
+MONTHLY HIRE RATE, pre window (hires / headcount):
+  22-25  Q1  10.9%  Q2  11.5%  Q3  13.8%  Q4  15.1%
+  26-30  Q1   8.0%  Q2   7.9%  Q3   8.9%  Q4   7.0%
+  31-34  Q1   6.5%  Q2   6.3%  Q3   6.9%  Q4   5.3%
+  35-40  Q1   5.8%  Q2   5.0%  Q3   5.6%  Q4   4.7%
+  41-49  Q1   5.0%  Q2   3.9%  Q3   4.4%  Q4   4.1%
+  50+    Q1   4.6%  Q2   3.7%  Q3   3.9%  Q4   5.0%
+
+Raw totals: composition, firm size and the cycle are inside them.
+The post window holds one extra first half-year, so seasonality
+is not balanced. Cells on fewer than 5 employers are dropped.
+
+Runtime 1.5 min. memory available: 632.8 GB
