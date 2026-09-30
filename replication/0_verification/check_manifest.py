@@ -7,7 +7,7 @@ MANIFEST.csv (at the package root) holds one row per printed number or per
 generated table. Each row is checked twice:
 
   1. In print. The printed value must appear in the named manuscript file
-     (main_v3.tex or appendix_v3.tex, or a table file the manuscript inputs).
+     (main.tex or appendix.tex, or a table file the manuscript inputs).
      TeX typography is normalised first: $-0.0578$, $-$0.0578, -0.0578 and the
      Unicode minus all match; 104{,}217 and 104,217 match; a number never
      matches inside a longer number, and a positive value never matches its

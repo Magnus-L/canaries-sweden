@@ -40,8 +40,9 @@ from pathlib import Path
 PAPER = Path("/Users/mslk/Documents/Workspace/projects/canaries-sweden-paper")
 # v3 is the live manuscript, the occupation route. v1 and v2 are kept for
 # comparison and are frozen; passing them is allowed but unusual.
-VERSION = next((a for a in sys.argv[1:] if not a.startswith("-")), "v3")
-SRC = PAPER / f"main_{VERSION}.tex"
+VERSION = next((a for a in sys.argv[1:] if not a.startswith("-")), "")
+# Since 30 Sep 2026 the live file is main.tex; v1/v2 live in archive/.
+SRC = PAPER / "main.tex" if VERSION in ("", "v3") else PAPER / "archive" / f"main_{VERSION}.tex"
 TAIL = ("Declaration of competing interest", "Funding", "Data availability",
         "Acknowledgements", "generative AI")
 
