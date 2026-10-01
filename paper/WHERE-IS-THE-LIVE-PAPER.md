@@ -15,3 +15,6 @@ here so the replication repo carries the published version.
 **Why the split:** this repo is 49 MB across 477 files, against Overleaf's 50 MB import limit,
 and its old Overleaf link was anchored to a February 2026 history, from before the 19 August
 scrub, so every sync attempt tried to restore internal files to a public repo.
+
+
+**1 October 2026.** `main.pdf` and `appendix.pdf` here are the revision resubmitted to *Economics Letters* (EL67898R1, 30 Sep 2026), copied from the manuscript repo so the public links on the lab and personal sites resolve. The `_v1` files remain the May 2026 submission.
