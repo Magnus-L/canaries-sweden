@@ -32,7 +32,7 @@ INPUTS   data/processed/postings_daioe_merged_extended.csv (03);
 OUTPUTS  output/results/posting_es_monthly_v3.csv, posting_es_quarterly_v3.csv,
          posting_pretrend_v3.csv, posting_rr_simplified_v3.csv,
          posting_es_summary_v3.csv, posting_es_vcov_v3.csv;
-         output/figures/figA3_event_study_v3.pdf and .png (panel (a) of
+         output/figures/figA3_event_study.pdf and .png (panel (a) of
          Figure A2) and figA6_rambachan_roth_simplified_v3 (not in the
          paper)
 SERVES   Online Appendix II.3 and Figure A1, panel (a)
@@ -210,7 +210,7 @@ def plot_es(es):
     ax.set_ylabel("Coefficient (relative to Feb 2020)")
     ax.set_title("Event study: High vs low genAI exposure (monthly DiD coefficients)")
     fig.tight_layout()
-    save_pdf_png(fig, "figA3_event_study_v3")
+    save_pdf_png(fig, "figA3_event_study")
     plt.close(fig)
 
 

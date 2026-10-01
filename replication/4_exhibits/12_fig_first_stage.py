@@ -16,7 +16,7 @@ back from the export at the printed precision; those values are typed below
 as the check.
 
 Export read: 3_register_mona/exports/2026-09-22_2333_s83-partA/occ_rest_firststage.csv
-Output: output/figures/figA2_first_stage_v3.pdf and .png
+Output: output/figures/figA2_first_stage.pdf and .png
 
     python 4_exhibits/12_fig_first_stage.py [export_dir]
 """
@@ -149,9 +149,9 @@ def main() -> int:
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=3)
 
-    save(fig, "figA2_first_stage_v3", __file__)
+    save(fig, "figA2_first_stage", __file__)
     plt.close(fig)
-    print(f"    saved figA2_first_stage_v3.pdf/.png ({n} rows, "
+    print(f"    saved figA2_first_stage.pdf/.png ({n} rows, "
           f"{ROUTE} route)")
     return 0
 

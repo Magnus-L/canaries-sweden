@@ -22,7 +22,7 @@ standard error agrees, to four decimals, with the run's own summary.
 
 Export read: 3_register_mona/exports/2026-09-25_1832_s95-s96-s98/
   pension_reference.csv (part P, spec p8_tau, term tau), 95_summary.txt
-Output: output/figures/fig2_age_profile_v4.pdf and .png
+Output: output/figures/fig2_age_profile.pdf and .png
 
     python 4_exhibits/02_figure2_age_profile.py [export_dir]
 """
@@ -144,8 +144,8 @@ def main(export_dir: Path) -> int:
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     fig.tight_layout()
-    save(fig, "fig2_age_profile_v4", __file__)
-    print("  wrote output/figures/fig2_age_profile_v4.pdf and .png")
+    save(fig, "fig2_age_profile", __file__)
+    print("  wrote output/figures/fig2_age_profile.pdf and .png")
     return 0
 
 

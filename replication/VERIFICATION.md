@@ -153,3 +153,6 @@ month-of-year") now matches the code of `2_postings/06`; the non-match series of
 Appendix VI.1 is rebuilt from the raw declarations by script 99 (Table A44), and the
 submitted version's 9.2 to 10.5 per cent, whose numerator and denominator were not
 commensurable, is no longer printed as a current figure.
+
+
+**1 October 2026: file names.** After the resubmission, version suffixes were dropped from the nine exhibit files (`fig2_age_profile_v4`→`fig2_age_profile`, `fig2_spreading_monthly_v3`→`fig3_monthly_path`, `fig2_spreading_v3`→`fig3_quarterly_path`, `figA2_first_stage_v3`→`figA2_first_stage`, `figA3_event_study_v3`→`figA3_event_study`, `figA5_event_study_quarterly_v3`→`figA5_event_study_quarterly`, `figA6_rambachan_roth_v3`→`figA6_rambachan_roth`, `table1_headline_v3`→`table1_headline`, `tableI2b_sumstats_postings_v3`→`tableI2b_sumstats_postings`). The record above keeps the names in force when it was written; MAPPING.csv and MANIFEST.csv use the new names, and check_manifest was re-run on them.

@@ -24,7 +24,7 @@ INPUTS   data/processed/postings_daioe_merged.csv (check 1),
          output/results/postings_ssyk4_monthly_2026H1.csv (03, check 2);
          config.JOBADS_DIR/2026-Q1.jsonl.zip, 2026-Q2.jsonl.zip
 OUTPUTS  output/results/postings_sumstats_v3.csv;
-         output/tables/tableI2b_sumstats_postings_v3.tex
+         output/tables/tableI2b_sumstats_postings.tex
 SERVES   Online Appendix I.2, Table A3
 RUNTIME  about 3 minutes
 """
@@ -170,7 +170,7 @@ DAIOE GAI percentile (mean) & {r("pctl_mean", 1)} \\
 \end{{minipage}}
 \end{{table}}
 """
-    out = config.TABLES / "tableI2b_sumstats_postings_v3.tex"
+    out = config.TABLES / "tableI2b_sumstats_postings.tex"
     out.write_text(tex, encoding="utf-8")
     print(f"  wrote {out.name}")
 

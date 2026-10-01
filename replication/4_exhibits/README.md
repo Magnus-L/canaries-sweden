@@ -41,10 +41,10 @@ Exhibit numbers are those of the online appendix as compiled on 28 September
 
 | Builder | Exhibit | Exports read (folder under `3_register_mona/exports/`) | Output | Time |
 |---|---|---|---|---|
-| `01_table1_headline.py` | Table 1 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 83, 80, 82); `2026-09-25_2250_s97` (the second record) | `table1_headline_v3.tex` | 1 s |
-| `02_figure2_age_profile.py` | Figure 2 | `2026-09-25_1832_s95-s96-s98` (script 95) | `fig2_age_profile_v4.pdf` | 2 s |
-| `03_figure3_quarterly_path.py` | Figure 3 | `2026-09-23_0917_s84`; `2026-09-21_2152_s68` (quarter axis) | `fig2_spreading_v3.pdf` | 2 s |
-| `03_figure3_quarterly_path.py --monthly` | offline appendix (was OA Figure A6 until 26 September) | `2026-09-23_0917_s84` | `fig2_spreading_monthly_v3.pdf` | 2 s |
+| `01_table1_headline.py` | Table 1 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 83, 80, 82); `2026-09-25_2250_s97` (the second record) | `table1_headline.tex` | 1 s |
+| `02_figure2_age_profile.py` | Figure 2 | `2026-09-25_1832_s95-s96-s98` (script 95) | `fig2_age_profile.pdf` | 2 s |
+| `03_figure3_quarterly_path.py` | Figure 3 | `2026-09-23_0917_s84`; `2026-09-21_2152_s68` (quarter axis) | `fig3_quarterly_path.pdf` | 2 s |
+| `03_figure3_quarterly_path.py --monthly` | offline appendix (was OA Figure A6 until 26 September) | `2026-09-23_0917_s84` | `fig3_monthly_path.pdf` | 2 s |
 | `04_tab_estimation_sample.py` | OA Table A2 | `2026-09-21_0812_s68` (log); `2026-09-22_2232_s82-partA`; `2026-09-23_0655_s82-partB_s83-partsBCD`; `2026-09-23_1125_s85`; `2026-09-23_1407_s88` | `tableI2_sumstats_employment.tex` | 1 s |
 | `05_tab_descriptive_bands.py` | OA Table A12 | `2026-09-23_1125_s85` | `tableA_descriptive_bands.tex` | 1 s |
 | `06_fig_prepath.py` | OA Figure A5 | `2026-09-23_1234_s86` | `fig_prepath.pdf` | 2 s |
@@ -53,7 +53,7 @@ Exhibit numbers are those of the online appendix as compiled on 28 September
 | `09_tab_industry_credit.py` | OA Table A24 | `2026-09-23_0655_s82-partB_s83-partsBCD` (scripts 80, 73 within 83; tau from the exported covariances) | `tableA_industry_credit.tex` | 1 s |
 | `10_tab_cluster_industry.py` | OA Table A18 | `2026-09-23_0655_s82-partB_s83-partsBCD` (script 80 within 83) | `tableA_cluster_industry.tex` | 1 s |
 | `11_tab_continuous_profile.py` | OA Table A25 | `2026-09-20_2148_s61-s63` (script 63) | `tableA_age_profile.tex` | 1 s |
-| `12_fig_first_stage.py` | OA Figure A4 | `2026-09-22_2333_s83-partA` | `figA2_first_stage_v3.pdf` | 2 s |
+| `12_fig_first_stage.py` | OA Figure A4 | `2026-09-22_2333_s83-partA` | `figA2_first_stage.pdf` | 2 s |
 | `13_tab_fixed_contrasts.py` | OA Table A16 | `2026-09-23_0917_s84` | `tableA_fixed_contrasts.tex` | 1 s |
 | `14_tab_window.py` | OA Table A14 | `2026-09-23_0655_s82-partB_s83-partsBCD` | `tableA_window.tex` | 1 s |
 | `15_tab_gender_split.py` | OA Table A20 | `2026-09-23_1352_s87` | `tableA_gender_split.tex` | 1 s |

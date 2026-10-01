@@ -13,7 +13,7 @@ grid's and not the interval's. The axis stops at Mbar = 0.05, three times the
 breakdown; the full grid is in the CSV.
 
 INPUTS   output/results/posting_rr_honestdid_v3.csv (08)
-OUTPUTS  output/figures/figA6_rambachan_roth_v3.pdf and .png
+OUTPUTS  output/figures/figA6_rambachan_roth.pdf and .png
 SERVES   Online Appendix II.3, Figure A1, panel (b)
 RUNTIME  seconds
 """
@@ -58,7 +58,7 @@ def main():
                  "on high vs low genAI exposure occupations")
     ax.legend(loc="lower left", framealpha=0.9)
     fig.tight_layout()
-    save_pdf_png(fig, "figA6_rambachan_roth_v3")
+    save_pdf_png(fig, "figA6_rambachan_roth")
     plt.close(fig)
     print(f"  figA6 drawn from the exact bounds ({len(g)} grid points, "
           f"breakdown {bd:.3f})")

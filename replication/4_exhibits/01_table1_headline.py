@@ -34,7 +34,7 @@ Exports read (3_register_mona/exports/):
       vcov_s80_clind2_<band>.csv, vcov_s80_gender_clemp_22_25.csv and
       vcov_s80_gender_clind2_22_25.csv (script 80 within 83)
   2026-09-25_2250_s97/  headline_checks.csv (script 97, the second record)
-Output: output/tables/table1_headline_v3.tex
+Output: output/tables/table1_headline.tex
 
     python 4_exhibits/01_table1_headline.py [export_dir]
 """
@@ -270,7 +270,7 @@ def main() -> int:
         r"\end{minipage}", r"\end{table}",
     ]
     TABLES.mkdir(parents=True, exist_ok=True)
-    out = TABLES / "table1_headline_v3.tex"
+    out = TABLES / "table1_headline.tex"
     out.write_text("\n".join(tex) + "\n", encoding="utf-8")
     print(f"\n  wrote {out.relative_to(PACKAGE)}")
     return 0

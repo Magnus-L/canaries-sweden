@@ -18,8 +18,8 @@ path export, which carry the same quarters.
 Exports read (3_register_mona/exports/):
   2026-09-23_0917_s84/occ_route_path.csv
   2026-09-21_2152_s68/seasonal_path.csv (the quarter axis only)
-Output: output/figures/fig2_spreading_v3.pdf and .png;
-        with --monthly, fig2_spreading_monthly_v3.pdf and .png
+Output: output/figures/fig3_quarterly_path.pdf and .png;
+        with --monthly, fig3_monthly_path.pdf and .png
 
     python 4_exhibits/03_figure3_quarterly_path.py [export_dir]
     python 4_exhibits/03_figure3_quarterly_path.py --monthly [export_dir]
@@ -136,9 +136,9 @@ def quarterly(d: pd.DataFrame, edu: pd.DataFrame) -> int:
     axb.set_xticks(range(len(order)))
     axb.set_xticklabels(order, rotation=45, ha="right", fontsize=8.5)
 
-    save(fig, "fig2_spreading_v3", __file__)
+    save(fig, "fig3_quarterly_path", __file__)
     plt.close(fig)
-    print(f"    saved fig2_spreading_v3.pdf/.png ({len(order)} quarters, "
+    print(f"    saved fig3_quarterly_path.pdf/.png ({len(order)} quarters, "
           f"bands {sorted(q['young_band'].unique())})")
     return 0
 
@@ -173,9 +173,9 @@ def monthly(d: pd.DataFrame) -> int:
     ax.legend(frameon=False, fontsize=8.5, loc="lower left")
     ax.tick_params(labelsize=8.5)
     fig.autofmt_xdate(rotation=45, ha="right")
-    save(fig, "fig2_spreading_monthly_v3", __file__)
+    save(fig, "fig3_monthly_path", __file__)
     plt.close(fig)
-    print("    saved fig2_spreading_monthly_v3.pdf/.png")
+    print("    saved fig3_monthly_path.pdf/.png")
     return 0
 
 

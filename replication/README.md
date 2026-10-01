@@ -201,16 +201,16 @@ compiles on 28 September 2026):
 | Exhibit | Program | Output |
 |---|---|---|
 | Figure 1 | `2_postings/18_figures.py` | `fig1_two_panel.pdf` |
-| Table 1 | `4_exhibits/01_table1_headline.py` | `table1_headline_v3.tex` |
-| Figure 2 | `4_exhibits/02_figure2_age_profile.py` | `fig2_age_profile_v4.pdf` |
-| Figure 3 | `4_exhibits/03_figure3_quarterly_path.py` | `fig2_spreading_v3.pdf` |
+| Table 1 | `4_exhibits/01_table1_headline.py` | `table1_headline.tex` |
+| Figure 2 | `4_exhibits/02_figure2_age_profile.py` | `fig2_age_profile.pdf` |
+| Figure 3 | `4_exhibits/03_figure3_quarterly_path.py` | `fig3_quarterly_path.pdf` |
 | OA Table A1 | `2_postings/13_top_bottom_occupations.py` | `top_bottom_occupations.tex` |
 | OA Table A2 | `4_exhibits/04_tab_estimation_sample.py` | `tableI2_sumstats_employment.tex` |
-| OA Table A3 | `2_postings/10_summary_statistics.py` | `tableI2b_sumstats_postings_v3.tex` |
+| OA Table A3 | `2_postings/10_summary_statistics.py` | `tableI2b_sumstats_postings.tex` |
 | OA Table A4 | `2_postings/03_extend_2026_and_did.py`, `16_appendix_tables.py` | `postings_extended.tex` |
 | OA Table A5 | `2_postings/21_posting_robustness.py` | `tableA_posting_robustness.tex` |
 | OA Table A6 | `2_postings/20_eloundou_postings.py` | `tableA_eloundou_postings.tex` |
-| OA Figure A1 | `2_postings/07_event_study.py`, `08_honestdid.R`, `09_honestdid_figure.py` | `figA3_event_study_v3.png`, `figA6_rambachan_roth_v3.png` |
+| OA Figure A1 | `2_postings/07_event_study.py`, `08_honestdid.R`, `09_honestdid_figure.py` | `figA3_event_study.png`, `figA6_rambachan_roth.png` |
 | OA Table A7 | `2_postings/06_seasonality.py`, `16_appendix_tables.py` | `postings_seasonality.tex` |
 | OA Table A8 (the decile figure is in the offline appendix) | `2_postings/04_decile_gradient.py`, `16_appendix_tables.py` | `postings_deciles.tex`, `postings_decile_gradient.pdf` |
 | OA Figure A2 | `2_postings/11_rate_sensitivity.py`, `19_telework_split_extended.py` | `figA_rate_sensitivity_scatter.png`, `figA_telework_robustness.png` |
@@ -219,7 +219,7 @@ compiles on 28 September 2026):
 | OA Figure A3 | `2_postings/23_fig_posting_coverage_monthly.py` | `fig_posting_coverage_monthly.pdf` |
 | OA II.7 and Section 1, the unscored occupation codes (3 military, 26 managerial, 2 other; 3.7 per cent of advertisements) | `2_postings/24_unscored_codes.py` | `unscored_codes.csv` (results) |
 | OA Table A12 | `4_exhibits/05_tab_descriptive_bands.py` | `tableA_descriptive_bands.tex` |
-| OA Figure A4 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage_v3.pdf` |
+| OA Figure A4 | `4_exhibits/12_fig_first_stage.py` | `figA2_first_stage.pdf` |
 | OA Table A13 | typed in the manuscript (definitions only) | |
 | OA Tables A14, A15 | `4_exhibits/14_tab_window.py`, `22_tab_headline_components.py` | `tableA_window.tex`, `tableA_headline_components.tex` |
 | OA Table A16 | `4_exhibits/13_tab_fixed_contrasts.py` | `tableA_fixed_contrasts.tex` |
@@ -258,7 +258,7 @@ material from earlier versions of the paper and, since 26 September 2026, three 
 one passage moved out of the online appendix: the posting-context figure (`18_figures.py`,
 `figA_posting_context.pdf`), the entry-level event study of the within-employer design
 (`18_figures.py`, `fig3_firm_entry_es.pdf`), the monthly counterpart of Figure 3
-(`4_exhibits/03 --monthly`, `fig2_spreading_monthly_v3.pdf`) and the passage "How the three
+(`4_exhibits/03 --monthly`, `fig3_monthly_path.pdf`) and the passage "How the three
 results fare". The package still builds those three figures. The offline appendix is not part
 of the publication, and the package holds no code for its other exhibits.
 
